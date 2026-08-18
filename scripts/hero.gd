@@ -20,10 +20,18 @@ const MISTURA := 0.18
 ## desafinado aqui ensinaria errado.
 const ESCALA := ["do", "re", "mi", "fa", "sol", "la", "si"]
 
+## Sequencia de golpes: cada toque puxa o proximo. Um so golpe repetido faz o
+## combate parecer quebrado mesmo quando esta funcionando.
+const COMBO := ["corte_fora", "corte_dentro", "ataque_pulo"]
+## Parado este tempo, o combo recomeca do primeiro golpe.
+const PAUSA_DO_COMBO := 1.2
+
 var _animador: AnimationPlayer
 var _atacando := false
 var _voz: AudioStreamPlayer
 var _proxima_nota := 0
+var _golpe := 0
+var _ultimo_golpe_em := -100.0
 
 func _ready() -> void:
     var modelo := (load("res://personagem/heroi_base.fbx") as PackedScene).instantiate()
@@ -37,8 +45,6 @@ func _ready() -> void:
         var altura: float = malha.get_aabb().size.y
         if altura > 0.0:
             modelo.scale = Vector3.ONE * (ALTURA_ALVO / altura)
-        # O modelo do Mixamo olha para +Z; o jogador gira para -Z ao andar.
-        modelo.rotation.y = PI
         break
 
     _voz = AudioStreamPlayer.new()
@@ -75,17 +81,35 @@ func _equipar_espada(modelo: Node3D) -> void:
     suporte.bone_idx = indice
     esqueleto.add_child(suporte)
 
-    var espada := (load("res://models/espada_akles.glb") as PackedScene).instantiate()
-    suporte.add_child(espada)
+    # A espada entra dentro de um suporte de orientacao. Sem ele, deslocar o
+    # punho e girar a lamina brigam entre si: a posicao vale no espaco do OSSO e
+    # a rotacao vale dentro da espada, entao somar os dois na mesma pessoa punha
+    # a mao no meio da lamina — foi o que aconteceu.
+    var punho := Node3D.new()
+    punho.name = "Punho"
+    suporte.add_child(punho)
 
-    # A espada esta DENTRO do esqueleto, que foi ampliado ~176x para o heroi ter
-    # 1.75 m. Sem descontar essa ampliacao, ela sairia do tamanho de uma casa.
+    var espada := (load("res://models/espada_akles.glb") as PackedScene).instantiate()
+    punho.add_child(espada)
+
+    # A espada esta DENTRO do esqueleto, ampliado ~176x para o heroi ter 1.75 m.
+    # Sem descontar essa ampliacao ela sairia do tamanho de uma casa.
     var altura_da_espada := 0.94
     var escala_do_modelo: float = modelo.scale.x
-    espada.scale = Vector3.ONE * (COMPRIMENTO_DA_ESPADA / altura_da_espada / escala_do_modelo)
-    # Punho na mao e lamina para fora: o modelo nasce com a lamina em +Y.
-    espada.rotation_degrees = Vector3(0.0, 0.0, -90.0)
-    espada.position = Vector3(0.0, 0.02 / escala_do_modelo, 0.0)
+    var escala := COMPRIMENTO_DA_ESPADA / altura_da_espada / escala_do_modelo
+    espada.scale = Vector3.ONE * escala
+
+    # Medido na malha: a fatia mais estreita (o cabo) fica a 85% da altura, com a
+    # guarda — a mais larga — aos 65%, e a lamina descendo dai. Entao o cabo esta
+    # ACIMA do centro, e trazer esse ponto para a origem e o que poe a mao no
+    # lugar certo em vez de no meio da lamina.
+    const FRACAO_DO_CABO := 0.85
+    espada.position = Vector3(0.0, -(FRACAO_DO_CABO - 0.5) * altura_da_espada * escala, 0.0)
+
+    # Com o cabo na origem, a lamina aponta para -Y da espada. Os ossos do
+    # Mixamo encadeiam ao longo do +Y, entao meia volta em X leva a lamina para a
+    # direcao dos dedos.
+    punho.rotation_degrees = Vector3(180.0, 0.0, 0.0)
 
     for malha in espada.find_children("*", "MeshInstance3D", true, false):
         malha.material_override = load("res://Material_TripoSR.tres")
@@ -105,8 +129,14 @@ func atualizar_movimento(velocidade: float) -> void:
 func atacar() -> void:
     if _atacando:
         return
+    var agora := Time.get_ticks_msec() / 1000.0
+    if agora - _ultimo_golpe_em > PAUSA_DO_COMBO:
+        _golpe = 0
+    _ultimo_golpe_em = agora
+
     _atacando = true
-    _animador.play("heroi/corte_fora", MISTURA)
+    _animador.play("heroi/" + COMBO[_golpe], MISTURA)
+    _golpe = (_golpe + 1) % COMBO.size()
     _tocar_nota()
 
 func _tocar_nota() -> void:
@@ -116,6 +146,6 @@ func _tocar_nota() -> void:
     _voz.play()
 
 func _ao_terminar(animacao: StringName) -> void:
-    if animacao == &"heroi/corte_fora":
+    if String(animacao).trim_prefix("heroi/") in COMBO:
         _atacando = false
         _animador.play("heroi/parado", MISTURA)

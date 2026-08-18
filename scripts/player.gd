@@ -54,9 +54,10 @@ func _physics_process(delta: float) -> void:
     _hero.atualizar_movimento(Vector2(velocity.x, velocity.z).length())
 
 func _unhandled_input(event: InputEvent) -> void:
-    # Toque na tela (fora do joystick) ou espaco: golpe.
-    var atacou: bool = event is InputEventScreenTouch and event.pressed
-    atacou = atacou or (event is InputEventKey and event.pressed
-        and event.keycode == KEY_SPACE)
-    if atacou:
+    # O golpe agora sai do botao na tela; aqui fica so o atalho de teclado.
+    if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
         _hero.atacar()
+
+## Ligado ao botao de ataque pelo game.gd.
+func atacar() -> void:
+    _hero.atacar()
