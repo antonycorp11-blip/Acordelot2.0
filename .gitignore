@@ -13,3 +13,8 @@ downloads/
 # original por .tools/preparar_mixamo.py.
 personagem/heroi_mixamo/
 personagem/heroi_mixamo.zip
+
+# Os FBX do Mixamo trazem a malha inteira (16 MB cada, 110 MB no total). O jogo
+# usa a biblioteca assada (personagem/heroi_anims.res) e UMA malha; os originais
+# ficam fora do repositorio.
+personagem/animacoes/

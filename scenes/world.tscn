@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/isometric_camera.gd" id="3_camera"]
 [ext_resource type="Script" path="res://scripts/world_streamer.gd" id="4_streamer"]
 [ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="5_joystick"]
+[ext_resource type="Script" path="res://scripts/hero.gd" id="7_hero"]
 [ext_resource type="Script" path="res://scripts/world_map.gd" id="6_map"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_day"]
@@ -58,8 +59,9 @@ directional_shadow_max_distance = 45.0
 [node name="Player" type="CharacterBody3D" parent="."]
 script = ExtResource("2_player")
 
-[node name="Mesh" type="MeshInstance3D" parent="Player"]
-mesh = SubResource("Mesh_player")
+[node name="Hero" type="Node3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
+script = ExtResource("7_hero")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
 shape = SubResource("Shape_player")

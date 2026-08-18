@@ -29,6 +29,10 @@ func _ready() -> void:
         "grass_texture", load("res://textures/grass_seamless.png"))
     _ground_material.set_shader_parameter(
         "dirt_texture", load("res://textures/dirt_seamless.png"))
+    _ground_material.set_shader_parameter(
+        "stone_texture", load("res://textures/stone_seamless.png"))
+    _ground_material.set_shader_parameter(
+        "road_mask", load("res://textures/road_mask.png"))
 
 ## Monta na hora o pedaco sob uma posicao. O mundo nasce um pedaco por quadro
 ## para nao engasgar, mas o jogador ja cai desde o primeiro: sem o chao dele

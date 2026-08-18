@@ -11,6 +11,15 @@ render_mode diffuse_burley;
 // do mato — e isso e a mistura das duas por ruido de escala grande.
 uniform sampler2D grass_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D dirt_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D stone_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+
+// Mapa das estradas do mundo inteiro, desenhado por .tools/gerar_estradas.py a
+// partir da grade dos cenarios. Vermelho = terra batida, verde = calcamento.
+// Uma leitura de textura resolve um tracado que ruido nenhum saberia fazer:
+// estrada tem que SAIR de um cenario e CHEGAR no outro.
+uniform sampler2D road_mask : filter_linear, repeat_disable;
+uniform vec2 world_min = vec2(-660.0, -540.0);
+uniform vec2 world_size = vec2(1320.0, 1200.0);
 uniform float meters_per_tile = 7.0;
 
 // Tamanho da mancha de terra. Grande demais vira deserto, pequeno demais vira
@@ -72,6 +81,13 @@ void fragment() {
     float dirt_mask = smoothstep(0.50, 0.50 + path_amount, path);
 
     vec3 ground = mix(grass, dirt, dirt_mask);
+
+    // A estrada vem por cima da mancha natural: onde ela passa, manda ela.
+    vec2 road_uv = (world_position.xz - world_min) / world_size;
+    vec2 road = texture(road_mask, road_uv).rg;
+    ground = mix(ground, dirt, smoothstep(0.45, 0.80, road.r));
+    vec3 stone = texture(stone_texture, world_position.xz / 3.2).rgb;
+    ground = mix(ground, stone, smoothstep(0.45, 0.80, road.g));
 
     vec2 macro_uv = world_position.xz / macro_meters;
     float patch = fbm(macro_uv);

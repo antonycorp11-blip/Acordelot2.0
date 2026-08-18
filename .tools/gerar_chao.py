@@ -124,24 +124,13 @@ def gerar_terra(rng):
     desenho = ImageDraw.Draw(imagem)
 
     # Pedrisco: o que faz terra batida parecer pisada, e nao papel pardo.
-    for _ in range(2600):
+    for _ in range(5200):
         raio = rng.uniform(1.0, 3.4)
         claro = rng.uniform(0.55, 1.0)
         cor = tuple(int(PEDRA[c] * claro) for c in range(3))
         x, y = rng.uniform(0, TAM), rng.uniform(0, TAM)
         repetido(lambda dx, dy: desenho.ellipse(
             [x + dx - raio, y + dy - raio, x + dx + raio, y + dy + raio], fill=cor))
-
-    # Sulcos rasos na direcao do caminho.
-    for _ in range(70):
-        x, y = rng.uniform(0, TAM), rng.uniform(0, TAM)
-        comprimento = rng.uniform(30, 90)
-        angulo = rng.uniform(0, math.pi)
-        cor = tuple(int(TERRA_ESCURA[c] * rng.uniform(1.05, 1.25)) for c in range(3))
-        repetido(lambda dx, dy: desenho.line(
-            [(x + dx, y + dy),
-             (x + dx + math.cos(angulo) * comprimento,
-              y + dy + math.sin(angulo) * comprimento)], fill=cor, width=5))
 
     return sem_emenda(imagem, lambda i: i.filter(ImageFilter.GaussianBlur(0.6)))
 

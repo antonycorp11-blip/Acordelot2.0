@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+@onready var _hero: Hero = $Hero
+
 @export var move_speed := 6.0
 @export var acceleration := 18.0
 @export var gravity := 24.0
@@ -48,3 +50,13 @@ func _physics_process(delta: float) -> void:
         rotation.y = lerp_angle(rotation.y, target_angle, 10.0 * delta)
 
     move_and_slide()
+
+    _hero.atualizar_movimento(Vector2(velocity.x, velocity.z).length())
+
+func _unhandled_input(event: InputEvent) -> void:
+    # Toque na tela (fora do joystick) ou espaco: golpe.
+    var atacou: bool = event is InputEventScreenTouch and event.pressed
+    atacou = atacou or (event is InputEventKey and event.pressed
+        and event.keycode == KEY_SPACE)
+    if atacou:
+        _hero.atacar()
