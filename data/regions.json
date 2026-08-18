@@ -1,0 +1,1999 @@
+{
+  "_origem": "gerado por .tools/gerar_regioes.py a partir de data/world_config.json",
+  "region_size": 120.0,
+  "start_map": "custom_1785881037059_214",
+  "regions": [
+    {
+      "id": "mata_-5_-4",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 534577575
+    },
+    {
+      "id": "mata_-4_-4",
+      "name": "Mata Fechada",
+      "col": -4,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1262518196
+    },
+    {
+      "id": "mata_-3_-4",
+      "name": "Mata Fechada",
+      "col": -3,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1987870030
+    },
+    {
+      "id": "mata_-2_-4",
+      "name": "Mata Fechada",
+      "col": -2,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1716499877
+    },
+    {
+      "id": "mata_-1_-4",
+      "name": "Mata Fechada",
+      "col": -1,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1716499877
+    },
+    {
+      "id": "mata_0_-4",
+      "name": "Mata Fechada",
+      "col": 0,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1554681868
+    },
+    {
+      "id": "mata_1_-4",
+      "name": "Mata Fechada",
+      "col": 1,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 651599646
+    },
+    {
+      "id": "mata_2_-4",
+      "name": "Mata Fechada",
+      "col": 2,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 66459652
+    },
+    {
+      "id": "mata_3_-4",
+      "name": "Mata Fechada",
+      "col": 3,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 372759566
+    },
+    {
+      "id": "mata_4_-4",
+      "name": "Mata Fechada",
+      "col": 4,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1190157750
+    },
+    {
+      "id": "mata_5_-4",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": -4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1016123764
+    },
+    {
+      "id": "mata_-5_-3",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": -3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1716007888
+    },
+    {
+      "id": "mata_-4_-3",
+      "name": "Mata Fechada",
+      "col": -4,
+      "row": -3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 2135316262
+    },
+    {
+      "id": "mata_-3_-3",
+      "name": "Mata Fechada",
+      "col": -3,
+      "row": -3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1190076080
+    },
+    {
+      "id": "mata_-2_-3",
+      "name": "Mata Fechada",
+      "col": -2,
+      "row": -3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1780673467
+    },
+    {
+      "id": "mata_-1_-3",
+      "name": "Mata Fechada",
+      "col": -1,
+      "row": -3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1780673467
+    },
+    {
+      "id": "notas_sagradas",
+      "name": "✦ Lugar das Notas Sagradas",
+      "col": 0,
+      "row": -3,
+      "biome": "sagrado",
+      "props": [
+        {
+          "tag": "crystal",
+          "count": 12
+        },
+        {
+          "tag": "tree",
+          "count": 6
+        }
+      ],
+      "seed": 190338989
+    },
+    {
+      "id": "custom_1786572340509_998",
+      "name": "🏰 (sobra) Trilha da Serra em meia resolução",
+      "col": 1,
+      "row": -3,
+      "biome": "floresta",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 26
+        },
+        {
+          "tag": "bush",
+          "count": 10
+        }
+      ],
+      "seed": 1501342393
+    },
+    {
+      "id": "custom_1786499037621_343",
+      "name": "🏰 (sobra) Salão do Forjador duplicado",
+      "col": 2,
+      "row": -3,
+      "biome": "cidade",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 18
+        },
+        {
+          "tag": "tree",
+          "count": 6
+        }
+      ],
+      "seed": 1568033525
+    },
+    {
+      "id": "mata_3_-3",
+      "name": "Mata Fechada",
+      "col": 3,
+      "row": -3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1722449263
+    },
+    {
+      "id": "mata_4_-3",
+      "name": "Mata Fechada",
+      "col": 4,
+      "row": -3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1767399436
+    },
+    {
+      "id": "mata_5_-3",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": -3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 234227047
+    },
+    {
+      "id": "mata_-5_-2",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1039427316
+    },
+    {
+      "id": "mata_-4_-2",
+      "name": "Mata Fechada",
+      "col": -4,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 733127402
+    },
+    {
+      "id": "mata_-3_-2",
+      "name": "Mata Fechada",
+      "col": -3,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1767317766
+    },
+    {
+      "id": "mata_-2_-2",
+      "name": "Mata Fechada",
+      "col": -2,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 73865971
+    },
+    {
+      "id": "mata_-1_-2",
+      "name": "Mata Fechada",
+      "col": -1,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 73865971
+    },
+    {
+      "id": "mata_0_-2",
+      "name": "Mata Fechada",
+      "col": 0,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1097651520
+    },
+    {
+      "id": "mata_1_-2",
+      "name": "Mata Fechada",
+      "col": 1,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 991034264
+    },
+    {
+      "id": "mata_2_-2",
+      "name": "Mata Fechada",
+      "col": 2,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 438390089
+    },
+    {
+      "id": "mata_3_-2",
+      "name": "Mata Fechada",
+      "col": 3,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1995276349
+    },
+    {
+      "id": "mata_4_-2",
+      "name": "Mata Fechada",
+      "col": 4,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 685308009
+    },
+    {
+      "id": "mata_5_-2",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": -2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 626510146
+    },
+    {
+      "id": "mata_-5_-1",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1039427316
+    },
+    {
+      "id": "mata_-4_-1",
+      "name": "Mata Fechada",
+      "col": -4,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 733127402
+    },
+    {
+      "id": "mata_-3_-1",
+      "name": "Mata Fechada",
+      "col": -3,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1767317766
+    },
+    {
+      "id": "mata_-2_-1",
+      "name": "Mata Fechada",
+      "col": -2,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 73865971
+    },
+    {
+      "id": "mata_-1_-1",
+      "name": "Mata Fechada",
+      "col": -1,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 73865971
+    },
+    {
+      "id": "mata_0_-1",
+      "name": "Mata Fechada",
+      "col": 0,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1097651520
+    },
+    {
+      "id": "mata_1_-1",
+      "name": "Mata Fechada",
+      "col": 1,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 991034264
+    },
+    {
+      "id": "mata_2_-1",
+      "name": "Mata Fechada",
+      "col": 2,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 438390089
+    },
+    {
+      "id": "mata_3_-1",
+      "name": "Mata Fechada",
+      "col": 3,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1995276349
+    },
+    {
+      "id": "custom_1786572518911_723",
+      "name": "🏞️ Enseada do Lago — Ecos",
+      "col": 4,
+      "row": -1,
+      "biome": "clareira",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 10
+        },
+        {
+          "tag": "bush",
+          "count": 16
+        },
+        {
+          "tag": "crystal",
+          "count": 3
+        }
+      ],
+      "seed": 1847439640
+    },
+    {
+      "id": "mata_5_-1",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": -1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 626510146
+    },
+    {
+      "id": "mata_-5_0",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": 0,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 887504067
+    },
+    {
+      "id": "mata_-4_0",
+      "name": "Mata Fechada",
+      "col": -4,
+      "row": 0,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1987920201
+    },
+    {
+      "id": "mata_-3_0",
+      "name": "Mata Fechada",
+      "col": -3,
+      "row": 0,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 785676736
+    },
+    {
+      "id": "mata_-2_0",
+      "name": "Mata Fechada",
+      "col": -2,
+      "row": 0,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 294418235
+    },
+    {
+      "id": "mata_-1_0",
+      "name": "Mata Fechada",
+      "col": -1,
+      "row": 0,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 294418235
+    },
+    {
+      "id": "custom_1785869541494_557",
+      "name": "🏰 Praça Central de Acordelot",
+      "col": 0,
+      "row": 0,
+      "biome": "cidade",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 18
+        },
+        {
+          "tag": "tree",
+          "count": 6
+        }
+      ],
+      "seed": 757362422
+    },
+    {
+      "id": "mata_1_0",
+      "name": "Mata Fechada",
+      "col": 1,
+      "row": 0,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1377001651
+    },
+    {
+      "id": "mata_2_0",
+      "name": "Mata Fechada",
+      "col": 2,
+      "row": 0,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1488541294
+    },
+    {
+      "id": "custom_1786572451743_753",
+      "name": "🌲 Trilha da Serra — Ecos",
+      "col": 3,
+      "row": 0,
+      "biome": "floresta",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 26
+        },
+        {
+          "tag": "bush",
+          "count": 10
+        }
+      ],
+      "seed": 728988185
+    },
+    {
+      "id": "mata_4_0",
+      "name": "Mata Fechada",
+      "col": 4,
+      "row": 0,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1682727906
+    },
+    {
+      "id": "mata_5_0",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": 0,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1741525769
+    },
+    {
+      "id": "mata_-5_1",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": 1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1279787166
+    },
+    {
+      "id": "mata_-4_1",
+      "name": "Mata Fechada",
+      "col": -4,
+      "row": 1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1311339629
+    },
+    {
+      "id": "mata_-3_1",
+      "name": "Mata Fechada",
+      "col": -3,
+      "row": 1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1939048597
+    },
+    {
+      "id": "mata_-2_1",
+      "name": "Mata Fechada",
+      "col": -2,
+      "row": 1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1765321310
+    },
+    {
+      "id": "custom_1786501580114_289",
+      "name": "🎼 Salão do Forjador — Altar das Escalas",
+      "col": -1,
+      "row": 1,
+      "biome": "ruina",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 22
+        },
+        {
+          "tag": "bush",
+          "count": 6
+        }
+      ],
+      "seed": 1436823089
+    },
+    {
+      "id": "custom_1785880661560_858",
+      "name": "🛡️ Portões Reais",
+      "col": 0,
+      "row": 1,
+      "biome": "cidade",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 18
+        },
+        {
+          "tag": "tree",
+          "count": 6
+        }
+      ],
+      "seed": 80781850
+    },
+    {
+      "id": "custom_1785254692668_431",
+      "name": "🌿 Clareira dos Ecos",
+      "col": 1,
+      "row": 1,
+      "biome": "clareira",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 10
+        },
+        {
+          "tag": "bush",
+          "count": 16
+        },
+        {
+          "tag": "crystal",
+          "count": 3
+        }
+      ],
+      "seed": 601328274
+    },
+    {
+      "id": "custom_1786545873824_206",
+      "name": "🌿 Clareira dos Ecos II — Encruzilhada",
+      "col": 2,
+      "row": 1,
+      "biome": "clareira",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 10
+        },
+        {
+          "tag": "bush",
+          "count": 16
+        },
+        {
+          "tag": "crystal",
+          "count": 3
+        }
+      ],
+      "seed": 651923256
+    },
+    {
+      "id": "mata_3_1",
+      "name": "Mata Fechada",
+      "col": 3,
+      "row": 1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 323938133
+    },
+    {
+      "id": "mata_4_1",
+      "name": "Mata Fechada",
+      "col": 4,
+      "row": 1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1141336317
+    },
+    {
+      "id": "mata_5_1",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": 1,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1164284083
+    },
+    {
+      "id": "mata_-5_2",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": 2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1764829321
+    },
+    {
+      "id": "mata_-4_2",
+      "name": "Mata Fechada",
+      "col": -4,
+      "row": 2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1458529407
+    },
+    {
+      "id": "mata_-3_2",
+      "name": "Mata Fechada",
+      "col": -3,
+      "row": 2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1105567890
+    },
+    {
+      "id": "mata_-2_2",
+      "name": "Mata Fechada",
+      "col": -2,
+      "row": 2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1447554561
+    },
+    {
+      "id": "custom_1785900374897_630",
+      "name": "🏚️ Pátio das Ruínas",
+      "col": -1,
+      "row": 2,
+      "biome": "ruina",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 22
+        },
+        {
+          "tag": "bush",
+          "count": 6
+        }
+      ],
+      "seed": 255392776
+    },
+    {
+      "id": "custom_1785884200706_430",
+      "name": "🏘️ Vila do Caminho",
+      "col": 0,
+      "row": 2,
+      "biome": "cidade",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 18
+        },
+        {
+          "tag": "tree",
+          "count": 6
+        }
+      ],
+      "seed": 227971628
+    },
+    {
+      "id": "custom_1786198430678_105",
+      "name": "🌾 Floresta de Coleta",
+      "col": 1,
+      "row": 2,
+      "biome": "floresta",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 26
+        },
+        {
+          "tag": "bush",
+          "count": 10
+        }
+      ],
+      "seed": 1550163826
+    },
+    {
+      "id": "mata_2_2",
+      "name": "Mata Fechada",
+      "col": 2,
+      "row": 2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1163792094
+    },
+    {
+      "id": "mata_3_2",
+      "name": "Mata Fechada",
+      "col": 3,
+      "row": 2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 573194707
+    },
+    {
+      "id": "mata_4_2",
+      "name": "Mata Fechada",
+      "col": 4,
+      "row": 2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 2107389651
+    },
+    {
+      "id": "mata_5_2",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": 2,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 2048591788
+    },
+    {
+      "id": "mata_-5_3",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": 3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1088248749
+    },
+    {
+      "id": "custom_1785976318486_785",
+      "name": "⛏️ Cavernas da Clave III — Arena do Selo",
+      "col": -4,
+      "row": 3,
+      "biome": "caverna",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 26
+        },
+        {
+          "tag": "crystal",
+          "count": 8
+        }
+      ],
+      "seed": 667496677
+    },
+    {
+      "id": "custom_1785976286672_61",
+      "name": "⛏️ Cavernas da Clave II — Salão em Ruínas",
+      "col": -3,
+      "row": 3,
+      "biome": "caverna",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 26
+        },
+        {
+          "tag": "crystal",
+          "count": 8
+        }
+      ],
+      "seed": 1832948491
+    },
+    {
+      "id": "custom_1785967453140_198",
+      "name": "⛏️ Cavernas da Clave I — Galerias",
+      "col": -2,
+      "row": 3,
+      "biome": "caverna",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 26
+        },
+        {
+          "tag": "crystal",
+          "count": 8
+        }
+      ],
+      "seed": 8235246
+    },
+    {
+      "id": "custom_1785976237901_373",
+      "name": "🕳️ Passagem Inferior",
+      "col": -1,
+      "row": 3,
+      "biome": "caverna",
+      "props": [
+        {
+          "tag": "wall",
+          "count": 26
+        },
+        {
+          "tag": "crystal",
+          "count": 8
+        }
+      ],
+      "seed": 8235246
+    },
+    {
+      "id": "custom_1786547045830_14",
+      "name": "🌑 Floresta Sombria — Marcos de Sustenido",
+      "col": 0,
+      "row": 3,
+      "biome": "sombria",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 34
+        },
+        {
+          "tag": "crystal",
+          "count": 4
+        }
+      ],
+      "seed": 568710969
+    },
+    {
+      "id": "custom_1786547066907_403",
+      "name": "🌑 Floresta Sombria — Pedra da Pauta",
+      "col": 1,
+      "row": 3,
+      "biome": "sombria",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 34
+        },
+        {
+          "tag": "crystal",
+          "count": 4
+        }
+      ],
+      "seed": 1420635929
+    },
+    {
+      "id": "mata_2_3",
+      "name": "Mata Fechada",
+      "col": 2,
+      "row": 3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 487211522
+    },
+    {
+      "id": "mata_3_3",
+      "name": "Mata Fechada",
+      "col": 3,
+      "row": 3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 180911608
+    },
+    {
+      "id": "mata_4_3",
+      "name": "Mata Fechada",
+      "col": 4,
+      "row": 3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 636486576
+    },
+    {
+      "id": "mata_5_3",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": 3,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 577688713
+    },
+    {
+      "id": "mata_-5_4",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 511007063
+    },
+    {
+      "id": "mata_-4_4",
+      "name": "Mata Fechada",
+      "col": -4,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 565838559
+    },
+    {
+      "id": "mata_-3_4",
+      "name": "Mata Fechada",
+      "col": -3,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 636404906
+    },
+    {
+      "id": "mata_-2_4",
+      "name": "Mata Fechada",
+      "col": -2,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1127663407
+    },
+    {
+      "id": "mata_-1_4",
+      "name": "Mata Fechada",
+      "col": -1,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1127663407
+    },
+    {
+      "id": "custom_1785881037059_214",
+      "name": "🌲 Floresta do Despertar",
+      "col": 0,
+      "row": 4,
+      "biome": "floresta",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 26
+        },
+        {
+          "tag": "bush",
+          "count": 10
+        }
+      ],
+      "seed": 512399357
+    },
+    {
+      "id": "mata_1_4",
+      "name": "Mata Fechada",
+      "col": 1,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1158323107
+    },
+    {
+      "id": "mata_2_4",
+      "name": "Mata Fechada",
+      "col": 2,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 763139289
+    },
+    {
+      "id": "mata_3_4",
+      "name": "Mata Fechada",
+      "col": 3,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1069439203
+    },
+    {
+      "id": "mata_4_4",
+      "name": "Mata Fechada",
+      "col": 4,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 2046998501
+    },
+    {
+      "id": "mata_5_4",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": 4,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 319444127
+    },
+    {
+      "id": "mata_-5_5",
+      "name": "Mata Fechada",
+      "col": -5,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 554385161
+    },
+    {
+      "id": "mata_-4_5",
+      "name": "Mata Fechada",
+      "col": -4,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 2036741634
+    },
+    {
+      "id": "mata_-3_5",
+      "name": "Mata Fechada",
+      "col": -3,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1213646592
+    },
+    {
+      "id": "mata_-2_5",
+      "name": "Mata Fechada",
+      "col": -2,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 343239668
+    },
+    {
+      "id": "mata_-1_5",
+      "name": "Mata Fechada",
+      "col": -1,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 343239668
+    },
+    {
+      "id": "mata_0_5",
+      "name": "Mata Fechada",
+      "col": 0,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 780458430
+    },
+    {
+      "id": "mata_1_5",
+      "name": "Mata Fechada",
+      "col": 1,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1425823084
+    },
+    {
+      "id": "mata_2_5",
+      "name": "Mata Fechada",
+      "col": 2,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1439719861
+    },
+    {
+      "id": "mata_3_5",
+      "name": "Mata Fechada",
+      "col": 3,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1746019775
+    },
+    {
+      "id": "mata_4_5",
+      "name": "Mata Fechada",
+      "col": 4,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 415934312
+    },
+    {
+      "id": "mata_5_5",
+      "name": "Mata Fechada",
+      "col": 5,
+      "row": 5,
+      "biome": "mata",
+      "props": [
+        {
+          "tag": "tree",
+          "count": 44
+        },
+        {
+          "tag": "bush",
+          "count": 12
+        }
+      ],
+      "seed": 1889686088
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "_nota": "Etiqueta -> modelos que podem nascer nela. Os .glb em models/ sao os decimados por .tools/decimar_malha.py; os originais do TripoSR ficam fora do projeto (AcordeLot 2.0/output), pesados demais para o jogo. y/scale saem das arvores postas a mao em scenes/forest_map.tscn. Asset novo: gere o .glb, decime, e acrescente o caminho aqui.",
+  "tags": {
+    "tree": {
+      "y": 2.2,
+      "scale": [
+        5.0,
+        5.6
+      ],
+      "solid": true,
+      "models": [
+        "res://models/media_1787068821885.glb",
+        "res://models/media_1787068825917.glb",
+        "res://models/media_1787068829583.glb",
+        "res://models/media_1787068833589.glb",
+        "res://models/media_1787068852522.glb",
+        "res://models/media_1787078412208.glb",
+        "res://models/media_1787078420469.glb",
+        "res://models/media_1787078441421.glb",
+        "res://models/media_1787078448833.glb",
+        "res://models/media_1787078454231.glb"
+      ]
+    },
+    "bush": {
+      "y": 0.9,
+      "scale": [
+        1.6,
+        2.4
+      ],
+      "solid": false,
+      "models": [
+        "res://models/fantasy_bush_1787078968444.glb"
+      ]
+    },
+    "crystal": {
+      "y": 1.0,
+      "scale": [
+        1.8,
+        2.8
+      ],
+      "solid": true,
+      "models": [
+        "res://models/crystal_cluster_1787078933118.glb"
+      ]
+    },
+    "wall": {
+      "y": 1.7,
+      "scale": [
+        2.6,
+        3.4
+      ],
+      "solid": true,
+      "models": [
+        "res://models/stone_wall_segment_1787079001245.glb"
+      ]
+    }
+  }
+}

@@ -1,0 +1,106 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/game.gd" id="1_game"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="2_player"]
+[ext_resource type="Script" path="res://scripts/isometric_camera.gd" id="3_camera"]
+[ext_resource type="Script" path="res://scripts/world_streamer.gd" id="4_streamer"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="5_joystick"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_day"]
+sky_top_color = Color(0.16, 0.42, 0.72, 1)
+sky_horizon_color = Color(0.72, 0.84, 0.92, 1)
+ground_bottom_color = Color(0.12, 0.17, 0.1, 1)
+ground_horizon_color = Color(0.58, 0.68, 0.52, 1)
+sun_angle_max = 18.0
+sun_curve = 0.08
+
+[sub_resource type="Sky" id="Sky_day"]
+sky_material = SubResource("SkyMaterial_day")
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 2
+sky = SubResource("Sky_day")
+ambient_light_source = 3
+ambient_light_color = Color(0.68, 0.76, 0.66, 1)
+ambient_light_energy = 1.35
+reflected_light_source = 2
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.72, 0.8, 0.82, 1)
+fog_light_energy = 0.42
+fog_density = 0.004
+fog_height = 2.0
+fog_height_density = 0.045
+
+[sub_resource type="CapsuleMesh" id="Mesh_player"]
+radius = 0.45
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="Shape_player"]
+radius = 0.45
+height = 1.8
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_game")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="Sunlight" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.872665, -0.610865, 0)
+light_color = Color(1, 0.94, 0.82, 1)
+light_energy = 2.1
+shadow_enabled = true
+directional_shadow_max_distance = 45.0
+
+[node name="Player" type="CharacterBody3D" parent="."]
+script = ExtResource("2_player")
+
+[node name="Mesh" type="MeshInstance3D" parent="Player"]
+mesh = SubResource("Mesh_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("Shape_player")
+
+[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("3_camera")
+target = NodePath("../Player")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+position = Vector3(0, 11.5, 13.5)
+rotation = Vector3(-0.705, 0, 0)
+current = true
+fov = 48.0
+near = 0.2
+far = 70.0
+
+[node name="WorldStreamer" type="Node3D" parent="." node_paths=PackedStringArray("player")]
+script = ExtResource("4_streamer")
+player = NodePath("../Player")
+
+[node name="MobileControls" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="VirtualJoystick" type="Control" parent="MobileControls" groups=["virtual_joystick"]]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -244.0
+offset_right = 244.0
+offset_bottom = -24.0
+grow_vertical = 0
+mouse_filter = 0
+script = ExtResource("5_joystick")
+
+[node name="DebugHud" type="CanvasLayer" parent="."]
+layer = 11
+
+[node name="Status" type="Label" parent="DebugHud"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 460.0
+offset_bottom = 90.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.86)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 6

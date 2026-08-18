@@ -1,0 +1,112 @@
+{
+  "_origem": "assets/dados/acordelot_world_config.json do jogo 2D (wasd_game)",
+  "startMap": "custom_1785881037059_214",
+  "gridPos": {
+    "notas_sagradas": {
+      "col": 0,
+      "row": -3
+    },
+    "custom_1785869541494_557": {
+      "col": 0,
+      "row": 0
+    },
+    "custom_1785880661560_858": {
+      "col": 0,
+      "row": 1
+    },
+    "custom_1785881037059_214": {
+      "col": 0,
+      "row": 4
+    },
+    "custom_1785884200706_430": {
+      "col": 0,
+      "row": 2
+    },
+    "custom_1785900374897_630": {
+      "col": -1,
+      "row": 2
+    },
+    "custom_1785967453140_198": {
+      "col": -2,
+      "row": 3
+    },
+    "custom_1785976237901_373": {
+      "col": -1,
+      "row": 3
+    },
+    "custom_1785976286672_61": {
+      "col": -3,
+      "row": 3
+    },
+    "custom_1785976318486_785": {
+      "col": -4,
+      "row": 3
+    },
+    "custom_1786198430678_105": {
+      "col": 1,
+      "row": 2
+    },
+    "custom_1786499037621_343": {
+      "col": 2,
+      "row": -3
+    },
+    "custom_1786501580114_289": {
+      "col": -1,
+      "row": 1
+    },
+    "custom_1785254692668_431": {
+      "col": 1,
+      "row": 1
+    },
+    "custom_1786545873824_206": {
+      "col": 2,
+      "row": 1
+    },
+    "custom_1786547045830_14": {
+      "col": 0,
+      "row": 3
+    },
+    "custom_1786547066907_403": {
+      "col": 1,
+      "row": 3
+    },
+    "custom_1786572340509_998": {
+      "col": 1,
+      "row": -3
+    },
+    "custom_1786572451743_753": {
+      "col": 3,
+      "row": 0
+    },
+    "custom_1786572518911_723": {
+      "col": 4,
+      "row": -1
+    }
+  },
+  "sceneNames": {
+    "custom_1785254692668_431": "🌿 Clareira dos Ecos",
+    "notas_sagradas": "✦ Lugar das Notas Sagradas",
+    "custom_1785776481744_650": "🎼 Salão do Forjador de Escalas",
+    "custom_1785779853928_252": "🎓 Academia de Música",
+    "custom_1785869541494_557": "🏰 Praça Central de Acordelot",
+    "custom_1785871568442_57": "🏛️ Centro de Acordelot",
+    "custom_1785880661560_858": "🛡️ Portões Reais",
+    "custom_1785881037059_214": "🌲 Floresta do Despertar",
+    "custom_1785884200706_430": "🏘️ Vila do Caminho",
+    "custom_1785900374897_630": "🏚️ Pátio das Ruínas",
+    "custom_1785967453140_198": "⛏️ Cavernas da Clave I — Galerias",
+    "custom_1785976237901_373": "🕳️ Passagem Inferior",
+    "custom_1785976286672_61": "⛏️ Cavernas da Clave II — Salão em Ruínas",
+    "custom_1785976318486_785": "⛏️ Cavernas da Clave III — Arena do Selo",
+    "custom_1786198430678_105": "🌾 Floresta de Coleta",
+    "custom_1786499037621_343": "🏰 (sobra) Salão do Forjador duplicado",
+    "custom_1786501580114_289": "🎼 Salão do Forjador — Altar das Escalas",
+    "custom_1786545873824_206": "🌿 Clareira dos Ecos II — Encruzilhada",
+    "custom_1786547045830_14": "🌑 Floresta Sombria — Marcos de Sustenido",
+    "custom_1786547066907_403": "🌑 Floresta Sombria — Pedra da Pauta",
+    "custom_1786572340509_998": "🏰 (sobra) Trilha da Serra em meia resolução",
+    "custom_1786572451743_753": "🌲 Trilha da Serra — Ecos",
+    "custom_1786572518911_723": "🏞️ Enseada do Lago — Ecos"
+  },
+  "ambience": {}
+}

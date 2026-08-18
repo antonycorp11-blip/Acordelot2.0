@@ -1,0 +1,10 @@
+# Cache de import do Godot: e reconstruido sozinho e muda a cada abertura.
+.godot/
+
+# Ferramentas locais, nao codigo do jogo: o Godot.app tem 200 MB e o node_modules
+# do proxy nao e usado (esta maquina nao tem Node).
+.tools/Godot.app/
+.tools/mcp-proxy/node_modules/
+downloads/
+
+.DS_Store

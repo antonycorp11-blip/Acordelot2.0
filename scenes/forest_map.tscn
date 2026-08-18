@@ -1,0 +1,325 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/isometric_camera.gd" id="2_camera"]
+[ext_resource type="PackedScene" path="res://models/media_1787068821885.glb" id="3_tree_a"]
+[ext_resource type="PackedScene" path="res://models/media_1787068825917.glb" id="4_tree_b"]
+[ext_resource type="PackedScene" path="res://models/media_1787068829583.glb" id="5_tree_c"]
+[ext_resource type="PackedScene" path="res://models/media_1787068833589.glb" id="6_tree_d"]
+[ext_resource type="PackedScene" path="res://models/media_1787068852522.glb" id="7_tree_e"]
+[ext_resource type="Shader" path="res://materials/forest_ground.gdshader" id="8_ground_shader"]
+[ext_resource type="Script" path="res://scripts/environment_collisions.gd" id="9_collisions"]
+[ext_resource type="Texture2D" path="res://textures/grass_seamless.png" id="10_ground_texture"]
+[ext_resource type="PackedScene" path="res://models/media_1787078412208.glb" id="11_new_a"]
+[ext_resource type="PackedScene" path="res://models/media_1787078420469.glb" id="12_new_b"]
+[ext_resource type="PackedScene" path="res://models/media_1787078441421.glb" id="13_new_c"]
+[ext_resource type="PackedScene" path="res://models/media_1787078448833.glb" id="14_new_d"]
+[ext_resource type="PackedScene" path="res://models/media_1787078454231.glb" id="15_new_e"]
+[ext_resource type="PackedScene" path="res://models/fantasy_bush_1787078968444.glb" id="16_bush"]
+[ext_resource type="PackedScene" path="res://models/crystal_cluster_1787078933118.glb" id="17_crystal"]
+[ext_resource type="PackedScene" path="res://models/stone_wall_segment_1787079001245.glb" id="18_wall"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="19_joystick"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_day"]
+sky_top_color = Color(0.16, 0.42, 0.72, 1)
+sky_horizon_color = Color(0.72, 0.84, 0.92, 1)
+ground_bottom_color = Color(0.12, 0.17, 0.1, 1)
+ground_horizon_color = Color(0.58, 0.68, 0.52, 1)
+sun_angle_max = 18.0
+sun_curve = 0.08
+
+[sub_resource type="Sky" id="Sky_day"]
+sky_material = SubResource("SkyMaterial_day")
+
+[sub_resource type="Environment" id="Environment_forest"]
+background_mode = 2
+sky = SubResource("Sky_day")
+ambient_light_source = 3
+ambient_light_color = Color(0.68, 0.76, 0.66, 1)
+ambient_light_energy = 1.35
+reflected_light_source = 2
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.72, 0.8, 0.82, 1)
+fog_light_energy = 0.42
+fog_density = 0.003
+fog_height = 2.0
+fog_height_density = 0.045
+
+[sub_resource type="ShaderMaterial" id="Material_ground"]
+shader = ExtResource("8_ground_shader")
+shader_parameter/grass_texture = ExtResource("10_ground_texture")
+shader_parameter/meters_per_tile = 6.0
+
+[sub_resource type="PlaneMesh" id="Plane_ground"]
+material = SubResource("Material_ground")
+size = Vector2(50, 50)
+subdivide_width = 16
+subdivide_depth = 16
+
+[sub_resource type="BoxShape3D" id="Shape_ground"]
+size = Vector3(50, 0.2, 50)
+
+[sub_resource type="BoxShape3D" id="Shape_wall"]
+size = Vector3(0.95, 0.78, 0.62)
+
+[sub_resource type="StandardMaterial3D" id="Material_path"]
+albedo_color = Color(0.38, 0.27, 0.15, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="Plane_path"]
+material = SubResource("Material_path")
+size = Vector2(1, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_player"]
+albedo_color = Color(0.58, 0.72, 0.9, 1)
+roughness = 0.55
+
+[sub_resource type="CapsuleMesh" id="Mesh_player"]
+material = SubResource("Material_player")
+radius = 0.45
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="Shape_player"]
+radius = 0.45
+height = 1.8
+
+[node name="ForestMap" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_forest")
+
+[node name="Sunlight" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.872665, -0.610865, 0)
+light_color = Color(1, 0.94, 0.82, 1)
+light_energy = 2.1
+shadow_enabled = true
+directional_shadow_max_distance = 60.0
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("Plane_ground")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+position = Vector3(0, -0.1, 0)
+shape = SubResource("Shape_ground")
+
+[node name="Trails" type="Node3D" parent="."]
+
+[node name="TrailSouth" type="MeshInstance3D" parent="Trails"]
+position = Vector3(0, 0.025, 8)
+scale = Vector3(3.2, 1, 14)
+mesh = SubResource("Plane_path")
+
+[node name="TrailNorthWest" type="MeshInstance3D" parent="Trails"]
+position = Vector3(-3.2, 0.028, -5)
+rotation = Vector3(0, -0.42, 0)
+scale = Vector3(3, 1, 13)
+mesh = SubResource("Plane_path")
+
+[node name="TrailEast" type="MeshInstance3D" parent="Trails"]
+position = Vector3(7.5, 0.03, -1)
+rotation = Vector3(0, 1.22, 0)
+scale = Vector3(2.7, 1, 15)
+mesh = SubResource("Plane_path")
+
+[node name="Clearing" type="MeshInstance3D" parent="Trails"]
+position = Vector3(0, 0.032, 0)
+scale = Vector3(9, 1, 9)
+mesh = SubResource("Plane_path")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+position = Vector3(0, 1.1, 0)
+script = ExtResource("1_player")
+
+[node name="Mesh" type="MeshInstance3D" parent="Player"]
+mesh = SubResource("Mesh_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("Shape_player")
+
+[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("2_camera")
+target = NodePath("../Player")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+position = Vector3(0, 11.5, 13.5)
+rotation = Vector3(-0.705, 0, 0)
+current = true
+fov = 48.0
+near = 0.2
+far = 120.0
+
+[node name="Forest" type="Node3D" parent="."]
+script = ExtResource("9_collisions")
+
+[node name="TreeA01" parent="Forest" instance=ExtResource("3_tree_a")]
+position = Vector3(-8, 2.2, -7)
+rotation = Vector3(0, 0.35, 0)
+scale = Vector3(5.2, 5.2, 5.2)
+
+[node name="TreeB01" parent="Forest" instance=ExtResource("4_tree_b")]
+position = Vector3(-14, 2.1, -2)
+rotation = Vector3(0, 1.4, 0)
+scale = Vector3(5.0, 5.0, 5.0)
+
+[node name="TreeC01" parent="Forest" instance=ExtResource("5_tree_c")]
+position = Vector3(-11, 2.3, 8)
+rotation = Vector3(0, 2.2, 0)
+scale = Vector3(5.4, 5.4, 5.4)
+
+[node name="TreeD01" parent="Forest" instance=ExtResource("6_tree_d")]
+position = Vector3(-4, 2.2, 13)
+rotation = Vector3(0, 0.8, 0)
+scale = Vector3(5.1, 5.1, 5.1)
+
+[node name="TreeE01" parent="Forest" instance=ExtResource("7_tree_e")]
+position = Vector3(5, 1.3, 14)
+rotation = Vector3(0, 2.7, 0)
+scale = Vector3(5.0, 5.0, 5.0)
+
+[node name="TreeA02" parent="Forest" instance=ExtResource("3_tree_a")]
+position = Vector3(12, 2.4, 10)
+rotation = Vector3(0, 1.9, 0)
+scale = Vector3(5.6, 5.6, 5.6)
+
+[node name="TreeB02" parent="Forest" instance=ExtResource("4_tree_b")]
+position = Vector3(15, 2.2, 2)
+rotation = Vector3(0, 0.25, 0)
+scale = Vector3(5.2, 5.2, 5.2)
+
+[node name="TreeC02" parent="Forest" instance=ExtResource("5_tree_c")]
+position = Vector3(12, 2.1, -9)
+rotation = Vector3(0, 2.9, 0)
+scale = Vector3(5.0, 5.0, 5.0)
+
+[node name="TreeD02" parent="Forest" instance=ExtResource("6_tree_d")]
+position = Vector3(4, 2.3, -14)
+rotation = Vector3(0, 1.1, 0)
+scale = Vector3(5.4, 5.4, 5.4)
+
+[node name="TreeE02" parent="Forest" instance=ExtResource("7_tree_e")]
+position = Vector3(-5, 1.3, -15)
+rotation = Vector3(0, 0.55, 0)
+scale = Vector3(5.1, 5.1, 5.1)
+
+[node name="TreeA03" parent="Forest" instance=ExtResource("3_tree_a")]
+position = Vector3(-17, 2.0, -13)
+rotation = Vector3(0, 2.45, 0)
+scale = Vector3(4.8, 4.8, 4.8)
+
+[node name="TreeB03" parent="Forest" instance=ExtResource("4_tree_b")]
+position = Vector3(-19, 2.2, 12)
+rotation = Vector3(0, 1.75, 0)
+scale = Vector3(5.3, 5.3, 5.3)
+
+[node name="TreeC03" parent="Forest" instance=ExtResource("5_tree_c")]
+position = Vector3(19, 2.3, 14)
+rotation = Vector3(0, 0.95, 0)
+scale = Vector3(5.5, 5.5, 5.5)
+
+[node name="TreeD03" parent="Forest" instance=ExtResource("6_tree_d")]
+position = Vector3(20, 2.1, -13)
+rotation = Vector3(0, 2.1, 0)
+scale = Vector3(5.0, 5.0, 5.0)
+
+[node name="NewTreeA" parent="Forest" instance=ExtResource("11_new_a")]
+position = Vector3(-18, 2.1, 3)
+rotation = Vector3(0, 0.8, 0)
+scale = Vector3(5, 5, 5)
+
+[node name="NewTreeB" parent="Forest" instance=ExtResource("12_new_b")]
+position = Vector3(-15, 2.2, 16)
+rotation = Vector3(0, 2.3, 0)
+scale = Vector3(4.8, 4.8, 4.8)
+
+[node name="NewTreeC" parent="Forest" instance=ExtResource("13_new_c")]
+position = Vector3(17, 2.1, 7)
+rotation = Vector3(0, 1.5, 0)
+scale = Vector3(4.7, 4.7, 4.7)
+
+[node name="NewTreeD" parent="Forest" instance=ExtResource("14_new_d")]
+position = Vector3(8, 2.0, -18)
+rotation = Vector3(0, 0.4, 0)
+scale = Vector3(4.9, 4.9, 4.9)
+
+[node name="NewTreeE" parent="Forest" instance=ExtResource("15_new_e")]
+position = Vector3(-16, 2.3, -17)
+rotation = Vector3(0, 2.8, 0)
+scale = Vector3(4.8, 4.8, 4.8)
+
+[node name="Bush01" parent="Forest" instance=ExtResource("16_bush")]
+position = Vector3(-5, 0.9, 5)
+rotation = Vector3(0, 0.5, 0)
+scale = Vector3(1.8, 1.8, 1.8)
+
+[node name="Bush02" parent="Forest" instance=ExtResource("16_bush")]
+position = Vector3(6, 0.8, 6)
+rotation = Vector3(0, 2.1, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Bush03" parent="Forest" instance=ExtResource("16_bush")]
+position = Vector3(-7, 0.85, -4)
+rotation = Vector3(0, 1.2, 0)
+scale = Vector3(1.7, 1.7, 1.7)
+
+[node name="Crystal01" parent="Forest" instance=ExtResource("17_crystal")]
+position = Vector3(9, 1.0, -8)
+rotation = Vector3(0, 0.7, 0)
+scale = Vector3(2.0, 2.0, 2.0)
+
+[node name="Crystal02" parent="Forest" instance=ExtResource("17_crystal")]
+position = Vector3(-10, 0.75, 10)
+rotation = Vector3(0, 2.4, 0)
+scale = Vector3(1.5, 1.5, 1.5)
+
+[node name="Ruins" type="Node3D" parent="."]
+
+[node name="Wall01" parent="Ruins" instance=ExtResource("18_wall")]
+position = Vector3(-5, 1.7, -10)
+rotation = Vector3(0, 0.25, 0)
+scale = Vector3(4, 4, 4)
+
+[node name="Wall01Body" type="StaticBody3D" parent="Ruins"]
+position = Vector3(-5, 1.7, -10)
+rotation = Vector3(0, 0.25, 0)
+scale = Vector3(4, 4, 4)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ruins/Wall01Body"]
+shape = SubResource("Shape_wall")
+
+[node name="Wall02" parent="Ruins" instance=ExtResource("18_wall")]
+position = Vector3(-1.2, 1.7, -10.8)
+rotation = Vector3(0, 0.05, 0)
+scale = Vector3(4, 4, 4)
+
+[node name="Wall02Body" type="StaticBody3D" parent="Ruins"]
+position = Vector3(-1.2, 1.7, -10.8)
+rotation = Vector3(0, 0.05, 0)
+scale = Vector3(4, 4, 4)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ruins/Wall02Body"]
+shape = SubResource("Shape_wall")
+
+[node name="MobileControls" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="VirtualJoystick" type="Control" parent="MobileControls" groups=["virtual_joystick"]]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -244.0
+offset_right = 244.0
+offset_bottom = -24.0
+grow_vertical = 0
+mouse_filter = 0
+script = ExtResource("19_joystick")
+
+[node name="ClearingFillLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 5, 0)
+light_color = Color(1, 0.88, 0.68, 1)
+light_energy = 0.55
+omni_range = 12.0
+shadow_enabled = false
