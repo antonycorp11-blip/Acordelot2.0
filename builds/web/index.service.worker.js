@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1787093940|10388217';
+const CACHE_VERSION = '1787094502|16479932';
 /** @type {string} */
 const CACHE_PREFIX = 'Acordelot 2.0-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;

@@ -9,8 +9,10 @@ extends Node3D
 ## Nao e so conforto: aproximar ENCOLHE o que a camera enxerga, e como o mundo
 ## carrega exatamente o que ela ve, menos pedaco entra em cena. Zoom perto e o
 ## botao de desempenho do jogador.
-@export var zoom_minimo := 0.55
+@export var zoom_minimo := 0.26
 @export var zoom_maximo := 1.6
+## Comeca ja aproximado: e a distancia em que se ve o personagem e o que ele faz.
+@export var zoom_inicial := 0.7
 @export var velocidade_do_zoom := 8.0
 
 var _camera: Camera3D
@@ -24,6 +26,8 @@ func _ready() -> void:
     _camera = get_child(0) as Camera3D
     if _camera:
         _pouso = _camera.position
+    _zoom = zoom_inicial
+    _zoom_desejado = zoom_inicial
     if target:
         global_position = target.global_position
 

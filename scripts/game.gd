@@ -11,7 +11,7 @@ extends Node3D
 ## com a MESMA build: o caminho de cor do WebGL nao bate com o do OpenGL nativo.
 ## Perseguir isso parametro por parametro seria caça a fantasma; compensar na
 ## exposicao, so no alvo web, e verificavel no aparelho em um minuto.
-const EXPOSICAO_NA_WEB := 0.72
+const EXPOSICAO_NA_WEB := 0.52
 
 func _ready() -> void:
     _player.global_position = World.start_position()
