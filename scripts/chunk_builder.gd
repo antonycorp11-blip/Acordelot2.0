@@ -57,11 +57,21 @@ static func _build_ground(material: Material) -> StaticBody3D:
 
     var mesh := PlaneMesh.new()
     mesh.size = Vector2(CHUNK_SIZE, CHUNK_SIZE)
+    # A nevoa e calculada POR VERTICE no renderizador de celular. Num quadrado de
+    # 30 m com quatro cantos, ela interpola em degrau e o terreno ganha um
+    # xadrez de retangulos do tamanho do pedaco. Subdividir custa 81 vertices e
+    # faz o degrau sumir.
+    mesh.subdivide_width = 8
+    mesh.subdivide_depth = 8
     mesh.material = material
 
     var mesh_node := MeshInstance3D.new()
     mesh_node.name = "Mesh"
     mesh_node.mesh = mesh
+    # O chao RECEBE sombra mas nao projeta. Plano grande projetando sobre si
+    # mesmo da acne de sombra, e a acne desenhava a grade dos pedacos no
+    # terreno — justo a emenda que o shader em coordenada de mundo apaga.
+    mesh_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     ground.add_child(mesh_node)
 
     var collision := CollisionShape3D.new()

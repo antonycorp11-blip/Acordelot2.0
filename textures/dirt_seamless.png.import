@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://brtmlm7ashclp"
-path="res://.godot/imported/dark_forest_tree_01.png-76e209639a4f862b7d696dd676c43063.ctex"
+uid="uid://dxv2sqwrqk8if"
+path="res://.godot/imported/dirt_seamless.png-572b8a8aeb66b8c4ac2c2bc5ffcc3115.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/source_images/dark_forest_tree_01.png"
-dest_files=["res://.godot/imported/dark_forest_tree_01.png-76e209639a4f862b7d696dd676c43063.ctex"]
+source_file="res://textures/dirt_seamless.png"
+dest_files=["res://.godot/imported/dirt_seamless.png-572b8a8aeb66b8c4ac2c2bc5ffcc3115.ctex"]
 
 [params]
 
@@ -37,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

@@ -42,7 +42,8 @@ enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 
 texture={
 "compress/mode": 0,
-"detect_3d/compress_to": 0
+"detect_3d/compress_to": 0,
+"mipmaps/generate": true
 }
 
 [input_devices]

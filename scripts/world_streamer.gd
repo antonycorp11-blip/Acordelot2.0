@@ -27,6 +27,8 @@ func _ready() -> void:
     _ground_material.shader = load("res://materials/forest_ground.gdshader")
     _ground_material.set_shader_parameter(
         "grass_texture", load("res://textures/grass_seamless.png"))
+    _ground_material.set_shader_parameter(
+        "dirt_texture", load("res://textures/dirt_seamless.png"))
 
 ## Monta na hora o pedaco sob uma posicao. O mundo nasce um pedaco por quadro
 ## para nao engasgar, mas o jogador ja cai desde o primeiro: sem o chao dele
