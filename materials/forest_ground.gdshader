@@ -11,7 +11,7 @@ uniform float meters_per_tile = 6.0;
 // que a esconde e a variacao de tom em escala grande, dezenas de metros de
 // clareira e sombra por cima do mesmo desenho.
 uniform float macro_meters = 42.0;
-uniform vec3 tint_dry : source_color = vec3(0.74, 0.78, 0.44);
+uniform vec3 tint_dry : source_color = vec3(0.62, 0.68, 0.44);
 uniform vec3 tint_lush : source_color = vec3(0.42, 0.62, 0.30);
 uniform float tint_strength = 0.45;
 
@@ -42,7 +42,7 @@ void fragment() {
     float patch = noise(macro_uv) * 0.75 + noise(macro_uv * 3.1) * 0.25;
     vec3 tint = mix(tint_lush, tint_dry, patch);
 
-    ALBEDO = mix(grass, grass * tint * 2.0, tint_strength);
+    ALBEDO = mix(grass, grass * tint * 1.5, tint_strength);
     ROUGHNESS = 0.96;
     SPECULAR = 0.12;
 }

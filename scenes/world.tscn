@@ -20,10 +20,10 @@ sky_material = SubResource("SkyMaterial_day")
 [sub_resource type="Environment" id="Environment_world"]
 background_mode = 2
 sky = SubResource("Sky_day")
-ambient_light_source = 3
-ambient_light_color = Color(0.68, 0.76, 0.66, 1)
-ambient_light_energy = 1.35
-reflected_light_source = 2
+ambient_light_source = 2
+ambient_light_color = Color(0.58, 0.66, 0.60, 1)
+ambient_light_energy = 0.85
+reflected_light_source = 1
 tonemap_mode = 2
 fog_enabled = true
 fog_light_color = Color(0.72, 0.8, 0.82, 1)
@@ -49,7 +49,7 @@ environment = SubResource("Environment_world")
 [node name="Sunlight" type="DirectionalLight3D" parent="."]
 rotation = Vector3(-0.872665, -0.610865, 0)
 light_color = Color(1, 0.94, 0.82, 1)
-light_energy = 2.1
+light_energy = 1.5
 shadow_enabled = true
 directional_shadow_max_distance = 45.0
 
