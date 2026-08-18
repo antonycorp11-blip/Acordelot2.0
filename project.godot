@@ -18,6 +18,9 @@ godot_mcp/auto_start=true
 config/name="Acordelot 2.0"
 run/main_scene="res://scenes/world.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/bg_color=Color(0.08, 0.11, 0.09, 1)
+boot_splash/stretch_mode=0
+boot_splash/image="res://textures/boot_splash.png"
 config/icon="res://icon.svg"
 
 [autoload]

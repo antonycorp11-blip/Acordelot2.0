@@ -5,10 +5,12 @@ extends Node3D
 @onready var _player: CharacterBody3D = $Player
 @onready var _streamer: Node3D = $WorldStreamer
 @onready var _status: Label = $DebugHud/Status
+@onready var _map: Control = $MapLayer/WorldMap
 
 func _ready() -> void:
     _player.global_position = World.start_position()
     _streamer.ensure_ground_at(_player.global_position)
+    $MapLayer/MapButton.pressed.connect(_map.toggle)
     if OS.get_cmdline_user_args().has("--shot"):
         _shoot_and_quit()
 
@@ -16,7 +18,12 @@ func _ready() -> void:
 ## user://shot.png e sai. E assim que se confere o mundo sem depender de alguem
 ## olhar a janela — captura de tela do sistema nao alcanca a janela do jogo.
 func _shoot_and_quit() -> void:
-    await get_tree().create_timer(4.0).timeout
+    # Espera o mundo assentar: com o build a um pedaco por quadro, medir cedo
+    # mede a montagem, nao o jogo.
+    await get_tree().create_timer(8.0).timeout
+    if OS.get_cmdline_user_args().has("--map"):
+        _map.toggle()
+        await get_tree().process_frame
     var camera := get_viewport().get_camera_3d()
     print("DEBUG jogador=", _player.global_position, " camera=", camera.global_position,
         " pedacos=", _streamer.loaded_count())
