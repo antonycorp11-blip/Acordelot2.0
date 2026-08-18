@@ -4,6 +4,6 @@
 resource_name = "Material_TripoSR"
 albedo_color = Color(1, 1, 1, 1)
 roughness = 1.0
-specular_mode = 1
+specular_mode = 2
 metallic = 0.0
 vertex_color_use_as_albedo = true

@@ -19,6 +19,8 @@ Uso: decimar_malha.py [alvo_de_triangulos] [arquivo.glb ...]
 """
 import glob, json, os, struct, sys
 import numpy as np
+import fast_simplification
+from fast_simplification.replay import replay_simplification
 from pygltflib import GLTF2
 
 SAIDA = "models"
@@ -53,53 +55,80 @@ def normalizar_cor(cor, tipo):
     return cor.astype(np.float32)
 
 
-def agrupar(posicoes, cores, triangulos, celulas):
-    """Uma passada de agrupamento com 'celulas' divisoes no maior eixo."""
-    minimo = posicoes.min(axis=0)
-    tamanho = (posicoes.max(axis=0) - minimo).max()
-    if tamanho <= 0:
-        return posicoes, cores, triangulos
-    lado = tamanho / celulas
+def simplificar(posicoes, cores, triangulos, alvo):
+    """Reduz a malha por colapso de aresta com erro quadratico.
 
-    grade = np.floor((posicoes - minimo) / lado).astype(np.int64)
-    _, destino, inverso = np.unique(grade, axis=0, return_index=True, return_inverse=True)
+    A primeira versao agrupava vertices por celula de grade. Era rapida e
+    **furava a malha**: onde a folha e fina, os tres cantos do triangulo caem na
+    mesma celula, o triangulo vira degenerado e some — a copa ficava crivada de
+    buracos, que na tela apareciam como chuvisco branco (era o fundo passando).
 
-    novo_total = destino.size
-    # Posicao e cor do vertice fundido: a media do que caiu na celula. Media, e
-    # nao o primeiro: pegar um representante faz a silhueta tremer.
-    soma = np.zeros((novo_total, 3), dtype=np.float64)
-    np.add.at(soma, inverso, posicoes)
-    contagem = np.bincount(inverso, minlength=novo_total).reshape(-1, 1)
-    novas_posicoes = (soma / contagem).astype(np.float32)
+    O colapso de aresta preserva a topologia: junta vertice a vertice pela
+    aresta, entao a superficie continua fechada.
+
+    A cor vem junto pelo mapeamento de indices: cada vertice novo recebe a media
+    dos originais que desaguaram nele.
+    """
+    reducao = 1.0 - min(1.0, alvo / float(len(triangulos)))
+    saida = fast_simplification.simplify(
+        posicoes.astype(np.float32), triangulos.astype(np.int32),
+        reducao, return_collapses=True)
+    novas_posicoes, novos_triangulos, colapsos = saida
+    novas_posicoes, novos_triangulos, mapeamento = replay_simplification(
+        posicoes.astype(np.float32), triangulos.astype(np.int32), colapsos)
 
     novas_cores = None
     if cores is not None:
-        soma_cor = np.zeros((novo_total, cores.shape[1]), dtype=np.float64)
-        np.add.at(soma_cor, inverso, cores)
-        novas_cores = (soma_cor / contagem).astype(np.float32)
+        total = len(novas_posicoes)
+        soma = np.zeros((total, cores.shape[1]), dtype=np.float64)
+        np.add.at(soma, mapeamento, cores)
+        contagem = np.bincount(mapeamento, minlength=total).reshape(-1, 1)
+        contagem[contagem == 0] = 1
+        novas_cores = (soma / contagem).astype(np.float32)
 
-    novos = inverso[triangulos]
-    # Triangulo que perdeu dois cantos na mesma celula virou linha: fora.
-    vivos = ((novos[:, 0] != novos[:, 1]) & (novos[:, 1] != novos[:, 2]) &
-             (novos[:, 0] != novos[:, 2]))
-    novos = novos[vivos]
-    # Duas faces coincidentes viram uma so.
-    novos = np.unique(np.sort(novos, axis=1), axis=0) if novos.size else novos
-    return novas_posicoes, novas_cores, novos
+    return (novas_posicoes.astype(np.float32), novas_cores,
+            np.asarray(novos_triangulos, dtype=np.int64))
 
 
-def escrever_glb(caminho, posicoes, cores, triangulos):
+def normais_suaves(posicoes, triangulos):
+    """Normal por vertice, media das faces vizinhas ponderada pela area.
+
+    O TripoSR **nao exporta normais**. Sem elas a Godot gera uma normal plana
+    por face, e depois da decimacao as faces sao grandes e irregulares: cada
+    uma pega a luz de um jeito e a arvore fica salpicada de claro e escuro,
+    como se estivesse comida de traca. Com normal por vertice a superficie
+    volta a ser lida como curva, que e o que ela e.
+
+    O produto vetorial ja vem proporcional a area do triangulo, entao somar sem
+    normalizar antes JA e a ponderacao por area — face grande pesa mais, que e
+    o que se quer.
+    """
+    normais = np.zeros_like(posicoes, dtype=np.float64)
+    a = posicoes[triangulos[:, 0]]
+    b = posicoes[triangulos[:, 1]]
+    c = posicoes[triangulos[:, 2]]
+    face = np.cross(b - a, c - a)
+    for canto in range(3):
+        np.add.at(normais, triangulos[:, canto], face)
+    tamanho = np.linalg.norm(normais, axis=1, keepdims=True)
+    tamanho[tamanho == 0] = 1.0
+    return (normais / tamanho).astype(np.float32)
+
+
+def escrever_glb(caminho, posicoes, cores, triangulos, normais=None):
     indices = triangulos.astype(np.uint32).ravel()
     pos_bytes = posicoes.astype(np.float32).tobytes()
     idx_bytes = indices.tobytes()
     cor_bytes = cores.astype(np.float32).tobytes() if cores is not None else b""
+    nor_bytes = normais.astype(np.float32).tobytes() if normais is not None else b""
 
     def alinhar(dados):
         resto = len(dados) % 4
         return dados + b"\x00" * (4 - resto) if resto else dados
 
     blocos, vistas, acessores, deslocamento = [], [], [], 0
-    for dados, alvo in ((pos_bytes, "pos"), (cor_bytes, "cor"), (idx_bytes, "idx")):
+    for dados, alvo in ((pos_bytes, "pos"), (nor_bytes, "nor"), (cor_bytes, "cor"),
+                        (idx_bytes, "idx")):
         if not dados:
             continue
         preenchido = alinhar(dados)
@@ -114,6 +143,11 @@ def escrever_glb(caminho, posicoes, cores, triangulos):
                       "max": posicoes.max(axis=0).tolist()})
     atributos = {"POSITION": 0}
     indice_vista += 1
+    if normais is not None:
+        acessores.append({"bufferView": indice_vista, "componentType": 5126,
+                          "count": len(normais), "type": "VEC3"})
+        atributos["NORMAL"] = len(acessores) - 1
+        indice_vista += 1
     if cores is not None:
         acessores.append({"bufferView": indice_vista, "componentType": 5126,
                           "count": len(cores),
@@ -163,25 +197,12 @@ def decimar(caminho, alvo):
         cores = normalizar_cor(ler_accessor(gltf, blob, indice), gltf.accessors[indice].componentType)
 
     antes = len(triangulos)
-    # Busca binaria na resolucao da grade: e o numero de celulas que decide o
-    # tamanho final, e ele nao tem formula fechada para malha irregular.
-    baixo, alto, melhor = 4, 256, None
-    for _ in range(9):
-        meio = (baixo + alto) // 2
-        p, c, t = agrupar(posicoes, cores, triangulos, meio)
-        if len(t) <= alvo:
-            melhor = (p, c, t)
-            baixo = meio + 1
-        else:
-            alto = meio - 1
-        if baixo > alto:
-            break
-    if melhor is None:
-        melhor = agrupar(posicoes, cores, triangulos, 4)
-
+    p, c, t = simplificar(posicoes, cores, triangulos, alvo)
+    melhor = (p, c, t)
     p, c, t = melhor
+    n = normais_suaves(p, t)
     destino = os.path.join(SAIDA, os.path.basename(caminho))
-    escrever_glb(destino, p, c, t)
+    escrever_glb(destino, p, c, t, n)
     return f"{os.path.basename(caminho):<44} {antes:>8,} -> {len(t):>6,} tri   " \
            f"{os.path.getsize(caminho)//1024:>6} KB -> {os.path.getsize(destino)//1024:>5} KB"
 
