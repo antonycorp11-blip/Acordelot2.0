@@ -146,12 +146,52 @@ def gerar_terra(rng):
     return sem_emenda(imagem, lambda i: i.filter(ImageFilter.GaussianBlur(0.6)))
 
 
+def gerar_pedra(rng):
+    """Calcamento: pedras irregulares com junta escura entre elas.
+
+    Nao e ladrilho quadrado — a referencia tem pedra de rio, borda arredondada e
+    tamanho desigual. O desenho e por celula sorteada, com o centro deslocado,
+    para nao aparecer a grade que o proprio metodo cria.
+    """
+    imagem = fundo_interpolado(manchas(rng, 6), (58, 54, 50), (78, 74, 68))
+    desenho = ImageDraw.Draw(imagem)
+
+    celulas = 9
+    lado = TAM / celulas
+    for linha in range(celulas):
+        for coluna in range(celulas):
+            # Fileira alternada deslocada: junta continua em linha reta denuncia
+            # o ladrilho de longe.
+            desloca = (lado * 0.5) if linha % 2 else 0.0
+            cx = coluna * lado + lado * 0.5 + desloca + rng.uniform(-6, 6)
+            cy = linha * lado + lado * 0.5 + rng.uniform(-6, 6)
+            raio_x = lado * rng.uniform(0.33, 0.46)
+            raio_y = lado * rng.uniform(0.33, 0.46)
+            tom = rng.uniform(0.75, 1.15)
+            cor = (int(126 * tom), int(122 * tom), int(114 * tom))
+            repetido(lambda dx, dy: desenho.ellipse(
+                [cx + dx - raio_x, cy + dy - raio_y, cx + dx + raio_x, cy + dy + raio_y],
+                fill=cor))
+
+    # Musgo na junta: e o que tira a cara de textura de banheiro.
+    for _ in range(900):
+        raio = rng.uniform(1.2, 3.0)
+        x, y = rng.uniform(0, TAM), rng.uniform(0, TAM)
+        cor = (int(58 * rng.uniform(0.9, 1.3)), int(72 * rng.uniform(0.9, 1.3)), 40)
+        repetido(lambda dx, dy: desenho.ellipse(
+            [x + dx - raio, y + dy - raio, x + dx + raio, y + dy + raio], fill=cor))
+
+    return sem_emenda(imagem, lambda i: i.filter(ImageFilter.GaussianBlur(0.8)))
+
+
 def main():
     rng = random.Random(20260818)
     gerar_grama(rng).save("textures/grass_seamless.png")
     print("textures/grass_seamless.png")
     gerar_terra(random.Random(4242)).save("textures/dirt_seamless.png")
     print("textures/dirt_seamless.png")
+    gerar_pedra(random.Random(777)).save("textures/stone_seamless.png")
+    print("textures/stone_seamless.png")
 
 
 if __name__ == "__main__":

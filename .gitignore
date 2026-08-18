@@ -8,3 +8,8 @@
 downloads/
 
 .DS_Store
+
+# Malha bruta do personagem e o pacote do Mixamo: 25 MB que se regeram do GLB
+# original por .tools/preparar_mixamo.py.
+personagem/heroi_mixamo/
+personagem/heroi_mixamo.zip
