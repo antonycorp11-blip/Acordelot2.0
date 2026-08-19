@@ -154,19 +154,12 @@
     },
     "casa": {
       "y": 0.0,
-      "altura": 6.0,
+      "altura": 6.2,
       "scale": [
-        0.9,
-        1.2
+        1.0,
+        1.0
       ],
       "solid": true,
-      "sprites": [
-        "res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png",
-        "res://textures/buildings/Medieval_merchant_house_building_202608190931.png",
-        "res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png",
-        "res://textures/buildings/Stone_windmill_tower_with_wooden…_202608190931.png",
-        "res://textures/buildings/Medieval_barn_with_hay_bales_202608190931.png"
-      ],
       "na_vila": true,
       "anel": [
         12.0,
@@ -182,9 +175,9 @@
       ],
       "solid": true,
       "sprites": [
-        "res://textures/buildings/Townhouse_game_asset_202608190931.png",
-        "res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png",
-        "res://textures/buildings/Market_stall_with_canvas_canopy_202608190931.png"
+        "res://textures/cidade/torre_redonda.png",
+        "res://textures/cidade/casa_sobrado.png",
+        "res://textures/cidade/loja_toldo.png"
       ],
       "na_vila": true,
       "anel": [
@@ -201,7 +194,7 @@
       ],
       "solid": true,
       "sprites": [
-        "res://textures/buildings/Stone_fountain_spilling_water_202608190931.png"
+        "res://textures/cidade/fonte_musical.png"
       ],
       "na_vila": true,
       "anel": [
@@ -211,15 +204,12 @@
     },
     "poco": {
       "y": 0.0,
-      "altura": 2.0,
+      "altura": 2.6,
       "scale": [
-        0.9,
-        1.1
+        1.0,
+        1.0
       ],
-      "solid": true,
-      "sprites": [
-        "res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png"
-      ],
+      "solid": false,
       "na_vila": true,
       "anel": [
         3.0,
@@ -235,7 +225,8 @@
       ],
       "solid": false,
       "sprites": [
-        "res://textures/buildings/Wooden_post_and_rail_fence_202608190932.png"
+        "res://textures/cidade/cerca_tabua.png",
+        "res://textures/cidade/cerca_ornada_a.png"
       ],
       "na_vila": true,
       "anel": [
@@ -252,7 +243,7 @@
       ],
       "solid": false,
       "sprites": [
-        "res://textures/buildings/Stone_footbridge_on_magenta_back…_202608190932.png"
+        "res://textures/cidade/ponte_madeira.png"
       ]
     },
     "lampiao": {
@@ -282,7 +273,7 @@
       ],
       "solid": false,
       "sprites": [
-        "res://textures/buildings/Stone_steps_on_magenta_background_202608190932.png"
+        "res://textures/cidade/muralha_escada.png"
       ],
       "na_vila": true,
       "anel": [
@@ -333,6 +324,116 @@
       "models": [
         "res://models/media_1787078441421.glb"
       ]
+    },
+    "sobrado": {
+      "altura": 8.4,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": true,
+      "na_vila": true
+    },
+    "celeiro": {
+      "altura": 7.0,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": true,
+      "na_vila": true
+    },
+    "torre": {
+      "altura": 12.5,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": true,
+      "na_vila": true
+    },
+    "arco": {
+      "altura": 8.5,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": false,
+      "na_vila": true
+    },
+    "fonte": {
+      "altura": 4.2,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": true,
+      "na_vila": true
+    },
+    "banca": {
+      "altura": 3.6,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": false,
+      "na_vila": true
+    },
+    "mobilia": {
+      "altura": 1.7,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": false,
+      "na_vila": true
+    },
+    "cerca": {
+      "altura": 1.5,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": false,
+      "na_vila": true
+    },
+    "estatua": {
+      "altura": 3.2,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": false,
+      "na_vila": true
+    },
+    "estandarte": {
+      "altura": 4.2,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": false,
+      "na_vila": true
+    },
+    "muralha": {
+      "altura": 5.0,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": true,
+      "na_vila": true
     }
   },
   "_nota_sprites": "Etiqueta com 'sprites' nasce como plaquinha 2D virada para a camera, nao como malha. 'altura' e o tamanho do objeto em metros — o recorte e justo, entao vale para o desenho inteiro. Sem 'y': a plaquinha ja apoia o pe na origem.",
@@ -340,5 +441,6 @@
   "_nota_vento": "vento=true poe a etiqueta no shader que balanca o vertice pela altura. So vegetacao: pedra e casa balancando denuncia o truque.",
   "_nota_vila": "na_vila=true faz a etiqueta nascer so dentro do raio plano da vila, em vez de espalhada pelo pedaco. Casa sorteada no morro fica com metade enterrada, e no lago fica boiando.",
   "_nota_luz": "luz=true poe uma lampada de alcance curto no topo do modelo, acesa so a noite.",
-  "_nota_anel": "anel=[perto,longe] em metros do centro da praca. So vale para etiqueta com na_vila."
+  "_nota_anel": "anel=[perto,longe] em metros do centro da praca. So vale para etiqueta com na_vila.",
+  "_nota_urbano": "As etiquetas urbanas nao tem lista de modelo: a planta em city_layouts.json diz qual peca usar em cada ponto. Aqui fica so a ALTURA em metros, que e o que da escala a cidade."
 }

@@ -37,6 +37,17 @@ func _ready() -> void:
     # numero la evita que um dia o leito de terra e a lamina de agua discordem
     # sobre onde fica a margem.
     _ground_material.set_shader_parameter("nivel_da_agua", Relevo.NIVEL_DA_AGUA)
+    _ground_material.set_shader_parameter(
+        "flagstone_texture", load("res://textures/flagstone_seamless.png"))
+    # As pracas vao para o shader como lista, e nao como consulta por pixel: sao
+    # quatro cidades no mundo inteiro, e comparar quatro distancias sai muito
+    # mais barato que ler mais uma textura de mascara em cada pixel do chao.
+    var pracas: Array[Plane] = []
+    for i in Relevo.pracas().size():
+        var praca: Vector3 = Relevo.pracas()[i]
+        pracas.append(Plane(praca.x, praca.y, praca.z, 0.0))
+    _ground_material.set_shader_parameter("pracas", pracas)
+    _ground_material.set_shader_parameter("quantas_pracas", pracas.size())
 
 ## Monta na hora o pedaco sob uma posicao. O mundo nasce um pedaco por quadro
 ## para nao engasgar, mas o jogador ja cai desde o primeiro: sem o chao dele

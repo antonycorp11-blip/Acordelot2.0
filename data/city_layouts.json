@@ -1,73 +1,951 @@
 {
-  "_nota": "Plantas urbanas autorais. position=[x,z] em metros relativos ao centro da regiao; rotation em graus. Nenhuma entrada deste arquivo e sorteada.",
-  "layouts": {
-    "custom_1785869541494_557": [
-      {"id":"fonte_central","tag":"fonte_praca","model":"res://textures/buildings/Stone_fountain_spilling_water_202608190931.png","position":[0,0],"rotation":0,"scale":3.2},
-      {"id":"mercado_norte","tag":"predio","model":"res://textures/buildings/Market_stall_with_canvas_canopy_202608190931.png","position":[-7,-13],"rotation":180,"scale":6.0},
-      {"id":"mercado_sul","tag":"predio","model":"res://textures/buildings/Market_stall_with_canvas_canopy_202608190931.png","position":[7,13],"rotation":0,"scale":5.7},
-      {"id":"casa_nobre_oeste","tag":"predio","model":"res://textures/buildings/Townhouse_game_asset_202608190931.png","position":[-21,-2],"rotation":90,"scale":7.0},
-      {"id":"torre_civica_leste","tag":"predio","model":"res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png","position":[22,-2],"rotation":270,"scale":7.2},
-      {"id":"mercador_no","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[-19,-18],"rotation":135,"scale":6.0},
-      {"id":"camponesa_ne","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[18,-18],"rotation":225,"scale":5.8},
-      {"id":"ferreiro_so","tag":"casa","model":"res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png","position":[-20,18],"rotation":45,"scale":6.3},
-      {"id":"celeiro_se","tag":"casa","model":"res://textures/buildings/Medieval_barn_with_hay_bales_202608190931.png","position":[20,18],"rotation":315,"scale":6.1},
-      {"id":"casa_rua_oeste_1","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[-30,-13],"rotation":90,"scale":5.6},
-      {"id":"casa_rua_oeste_2","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[-30,11],"rotation":90,"scale":5.8},
-      {"id":"casa_rua_leste_1","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[30,-14],"rotation":270,"scale":5.5},
-      {"id":"casa_rua_leste_2","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[30,12],"rotation":270,"scale":5.9},
-      {"id":"lampiao_no","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-8,-7],"rotation":0,"scale":3.0},
-      {"id":"lampiao_ne","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[8,-7],"rotation":0,"scale":3.0},
-      {"id":"lampiao_so","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-8,7],"rotation":180,"scale":3.0},
-      {"id":"lampiao_se","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[8,7],"rotation":180,"scale":3.0},
-      {"id":"poco_bairro_oeste","tag":"poco","model":"res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png","position":[-39,0],"rotation":0,"scale":2.0}
-    ],
-    "custom_1785880661560_858": [
-      {"id":"torre_portao_oeste","tag":"predio","model":"res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png","position":[-14,-39],"rotation":180,"scale":7.5},
-      {"id":"torre_portao_leste","tag":"predio","model":"res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png","position":[14,-39],"rotation":180,"scale":7.5},
-      {"id":"guarda_oeste","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[-25,-20],"rotation":110,"scale":5.7},
-      {"id":"guarda_leste","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[25,-20],"rotation":250,"scale":5.7},
-      {"id":"estalagem_oeste","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[-21,3],"rotation":90,"scale":6.2},
-      {"id":"oficina_leste","tag":"casa","model":"res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png","position":[21,3],"rotation":270,"scale":6.2},
-      {"id":"poco_guardas","tag":"poco","model":"res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png","position":[0,-18],"rotation":0,"scale":2.0},
-      {"id":"lampiao_portao_oeste","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-7,-34],"rotation":0,"scale":3.0},
-      {"id":"lampiao_portao_leste","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[7,-34],"rotation":0,"scale":3.0},
-      {"id":"lampiao_rua_oeste","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-8,-5],"rotation":0,"scale":3.0},
-      {"id":"lampiao_rua_leste","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[8,-5],"rotation":0,"scale":3.0},
-      {"id":"muro_o1","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[-25,-40],"rotation":0,"scale":3.2},
-      {"id":"muro_o2","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[-34,-40],"rotation":0,"scale":3.2},
-      {"id":"muro_o3","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[-43,-40],"rotation":0,"scale":3.2},
-      {"id":"muro_l1","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[25,-40],"rotation":0,"scale":3.2},
-      {"id":"muro_l2","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[34,-40],"rotation":0,"scale":3.2},
-      {"id":"muro_l3","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[43,-40],"rotation":0,"scale":3.2}
-    ],
-    "custom_1785884200706_430": [
-      {"id":"poco_da_vila","tag":"poco","model":"res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png","position":[-3,1],"rotation":0,"scale":2.0},
-      {"id":"estalagem","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[-14,-11],"rotation":145,"scale":6.1},
-      {"id":"ferreiro","tag":"casa","model":"res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png","position":[14,-10],"rotation":215,"scale":6.0},
-      {"id":"celeiro","tag":"casa","model":"res://textures/buildings/Medieval_barn_with_hay_bales_202608190931.png","position":[-19,12],"rotation":55,"scale":6.2},
-      {"id":"moinho","tag":"casa","model":"res://textures/buildings/Stone_windmill_tower_with_wooden…_202608190931.png","position":[25,19],"rotation":315,"scale":6.7},
-      {"id":"casa_oeste","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[-28,-4],"rotation":90,"scale":5.5},
-      {"id":"casa_leste","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[28,1],"rotation":270,"scale":5.6},
-      {"id":"casa_sul","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[7,21],"rotation":335,"scale":5.4},
-      {"id":"banca_viajante","tag":"predio","model":"res://textures/buildings/Market_stall_with_canvas_canopy_202608190931.png","position":[7,6],"rotation":300,"scale":5.4},
-      {"id":"lampiao_entrada_o","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-6,-23],"rotation":0,"scale":3.0},
-      {"id":"lampiao_entrada_l","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[6,-23],"rotation":0,"scale":3.0},
-      {"id":"lampiao_poco","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[4,-2],"rotation":0,"scale":3.0},
-      {"id":"cerca_celeiro_1","tag":"cerca_madeira","model":"res://textures/buildings/Wooden_post_and_rail_fence_202608190932.png","position":[-28,18],"rotation":20,"scale":2.5},
-      {"id":"cerca_celeiro_2","tag":"cerca_madeira","model":"res://textures/buildings/Wooden_post_and_rail_fence_202608190932.png","position":[-33,12],"rotation":90,"scale":2.5},
-      {"id":"cerca_moinho_1","tag":"cerca_madeira","model":"res://textures/buildings/Wooden_post_and_rail_fence_202608190932.png","position":[34,20],"rotation":0,"scale":2.5}
-    ],
-    "custom_1786499037621_343": [
-      {"id":"salao_forjador","tag":"casa","model":"res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png","position":[0,-4],"rotation":180,"scale":7.0},
-      {"id":"torre_oficina","tag":"predio","model":"res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png","position":[-18,-6],"rotation":90,"scale":7.0},
-      {"id":"celeiro_carvao","tag":"casa","model":"res://textures/buildings/Medieval_barn_with_hay_bales_202608190931.png","position":[18,-4],"rotation":270,"scale":6.0},
-      {"id":"casa_aprendizes","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[-13,15],"rotation":35,"scale":5.7},
-      {"id":"casa_mestre","tag":"casa","model":"res://textures/buildings/Townhouse_game_asset_202608190931.png","position":[13,16],"rotation":325,"scale":6.4},
-      {"id":"poco_forja","tag":"poco","model":"res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png","position":[0,11],"rotation":0,"scale":2.0},
-      {"id":"lampiao_forja_o","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-7,3],"rotation":0,"scale":3.0},
-      {"id":"lampiao_forja_l","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[7,3],"rotation":0,"scale":3.0},
-      {"id":"muro_forja_o","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[-27,-14],"rotation":90,"scale":3.2},
-      {"id":"muro_forja_l","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[27,-14],"rotation":90,"scale":3.2}
-    ]
+ "_nota": "Plantas urbanas autorais. position=[x,z] em metros a partir do centro da regiao; nada aqui e sorteado. As pecas sao billboards isometricos, entao rotation nao tem efeito visual: a orientacao vem de ESCOLHER a peca certa do kit (muralha_reta corre leste-oeste, muralha_vert corre norte-sul). O raio da praca plana de cada cidade esta em 'pracas' e precisa cobrir a peca mais distante, senao a construcao cai na rampa.",
+ "pracas": {
+  "custom_1785884200706_430": {
+   "raio": 34.0
+  },
+  "custom_1785880661560_858": {
+   "raio": 42.0
+  },
+  "custom_1785869541494_557": {
+   "raio": 40.0
+  },
+  "custom_1786499037621_343": {
+   "raio": 26.0
   }
+ },
+ "layouts": {
+  "custom_1785884200706_430": [
+   {
+    "id": "cruz_poco",
+    "tag": "poco",
+    "model": "res://textures/cidade/poco.png",
+    "position": [
+     -8.5,
+     7.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "cruz_banca",
+    "tag": "banca",
+    "model": "res://textures/cidade/banca_verde.png",
+    "position": [
+     -9,
+     -6.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "cruz_carroca",
+    "tag": "mobilia",
+    "model": "res://textures/cidade/carroca.png",
+    "position": [
+     9,
+     6.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "cruz_barris",
+    "tag": "mobilia",
+    "model": "res://textures/cidade/barris.png",
+    "position": [
+     11.5,
+     4.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "ne_casa1",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_taipa_a.png",
+    "position": [
+     12,
+     -11
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "ne_casa2",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_vila.png",
+    "position": [
+     21,
+     -13.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "ne_cerca",
+    "tag": "cerca",
+    "model": "res://textures/cidade/cerca_tabua.png",
+    "position": [
+     16.5,
+     -9
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "no_loja",
+    "tag": "casa",
+    "model": "res://textures/cidade/loja_toldo.png",
+    "position": [
+     -12,
+     -12
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "no_casa",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_taipa_b.png",
+    "position": [
+     -21,
+     -14
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "no_cerca",
+    "tag": "cerca",
+    "model": "res://textures/cidade/cerca_tabua.png",
+    "position": [
+     -16.5,
+     -9.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "se_casa",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_chale.png",
+    "position": [
+     12.5,
+     12
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "se_celeiro",
+    "tag": "celeiro",
+    "model": "res://textures/cidade/celeiro.png",
+    "position": [
+     22,
+     15.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "se_cerca",
+    "tag": "cerca",
+    "model": "res://textures/cidade/cerca_tabua.png",
+    "position": [
+     17,
+     10
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "so_casa1",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_taipa_c.png",
+    "position": [
+     -12.5,
+     11
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "so_casa2",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_taipa_d.png",
+    "position": [
+     -21,
+     14
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "so_cerca",
+    "tag": "cerca",
+    "model": "res://textures/cidade/cerca_tabua.png",
+    "position": [
+     -17,
+     10
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_ne",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     6.5,
+     -6.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_no",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     -6.5,
+     -6.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_se",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     6.5,
+     6.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_so",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     -6.5,
+     6.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "est_o",
+    "tag": "estandarte",
+    "model": "res://textures/cidade/estandarte_grave.png",
+    "position": [
+     -5,
+     -17
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "est_l",
+    "tag": "estandarte",
+    "model": "res://textures/cidade/estandarte_agudo.png",
+    "position": [
+     5,
+     -17
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   }
+  ],
+  "custom_1785880661560_858": [
+   {
+    "id": "mur_n0",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_reta.png",
+    "position": [
+     -24,
+     -25
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_n1",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_reta.png",
+    "position": [
+     -16,
+     -25
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_n2",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_reta.png",
+    "position": [
+     -8,
+     -25
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_n3",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_reta.png",
+    "position": [
+     0,
+     -25
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_n4",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_reta.png",
+    "position": [
+     8,
+     -25
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_n5",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_reta.png",
+    "position": [
+     16,
+     -25
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_o0",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_vert.png",
+    "position": [
+     -31,
+     -17
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_o1",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_vert.png",
+    "position": [
+     -31,
+     -9
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_o2",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_vert.png",
+    "position": [
+     -31,
+     -1
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_o3",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_vert.png",
+    "position": [
+     -31,
+     7
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_o4",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_vert.png",
+    "position": [
+     -31,
+     15
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "mur_canto_no",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_canto_a.png",
+    "position": [
+     -31,
+     -25
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "portao_torre_n",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_torre.png",
+    "position": [
+     25,
+     -9
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "portao_torre_s",
+    "tag": "muralha",
+    "model": "res://textures/cidade/muralha_torre.png",
+    "position": [
+     25,
+     9
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "portao_arco",
+    "tag": "arco",
+    "model": "res://textures/cidade/muralha_arco.png",
+    "position": [
+     26,
+     0
+    ],
+    "rotation": 0,
+    "scale": 1.15
+   },
+   {
+    "id": "leao_o",
+    "tag": "estatua",
+    "model": "res://textures/cidade/leao_sentado.png",
+    "position": [
+     -7,
+     -5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "leao_l",
+    "tag": "estatua",
+    "model": "res://textures/cidade/leao_de_pe.png",
+    "position": [
+     7,
+     -5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "est_o",
+    "tag": "estandarte",
+    "model": "res://textures/cidade/estandarte_agudo.png",
+    "position": [
+     -4.5,
+     -19
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "est_l",
+    "tag": "estandarte",
+    "model": "res://textures/cidade/estandarte_grave.png",
+    "position": [
+     4.5,
+     -19
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "guarda_no",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_sobrado.png",
+    "position": [
+     -15,
+     -13
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "guarda_ne",
+    "tag": "casa",
+    "model": "res://textures/cidade/loja_toldo.png",
+    "position": [
+     13,
+     -15
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "guarda_so",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_vila.png",
+    "position": [
+     -17,
+     9
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "guarda_se",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_taipa_a.png",
+    "position": [
+     15,
+     11
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "poco",
+    "tag": "poco",
+    "model": "res://textures/cidade/poco.png",
+    "position": [
+     -21,
+     17
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "carroca",
+    "tag": "mobilia",
+    "model": "res://textures/cidade/carroca.png",
+    "position": [
+     -9,
+     14
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_no",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     -8,
+     -7
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_ne",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     8,
+     -7
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_so",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     -8,
+     7
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_se",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     8,
+     7
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   }
+  ],
+  "custom_1785869541494_557": [
+   {
+    "id": "fonte",
+    "tag": "fonte",
+    "model": "res://textures/cidade/fonte_musical.png",
+    "position": [
+     0,
+     0
+    ],
+    "rotation": 0,
+    "scale": 1.25
+   },
+   {
+    "id": "torre_o",
+    "tag": "torre",
+    "model": "res://textures/cidade/torre_redonda.png",
+    "position": [
+     -22,
+     -17
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_l",
+    "tag": "torre",
+    "model": "res://textures/cidade/torre_redonda.png",
+    "position": [
+     22,
+     -17
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "sobrado_o",
+    "tag": "sobrado",
+    "model": "res://textures/cidade/casa_sobrado.png",
+    "position": [
+     -14,
+     -19
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "loja_l",
+    "tag": "casa",
+    "model": "res://textures/cidade/loja_toldo.png",
+    "position": [
+     14,
+     -19
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "leao_o",
+    "tag": "estatua",
+    "model": "res://textures/cidade/leao_sentado.png",
+    "position": [
+     -7.5,
+     -8
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "leao_l",
+    "tag": "estatua",
+    "model": "res://textures/cidade/leao_de_pe.png",
+    "position": [
+     7.5,
+     -8
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "feira1",
+    "tag": "banca",
+    "model": "res://textures/cidade/banca_verde.png",
+    "position": [
+     17,
+     1
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "feira2",
+    "tag": "banca",
+    "model": "res://textures/cidade/banca_vermelha.png",
+    "position": [
+     17,
+     10
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "feira_carroca",
+    "tag": "mobilia",
+    "model": "res://textures/cidade/carroca.png",
+    "position": [
+     12.5,
+     5.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "feira_barris",
+    "tag": "mobilia",
+    "model": "res://textures/cidade/barris.png",
+    "position": [
+     20,
+     6
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "casa_o1",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_vila.png",
+    "position": [
+     -17,
+     2
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "casa_o2",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_chale.png",
+    "position": [
+     -18,
+     12
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "cerca_o",
+    "tag": "cerca",
+    "model": "res://textures/cidade/cerca_ornada_a.png",
+    "position": [
+     -11,
+     7
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "poco",
+    "tag": "poco",
+    "model": "res://textures/cidade/poco.png",
+    "position": [
+     -25,
+     11
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "est_o",
+    "tag": "estandarte",
+    "model": "res://textures/cidade/estandarte_grave.png",
+    "position": [
+     -4.5,
+     9
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "est_l",
+    "tag": "estandarte",
+    "model": "res://textures/cidade/estandarte_agudo.png",
+    "position": [
+     4.5,
+     9
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_no",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     -9.5,
+     -9.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_ne",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     9.5,
+     -9.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_so",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     -9.5,
+     9.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_se",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     9.5,
+     9.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   }
+  ],
+  "custom_1786499037621_343": [
+   {
+    "id": "oficina",
+    "tag": "casa",
+    "model": "res://textures/cidade/loja_toldo.png",
+    "position": [
+     -9,
+     -11
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "celeiro",
+    "tag": "celeiro",
+    "model": "res://textures/cidade/celeiro.png",
+    "position": [
+     9,
+     -11
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "casa1",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_taipa_c.png",
+    "position": [
+     -7,
+     11
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "casa2",
+    "tag": "casa",
+    "model": "res://textures/cidade/casa_taipa_d.png",
+    "position": [
+     11,
+     10
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "poco",
+    "tag": "poco",
+    "model": "res://textures/cidade/poco.png",
+    "position": [
+     0,
+     6.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "carroca",
+    "tag": "mobilia",
+    "model": "res://textures/cidade/carroca.png",
+    "position": [
+     -4,
+     -4.5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "barris",
+    "tag": "mobilia",
+    "model": "res://textures/cidade/barris.png",
+    "position": [
+     5,
+     4
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "cerca_n",
+    "tag": "cerca",
+    "model": "res://textures/cidade/cerca_tabua.png",
+    "position": [
+     15,
+     -5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "cerca_s",
+    "tag": "cerca",
+    "model": "res://textures/cidade/cerca_tabua.png",
+    "position": [
+     15,
+     5
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "est",
+    "tag": "estandarte",
+    "model": "res://textures/cidade/estandarte_grave.png",
+    "position": [
+     -13,
+     0
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_o",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     -8,
+     0
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_l",
+    "tag": "lampiao",
+    "model": "",
+    "position": [
+     8,
+     0
+    ],
+    "rotation": 0,
+    "scale": 1.0
+   }
+  ]
+ }
 }

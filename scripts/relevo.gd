@@ -27,7 +27,8 @@ const TAMANHO_DO_RELEVO := 15.0
 ## lagoa se forma no mundo real.
 const NIVEL_DA_AGUA := -2.2
 
-## Raio da praca plana de uma vila, em metros, e a rampa que a liga ao morro.
+## Raio de reserva, usado so quando a planta urbana nao declara o seu, e a rampa
+## que liga o plato ao morro em volta.
 ## Casa em ladeira nao existe: ou o terreno e nivelado, ou a construcao fica com
 ## metade enterrada e metade no ar — que e o que estava acontecendo.
 const RAIO_DA_VILA := 30.0
@@ -40,7 +41,12 @@ const FOLGA_DA_ESTRADA := 0.9
 
 static var _colinas: FastNoiseLite
 static var _detalhe: FastNoiseLite
+## Centro e raio do plato de cada vila. O raio vem da planta urbana, nao de uma
+## constante: a peca mais distante de Portoes Reais esta a 40 m e a de uma aldeia
+## a 16 — um raio unico ou deixaria a muralha na ladeira ou achataria meio mapa
+## em volta de um vilarejo.
 static var _vilas: Array[Vector2] = []
+static var _raios: Array[float] = []
 static var _estradas: Image = null
 static var _mundo_min := Vector2(-660.0, -540.0)
 static var _mundo_tam := Vector2(1320.0, 1200.0)
@@ -65,10 +71,19 @@ static func _preparar() -> void:
         var dados = JSON.parse_string(arquivo.get_as_text())
         if typeof(dados) == TYPE_DICTIONARY:
             var lado: float = float(dados.get("region_size", 120.0))
+            var pracas: Dictionary = {}
+            var plantas := FileAccess.open("res://data/city_layouts.json", FileAccess.READ)
+            if plantas:
+                var urbano = JSON.parse_string(plantas.get_as_text())
+                if typeof(urbano) == TYPE_DICTIONARY:
+                    pracas = urbano.get("pracas", {})
             for regiao in dados.get("regions", []):
-                if String(regiao.get("biome", "")) == "cidade":
-                    _vilas.append(Vector2(float(regiao["col"]) * lado,
-                                          float(regiao["row"]) * lado))
+                if String(regiao.get("biome", "")) != "cidade":
+                    continue
+                _vilas.append(Vector2(float(regiao["col"]) * lado,
+                                      float(regiao["row"]) * lado))
+                var praca: Dictionary = pracas.get(String(regiao.get("id", "")), {})
+                _raios.append(float(praca.get("raio", RAIO_DA_VILA)))
 
     var textura: Texture2D = load("res://textures/road_mask.png")
     if textura:
@@ -89,15 +104,17 @@ static func altura(x: float, z: float) -> float:
 ## fica plana. Uma constante poria toda vila na mesma cota e criaria degrau na
 ## borda de umas e cratera na de outras.
 static func _nivelar_a_vila(x: float, z: float, natural: float) -> float:
-    for centro in _vilas:
+    for i in _vilas.size():
+        var centro: Vector2 = _vilas[i]
+        var raio: float = _raios[i]
         var distancia := Vector2(x, z).distance_to(centro)
-        if distancia > RAIO_DA_VILA + RAMPA_DA_VILA:
+        if distancia > raio + RAMPA_DA_VILA:
             continue
         var plato := (_colinas.get_noise_2d(centro.x, centro.y) * ALTURA_DAS_COLINAS
             + _detalhe.get_noise_2d(centro.x, centro.y) * ALTURA_DO_RELEVO)
         # Rampa suavizada nas duas pontas: transicao linear deixa uma quina
         # visivel onde o plato encontra o morro.
-        var quanto := 1.0 - smoothstep(RAIO_DA_VILA, RAIO_DA_VILA + RAMPA_DA_VILA, distancia)
+        var quanto := 1.0 - smoothstep(raio, raio + RAMPA_DA_VILA, distancia)
         return lerp(natural, plato, quanto)
     return natural
 
@@ -115,6 +132,15 @@ static func _levantar_a_estrada(x: float, z: float, h: float) -> float:
     if na_estrada < 0.35:
         return h
     return lerp(h, NIVEL_DA_AGUA + FOLGA_DA_ESTRADA, smoothstep(0.35, 0.8, na_estrada))
+
+## Centro e raio de cada praca, para quem precisa saber onde a cidade comeca —
+## hoje o shader do chao, que pavimenta o plato.
+static func pracas() -> Array[Vector3]:
+    _preparar()
+    var lista: Array[Vector3] = []
+    for i in _vilas.size():
+        lista.append(Vector3(_vilas[i].x, _vilas[i].y, _raios[i]))
+    return lista
 
 ## Normal aproximada do terreno, por diferenca finita.
 ##

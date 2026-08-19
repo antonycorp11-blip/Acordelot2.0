@@ -12,6 +12,15 @@ render_mode diffuse_burley;
 uniform sampler2D grass_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D dirt_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D stone_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+// A lajota da praca. Nao e a mesma pedra da estrada: rua e calcamento redondo de
+// passagem, praca e lajota cortada — e a diferenca entre as duas e o que faz o
+// jogador sentir que ENTROU na cidade.
+uniform sampler2D flagstone_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+
+// Centro e raio das pracas, em metros de mundo: xy = centro, z = raio, w = 0
+// quando a vaga nao e usada. Oito cabe de sobra — o mundo tem quatro cidades.
+uniform vec4 pracas[8];
+uniform int quantas_pracas = 0;
 
 // Mapa das estradas do mundo inteiro, desenhado por .tools/gerar_estradas.py a
 // partir da grade dos cenarios. Vermelho = terra batida, verde = calcamento.
@@ -136,6 +145,19 @@ void fragment() {
     ground = mix(ground, dirt, smoothstep(0.45, 0.80, road.r));
     vec3 stone = texture(stone_texture, world_position.xz / 3.2).rgb;
     ground = mix(ground, stone, smoothstep(0.45, 0.80, road.g));
+
+    // Calcamento da praca, por dentro do plato ja nivelado pelo relevo. A borda
+    // desmancha nos ultimos metros para a cidade nao terminar num disco recortado
+    // no meio do campo — vila de verdade tem quintal e horta antes do mato.
+    float na_praca = 0.0;
+    for (int i = 0; i < quantas_pracas; i++) {
+        float d = distance(world_position.xz, pracas[i].xy);
+        na_praca = max(na_praca, 1.0 - smoothstep(pracas[i].z * 0.72, pracas[i].z, d));
+    }
+    if (na_praca > 0.001) {
+        vec3 lajota = texture(flagstone_texture, world_position.xz / 4.2).rgb;
+        ground = mix(ground, lajota, na_praca);
+    }
 
     // Leito do lago: terra, nunca grama. Uma lamina de agua por cima de campo
     // verde le como poca em cima do gramado, que foi a queixa — lagoa de verdade
