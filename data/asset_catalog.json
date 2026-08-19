@@ -12,7 +12,8 @@
         "res://models/arvore_frondosa.glb",
         "res://models/arvore_carvalho.glb",
         "res://models/arvore_pequena.glb"
-      ]
+      ],
+      "vento": true
     },
     "bush": {
       "y": 0.0,
@@ -23,7 +24,8 @@
       "solid": false,
       "models": [
         "res://models/fantasy_bush_1787078968444.glb"
-      ]
+      ],
+      "vento": true
     },
     "crystal": {
       "y": 0.0,
@@ -147,7 +149,8 @@
       "solid": true,
       "models": [
         "res://models/pinheiro.glb"
-      ]
+      ],
+      "vento": true
     },
     "casa": {
       "y": 0.0,
@@ -242,8 +245,53 @@
       "models": [
         "res://models/escada_pedra.glb"
       ]
+    },
+    "pedra_pequena": {
+      "y": 0.0,
+      "scale": [
+        0.3,
+        0.85
+      ],
+      "solid": false,
+      "models": [
+        "res://models/media_1787068829583.glb",
+        "res://models/media_1787068833589.glb",
+        "res://models/media_1787068852522.glb",
+        "res://models/media_1787078420469.glb",
+        "res://models/media_1787078448833.glb",
+        "res://models/media_1787078454231.glb"
+      ]
+    },
+    "pedra": {
+      "y": 0.0,
+      "scale": [
+        1.4,
+        2.8
+      ],
+      "solid": true,
+      "models": [
+        "res://models/media_1787068829583.glb",
+        "res://models/media_1787068833589.glb",
+        "res://models/media_1787068852522.glb",
+        "res://models/media_1787078420469.glb",
+        "res://models/media_1787078448833.glb",
+        "res://models/media_1787078454231.glb"
+      ]
+    },
+    "arvore_morta": {
+      "y": 0.0,
+      "scale": [
+        3.0,
+        4.2
+      ],
+      "solid": true,
+      "vento": true,
+      "models": [
+        "res://models/media_1787078441421.glb"
+      ]
     }
   },
   "_nota_sprites": "Etiqueta com 'sprites' nasce como plaquinha 2D virada para a camera, nao como malha. 'altura' e o tamanho do objeto em metros — o recorte e justo, entao vale para o desenho inteiro. Sem 'y': a plaquinha ja apoia o pe na origem.",
-  "_nota_y": "y agora e so um empurrao manual, quase sempre 0: a altura real sai da caixa da malha, medida quando o objeto nasce."
+  "_nota_y": "y agora e so um empurrao manual, quase sempre 0: a altura real sai da caixa da malha, medida quando o objeto nasce.",
+  "_nota_vento": "vento=true poe a etiqueta no shader que balanca o vertice pela altura. So vegetacao: pedra e casa balancando denuncia o truque."
 }

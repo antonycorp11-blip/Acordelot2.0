@@ -87,6 +87,18 @@ void vertex() {
 // nao cabe na memoria do alvo.
 vec3 amostra_sem_grade(sampler2D textura, vec2 mundo) {
     const mat2 giro = mat2(vec2(0.80, 0.60), vec2(-0.60, 0.80));
+
+    // O vento tambem passa pelo chao. A grama e textura, nao geometria, entao
+    // nao ha folha para dobrar — o que se faz e empurrar a leitura da textura de
+    // lado em ondas largas. Le como rajada varrendo o campo, e custa duas contas
+    // de seno por pixel.
+    //
+    // O deslocamento e pequeno (poucos centimetros): passar disso faz o desenho
+    // ESCORREGAR sobre o terreno em vez de balancar, e a ilusao quebra.
+    float rajada = sin(mundo.x * 0.06 + TIME * 0.55)
+                 + 0.6 * sin(mundo.y * 0.09 - TIME * 0.8);
+    mundo += vec2(rajada * 0.055, rajada * 0.03);
+
     vec3 primeira = texture(textura, mundo / meters_per_tile).rgb;
     vec3 segunda = texture(textura, (giro * mundo) / (meters_per_tile * 1.61)).rgb;
     float escolha = fbm(mundo / 11.0);

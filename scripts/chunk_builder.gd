@@ -47,6 +47,7 @@ static var _agua: ShaderMaterial = null
 ## varre o projeto, e isso quebra exportacao limpa.
 const RELEVO := preload("res://scripts/relevo.gd")
 static var _prop_material: Material = null
+static var _material_com_vento: ShaderMaterial = null
 
 ## O TripoSR pinta o modelo em COR POR VERTICE, sem textura. Sem um material que
 ## leia essa cor como albedo, a arvore chega branca e o ambiente azul do ceu a
@@ -56,6 +57,16 @@ static func prop_material() -> Material:
     if _prop_material == null:
         _prop_material = load("res://Material_TripoSR.tres")
     return _prop_material
+
+## O material das coisas que tem folha.
+##
+## So a vegetacao recebe. Muro e casa balancando denuncia o truque na hora, e e
+## o tipo de detalhe que o jogador nota sem saber dizer o que viu.
+static func material_com_vento() -> ShaderMaterial:
+    if _material_com_vento == null:
+        _material_com_vento = ShaderMaterial.new()
+        _material_com_vento.shader = load("res://materials/prop_vento.gdshader")
+    return _material_com_vento
 
 ## O pedaco e CENTRADO no seu indice, nao apoiado nele. Com a divisa em
 ## multiplos de 30 m, o centro da celula (multiplo de 120) caia exatamente na
@@ -417,8 +428,9 @@ static func _criar(kind: Dictionary, rng: RandomNumberGenerator) -> Node3D:
     if scene == null:
         return null
     var modelo: Node3D = scene.instantiate()
+    var material: Material = material_com_vento() if bool(kind.get("vento", false)) else prop_material()
     for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):
-        mesh_node.material_override = prop_material()
+        mesh_node.material_override = material
 
     # O modelo entra dentro de um suporte, e quem recebe posicao, giro e escala
     # la fora e o suporte. Assim a correcao de altura viaja junto com a escala
