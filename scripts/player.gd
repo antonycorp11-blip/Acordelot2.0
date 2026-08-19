@@ -3,8 +3,20 @@ extends CharacterBody3D
 @onready var _hero: Hero = $Hero
 
 @export var move_speed := 6.0
+@export var fly_speed := 18.0
+@export var flight_altitude := 7.5
 @export var acceleration := 18.0
 @export var gravity := 24.0
+
+var _voando := false
+
+func alternar_voo() -> void:
+    _voando = not _voando
+    if _voando:
+        velocity.y = 10.0
+
+func esta_voando() -> bool:
+    return _voando
 
 ## Ate onde a mira procura um alvo, em metros. Um pouco alem do alcance da
 ## espada: e o que deixa o jogador comecar o golpe ja se virando para o bicho
@@ -56,6 +68,22 @@ func _physics_process(delta: float) -> void:
         camera_right = camera_right.normalized()
         move_direction = (camera_right * input_vector.x - camera_forward * input_vector.y).normalized()
 
+    if _voando:
+        velocity.x = move_toward(velocity.x, move_direction.x * fly_speed, acceleration * 1.5 * delta)
+        velocity.z = move_toward(velocity.z, move_direction.z * fly_speed, acceleration * 1.5 * delta)
+        
+        var altura_chao := Relevo.altura(global_position.x, global_position.z)
+        var altura_alvo := altura_chao + flight_altitude
+        velocity.y = (altura_alvo - global_position.y) * 6.0
+        
+        if move_direction.length() > 0.0:
+            var target_angle := atan2(move_direction.x, move_direction.z)
+            rotation.y = lerp_angle(rotation.y, target_angle, 10.0 * delta)
+            
+        move_and_slide()
+        _hero.atualizar_movimento(Vector2(velocity.x, velocity.z).length(), true)
+        return
+
     # Golpe segura os pes. O ataque com pulo dura 1,5 s mesmo acelerado, e nada
     # impedia o jogador de continuar andando o tempo todo: o heroi atravessava
     # metros no meio do swing, que e o "personagem mudando de posicao". Nao e a
@@ -78,12 +106,14 @@ func _physics_process(delta: float) -> void:
 
     move_and_slide()
 
-    _hero.atualizar_movimento(Vector2(velocity.x, velocity.z).length())
+    _hero.atualizar_movimento(Vector2(velocity.x, velocity.z).length(), false)
 
 func _unhandled_input(event: InputEvent) -> void:
-    # O golpe agora sai do botao na tela; aqui fica so o atalho de teclado.
-    if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
-        _hero.atacar()
+    if event is InputEventKey and event.pressed:
+        if event.keycode == KEY_SPACE:
+            _hero.atacar()
+        elif event.keycode in [KEY_F, KEY_V]:
+            alternar_voo()
 
 ## Ligado ao botao de ataque pelo game.gd.
 func atacar() -> void:

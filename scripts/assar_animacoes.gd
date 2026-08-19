@@ -15,6 +15,7 @@ const ANIMACOES := {
     "parado": "",
     "andar": "standard_walk",
     "correr": "running",
+    "voo": "flying",
     "ataque": "sword_fight_one",
     "corte_dentro": "stable_sword_inward_slash",
     "corte_fora": "stable_sword_outward_slash",
@@ -47,10 +48,10 @@ func _ready() -> void:
         var raiz := cena.instantiate()
         var tocador: AnimationPlayer = raiz.find_child("AnimationPlayer", true, false)
         var animacao: Animation = tocador.get_animation("mixamo_com").duplicate(true)
-        # Parado, andar e correr tocam em laco; golpe toca uma vez e volta.
+        # Parado, andar, correr e voar tocam em laco; golpe toca uma vez e volta.
         animacao.loop_mode = (Animation.LOOP_LINEAR
-            if nome in ["parado", "andar", "correr"] else Animation.LOOP_NONE)
-        if nome in ["andar", "correr"]:
+            if nome in ["parado", "andar", "correr", "voo"] else Animation.LOOP_NONE)
+        if nome in ["andar", "correr", "voo"]:
             _fixar_no_lugar(animacao)
         biblioteca.add_animation(nome, animacao)
         print("%-14s %5.2fs  %d trilhas" % [nome, animacao.length, animacao.get_track_count()])

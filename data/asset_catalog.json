@@ -434,6 +434,36 @@
       ],
       "solid": true,
       "na_vila": true
+    },
+    "moinho": {
+      "altura": 10.5,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": true,
+      "na_vila": true
+    },
+    "oficina_ferreiro": {
+      "altura": 8.0,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": true,
+      "na_vila": true
+    },
+    "ponte_madeira": {
+      "altura": 3.2,
+      "y": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ],
+      "solid": false,
+      "na_vila": true
     }
   },
   "_nota_sprites": "Etiqueta com 'sprites' nasce como plaquinha 2D virada para a camera, nao como malha. 'altura' e o tamanho do objeto em metros — o recorte e justo, entao vale para o desenho inteiro. Sem 'y': a plaquinha ja apoia o pe na origem.",

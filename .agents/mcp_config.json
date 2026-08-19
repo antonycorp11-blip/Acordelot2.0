@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "python3",
+      "args": [
+        "/Users/aquillesantony/Desktop/acordelot-2.0/.tools/github_mcp.py"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": ""
+      }
+    }
+  }
+}

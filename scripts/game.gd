@@ -15,6 +15,13 @@ const EXPOSICAO_NA_WEB := 0.52
 
 func _ready() -> void:
     _player.global_position = World.start_position()
+    for arg in OS.get_cmdline_user_args():
+        if arg.begins_with("--pos="):
+            var parts := arg.substr(6).split(",")
+            if parts.size() == 2:
+                var px := float(parts[0])
+                var pz := float(parts[1])
+                _player.global_position = Vector3(px, Relevo.altura(px, pz) + 1.1, pz)
 
     if OS.has_feature("web"):
         var ambiente: Environment = $WorldEnvironment.environment
@@ -22,8 +29,10 @@ func _ready() -> void:
     _streamer.ensure_ground_at(_player.global_position)
     $MapLayer/MapButton.pressed.connect(_map.toggle)
     $MobileControls/AttackButton.pressed.connect(_player.atacar)
+    $MobileControls/FlyButton.pressed.connect(_player.alternar_voo)
     if OS.get_cmdline_user_args().has("--shot"):
         _shoot_and_quit()
+
 
 ## Gancho de teste: roda o jogo com `-- --shot` e ele salva um quadro em
 ## user://shot.png e sai. E assim que se confere o mundo sem depender de alguem

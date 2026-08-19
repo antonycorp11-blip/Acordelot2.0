@@ -97,9 +97,59 @@ def main():
     # NPC e missão. Urbano ganha calçamento, o resto ganha chão batido.
     for regiao in nomeadas:
         px, pz = para_pixel(*centro(regiao))
-        raio = LARGURA_PRACA / METROS_POR_PIXEL * 0.5
-        pincel = pincel_pedra if regiao["biome"] in BIOMAS_DE_PEDRA else pincel_terra
-        pincel.ellipse([px - raio, pz - raio, px + raio, pz + raio], fill=255)
+        rid = regiao.get("id", "")
+        
+        if rid == "custom_1785869541494_557":
+            # Praça Central Monumental (Ref. 4): Anel concêntrico de pedra e 4 avenidas radiais
+            raio_nucleo = 12.0 / METROS_POR_PIXEL
+            pincel_pedra.ellipse([px - raio_nucleo, pz - raio_nucleo, px + raio_nucleo, pz + raio_nucleo], fill=255)
+            
+            # Anel externo pavimentado do mercado
+            raio_anel_ext = 26.0 / METROS_POR_PIXEL
+            pincel_pedra.ellipse([px - raio_anel_ext, pz - raio_anel_ext, px + raio_anel_ext, pz + raio_anel_ext], fill=255)
+            
+            # 4 Avenidas radiais de pedra cruzando o canal
+            larg_av = int(7.0 / METROS_POR_PIXEL)
+            pincel_pedra.line([(px, pz - raio_anel_ext - 10), (px, pz + raio_anel_ext + 10)], fill=255, width=larg_av)
+            pincel_pedra.line([(px - raio_anel_ext - 10, pz), (px + raio_anel_ext + 10, pz)], fill=255, width=larg_av)
+            
+        elif rid == "custom_1785880661560_858":
+            # Portões Reais (Ref. 2): Avenida de pedra cruzando a ponte e o pátio interno
+            larg_portao = int(6.5 / METROS_POR_PIXEL)
+            pz_ponte = pz + int(14.0 / METROS_POR_PIXEL)
+            pz_norte = pz - int(25.0 / METROS_POR_PIXEL)
+            pincel_pedra.line([(px, pz_ponte), (px, pz_norte)], fill=255, width=larg_portao)
+            
+            # Pátio pavimentado dentro da fortaleza
+            raio_patio = 16.0 / METROS_POR_PIXEL
+            pincel_pedra.ellipse([px - raio_patio, pz - 10 - raio_patio, px + raio_patio, pz - 10 + raio_patio], fill=255)
+            
+        elif rid == "custom_1785884200706_430":
+            # Vila do Caminho (Ref. 3): Chão de terra batida largo em torno do poço e ramificações
+            raio_vila = 16.0 / METROS_POR_PIXEL
+            pincel_terra.ellipse([px - raio_vila, pz - raio_vila, px + raio_vila, pz + raio_vila], fill=255)
+            
+            # Trilha para o moinho (leste) e para a estalagem (noroeste)
+            larg_trilha = int(4.5 / METROS_POR_PIXEL)
+            pincel_terra.line([(px, pz), (px + int(21.0 / METROS_POR_PIXEL), pz - int(1.0 / METROS_POR_PIXEL))], fill=255, width=larg_trilha)
+            pincel_terra.line([(px, pz), (px - int(16.0 / METROS_POR_PIXEL), pz - int(12.0 / METROS_POR_PIXEL))], fill=255, width=larg_trilha)
+            pincel_terra.line([(px, pz), (px + int(15.0 / METROS_POR_PIXEL), pz + int(12.0 / METROS_POR_PIXEL))], fill=255, width=larg_trilha)
+            pincel_terra.line([(px, pz), (px - int(16.0 / METROS_POR_PIXEL), pz + int(13.0 / METROS_POR_PIXEL))], fill=255, width=larg_trilha)
+            
+        elif rid == "custom_1785881037059_214":
+            # Floresta do Despertar (Ref. 1): Bifurcação em Y
+            raio_floresta = 8.0 / METROS_POR_PIXEL
+            pincel_terra.ellipse([px - raio_floresta, pz - raio_floresta, px + raio_floresta, pz + raio_floresta], fill=255)
+            larg_y = int(5.0 / METROS_POR_PIXEL)
+            # Ramo nordeste (para o caminho da vila)
+            pincel_terra.line([(px, pz), (px + int(18.0 / METROS_POR_PIXEL), pz - int(25.0 / METROS_POR_PIXEL))], fill=255, width=larg_y)
+            # Ramo noroeste (para a trilha da serra/enseada)
+            pincel_terra.line([(px, pz), (px - int(18.0 / METROS_POR_PIXEL), pz - int(25.0 / METROS_POR_PIXEL))], fill=255, width=larg_y)
+            
+        else:
+            raio = LARGURA_PRACA / METROS_POR_PIXEL * 0.5
+            pincel = pincel_pedra if regiao["biome"] in BIOMAS_DE_PEDRA else pincel_terra
+            pincel.ellipse([px - raio, pz - raio, px + raio, pz + raio], fill=255)
 
     # Borda macia: sem isso a estrada tem recorte de papel no terreno.
     terra = terra.filter(ImageFilter.GaussianBlur(1.2))

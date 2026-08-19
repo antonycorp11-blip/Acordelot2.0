@@ -208,11 +208,13 @@ func atacando() -> bool:
     return _atacando
 
 ## Chamado pelo jogador a cada quadro com a velocidade no plano.
-func atualizar_movimento(velocidade: float) -> void:
+func atualizar_movimento(velocidade: float, voando: bool = false) -> void:
     if _atacando:
         return
     var desejada := "heroi/parado"
-    if velocidade > VELOCIDADE_DE_CORRIDA:
+    if voando:
+        desejada = "heroi/voo"
+    elif velocidade > VELOCIDADE_DE_CORRIDA:
         desejada = "heroi/correr"
     elif velocidade > 0.2:
         desejada = "heroi/andar"

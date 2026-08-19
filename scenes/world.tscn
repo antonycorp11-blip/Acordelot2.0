@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_game"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="2_player"]
@@ -8,8 +8,9 @@
 [ext_resource type="Script" path="res://scripts/hero.gd" id="7_hero"]
 [ext_resource type="Script" path="res://scripts/world_map.gd" id="6_map"]
 [ext_resource type="Script" path="res://scripts/ciclo_dia_noite.gd" id="9_ciclo"]
-[ext_resource type="Script" path="res://scripts/gerador_de_bichos.gd" id="11_bichos"]
 [ext_resource type="Script" path="res://scripts/barra_do_dia.gd" id="12_barra"]
+[ext_resource type="Texture2D" path="res://textures/ui/btn_ataque.png" id="13_btn_ataque"]
+[ext_resource type="Texture2D" path="res://textures/ui/btn_voo.png" id="14_btn_voo"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_day"]
 sky_top_color = Color(0.16, 0.42, 0.72, 1)
@@ -109,20 +110,37 @@ grow_vertical = 0
 mouse_filter = 0
 script = ExtResource("5_joystick")
 
-[node name="AttackButton" type="Button" parent="MobileControls"]
+[node name="AttackButton" type="TextureButton" parent="MobileControls"]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -180.0
-offset_top = -180.0
-offset_right = -32.0
-offset_bottom = -32.0
+offset_left = -170.0
+offset_top = -170.0
+offset_right = -30.0
+offset_bottom = -30.0
 grow_horizontal = 0
 grow_vertical = 0
-text = "⚔"
-theme_override_font_sizes/font_size = 64
+texture_normal = ExtResource("13_btn_ataque")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="FlyButton" type="TextureButton" parent="MobileControls"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -300.0
+offset_right = -40.0
+offset_bottom = -180.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("14_btn_voo")
+ignore_texture_size = true
+stretch_mode = 5
 
 [node name="BarraDoDia" type="Control" parent="MobileControls" node_paths=PackedStringArray("ciclo")]
 anchors_preset = 5

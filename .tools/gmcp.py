@@ -60,5 +60,14 @@ if __name__ == "__main__":
     elif cmd == "gd":
         show(rpc("tools/call", {"name": "execute_gdscript",
                                 "arguments": {"code": open(sys.argv[2]).read()}}))
+    elif cmd == "eval":
+        code = sys.argv[2] if len(sys.argv) > 2 else "return 'OK'"
+        show(rpc("tools/call", {"name": "execute_gdscript", "arguments": {"code": code}}))
+    elif cmd == "scene":
+        scene_path = sys.argv[2] if len(sys.argv) > 2 else "res://scenes/world.tscn"
+        show(rpc("tools/call", {"name": "open_scene", "arguments": {"path": scene_path}}))
+    elif cmd == "tree":
+        show(rpc("tools/call", {"name": "get_scene_tree", "arguments": {}}))
     else:
         sys.exit(__doc__)
+

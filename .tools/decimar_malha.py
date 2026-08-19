@@ -81,8 +81,9 @@ def simplificar(posicoes, cores, triangulos, alvo):
     if cores is not None:
         total = len(novas_posicoes)
         soma = np.zeros((total, cores.shape[1]), dtype=np.float64)
-        np.add.at(soma, mapeamento, cores)
-        contagem = np.bincount(mapeamento, minlength=total).reshape(-1, 1)
+        valido = mapeamento >= 0
+        np.add.at(soma, mapeamento[valido], cores[valido])
+        contagem = np.bincount(mapeamento[valido], minlength=total).reshape(-1, 1)
         contagem[contagem == 0] = 1
         novas_cores = (soma / contagem).astype(np.float32)
 
