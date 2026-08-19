@@ -154,96 +154,140 @@
     },
     "casa": {
       "y": 0.0,
+      "altura": 6.0,
       "scale": [
-        5.5,
-        6.5
+        0.9,
+        1.2
       ],
       "solid": true,
-      "models": [
-        "res://models/casa_camponesa.glb",
-        "res://models/casa_mercador.glb",
-        "res://models/oficina_ferreiro.glb",
-        "res://models/moinho.glb",
-        "res://models/celeiro.glb"
+      "sprites": [
+        "res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png",
+        "res://textures/buildings/Medieval_merchant_house_building_202608190931.png",
+        "res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png",
+        "res://textures/buildings/Stone_windmill_tower_with_wooden…_202608190931.png",
+        "res://textures/buildings/Medieval_barn_with_hay_bales_202608190931.png"
+      ],
+      "na_vila": true,
+      "anel": [
+        12.0,
+        20.0
       ]
     },
     "predio": {
       "y": 0.0,
+      "altura": 7.5,
       "scale": [
-        6.0,
-        7.5
+        0.9,
+        1.1
       ],
       "solid": true,
-      "models": [
-        "res://models/casa_nobre.glb",
-        "res://models/torre_guarda.glb",
-        "res://models/banca_feira.glb"
+      "sprites": [
+        "res://textures/buildings/Townhouse_game_asset_202608190931.png",
+        "res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png",
+        "res://textures/buildings/Market_stall_with_canvas_canopy_202608190931.png"
+      ],
+      "na_vila": true,
+      "anel": [
+        15.0,
+        22.0
       ]
     },
     "fonte_praca": {
       "y": 0.0,
+      "altura": 3.2,
       "scale": [
-        3.008,
-        3.3920000000000003
+        0.9,
+        1.1
       ],
       "solid": true,
-      "models": [
-        "res://models/fonte_praca.glb"
+      "sprites": [
+        "res://textures/buildings/Stone_fountain_spilling_water_202608190931.png"
+      ],
+      "na_vila": true,
+      "anel": [
+        0.0,
+        2.5
       ]
     },
     "poco": {
       "y": 0.0,
+      "altura": 2.0,
       "scale": [
-        1.7859999999999998,
-        2.014
+        0.9,
+        1.1
       ],
       "solid": true,
-      "models": [
-        "res://models/poco.glb"
+      "sprites": [
+        "res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png"
+      ],
+      "na_vila": true,
+      "anel": [
+        3.0,
+        6.0
       ]
     },
     "cerca_madeira": {
       "y": 0.0,
+      "altura": 1.5,
       "scale": [
-        2.256,
-        2.544
+        0.9,
+        1.1
       ],
       "solid": false,
-      "models": [
-        "res://models/cerca_madeira.glb"
+      "sprites": [
+        "res://textures/buildings/Wooden_post_and_rail_fence_202608190932.png"
+      ],
+      "na_vila": true,
+      "anel": [
+        11.0,
+        19.0
       ]
     },
     "ponte_pedra": {
       "y": 0.0,
+      "altura": 3.5,
       "scale": [
-        3.1959999999999997,
-        3.604
+        0.9,
+        1.1
       ],
       "solid": false,
-      "models": [
-        "res://models/ponte_pedra.glb"
+      "sprites": [
+        "res://textures/buildings/Stone_footbridge_on_magenta_back…_202608190932.png"
       ]
     },
     "lampiao": {
       "y": 0.0,
+      "altura": 3.0,
       "scale": [
-        2.82,
-        3.18
+        0.9,
+        1.1
       ],
       "solid": false,
-      "models": [
-        "res://models/lampiao.glb"
+      "sprites": [
+        "res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png"
+      ],
+      "na_vila": true,
+      "luz": true,
+      "anel": [
+        7.0,
+        17.0
       ]
     },
     "escada_pedra": {
       "y": 0.0,
+      "altura": 2.2,
       "scale": [
-        2.068,
-        2.3320000000000003
+        0.9,
+        1.1
       ],
       "solid": false,
-      "models": [
-        "res://models/escada_pedra.glb"
+      "sprites": [
+        "res://textures/buildings/Stone_steps_on_magenta_background_202608190932.png"
+      ],
+      "na_vila": true,
+      "anel": [
+        8.0,
+        16.0
       ]
     },
     "pedra_pequena": {
@@ -293,5 +337,8 @@
   },
   "_nota_sprites": "Etiqueta com 'sprites' nasce como plaquinha 2D virada para a camera, nao como malha. 'altura' e o tamanho do objeto em metros — o recorte e justo, entao vale para o desenho inteiro. Sem 'y': a plaquinha ja apoia o pe na origem.",
   "_nota_y": "y agora e so um empurrao manual, quase sempre 0: a altura real sai da caixa da malha, medida quando o objeto nasce.",
-  "_nota_vento": "vento=true poe a etiqueta no shader que balanca o vertice pela altura. So vegetacao: pedra e casa balancando denuncia o truque."
+  "_nota_vento": "vento=true poe a etiqueta no shader que balanca o vertice pela altura. So vegetacao: pedra e casa balancando denuncia o truque.",
+  "_nota_vila": "na_vila=true faz a etiqueta nascer so dentro do raio plano da vila, em vez de espalhada pelo pedaco. Casa sorteada no morro fica com metade enterrada, e no lago fica boiando.",
+  "_nota_luz": "luz=true poe uma lampada de alcance curto no topo do modelo, acesa so a noite.",
+  "_nota_anel": "anel=[perto,longe] em metros do centro da praca. So vale para etiqueta com na_vila."
 }

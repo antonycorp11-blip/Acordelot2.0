@@ -43,6 +43,11 @@ static var _material_cache: Dictionary = {}
 static var _centro_em_construcao := Vector3.ZERO
 static var _agua: ShaderMaterial = null
 
+## Se as lampadas do mundo estao acesas. Quem manda e o ciclo do dia; fica aqui
+## porque o pedaco que nasce no meio da noite precisa acender o poste dele na
+## hora, sem esperar a proxima virada.
+static var luzes_acesas := false
+
 ## Pelo caminho e nao pelo nome global: o nome so existe depois que o editor
 ## varre o projeto, e isso quebra exportacao limpa.
 const RELEVO := preload("res://scripts/relevo.gd")
@@ -94,14 +99,60 @@ static func build(chunk: Vector2i, ground_material: Material) -> Node3D:
 
     var rng := RandomNumberGenerator.new()
     rng.seed = hash([int(region.get("seed", 0)), chunk.x, chunk.y])
+    var layout: Array = World.city_layout(String(region.get("id", "")))
 
     # As plaquinhas nao viram no na hora: acumulam aqui, por textura, e no fim
     # cada textura sai como UM objeto so com milhares de copias dentro.
     var lotes: Dictionary = {}
     for entry in region.get("props", []):
+        # Tudo que define a leitura urbana vem da planta assinada, abaixo.
+        # Vegetacao miuda ainda pode preencher o limite da celula, mas casa,
+        # monumento, muro e mobiliario nunca mais sao sorteados.
+        if not layout.is_empty() and String(entry.get("tag", "")) in [
+            "casa", "predio", "fonte_praca", "poco", "cerca_madeira",
+            "lampiao", "escada_pedra", "wall"]:
+            continue
         _scatter(root, entry, rng, center, lotes)
+    if not layout.is_empty():
+        _montar_layout_urbano(root, layout, center)
     _montar_lotes(root, lotes)
     return root
+
+## Constroi a parte autoral de uma cidade.
+##
+## As coordenadas sao locais ao centro da regiao. Isso deixa a planta legivel
+## no JSON (a praca e 0,0) e permite que a mesma cidade atravesse varios chunks
+## sem duplicar uma casa na divisa.
+static func _montar_layout_urbano(root: Node3D, layout: Array, center: Vector3) -> void:
+    var half := CHUNK_SIZE * 0.5
+    var region_center := World.cell_center(World.cell_at(center))
+    for item in layout:
+        var tag := String(item.get("tag", ""))
+        var kind: Dictionary = World.catalog.get(tag, {})
+        if kind.is_empty():
+            push_warning("Etiqueta urbana fora do catalogo: " + tag)
+            continue
+
+        var local: Array = item.get("position", [0.0, 0.0])
+        var mundo := region_center + Vector3(float(local[0]), 0.0, float(local[1]))
+        var offset := mundo - center
+        # Um unico chunk e dono da peca, inclusive quando ela encosta na borda.
+        if offset.x < -half or offset.x >= half or offset.z < -half or offset.z >= half:
+            continue
+
+        var rng := RandomNumberGenerator.new()
+        rng.seed = hash([String(item.get("id", tag)), int(region_center.x), int(region_center.z)])
+        var prop := _criar(kind, rng, String(item.get("model", "")))
+        if prop == null:
+            continue
+        offset.y = RELEVO.altura(mundo.x, mundo.z) + float(item.get("y", 0.0))
+        prop.position = offset
+        prop.rotation.y = deg_to_rad(float(item.get("rotation", 0.0)))
+        prop.scale = Vector3.ONE * float(item.get("scale", 1.0))
+        prop.name = String(item.get("id", tag))
+        root.add_child(prop)
+        if bool(item.get("solid", kind.get("solid", false))):
+            PropCollider.apply_to_asset(prop)
 
 ## Junta as plaquinhas de mesma textura num objeto unico.
 ##
@@ -378,6 +429,12 @@ static func _scatter(root: Node3D, entry: Dictionary, rng: RandomNumberGenerator
     var por_touceira: int = POR_TOUCEIRA if not sprites.is_empty() else 1
     var touceiras := int(ceil(float(count) / float(por_touceira)))
 
+    # Construcao urbana sem planta nao recebe substituto aleatorio. Falhar
+    # vazio e deliberado: um buraco visivel pede design; uma cidade sorteada
+    # parece pronta e perpetua justamente o defeito que queremos eliminar.
+    if bool(kind.get("na_vila", false)):
+        return
+
     for t in touceiras:
         var raiz_da_touceira := Vector3(
             rng.randf_range(-half, half), 0.0, rng.randf_range(-half, half))
@@ -422,24 +479,137 @@ static func _scatter(root: Node3D, entry: Dictionary, rng: RandomNumberGenerator
             if bool(kind.get("solid", false)):
                 PropCollider.apply_to_asset(prop)
 
-static func _criar(kind: Dictionary, rng: RandomNumberGenerator) -> Node3D:
+static func _criar(kind: Dictionary, rng: RandomNumberGenerator, model_path := "") -> Node3D:
     var models: Array = kind.get("models", [])
-    var scene := _load_scene(String(models[rng.randi() % models.size()]))
-    if scene == null:
+    var sprites: Array = kind.get("sprites", [])
+    var caminho := model_path
+    if caminho.is_empty():
+        if not models.is_empty():
+            caminho = String(models[rng.randi() % models.size()])
+        elif not sprites.is_empty():
+            caminho = String(sprites[rng.randi() % sprites.size()])
+            
+    if caminho.is_empty():
         return null
-    var modelo: Node3D = scene.instantiate()
-    var material: Material = material_com_vento() if bool(kind.get("vento", false)) else prop_material()
-    for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):
-        mesh_node.material_override = material
 
-    # O modelo entra dentro de um suporte, e quem recebe posicao, giro e escala
-    # la fora e o suporte. Assim a correcao de altura viaja junto com a escala
-    # sorteada, em vez de brigar com ela.
     var suporte := Node3D.new()
-    suporte.name = modelo.name
-    suporte.add_child(modelo)
-    modelo.position.y = -_base_do_modelo(modelo)
+
+    if caminho.ends_with(".png"):
+        var textura := _load_texture(caminho)
+        if textura == null: return null
+        
+        var altura := float(kind.get("altura", 1.0))
+        var proporcao := float(textura.get_width()) / float(textura.get_height())
+        
+        var quadro := QuadMesh.new()
+        quadro.size = Vector2(altura * proporcao, altura)
+        quadro.center_offset = Vector3(0.0, altura * 0.5, 0.0)
+        quadro.material = _material_de_planta(textura)
+        
+        var modelo := MeshInstance3D.new()
+        modelo.mesh = quadro
+        modelo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        
+        var tex_sombra := _load_texture("res://textures/sombra_contato.png")
+        if tex_sombra:
+            var sombra := _pose_da_sombra(Transform3D.IDENTITY, altura * proporcao)
+            var mat_sombra := StandardMaterial3D.new()
+            mat_sombra.albedo_texture = tex_sombra
+            mat_sombra.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+            mat_sombra.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+            mat_sombra.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+            mat_sombra.cull_mode = BaseMaterial3D.CULL_DISABLED
+            var quad_sombra := QuadMesh.new()
+            quad_sombra.size = Vector2.ONE
+            quad_sombra.material = mat_sombra
+            var node_sombra := MeshInstance3D.new()
+            node_sombra.mesh = quad_sombra
+            node_sombra.transform = sombra
+            node_sombra.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+            suporte.add_child(node_sombra)
+            
+        suporte.name = "Sprite2D"
+        suporte.add_child(modelo)
+    else:
+        var scene := _load_scene(caminho)
+        if scene == null: return null
+        var modelo: Node3D = scene.instantiate()
+        var material: Material = material_com_vento() if bool(kind.get("vento", false)) else prop_material()
+        for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):
+            mesh_node.material_override = material
+        suporte.name = modelo.name
+        suporte.add_child(modelo)
+        modelo.position.y = -_base_do_modelo(modelo)
+
+    if bool(kind.get("luz", false)):
+        suporte.add_child(_lampada())
+        suporte.add_child(_claro_no_chao())
     return suporte
+
+## A lampada no alto do poste.
+##
+## Alcance curto de proposito. Luz pontual e cara no renderizador de
+## compatibilidade, que e o que roda no navegador, e o custo cresce com o volume
+## que ela ilumina — nao com o brilho. Sete metros acendem a rua sem cobrar o
+## preco de iluminar a vila inteira, e como ela nao projeta sombra, sao poucos
+## objetos por poste.
+## O circulo de luz que o poste joga no chao.
+##
+## Existe porque a luz pontual NAO aparece: o jogo roda no renderizador de
+## compatibilidade — o unico que o navegador aceita — e la a OmniLight3D nao
+## chega ao chao. Testado com energia 40 e alcance 30 metros: nenhuma diferenca
+## na tela. A lampada continua no poste porque acende o proprio modelo de perto;
+## quem desenha a poca de luz e esta mancha.
+##
+## Nao e gambiarra de segunda escolha: com a camera de cima, o que o jogador ve
+## de um poste E o circulo no chao. Uma mancha aditiva custa um quadrado de dois
+## triangulos, contra o preco de uma luz de verdade por objeto iluminado.
+static func _claro_no_chao() -> MeshInstance3D:
+    var quadro := QuadMesh.new()
+    quadro.size = Vector2(5.4, 5.4)
+    # Deitada e logo acima do chao: colada demais briga pelo mesmo pixel e pisca.
+    quadro.orientation = PlaneMesh.FACE_Y
+    quadro.center_offset = Vector3(0.0, 0.04, 0.0)
+
+    var material := StandardMaterial3D.new()
+    # Textura BRANCA, nao a da sombra. A da sombra e preta com alpha, e preto
+    # somado ao que ja esta na tela nao acende nada — foi por isso que a primeira
+    # versao da poca de luz nao apareceu.
+    material.albedo_texture = _load_texture("res://textures/brilho_poste.png")
+    # Fraca de proposito. A mistura e ADITIVA: dois postes perto somam, tres
+    # estouram em branco. No brilho cheio a praca virava uma chapa clara — este
+    # tom aguenta tres ou quatro sobrepostos sem lavar.
+    material.albedo_color = Color(0.46, 0.33, 0.16)
+    # Aditiva: luz SOMA ao que ja esta desenhado, nao cobre. Mistura normal
+    # poria um disco laranja opaco sobre a grama, que le como tapete.
+    material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    quadro.material = material
+
+    var no := MeshInstance3D.new()
+    no.name = "ClaroNoChao"
+    no.mesh = quadro
+    no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    no.visible = luzes_acesas
+    no.add_to_group("claro_de_poste")
+    return no
+
+static func _lampada() -> OmniLight3D:
+    var luz := OmniLight3D.new()
+    luz.name = "Lampada"
+    # Altura no modelo ja escalado: o poste tem uns 3 m e a luminaria fica no topo.
+    luz.position = Vector3(0.0, 0.86, 0.0)
+    luz.light_color = Color(1.0, 0.82, 0.52)
+    luz.omni_range = 13.0
+    luz.omni_attenuation = 0.9
+    luz.shadow_enabled = false
+    luz.light_energy = 6.5 if luzes_acesas else 0.0
+    luz.visible = luzes_acesas
+    luz.add_to_group("lampada")
+    return luz
 
 ## Onde esta o ponto mais baixo da malha, no espaco do proprio modelo.
 ##

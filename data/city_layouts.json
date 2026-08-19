@@ -1,0 +1,73 @@
+{
+  "_nota": "Plantas urbanas autorais. position=[x,z] em metros relativos ao centro da regiao; rotation em graus. Nenhuma entrada deste arquivo e sorteada.",
+  "layouts": {
+    "custom_1785869541494_557": [
+      {"id":"fonte_central","tag":"fonte_praca","model":"res://textures/buildings/Stone_fountain_spilling_water_202608190931.png","position":[0,0],"rotation":0,"scale":3.2},
+      {"id":"mercado_norte","tag":"predio","model":"res://textures/buildings/Market_stall_with_canvas_canopy_202608190931.png","position":[-7,-13],"rotation":180,"scale":6.0},
+      {"id":"mercado_sul","tag":"predio","model":"res://textures/buildings/Market_stall_with_canvas_canopy_202608190931.png","position":[7,13],"rotation":0,"scale":5.7},
+      {"id":"casa_nobre_oeste","tag":"predio","model":"res://textures/buildings/Townhouse_game_asset_202608190931.png","position":[-21,-2],"rotation":90,"scale":7.0},
+      {"id":"torre_civica_leste","tag":"predio","model":"res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png","position":[22,-2],"rotation":270,"scale":7.2},
+      {"id":"mercador_no","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[-19,-18],"rotation":135,"scale":6.0},
+      {"id":"camponesa_ne","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[18,-18],"rotation":225,"scale":5.8},
+      {"id":"ferreiro_so","tag":"casa","model":"res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png","position":[-20,18],"rotation":45,"scale":6.3},
+      {"id":"celeiro_se","tag":"casa","model":"res://textures/buildings/Medieval_barn_with_hay_bales_202608190931.png","position":[20,18],"rotation":315,"scale":6.1},
+      {"id":"casa_rua_oeste_1","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[-30,-13],"rotation":90,"scale":5.6},
+      {"id":"casa_rua_oeste_2","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[-30,11],"rotation":90,"scale":5.8},
+      {"id":"casa_rua_leste_1","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[30,-14],"rotation":270,"scale":5.5},
+      {"id":"casa_rua_leste_2","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[30,12],"rotation":270,"scale":5.9},
+      {"id":"lampiao_no","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-8,-7],"rotation":0,"scale":3.0},
+      {"id":"lampiao_ne","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[8,-7],"rotation":0,"scale":3.0},
+      {"id":"lampiao_so","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-8,7],"rotation":180,"scale":3.0},
+      {"id":"lampiao_se","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[8,7],"rotation":180,"scale":3.0},
+      {"id":"poco_bairro_oeste","tag":"poco","model":"res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png","position":[-39,0],"rotation":0,"scale":2.0}
+    ],
+    "custom_1785880661560_858": [
+      {"id":"torre_portao_oeste","tag":"predio","model":"res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png","position":[-14,-39],"rotation":180,"scale":7.5},
+      {"id":"torre_portao_leste","tag":"predio","model":"res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png","position":[14,-39],"rotation":180,"scale":7.5},
+      {"id":"guarda_oeste","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[-25,-20],"rotation":110,"scale":5.7},
+      {"id":"guarda_leste","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[25,-20],"rotation":250,"scale":5.7},
+      {"id":"estalagem_oeste","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[-21,3],"rotation":90,"scale":6.2},
+      {"id":"oficina_leste","tag":"casa","model":"res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png","position":[21,3],"rotation":270,"scale":6.2},
+      {"id":"poco_guardas","tag":"poco","model":"res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png","position":[0,-18],"rotation":0,"scale":2.0},
+      {"id":"lampiao_portao_oeste","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-7,-34],"rotation":0,"scale":3.0},
+      {"id":"lampiao_portao_leste","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[7,-34],"rotation":0,"scale":3.0},
+      {"id":"lampiao_rua_oeste","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-8,-5],"rotation":0,"scale":3.0},
+      {"id":"lampiao_rua_leste","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[8,-5],"rotation":0,"scale":3.0},
+      {"id":"muro_o1","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[-25,-40],"rotation":0,"scale":3.2},
+      {"id":"muro_o2","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[-34,-40],"rotation":0,"scale":3.2},
+      {"id":"muro_o3","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[-43,-40],"rotation":0,"scale":3.2},
+      {"id":"muro_l1","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[25,-40],"rotation":0,"scale":3.2},
+      {"id":"muro_l2","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[34,-40],"rotation":0,"scale":3.2},
+      {"id":"muro_l3","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[43,-40],"rotation":0,"scale":3.2}
+    ],
+    "custom_1785884200706_430": [
+      {"id":"poco_da_vila","tag":"poco","model":"res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png","position":[-3,1],"rotation":0,"scale":2.0},
+      {"id":"estalagem","tag":"casa","model":"res://textures/buildings/Medieval_merchant_house_building_202608190931.png","position":[-14,-11],"rotation":145,"scale":6.1},
+      {"id":"ferreiro","tag":"casa","model":"res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png","position":[14,-10],"rotation":215,"scale":6.0},
+      {"id":"celeiro","tag":"casa","model":"res://textures/buildings/Medieval_barn_with_hay_bales_202608190931.png","position":[-19,12],"rotation":55,"scale":6.2},
+      {"id":"moinho","tag":"casa","model":"res://textures/buildings/Stone_windmill_tower_with_wooden…_202608190931.png","position":[25,19],"rotation":315,"scale":6.7},
+      {"id":"casa_oeste","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[-28,-4],"rotation":90,"scale":5.5},
+      {"id":"casa_leste","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[28,1],"rotation":270,"scale":5.6},
+      {"id":"casa_sul","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[7,21],"rotation":335,"scale":5.4},
+      {"id":"banca_viajante","tag":"predio","model":"res://textures/buildings/Market_stall_with_canvas_canopy_202608190931.png","position":[7,6],"rotation":300,"scale":5.4},
+      {"id":"lampiao_entrada_o","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-6,-23],"rotation":0,"scale":3.0},
+      {"id":"lampiao_entrada_l","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[6,-23],"rotation":0,"scale":3.0},
+      {"id":"lampiao_poco","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[4,-2],"rotation":0,"scale":3.0},
+      {"id":"cerca_celeiro_1","tag":"cerca_madeira","model":"res://textures/buildings/Wooden_post_and_rail_fence_202608190932.png","position":[-28,18],"rotation":20,"scale":2.5},
+      {"id":"cerca_celeiro_2","tag":"cerca_madeira","model":"res://textures/buildings/Wooden_post_and_rail_fence_202608190932.png","position":[-33,12],"rotation":90,"scale":2.5},
+      {"id":"cerca_moinho_1","tag":"cerca_madeira","model":"res://textures/buildings/Wooden_post_and_rail_fence_202608190932.png","position":[34,20],"rotation":0,"scale":2.5}
+    ],
+    "custom_1786499037621_343": [
+      {"id":"salao_forjador","tag":"casa","model":"res://textures/buildings/Medieval_blacksmith_workshop_gam…_202608190931.png","position":[0,-4],"rotation":180,"scale":7.0},
+      {"id":"torre_oficina","tag":"predio","model":"res://textures/buildings/Stone_guard_tower_with_banner_202608190931.png","position":[-18,-6],"rotation":90,"scale":7.0},
+      {"id":"celeiro_carvao","tag":"casa","model":"res://textures/buildings/Medieval_barn_with_hay_bales_202608190931.png","position":[18,-4],"rotation":270,"scale":6.0},
+      {"id":"casa_aprendizes","tag":"casa","model":"res://textures/buildings/Medieval_cottage_with_wooden_door_202608190930.png","position":[-13,15],"rotation":35,"scale":5.7},
+      {"id":"casa_mestre","tag":"casa","model":"res://textures/buildings/Townhouse_game_asset_202608190931.png","position":[13,16],"rotation":325,"scale":6.4},
+      {"id":"poco_forja","tag":"poco","model":"res://textures/buildings/Stone_well_with_hanging_bucket_202608190931.png","position":[0,11],"rotation":0,"scale":2.0},
+      {"id":"lampiao_forja_o","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[-7,3],"rotation":0,"scale":3.0},
+      {"id":"lampiao_forja_l","tag":"lampiao","model":"res://textures/buildings/Medieval_iron_street_lamp_post_202608190932.png","position":[7,3],"rotation":0,"scale":3.0},
+      {"id":"muro_forja_o","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[-27,-14],"rotation":90,"scale":3.2},
+      {"id":"muro_forja_l","tag":"wall","model":"res://models/stone_wall_segment_1787079001245.glb","position":[27,-14],"rotation":90,"scale":3.2}
+    ]
+  }
+}

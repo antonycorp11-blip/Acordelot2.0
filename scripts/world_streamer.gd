@@ -33,6 +33,10 @@ func _ready() -> void:
         "stone_texture", load("res://textures/stone_seamless.png"))
     _ground_material.set_shader_parameter(
         "road_mask", load("res://textures/road_mask.png"))
+    # O nivel da agua vive no Relevo. Passar para o shader em vez de repetir o
+    # numero la evita que um dia o leito de terra e a lamina de agua discordem
+    # sobre onde fica a margem.
+    _ground_material.set_shader_parameter("nivel_da_agua", Relevo.NIVEL_DA_AGUA)
 
 ## Monta na hora o pedaco sob uma posicao. O mundo nasce um pedaco por quadro
 ## para nao engasgar, mas o jogador ja cai desde o primeiro: sem o chao dele

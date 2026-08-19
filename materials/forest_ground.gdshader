@@ -28,6 +28,12 @@ uniform float meters_per_tile = 4.0;
 
 // Tamanho da mancha de terra. Grande demais vira deserto, pequeno demais vira
 // bolha: 34 m da caminho e clareira na escala em que o jogador anda.
+// Onde a agua para. O mesmo numero do relevo: abaixo disso o chao esta no fundo
+// do lago, e fundo de lago nao tem grama.
+uniform float nivel_da_agua = -2.2;
+// Faixa de praia acima da linha da agua, em metros.
+uniform float faixa_da_praia = 0.7;
+
 uniform float path_meters = 26.0;
 // Largura da trilha. 0.05 da caminho de uns tres metros na escala do ruido.
 uniform float path_amount = 0.055;
@@ -130,6 +136,13 @@ void fragment() {
     ground = mix(ground, dirt, smoothstep(0.45, 0.80, road.r));
     vec3 stone = texture(stone_texture, world_position.xz / 3.2).rgb;
     ground = mix(ground, stone, smoothstep(0.45, 0.80, road.g));
+
+    // Leito do lago: terra, nunca grama. Uma lamina de agua por cima de campo
+    // verde le como poca em cima do gramado, que foi a queixa — lagoa de verdade
+    // tem fundo de terra, e a margem faz uma faixa de praia antes do capim.
+    float submerso = 1.0 - smoothstep(nivel_da_agua, nivel_da_agua + faixa_da_praia,
+                                      world_position.y);
+    ground = mix(ground, dirt, submerso);
 
     vec2 macro_uv = world_position.xz / macro_meters;
     float patch = fbm(macro_uv);

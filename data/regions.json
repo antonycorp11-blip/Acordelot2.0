@@ -560,19 +560,19 @@
       "props": [
         {
           "tag": "casa",
-          "count": 9
+          "count": 13
         },
         {
           "tag": "predio",
-          "count": 4
+          "count": 5
         },
         {
           "tag": "lampiao",
-          "count": 12
+          "count": 6
         },
         {
           "tag": "cerca_madeira",
-          "count": 16
+          "count": 10
         },
         {
           "tag": "poco",
@@ -1518,19 +1518,19 @@
       "props": [
         {
           "tag": "casa",
-          "count": 9
+          "count": 13
         },
         {
           "tag": "predio",
-          "count": 4
+          "count": 5
         },
         {
           "tag": "lampiao",
-          "count": 12
+          "count": 6
         },
         {
           "tag": "cerca_madeira",
-          "count": 16
+          "count": 10
         },
         {
           "tag": "poco",
@@ -1880,19 +1880,19 @@
       "props": [
         {
           "tag": "casa",
-          "count": 9
+          "count": 13
         },
         {
           "tag": "predio",
-          "count": 4
+          "count": 5
         },
         {
           "tag": "lampiao",
-          "count": 12
+          "count": 6
         },
         {
           "tag": "cerca_madeira",
-          "count": 16
+          "count": 10
         },
         {
           "tag": "poco",
@@ -2250,19 +2250,19 @@
       "props": [
         {
           "tag": "casa",
-          "count": 9
+          "count": 13
         },
         {
           "tag": "predio",
-          "count": 4
+          "count": 5
         },
         {
           "tag": "lampiao",
-          "count": 12
+          "count": 6
         },
         {
           "tag": "cerca_madeira",
-          "count": 16
+          "count": 10
         },
         {
           "tag": "poco",

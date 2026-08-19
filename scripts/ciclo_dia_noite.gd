@@ -26,6 +26,7 @@ class_name CicloDiaNoite
 @export var ambiente: WorldEnvironment
 
 var hora := 9.0
+var _lampadas_acesas := false
 
 var _luz: DirectionalLight3D
 var _mundo: WorldEnvironment
@@ -110,6 +111,8 @@ func _aplicar() -> void:
         # o quadro inteiro do celular na metade do ciclo.
         _luz.shadow_enabled = forca[0] > 0.45
 
+    _acender_as_lampadas(forca[0] < 1.0)
+
     if _mundo == null or _mundo.environment == null:
         return
     var env := _mundo.environment
@@ -126,6 +129,25 @@ func _aplicar() -> void:
         # apareceria uma faixa clara flutuando no meio da noite.
         _ceu.ground_horizon_color = cor[1] * 0.55
         _ceu.ground_bottom_color = cor[0] * 0.7
+
+## Acende e apaga os postes da vila.
+##
+## O gatilho e a forca do sol, nao a hora: assim as lampadas ja estao acesas
+## quando o entardecer escurece o suficiente para precisar delas, em vez de
+## esperarem um horario fixo com a vila no escuro.
+##
+## So mexe quando o estado VIRA. Percorrer o grupo a cada quadro para escrever o
+## mesmo valor seria trabalho jogado fora sessenta vezes por segundo.
+func _acender_as_lampadas(deve_acender: bool) -> void:
+    if deve_acender == _lampadas_acesas:
+        return
+    _lampadas_acesas = deve_acender
+    ChunkBuilder.luzes_acesas = deve_acender
+    for lampada in get_tree().get_nodes_in_group("lampada"):
+        lampada.visible = deve_acender
+        lampada.light_energy = 6.5 if deve_acender else 0.0
+    for claro in get_tree().get_nodes_in_group("claro_de_poste"):
+        claro.visible = deve_acender
 
 ## Onde esta o astro que ilumina agora.
 ##

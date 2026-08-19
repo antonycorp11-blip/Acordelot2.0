@@ -14,11 +14,13 @@ const RELEVO := preload("res://scripts/relevo.gd")
 
 var regions: Dictionary = {}
 var catalog: Dictionary = {}
+var city_layouts: Dictionary = {}
 var start_cell := Vector2i.ZERO
 
 func _ready() -> void:
     var world_data := _load_json("res://data/regions.json")
     catalog = _load_json("res://data/asset_catalog.json").get("tags", {})
+    city_layouts = _load_json("res://data/city_layouts.json").get("layouts", {})
 
     var start_id: String = world_data.get("start_map", "")
     for region in world_data.get("regions", []):
@@ -53,6 +55,9 @@ func region_at(cell: Vector2i) -> Dictionary:
 
 func region_name(cell: Vector2i) -> String:
     return region_at(cell).get("name", "")
+
+func city_layout(region_id: String) -> Array:
+    return city_layouts.get(region_id, [])
 
 ## Onde o jogador nasce: o centro da Floresta do Despertar, o mapa inicial do
 ## jogo 2D. O y deixa a capsula acima do chao para o primeiro quadro nao afundar.

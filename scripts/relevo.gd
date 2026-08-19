@@ -27,8 +27,23 @@ const TAMANHO_DO_RELEVO := 15.0
 ## lagoa se forma no mundo real.
 const NIVEL_DA_AGUA := -2.2
 
+## Raio da praca plana de uma vila, em metros, e a rampa que a liga ao morro.
+## Casa em ladeira nao existe: ou o terreno e nivelado, ou a construcao fica com
+## metade enterrada e metade no ar — que e o que estava acontecendo.
+const RAIO_DA_VILA := 30.0
+const RAMPA_DA_VILA := 16.0
+
+## Quanto a estrada fica acima da agua. Trilha que atravessa lagoa nao existe no
+## mundo real: ou ha ponte, ou o caminho contorna. Levantar o leito da estrada
+## resolve sem precisar decidir por onde ela passa.
+const FOLGA_DA_ESTRADA := 0.9
+
 static var _colinas: FastNoiseLite
 static var _detalhe: FastNoiseLite
+static var _vilas: Array[Vector2] = []
+static var _estradas: Image = null
+static var _mundo_min := Vector2(-660.0, -540.0)
+static var _mundo_tam := Vector2(1320.0, 1200.0)
 
 static func _preparar() -> void:
     if _colinas != null:
@@ -43,10 +58,63 @@ static func _preparar() -> void:
     _detalhe.frequency = 1.0 / TAMANHO_DO_RELEVO
     _detalhe.seed = 991
 
+    # Onde ficam as vilas. Lidas do mesmo arquivo que o mundo usa, para nao
+    # existirem duas verdades sobre a posicao de uma cidade.
+    var arquivo := FileAccess.open("res://data/regions.json", FileAccess.READ)
+    if arquivo:
+        var dados = JSON.parse_string(arquivo.get_as_text())
+        if typeof(dados) == TYPE_DICTIONARY:
+            var lado: float = float(dados.get("region_size", 120.0))
+            for regiao in dados.get("regions", []):
+                if String(regiao.get("biome", "")) == "cidade":
+                    _vilas.append(Vector2(float(regiao["col"]) * lado,
+                                          float(regiao["row"]) * lado))
+
+    var textura: Texture2D = load("res://textures/road_mask.png")
+    if textura:
+        _estradas = textura.get_image()
+
 static func altura(x: float, z: float) -> float:
     _preparar()
-    return (_colinas.get_noise_2d(x, z) * ALTURA_DAS_COLINAS
+    var natural := (_colinas.get_noise_2d(x, z) * ALTURA_DAS_COLINAS
         + _detalhe.get_noise_2d(x, z) * ALTURA_DO_RELEVO)
+
+    var h := _nivelar_a_vila(x, z, natural)
+    return _levantar_a_estrada(x, z, h)
+
+## Achata o terreno em volta de cada vila.
+##
+## A altura do platô e a do CENTRO da vila, nao uma constante: assim a cidade
+## continua no lugar que o relevo lhe deu, alta ou baixa, e so a superficie dela
+## fica plana. Uma constante poria toda vila na mesma cota e criaria degrau na
+## borda de umas e cratera na de outras.
+static func _nivelar_a_vila(x: float, z: float, natural: float) -> float:
+    for centro in _vilas:
+        var distancia := Vector2(x, z).distance_to(centro)
+        if distancia > RAIO_DA_VILA + RAMPA_DA_VILA:
+            continue
+        var plato := (_colinas.get_noise_2d(centro.x, centro.y) * ALTURA_DAS_COLINAS
+            + _detalhe.get_noise_2d(centro.x, centro.y) * ALTURA_DO_RELEVO)
+        # Rampa suavizada nas duas pontas: transicao linear deixa uma quina
+        # visivel onde o plato encontra o morro.
+        var quanto := 1.0 - smoothstep(RAIO_DA_VILA, RAIO_DA_VILA + RAMPA_DA_VILA, distancia)
+        return lerp(natural, plato, quanto)
+    return natural
+
+## Garante que a estrada nunca afunde abaixo da linha da agua.
+static func _levantar_a_estrada(x: float, z: float, h: float) -> float:
+    if _estradas == null or h > NIVEL_DA_AGUA + FOLGA_DA_ESTRADA:
+        return h
+    var uv := (Vector2(x, z) - _mundo_min) / _mundo_tam
+    if uv.x < 0.0 or uv.x > 1.0 or uv.y < 0.0 or uv.y > 1.0:
+        return h
+    var pixel := _estradas.get_pixel(
+        int(uv.x * float(_estradas.get_width() - 1)),
+        int(uv.y * float(_estradas.get_height() - 1)))
+    var na_estrada: float = maxf(pixel.r, pixel.g)
+    if na_estrada < 0.35:
+        return h
+    return lerp(h, NIVEL_DA_AGUA + FOLGA_DA_ESTRADA, smoothstep(0.35, 0.8, na_estrada))
 
 ## Normal aproximada do terreno, por diferenca finita.
 ##
