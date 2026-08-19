@@ -19,8 +19,11 @@ REGIOES = "data/regions.json"
 SAIDA = "textures/road_mask.png"
 
 METROS_POR_PIXEL = 2.0
-LARGURA_ESTRADA = 7.0   # metros
-LARGURA_PRACA = 16.0    # metros, no centro de cada cenário
+LARGURA_ESTRADA = 4.5   # metros
+LARGURA_PRACA = 7.0     # metros, no centro de cada cenário
+# Era 16 m, e o desfoque da máscara ainda alargava: da altura da câmera virava
+# um descampado de barro ocupando meia tela em toda região. Praça é ponto de
+# encontro, não clareira.
 BIOMAS_DE_PEDRA = {"cidade", "ruina", "sagrado"}
 
 

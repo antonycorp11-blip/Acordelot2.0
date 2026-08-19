@@ -25,6 +25,7 @@ class_name GeradorDeBichos
 ## depois que o editor varre o projeto, e isso deixa a cena quebrada em
 ## exportacao limpa.
 const BICHO := preload("res://scripts/bicho.gd")
+const RELEVO := preload("res://scripts/relevo.gd")
 
 var _vivos: Array[Node3D] = []
 var _proximo := 0.0
@@ -51,10 +52,9 @@ func _nascer() -> void:
     var ponto := jogador.global_position + Vector3(
         cos(angulo) * distancia_de_nascimento, 0.0,
         sin(angulo) * distancia_de_nascimento)
-    # Um pouco acima do chao: o corpo cai pela gravidade ate assentar. Nascer
-    # colado no chao as vezes prende dentro da colisao do terreno, que e
-    # montada no mesmo quadro em que o pedaco entra.
-    ponto.y = 1.5
+    # Um pouco acima do CHAO DALI, nao acima do zero: com o terreno dobrado, um
+    # y fixo faria o bicho nascer enterrado no morro ou despencando do ar.
+    ponto.y = RELEVO.altura(ponto.x, ponto.z) + 1.5
 
     var bicho: Node3D = BICHO.new()
     bicho.position = ponto

@@ -20,12 +20,17 @@ uniform sampler2D stone_texture : source_color, filter_linear_mipmap_anisotropic
 uniform sampler2D road_mask : filter_linear, repeat_disable;
 uniform vec2 world_min = vec2(-660.0, -540.0);
 uniform vec2 world_size = vec2(1320.0, 1200.0);
-uniform float meters_per_tile = 7.0;
+// 7 m deixava a mancha da textura pintada com metros de largura: de longe o
+// campo virava um borrao de verde claro e verde escuro. Textura chapada precisa
+// tilar MAIS, nao menos — o que esconde a repeticao aqui e a tintura de escala
+// grande, nao o tamanho do azulejo.
+uniform float meters_per_tile = 4.0;
 
 // Tamanho da mancha de terra. Grande demais vira deserto, pequeno demais vira
 // bolha: 34 m da caminho e clareira na escala em que o jogador anda.
-uniform float path_meters = 34.0;
-uniform float path_amount = 0.22;
+uniform float path_meters = 26.0;
+// Largura da trilha. 0.05 da caminho de uns tres metros na escala do ruido.
+uniform float path_amount = 0.055;
 
 // Variacao de tom por cima de tudo, em escala ainda maior: e o que esconde a
 // repeticao da textura, que tila a cada 7 m e seria obvia de cima.
@@ -69,16 +74,41 @@ void vertex() {
     world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
+// Le a textura DUAS vezes e mistura por ruido.
+//
+// Uma leitura so poe o mesmo desenho de metro em metro, e o olho monta a grade
+// sozinho: com a grama pintada, os tufos escuros alinharam num xadrez visivel
+// de longe. A segunda leitura vem girada e numa escala irracional em relacao a
+// primeira, entao as duas grades nunca coincidem; o ruido decide qual manda em
+// cada ponto e a emenda entre elas nao tem forma reconhecivel.
+//
+// Custa uma leitura de textura a mais por pixel do chao. E o preco mais barato
+// que existe para esse defeito — o outro caminho seria textura gigante, que
+// nao cabe na memoria do alvo.
+vec3 amostra_sem_grade(sampler2D textura, vec2 mundo) {
+    const mat2 giro = mat2(vec2(0.80, 0.60), vec2(-0.60, 0.80));
+    vec3 primeira = texture(textura, mundo / meters_per_tile).rgb;
+    vec3 segunda = texture(textura, (giro * mundo) / (meters_per_tile * 1.61)).rgb;
+    float escolha = fbm(mundo / 11.0);
+    return mix(primeira, segunda, smoothstep(0.34, 0.66, escolha));
+}
+
 void fragment() {
     vec2 ground_uv = world_position.xz / meters_per_tile;
-    vec3 grass = texture(grass_texture, ground_uv).rgb;
+    vec3 grass = amostra_sem_grade(grass_texture, world_position.xz);
     vec3 dirt = texture(dirt_texture, ground_uv * 0.7).rgb;
 
-    // Duas escalas na mancha de terra: a larga decide onde ha caminho, a fina
-    // desmancha a borda para nao virar recorte de papel.
+    // A terra sai de uma FAIXA do ruido, nao da metade dele.
+    //
+    // Com "acima de 0.5 e terra", metade do mundo virava terra: nao dava
+    // caminho, dava um continente de barro com a grama nas beiradas — foi
+    // exatamente a mancha enorme que apareceu em volta do jogador. Pegando so
+    // onde o ruido PASSA por um valor, o resultado e a linha de nivel dele:
+    // uma trilha estreita que serpenteia e se bifurca sozinha, que e como
+    // caminho de terra nasce de verdade, de gente pisando sempre no mesmo lugar.
     vec2 path_uv = world_position.xz / path_meters;
     float path = fbm(path_uv);
-    float dirt_mask = smoothstep(0.50, 0.50 + path_amount, path);
+    float dirt_mask = 1.0 - smoothstep(0.0, path_amount, abs(path - 0.5));
 
     vec3 ground = mix(grass, dirt, dirt_mask);
 

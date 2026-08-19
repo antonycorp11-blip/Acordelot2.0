@@ -8,6 +8,10 @@ extends Node
 
 const REGION_SIZE := 120.0
 
+## Pelo caminho, nao pelo nome global: autoload carrega antes de o editor ter
+## varrido as classes do projeto.
+const RELEVO := preload("res://scripts/relevo.gd")
+
 var regions: Dictionary = {}
 var catalog: Dictionary = {}
 var start_cell := Vector2i.ZERO
@@ -53,4 +57,7 @@ func region_name(cell: Vector2i) -> String:
 ## Onde o jogador nasce: o centro da Floresta do Despertar, o mapa inicial do
 ## jogo 2D. O y deixa a capsula acima do chao para o primeiro quadro nao afundar.
 func start_position() -> Vector3:
-    return cell_center(start_cell) + Vector3(0.0, 1.1, 0.0)
+    var centro := cell_center(start_cell)
+    # Com o terreno dobrado, nascer em y fixo poe o jogador dentro do morro ou
+    # caindo de dez metros. A altura vem da mesma funcao que desenhou o chao.
+    return centro + Vector3(0.0, RELEVO.altura(centro.x, centro.z) + 1.1, 0.0)

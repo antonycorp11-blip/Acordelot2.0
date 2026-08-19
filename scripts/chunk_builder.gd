@@ -11,11 +11,36 @@ extends RefCounted
 ## mundo e o mesmo em toda maquina sem guardar milhares de coordenadas.
 
 const CHUNK_SIZE := 30.0
+## Um vertice por metro. A colisao de altura do Godot amostra de unidade em
+## unidade, entao casar o passo com ela evita escalar a forma — e forma de
+## colisao escalada e fonte de tranco no passo do jogador.
+const PASSO_DO_CHAO := 1.0
+## Os dois triangulos de um quadrado do chao, em ordem de vertice.
+const CANTOS := [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1),
+                 Vector2(0, 0), Vector2(1, 1), Vector2(0, 1)]
 ## Praca limpa no centro de cada regiao: e onde da para andar e por NPC.
-const CLEARING_RADIUS := 11.0
+##
+## Encolheu de 11 para 4 m. Onze metros de raio abriam um circulo de mato de 22
+## m de diametro em volta do jogador — do alto da camera isso e quase a tela
+## inteira vazia, e era o defeito mais visivel do cenario.
+const CLEARING_RADIUS := 4.0
+## Raio da touceira, em metros. Cinco pes dentro de uns dois metros e o grupo
+## que se le como moita; mais aberto que isso volta a virar espalhamento.
+const ESPALHAMENTO_DA_TOUCEIRA := 1.3
+## Pes por touceira. Arvore e muro continuam sozinhos: floresta em touceira de
+## cinco viraria bolo de tronco.
+const POR_TOUCEIRA := 5
 
 static var _scene_cache: Dictionary = {}
 static var _texture_cache: Dictionary = {}
+static var _material_cache: Dictionary = {}
+## Centro do pedaco em construcao. A malha e a colisao precisam da coordenada de
+## mundo para perguntar a altura, e ambas nascem dentro de build().
+static var _centro_em_construcao := Vector3.ZERO
+
+## Pelo caminho e nao pelo nome global: o nome so existe depois que o editor
+## varre o projeto, e isso quebra exportacao limpa.
+const RELEVO := preload("res://scripts/relevo.gd")
 static var _prop_material: Material = null
 
 ## O TripoSR pinta o modelo em COR POR VERTICE, sem textura. Sem um material que
@@ -38,6 +63,8 @@ static func build(chunk: Vector2i, ground_material: Material) -> Node3D:
     var center := chunk_center(chunk)
     var region := World.region_at(World.cell_at(center))
 
+    _centro_em_construcao = center
+
     var root := Node3D.new()
     root.name = "Chunk_%d_%d" % [chunk.x, chunk.y]
     root.position = center
@@ -48,44 +75,199 @@ static func build(chunk: Vector2i, ground_material: Material) -> Node3D:
 
     var rng := RandomNumberGenerator.new()
     rng.seed = hash([int(region.get("seed", 0)), chunk.x, chunk.y])
+
+    # As plaquinhas nao viram no na hora: acumulam aqui, por textura, e no fim
+    # cada textura sai como UM objeto so com milhares de copias dentro.
+    var lotes: Dictionary = {}
     for entry in region.get("props", []):
-        _scatter(root, entry, rng, center)
+        _scatter(root, entry, rng, center, lotes)
+    _montar_lotes(root, lotes)
     return root
+
+## Junta as plaquinhas de mesma textura num objeto unico.
+##
+## Cada plaquinha solta e uma chamada de desenho. Para o chao ficar denso como
+## nas referencias sao milhares por tela, e milhares de chamadas travam a placa
+## alvo por si so, mesmo sendo dois triangulos cada. Agrupadas por textura, o
+## pedaco inteiro custa meia duzia de chamadas — o desenho e o mesmo, o preco
+## nao e.
+static func _montar_lotes(root: Node3D, lotes: Dictionary) -> void:
+    var sombras: Array[Transform3D] = []
+    for caminho in lotes:
+        var poses: Array = lotes[caminho]
+        if poses.is_empty():
+            continue
+        var textura := _load_texture(String(caminho))
+        if textura == null:
+            continue
+
+        var altura: float = poses[0].get("altura", 1.0)
+        var quadro := QuadMesh.new()
+        var proporcao := float(textura.get_width()) / float(textura.get_height())
+        quadro.size = Vector2(altura * proporcao, altura)
+        # O quadrado nasce em volta do centro; subir meia altura poe o pe do
+        # mato no chao em vez de enterra-lo ate a metade.
+        quadro.center_offset = Vector3(0.0, altura * 0.5, 0.0)
+        quadro.material = _material_de_planta(textura)
+
+        var multi := MultiMesh.new()
+        multi.transform_format = MultiMesh.TRANSFORM_3D
+        multi.mesh = quadro
+        multi.instance_count = poses.size()
+        for i in poses.size():
+            multi.set_instance_transform(i, poses[i]["pose"])
+
+        var no := MultiMeshInstance3D.new()
+        no.multimesh = multi
+        # Mato nao projeta sombra calculada: sao milhares por tela e cada folha
+        # custaria uma passada a mais no mapa de sombras. A sombra vem pintada,
+        # logo abaixo.
+        no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        root.add_child(no)
+
+        var largura: float = altura * proporcao
+        for pose_dados in poses:
+            sombras.append(_pose_da_sombra(pose_dados["pose"], largura))
+
+    _montar_sombras(root, sombras)
+
+
+## A mancha escura debaixo de cada planta.
+##
+## E o que faz o recorte PERTENCER ao mundo em vez de parecer colado por cima.
+## Sem ela o desenho termina numa linha reta encostada na grama, e o olho le
+## adesivo — foi exatamente essa a queixa. Nao e sombra de verdade: e uma mancha
+## deitada no chao, e sombra calculada para milhares de moitas nao passa na
+## placa alvo.
+static func _montar_sombras(root: Node3D, poses: Array[Transform3D]) -> void:
+    if poses.is_empty():
+        return
+    var textura := _load_texture("res://textures/sombra_contato.png")
+    if textura == null:
+        return
+
+    var quadro := QuadMesh.new()
+    quadro.size = Vector2.ONE
+
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = textura
+    # Mistura de verdade, nao recorte: sombra e um degrade, e recorte a
+    # transformaria num disco preto com borda serrilhada.
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    # Nao escreve profundidade: sao dezenas de manchas se sobrepondo, e escrever
+    # faria uma recortar o degrade da outra em quadrado.
+    material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+    var multi := MultiMesh.new()
+    multi.transform_format = MultiMesh.TRANSFORM_3D
+    multi.mesh = quadro
+    quadro.material = material
+    multi.instance_count = poses.size()
+    for i in poses.size():
+        multi.set_instance_transform(i, poses[i])
+
+    var no := MultiMeshInstance3D.new()
+    no.name = "Sombras"
+    no.multimesh = multi
+    no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    root.add_child(no)
+
+## Deita a mancha no chao, sob o pe da planta.
+static func _pose_da_sombra(pose: Transform3D, largura: float) -> Transform3D:
+    # Bem menor que a planta. Do tamanho dela, a mancha vira o objeto mais
+    # escuro da cena e o conjunto lembra verruga no campo — foi o que aconteceu.
+    var tamanho := largura * absf(pose.basis.get_scale().x) * 0.5
+    var deitada := Basis(Vector3.RIGHT, -PI * 0.5).scaled(Vector3(tamanho, tamanho, 1.0))
+    # Tres centimetros acima do chao: colada demais briga com o terreno pelo
+    # mesmo pixel e pisca; alta demais descola da planta.
+    return Transform3D(deitada, pose.origin + Vector3(0.0, 0.03, 0.0))
+
+static func _material_de_planta(textura: Texture2D) -> StandardMaterial3D:
+    if _material_cache.has(textura):
+        return _material_cache[textura]
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = textura
+    # Em pe e virado para a camera. Sem travar o eixo Y a moita deita quando o
+    # jogador chega perto, porque passa a mirar a camera tambem na vertical.
+    material.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+    material.billboard_keep_scale = true
+    # Transparencia por recorte, nao por mistura. Mistura obriga a ordenar cada
+    # moita contra as outras a cada quadro, e moitas que se cruzam piscam
+    # trocando de ordem — com recorte o teste de profundidade resolve.
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+    material.alpha_scissor_threshold = 0.5
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+    _material_cache[textura] = material
+    return material
 
 static func _build_ground(material: Material) -> StaticBody3D:
     var ground := StaticBody3D.new()
     ground.name = "Ground"
-
-    var mesh := PlaneMesh.new()
-    mesh.size = Vector2(CHUNK_SIZE, CHUNK_SIZE)
-    # A nevoa e calculada POR VERTICE no renderizador de celular. Num quadrado de
-    # 30 m com quatro cantos, ela interpola em degrau e o terreno ganha um
-    # xadrez de retangulos do tamanho do pedaco. Subdividir custa 81 vertices e
-    # faz o degrau sumir.
-    mesh.subdivide_width = 8
-    mesh.subdivide_depth = 8
-    mesh.material = material
-
-    var mesh_node := MeshInstance3D.new()
-    mesh_node.name = "Mesh"
-    mesh_node.mesh = mesh
-    # O chao RECEBE sombra mas nao projeta. Plano grande projetando sobre si
-    # mesmo da acne de sombra, e a acne desenhava a grade dos pedacos no
-    # terreno — justo a emenda que o shader em coordenada de mundo apaga.
-    mesh_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-    ground.add_child(mesh_node)
-
-    var collision := CollisionShape3D.new()
-    collision.name = "CollisionShape3D"
-    var shape := BoxShape3D.new()
-    shape.size = Vector3(CHUNK_SIZE, 0.2, CHUNK_SIZE)
-    collision.shape = shape
-    collision.position = Vector3(0.0, -0.1, 0.0)
-    ground.add_child(collision)
+    ground.add_child(_malha_do_chao(material))
+    ground.add_child(_colisao_do_chao())
     return ground
 
+## O chao como malha dobrada pelo relevo.
+##
+## Deixou de ser um PlaneMesh: plano nao dobra. Um vertice por metro da encosta
+## suave sem escada visivel — e e a MESMA resolucao da colisao, entao o jogador
+## nao anda meio palmo acima do que ve.
+##
+## A malha e local ao pedaco, mas a altura se pergunta em coordenada de MUNDO:
+## e o que faz a borda deste pedaco encaixar na do vizinho sem costura, sem
+## ninguem precisar conversar com ninguem.
+static func _malha_do_chao(material: Material) -> MeshInstance3D:
+    var passos := int(CHUNK_SIZE / PASSO_DO_CHAO)
+    var meio := CHUNK_SIZE * 0.5
+    var centro := _centro_em_construcao
+
+    var malha := SurfaceTool.new()
+    malha.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for iz in passos:
+        for ix in passos:
+            var a := Vector2(ix, iz)
+            for canto: Vector2 in CANTOS:
+                var local: Vector2 = (a + canto) * PASSO_DO_CHAO - Vector2(meio, meio)
+                var altura: float = RELEVO.altura(centro.x + local.x, centro.z + local.y)
+                malha.set_normal(RELEVO.normal(centro.x + local.x, centro.z + local.y))
+                malha.add_vertex(Vector3(local.x, altura, local.y))
+    malha.set_material(material)
+
+    var no := MeshInstance3D.new()
+    no.name = "Mesh"
+    no.mesh = malha.commit()
+    # O chao RECEBE sombra mas nao projeta. Encosta grande projetando sobre si
+    # mesma da acne de sombra, e a acne desenhava a grade dos pedacos no terreno.
+    no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    return no
+
+static func _colisao_do_chao() -> CollisionShape3D:
+    var passos := int(CHUNK_SIZE / PASSO_DO_CHAO) + 1
+    var meio := CHUNK_SIZE * 0.5
+    var centro := _centro_em_construcao
+
+    var forma := HeightMapShape3D.new()
+    forma.map_width = passos
+    forma.map_depth = passos
+    var alturas := PackedFloat32Array()
+    alturas.resize(passos * passos)
+    for iz in passos:
+        for ix in passos:
+            alturas[iz * passos + ix] = RELEVO.altura(
+                centro.x + ix * PASSO_DO_CHAO - meio,
+                centro.z + iz * PASSO_DO_CHAO - meio)
+    forma.map_data = alturas
+
+    var no := CollisionShape3D.new()
+    no.name = "CollisionShape3D"
+    no.shape = forma
+    return no
+
 static func _scatter(root: Node3D, entry: Dictionary, rng: RandomNumberGenerator,
-                     center: Vector3) -> void:
+                     center: Vector3, lotes: Dictionary) -> void:
     var tag := String(entry.get("tag", ""))
     var kind: Dictionary = World.catalog.get(tag, {})
     if kind.get("models", []).is_empty() and kind.get("sprites", []).is_empty():
@@ -100,41 +282,69 @@ static func _scatter(root: Node3D, entry: Dictionary, rng: RandomNumberGenerator
     var count := int(floor(share))
     if rng.randf() < share - float(count):
         count += 1
+    if count <= 0:
+        return
 
     var half := CHUNK_SIZE * 0.5
     var region_center := World.cell_center(World.cell_at(center))
     var scale_range: Array = kind.get("scale", [1.0, 1.0])
-
-    for i in count:
-        var offset := Vector3(rng.randf_range(-half, half), 0.0, rng.randf_range(-half, half))
-        # A praca e da REGIAO, entao a distancia se mede do centro dela, nao do
-        # pedaco: senao cada pedaco abriria a propria clareira.
-        if (center + offset - region_center).length() < CLEARING_RADIUS:
-            continue
-
-        var prop := _criar(kind, rng)
-        if prop == null:
-            continue
-        prop.position = offset + Vector3(0.0, float(kind.get("y", 0.0)), 0.0)
-        prop.rotation.y = rng.randf_range(0.0, TAU)
-        prop.scale = Vector3.ONE * rng.randf_range(float(scale_range[0]), float(scale_range[1]))
-        root.add_child(prop)
-
-        if bool(kind.get("solid", false)):
-            PropCollider.apply_to_asset(prop)
-
-## Uma etiqueta nasce de malha ou de plaquinha, nunca das duas.
-##
-## Malha e para o que o jogador contorna: arvore, muro, cristal. Plaquinha e
-## para o mato rasteiro, que existe em centenas por tela — e centenas de malhas
-## nao passam na placa de video do alvo, enquanto centenas de quadrados de dois
-## triangulos passam com folga.
-static func _criar(kind: Dictionary, rng: RandomNumberGenerator) -> Node3D:
     var sprites: Array = kind.get("sprites", [])
-    if not sprites.is_empty():
-        return _criar_sprite(String(sprites[rng.randi() % sprites.size()]),
-                             float(kind.get("altura", 1.0)))
+    var altura_do_tipo := float(kind.get("altura", 1.0))
 
+    # Nasce em TOUCEIRA, nao espalhado por igual.
+    #
+    # Sorteio uniforme poe um pe aqui, um pe ali, sempre mais ou menos a mesma
+    # distancia: do alto isso nao le como vegetacao, le como pintinha carimbada
+    # no campo. Mato de verdade cresce em grupo, com chao pelado entre um grupo e
+    # outro, e e esse contraste de cheio e vazio que da a textura de campo.
+    var por_touceira: int = POR_TOUCEIRA if not sprites.is_empty() else 1
+    var touceiras := int(ceil(float(count) / float(por_touceira)))
+
+    for t in touceiras:
+        var raiz_da_touceira := Vector3(
+            rng.randf_range(-half, half), 0.0, rng.randf_range(-half, half))
+
+        for k in por_touceira:
+            var offset := raiz_da_touceira
+            if por_touceira > 1:
+                offset += Vector3(rng.randfn(0.0, ESPALHAMENTO_DA_TOUCEIRA), 0.0,
+                                  rng.randfn(0.0, ESPALHAMENTO_DA_TOUCEIRA))
+            offset.y = RELEVO.altura(center.x + offset.x, center.z + offset.z)
+
+            # A praca e da REGIAO, entao a distancia se mede do centro dela, nao
+            # do pedaco: senao cada pedaco abriria a propria clareira.
+            if (center + offset - region_center).length() < CLEARING_RADIUS:
+                continue
+
+            var tamanho := rng.randf_range(float(scale_range[0]), float(scale_range[1]))
+
+            if not sprites.is_empty():
+                var caminho := String(sprites[rng.randi() % sprites.size()])
+                if not lotes.has(caminho):
+                    lotes[caminho] = []
+                # Plaquinha nao gira em Y: ela ja mira a camera. O sorteio aqui e
+                # so espelhar metade delas, que e o que impede o campo de virar
+                # carimbo do mesmo desenho repetido.
+                var espelho := -1.0 if rng.randf() < 0.5 else 1.0
+                lotes[caminho].append({
+                    "pose": Transform3D(Basis.IDENTITY.scaled(
+                        Vector3(tamanho * espelho, tamanho, tamanho)), offset),
+                    "altura": altura_do_tipo,
+                })
+                continue
+
+            var prop := _criar(kind, rng)
+            if prop == null:
+                continue
+            prop.position = offset + Vector3(0.0, float(kind.get("y", 0.0)), 0.0)
+            prop.rotation.y = rng.randf_range(0.0, TAU)
+            prop.scale = Vector3.ONE * tamanho
+            root.add_child(prop)
+
+            if bool(kind.get("solid", false)):
+                PropCollider.apply_to_asset(prop)
+
+static func _criar(kind: Dictionary, rng: RandomNumberGenerator) -> Node3D:
     var models: Array = kind.get("models", [])
     var scene := _load_scene(String(models[rng.randi() % models.size()]))
     if scene == null:
@@ -177,36 +387,6 @@ static func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
         acumulado = atual.transform * acumulado
         atual = atual.get_parent() as Node3D
     return acumulado
-
-static func _criar_sprite(caminho: String, altura: float) -> Sprite3D:
-    var textura := _load_texture(caminho)
-    if textura == null:
-        return null
-
-    var sprite := Sprite3D.new()
-    sprite.texture = textura
-    # A altura pedida vale para o objeto, e o recorte e justo, entao a conta e
-    # direta: tantos metros divididos por tantos pixels.
-    sprite.pixel_size = altura / float(textura.get_height())
-    # A imagem e desenhada em volta do centro; subir meia altura poe o pe do
-    # mato no chao em vez de enterra-lo ate a metade.
-    sprite.offset = Vector2(0.0, float(textura.get_height()) * 0.5)
-    # Em pe e virado para a camera. Sem travar o eixo Y a moita deita quando o
-    # jogador chega perto, porque passa a mirar a camera tambem na vertical.
-    sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-    # Recebe a luz do sol: e o que faz o mato escurecer junto com o resto quando
-    # anoitece. Sem sombreado, o campo continuaria em pleno dia as duas da manha.
-    sprite.shaded = true
-    sprite.double_sided = true
-    # Transparencia por recorte, nao por mistura. Mistura obriga a ordenar cada
-    # moita contra as outras a cada quadro, e moitas que se cruzam piscam trocando
-    # de ordem — com recorte, o teste de profundidade normal resolve.
-    sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-    sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-    # Mato nao projeta sombra. Sao centenas por tela, e a sombra de cada folha
-    # custa uma passada a mais no mapa de sombras sem mudar o que se ve.
-    sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-    return sprite
 
 static func _load_texture(path: String) -> Texture2D:
     if not _texture_cache.has(path):
