@@ -42,6 +42,5 @@
         }
       ]
     }
-  ],
-  "_nota": "Os dois cabecalhos Cross-Origin sao exigencia do navegador para liberar SharedArrayBuffer, e sem SharedArrayBuffer a build com threads do Godot nao inicia. Com eles, o motor sai de uma linha de execucao so e passa a usar os nucleos do aparelho."
+  ]
 }
