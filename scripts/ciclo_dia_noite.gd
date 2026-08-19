@@ -1,0 +1,168 @@
+extends Node
+class_name CicloDiaNoite
+## O relogio do mundo: move o sol, tinge o ceu e troca o sol pela lua.
+##
+## Tudo sai de UMA variavel, a hora. Guardar estados separados ("e noite", "esta
+## anoitecendo") daria combinacao impossivel — ceu de dia com luz de noite — e o
+## amanhecer e justo a parte que o jogador olha.
+##
+## As cores vem de uma tabela por horario, interpolada em circulo: 23h caminha
+## para 0h pelo lado curto, senao o mundo daria uma volta de cor inteira ao
+## virar o dia.
+
+## Um dia inteiro em minutos reais. Curto de proposito enquanto se testa: o
+## amanhecer e o entardecer sao os unicos momentos que valem olhar, e a 24 min
+## por dia eles passam a cada 12.
+@export var minutos_por_dia := 12.0
+## Meio da manha: comeca com o mundo legivel, nao no escuro.
+@export var hora_inicial := 9.0
+## Parado, o ciclo congela na hora inicial — util para tirar print ou depurar
+## uma cena sem o chao mudando de cor no meio.
+@export var rodando := true
+
+@export var sol: DirectionalLight3D
+@export var ambiente: WorldEnvironment
+
+var hora := 9.0
+
+var _luz: DirectionalLight3D
+var _mundo: WorldEnvironment
+var _ceu: ProceduralSkyMaterial
+
+## hora -> [ceu_topo, ceu_horizonte, ambiente, nevoa, luz]
+##
+## As horas nao sao igualmente espacadas: o dia inteiro cabe em quatro marcos,
+## mas o nascer e o por do sol levam tres cada um. E onde a cor muda rapido, e
+## interpolar 6h direto para 12h passaria por cima do laranja.
+const CORES := [
+    # hora, ceu topo,               ceu horizonte,          ambiente,               nevoa,                  luz
+    [0.0,  Color(0.03, 0.05, 0.14), Color(0.08, 0.11, 0.22), Color(0.40, 0.48, 0.72), Color(0.11, 0.14, 0.26), Color(0.56, 0.67, 0.96)],
+    [4.5,  Color(0.05, 0.08, 0.18), Color(0.16, 0.15, 0.26), Color(0.43, 0.49, 0.72), Color(0.14, 0.16, 0.28), Color(0.60, 0.70, 0.97)],
+    [6.0,  Color(0.18, 0.22, 0.42), Color(0.72, 0.42, 0.34), Color(0.44, 0.38, 0.42), Color(0.52, 0.40, 0.40), Color(1.00, 0.62, 0.38)],
+    [7.5,  Color(0.20, 0.42, 0.70), Color(0.92, 0.72, 0.55), Color(0.62, 0.62, 0.60), Color(0.78, 0.74, 0.70), Color(1.00, 0.86, 0.68)],
+    [12.0, Color(0.16, 0.42, 0.72), Color(0.72, 0.84, 0.92), Color(0.66, 0.70, 0.66), Color(0.72, 0.80, 0.82), Color(1.00, 0.94, 0.82)],
+    [16.5, Color(0.18, 0.40, 0.70), Color(0.80, 0.80, 0.84), Color(0.68, 0.66, 0.60), Color(0.76, 0.76, 0.74), Color(1.00, 0.90, 0.74)],
+    [18.5, Color(0.16, 0.24, 0.48), Color(0.94, 0.48, 0.26), Color(0.50, 0.40, 0.40), Color(0.62, 0.42, 0.36), Color(1.00, 0.54, 0.28)],
+    [20.0, Color(0.07, 0.10, 0.24), Color(0.30, 0.20, 0.30), Color(0.46, 0.46, 0.66), Color(0.19, 0.19, 0.30), Color(0.74, 0.68, 0.92)],
+    [21.5, Color(0.03, 0.05, 0.14), Color(0.08, 0.11, 0.22), Color(0.41, 0.48, 0.72), Color(0.12, 0.15, 0.26), Color(0.57, 0.68, 0.96)],
+]
+
+## hora -> [energia da luz, energia do ambiente, energia da nevoa]
+##
+## A noite NAO vai a zero, e nem perto disso. A primeira versao dava a lua 12%
+## da forca do sol, que no papel parecia noite e na tela deu preto: o tom
+## escuro do ambiente e o mapeamento de tons do jogo multiplicam para baixo, e
+## o que sobrou nao acendia um pixel. Noite de jogo visto de cima e convencao,
+## nao fotometria — o jogador precisa enxergar a trilha.
+const FORCAS := [
+    [0.0, 0.85, 0.55, 0.12],
+    [4.5, 0.90, 0.58, 0.14],
+    [6.0, 1.60, 0.78, 0.30],
+    [7.5, 1.70, 0.85, 0.26],
+    [12.0, 2.00, 0.95, 0.25],
+    [16.5, 1.85, 0.90, 0.26],
+    [18.5, 1.65, 0.78, 0.34],
+    [20.0, 1.00, 0.62, 0.18],
+    [21.5, 0.86, 0.56, 0.13],
+]
+
+func _ready() -> void:
+    hora = hora_inicial
+    # Gancho de teste, no mesmo estilo do --shot do game.gd: `-- --hora=18.5`
+    # congela o mundo naquele horario. Sem isso, conferir o entardecer exigiria
+    # rodar o jogo e esperar o ciclo chegar la.
+    for argumento in OS.get_cmdline_user_args():
+        if argumento.begins_with("--hora="):
+            hora = argumento.trim_prefix("--hora=").to_float()
+            rodando = false
+    _luz = sol
+    _mundo = ambiente
+    if _mundo and _mundo.environment:
+        _ceu = _mundo.environment.sky.sky_material as ProceduralSkyMaterial
+    if _luz == null:
+        push_warning("Ciclo sem sol: o mundo fica na luz que veio da cena")
+    _aplicar()
+
+func _process(delta: float) -> void:
+    if not rodando:
+        return
+    hora = fposmod(hora + delta * (24.0 / (minutos_por_dia * 60.0)), 24.0)
+    _aplicar()
+
+func _aplicar() -> void:
+    var cor := _interpolar(CORES)
+    var forca := _interpolar(FORCAS)
+
+    if _luz:
+        _luz.rotation_degrees = _direcao_da_luz()
+        _luz.light_color = cor[4]
+        _luz.light_energy = forca[0]
+        # De madrugada a sombra dura custa o mesmo que ao meio-dia e nao aparece:
+        # a luz da lua e fraca demais para desenhar contraste. Desligar devolve
+        # o quadro inteiro do celular na metade do ciclo.
+        _luz.shadow_enabled = forca[0] > 0.45
+
+    if _mundo == null or _mundo.environment == null:
+        return
+    var env := _mundo.environment
+    env.ambient_light_color = cor[2]
+    env.ambient_light_energy = forca[1]
+    env.fog_light_color = cor[3]
+    env.fog_light_energy = forca[2]
+
+    if _ceu:
+        _ceu.sky_top_color = cor[0]
+        _ceu.sky_horizon_color = cor[1]
+        # O chao do ceu acompanha o horizonte, so que abafado: e o que se ve
+        # atras das arvores na linha do olhar, e se ficasse na cor do dia
+        # apareceria uma faixa clara flutuando no meio da noite.
+        _ceu.ground_horizon_color = cor[1] * 0.55
+        _ceu.ground_bottom_color = cor[0] * 0.7
+
+## Onde esta o astro que ilumina agora.
+##
+## O sol nasce as 6h e se poe as 18h; fora disso quem ilumina e a lua, que faz o
+## mesmo arco do lado oposto do ceu. E por isso que a luz nunca mergulha abaixo
+## do horizonte: luz vinda de baixo do chao nao ilumina nada, e o mundo ficaria
+## chapado na luz ambiente durante metade do ciclo.
+func _direcao_da_luz() -> Vector3:
+    var e_dia := hora >= 6.0 and hora < 18.0
+    var fracao: float = (hora - 6.0) / 12.0 if e_dia else fposmod(hora - 18.0, 24.0) / 12.0
+    # O piso de 22 graus nao e capricho de estetica, e o que torna o amanhecer
+    # jogavel. A camera olha o CHAO, uma superficie virada para cima: com o
+    # astro rente ao horizonte ela recebe o cosseno do angulo, quase nada, e o
+    # mundo apagava por duas horas de cada ponta do dia mesmo com a luz forte.
+    var altura: float = sin(fracao * PI) * 62.0 + 22.0
+    var azimute: float = lerp(-100.0, 80.0, fracao) + (0.0 if e_dia else 180.0)
+    return Vector3(-altura, azimute, 0.0)
+
+## Le a tabela na hora atual. Cor e numero usam o mesmo caminho porque o que
+## varia e so o tipo do valor — e Color e float respondem igual a lerp.
+func _interpolar(tabela: Array) -> Array:
+    var antes: Array = tabela[tabela.size() - 1]
+    var depois: Array = tabela[0]
+    for linha in tabela:
+        if float(linha[0]) <= hora:
+            antes = linha
+        else:
+            depois = linha
+            break
+
+    var inicio := float(antes[0])
+    var fim := float(depois[0])
+    # A ultima faixa cruza a meia-noite: 21.5h ate 0h sao 2.5 horas, nao -21.5.
+    var vao := fposmod(fim - inicio, 24.0)
+    var t := 0.0 if vao <= 0.0 else clampf(fposmod(hora - inicio, 24.0) / vao, 0.0, 1.0)
+    # Suaviza a entrada e a saida de cada faixa. Sem isso a cor muda de
+    # velocidade nos marcos da tabela e o ceu da um solavanco visivel.
+    t = t * t * (3.0 - 2.0 * t)
+
+    var saida := []
+    for i in range(1, antes.size()):
+        saida.append(lerp(antes[i], depois[i], t))
+    return saida
+
+## Para o HUD e para depurar: "06:30".
+func hora_do_relogio() -> String:
+    var h := int(hora)
+    return "%02d:%02d" % [h, int((hora - float(h)) * 60.0)]

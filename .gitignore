@@ -18,3 +18,12 @@ personagem/heroi_mixamo.zip
 # usa a biblioteca assada (personagem/heroi_anims.res) e UMA malha; os originais
 # ficam fora do repositorio.
 personagem/animacoes/
+
+# Arte reprovada esperando ser regerada no Flow: os tres sprites vieram com o
+# contorno branco de adesivo pintado POR DENTRO do desenho, entre as folhas, e
+# recorte nenhum tira sem esburacar a moita.
+textures/props/_refazer/
+
+# O Godot varre builds/web e importa os icones da pagina como se fossem arte do
+# jogo. Sao gerados na exportacao e nao entram no .pck.
+builds/web/*.import

@@ -10,10 +10,26 @@ class_name Hero
 ## capsula de colisao do jogador e com a escala das arvores.
 const ALTURA_ALVO := 1.75
 const VELOCIDADE_DE_CORRIDA := 4.2
+const MISTURA := 0.18
+
+## Encaixe da espada na mao. Sao @export e nao constantes porque nao existe
+## numero certo deduzivel: o cabo do modelo, a pose da mao do Mixamo e a escala
+## do heroi so batem olhando. Com a cena rodando, mexer nestes campos no
+## inspetor move a lamina na hora — em compilacao de depuracao o encaixe e
+## refeito a cada quadro.
+##
 ## Comprimento da espada no mundo, em metros. 1.15 m num heroi de 1.75 m e a
 ## proporcao da arte: lamina longa, quase montante.
-const COMPRIMENTO_DA_ESPADA := 1.15
-const MISTURA := 0.18
+@export var comprimento_da_espada := 1.15
+## Onde fica o cabo, medido de baixo para cima na imagem do modelo. Medido na
+## malha: a fatia mais estreita esta a 85% da altura, com a guarda aos 65%.
+@export var fracao_do_cabo := 0.85
+## Correcao fina no espaco do punho, em metros, se a lamina ficar atravessada na
+## palma em vez de dentro dela.
+@export var ajuste_do_punho := Vector3.ZERO
+## Meia volta em X leva a lamina para a direcao dos dedos: com o cabo na origem
+## ela aponta para -Y, e os ossos do Mixamo encadeiam ao longo do +Y.
+@export var giro_do_punho := Vector3(180.0, 0.0, 0.0)
 
 ## A lamina do Akles e um teclado: cada golpe toca a proxima nota da escala de
 ## Do maior, afinada de verdade (A4 = 440 Hz). E jogo de educacao musical — som
@@ -32,6 +48,15 @@ var _voz: AudioStreamPlayer
 var _proxima_nota := 0
 var _golpe := 0
 var _ultimo_golpe_em := -100.0
+## Toque dado no meio de um golpe. Sem guardar, quem aperta no ritmo do combate
+## perde o toque e o combo nunca passa do primeiro golpe.
+var _golpe_pedido := false
+## O punho inteiro, para poder sumir com a espada fora do golpe.
+var _espada: Node3D = null
+## A malha da lamina e a ampliacao do heroi, guardadas para refazer o encaixe
+## quando os campos do inspetor mudam.
+var _lamina: Node3D = null
+var _escala_do_modelo := 1.0
 
 func _ready() -> void:
     var modelo := (load("res://personagem/heroi_base.fbx") as PackedScene).instantiate()
@@ -51,6 +76,11 @@ func _ready() -> void:
     add_child(_voz)
 
     _equipar_espada(modelo)
+    # O Akles nao anda pela floresta de lamina em punho: ela so aparece no
+    # golpe. Como nao ha animacao de sacar, o corte entra junto com o swing e o
+    # movimento da propria animacao cobre o aparecimento.
+    if _espada:
+        _espada.visible = false
     _animador.play("heroi/parado")
 
 ## Prende a espada na mao direita.
@@ -88,31 +118,42 @@ func _equipar_espada(modelo: Node3D) -> void:
     var punho := Node3D.new()
     punho.name = "Punho"
     suporte.add_child(punho)
+    _espada = punho
 
-    var espada := (load("res://models/espada_akles.glb") as PackedScene).instantiate()
+    var espada: Node3D = (load("res://models/espada_akles.glb") as PackedScene).instantiate()
     punho.add_child(espada)
+    _lamina = espada
+    _escala_do_modelo = modelo.scale.x
 
-    # A espada esta DENTRO do esqueleto, ampliado ~176x para o heroi ter 1.75 m.
-    # Sem descontar essa ampliacao ela sairia do tamanho de uma casa.
-    var altura_da_espada := 0.94
-    var escala_do_modelo: float = modelo.scale.x
-    var escala := COMPRIMENTO_DA_ESPADA / altura_da_espada / escala_do_modelo
-    espada.scale = Vector3.ONE * escala
-
-    # Medido na malha: a fatia mais estreita (o cabo) fica a 85% da altura, com a
-    # guarda — a mais larga — aos 65%, e a lamina descendo dai. Entao o cabo esta
-    # ACIMA do centro, e trazer esse ponto para a origem e o que poe a mao no
-    # lugar certo em vez de no meio da lamina.
-    const FRACAO_DO_CABO := 0.85
-    espada.position = Vector3(0.0, -(FRACAO_DO_CABO - 0.5) * altura_da_espada * escala, 0.0)
-
-    # Com o cabo na origem, a lamina aponta para -Y da espada. Os ossos do
-    # Mixamo encadeiam ao longo do +Y, entao meia volta em X leva a lamina para a
-    # direcao dos dedos.
-    punho.rotation_degrees = Vector3(180.0, 0.0, 0.0)
+    _atualizar_encaixe()
 
     for malha in espada.find_children("*", "MeshInstance3D", true, false):
         malha.material_override = load("res://Material_TripoSR.tres")
+
+## Poe a lamina na mao a partir dos campos do inspetor.
+##
+## A espada esta DENTRO do esqueleto, que foi ampliado ~176x para o heroi ter
+## 1.75 m: sem descontar essa ampliacao ela sairia do tamanho de uma casa.
+func _atualizar_encaixe() -> void:
+    if _lamina == null or _espada == null:
+        return
+
+    # Altura da malha da espada no arquivo, antes de qualquer escala.
+    const ALTURA_DA_MALHA := 0.94
+    var escala := comprimento_da_espada / ALTURA_DA_MALHA / _escala_do_modelo
+    _lamina.scale = Vector3.ONE * escala
+
+    # O cabo esta ACIMA do centro da malha. Trazer esse ponto para a origem e o
+    # que poe a mao no punho em vez de no meio da lamina.
+    _lamina.position = Vector3(
+        0.0, -(fracao_do_cabo - 0.5) * ALTURA_DA_MALHA * escala, 0.0) + ajuste_do_punho
+    _espada.rotation_degrees = giro_do_punho
+
+func _process(_delta: float) -> void:
+    # So enquanto se ajusta. Na build final os campos nao mudam, e refazer o
+    # encaixe a cada quadro seria conta jogada fora.
+    if OS.is_debug_build():
+        _atualizar_encaixe()
 
 ## Chamado pelo jogador a cada quadro com a velocidade no plano.
 func atualizar_movimento(velocidade: float) -> void:
@@ -128,13 +169,20 @@ func atualizar_movimento(velocidade: float) -> void:
 
 func atacar() -> void:
     if _atacando:
+        _golpe_pedido = true
         return
-    var agora := Time.get_ticks_msec() / 1000.0
-    if agora - _ultimo_golpe_em > PAUSA_DO_COMBO:
+
+    # A contagem da pausa corre a partir do FIM do ultimo golpe, nao do comeco.
+    # Medindo do comeco, a propria animacao (mais longa que PAUSA_DO_COMBO) ja
+    # estourava o prazo: quando o jogador podia atacar de novo, o combo se dava
+    # por expirado e voltava ao primeiro golpe — sempre o mesmo ataque, por mais
+    # rapido que se apertasse.
+    if Time.get_ticks_msec() / 1000.0 - _ultimo_golpe_em > PAUSA_DO_COMBO:
         _golpe = 0
-    _ultimo_golpe_em = agora
 
     _atacando = true
+    if _espada:
+        _espada.visible = true
     _animador.play("heroi/" + COMBO[_golpe], MISTURA)
     _golpe = (_golpe + 1) % COMBO.size()
     _tocar_nota()
@@ -146,6 +194,17 @@ func _tocar_nota() -> void:
     _voz.play()
 
 func _ao_terminar(animacao: StringName) -> void:
-    if String(animacao).trim_prefix("heroi/") in COMBO:
-        _atacando = false
-        _animador.play("heroi/parado", MISTURA)
+    if not String(animacao).trim_prefix("heroi/") in COMBO:
+        return
+
+    _atacando = false
+    _ultimo_golpe_em = Time.get_ticks_msec() / 1000.0
+
+    if _golpe_pedido:
+        _golpe_pedido = false
+        atacar()
+        return
+
+    if _espada:
+        _espada.visible = false
+    _animador.play("heroi/parado", MISTURA)

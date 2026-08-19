@@ -53,6 +53,81 @@
       "models": [
         "res://models/stone_wall_segment_1787079001245.glb"
       ]
+    },
+    "grama_alta": {
+      "y": 0.0,
+      "altura": 1.05,
+      "scale": [
+        0.75,
+        1.35
+      ],
+      "solid": false,
+      "sprites": [
+        "res://textures/props/tufo_grama_3.png"
+      ]
+    },
+    "flores": {
+      "y": 0.0,
+      "altura": 0.62,
+      "scale": [
+        0.8,
+        1.2
+      ],
+      "solid": false,
+      "sprites": [
+        "res://textures/props/flores_2.png"
+      ]
+    },
+    "pedrinha": {
+      "y": 0.0,
+      "altura": 0.55,
+      "scale": [
+        0.6,
+        1.5
+      ],
+      "solid": false,
+      "sprites": [
+        "res://textures/props/pedra_1.png",
+        "res://textures/props/pedra_2.png",
+        "res://textures/props/pedra_3.png"
+      ]
+    },
+    "cogumelo": {
+      "y": 0.0,
+      "altura": 0.38,
+      "scale": [
+        0.8,
+        1.3
+      ],
+      "solid": false,
+      "sprites": [
+        "res://textures/props/cogumelo_1.png"
+      ]
+    },
+    "raiz": {
+      "y": 0.0,
+      "altura": 0.85,
+      "scale": [
+        0.9,
+        1.6
+      ],
+      "solid": false,
+      "sprites": [
+        "res://textures/props/raiz_exposta.png"
+      ]
+    },
+    "placa": {
+      "y": 0.0,
+      "altura": 2.3,
+      "scale": [
+        0.95,
+        1.1
+      ],
+      "solid": false,
+      "sprites": [
+        "res://textures/props/placa_madeira.png"
+      ]
     }
-  }
+  },
+  "_nota_sprites": "Etiqueta com 'sprites' nasce como plaquinha 2D virada para a camera, nao como malha. 'altura' e o tamanho do objeto em metros — o recorte e justo, entao vale para o desenho inteiro. Sem 'y': a plaquinha ja apoia o pe na origem."
 }

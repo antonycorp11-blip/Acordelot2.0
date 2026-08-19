@@ -15,6 +15,7 @@ const CHUNK_SIZE := 30.0
 const CLEARING_RADIUS := 11.0
 
 static var _scene_cache: Dictionary = {}
+static var _texture_cache: Dictionary = {}
 static var _prop_material: Material = null
 
 ## O TripoSR pinta o modelo em COR POR VERTICE, sem textura. Sem um material que
@@ -87,9 +88,8 @@ static func _scatter(root: Node3D, entry: Dictionary, rng: RandomNumberGenerator
                      center: Vector3) -> void:
     var tag := String(entry.get("tag", ""))
     var kind: Dictionary = World.catalog.get(tag, {})
-    var models: Array = kind.get("models", [])
-    if models.is_empty():
-        push_warning("Etiqueta sem modelo no catalogo: " + tag)
+    if kind.get("models", []).is_empty() and kind.get("sprites", []).is_empty():
+        push_warning("Etiqueta sem modelo nem sprite no catalogo: " + tag)
         return
 
     # A paleta conta props por REGIAO. Aqui cabe a fatia deste pedaco, e a sobra
@@ -112,20 +112,72 @@ static func _scatter(root: Node3D, entry: Dictionary, rng: RandomNumberGenerator
         if (center + offset - region_center).length() < CLEARING_RADIUS:
             continue
 
-        var scene := _load_scene(String(models[rng.randi() % models.size()]))
-        if scene == null:
+        var prop := _criar(kind, rng)
+        if prop == null:
             continue
-        var prop := scene.instantiate()
         prop.position = offset + Vector3(0.0, float(kind.get("y", 0.0)), 0.0)
         prop.rotation.y = rng.randf_range(0.0, TAU)
         prop.scale = Vector3.ONE * rng.randf_range(float(scale_range[0]), float(scale_range[1]))
         root.add_child(prop)
 
-        for mesh_node in prop.find_children("*", "MeshInstance3D", true, false):
-            mesh_node.material_override = prop_material()
-
         if bool(kind.get("solid", false)):
             PropCollider.apply_to_asset(prop)
+
+## Uma etiqueta nasce de malha ou de plaquinha, nunca das duas.
+##
+## Malha e para o que o jogador contorna: arvore, muro, cristal. Plaquinha e
+## para o mato rasteiro, que existe em centenas por tela — e centenas de malhas
+## nao passam na placa de video do alvo, enquanto centenas de quadrados de dois
+## triangulos passam com folga.
+static func _criar(kind: Dictionary, rng: RandomNumberGenerator) -> Node3D:
+    var sprites: Array = kind.get("sprites", [])
+    if not sprites.is_empty():
+        return _criar_sprite(String(sprites[rng.randi() % sprites.size()]),
+                             float(kind.get("altura", 1.0)))
+
+    var models: Array = kind.get("models", [])
+    var scene := _load_scene(String(models[rng.randi() % models.size()]))
+    if scene == null:
+        return null
+    var prop: Node3D = scene.instantiate()
+    for mesh_node in prop.find_children("*", "MeshInstance3D", true, false):
+        mesh_node.material_override = prop_material()
+    return prop
+
+static func _criar_sprite(caminho: String, altura: float) -> Sprite3D:
+    var textura := _load_texture(caminho)
+    if textura == null:
+        return null
+
+    var sprite := Sprite3D.new()
+    sprite.texture = textura
+    # A altura pedida vale para o objeto, e o recorte e justo, entao a conta e
+    # direta: tantos metros divididos por tantos pixels.
+    sprite.pixel_size = altura / float(textura.get_height())
+    # A imagem e desenhada em volta do centro; subir meia altura poe o pe do
+    # mato no chao em vez de enterra-lo ate a metade.
+    sprite.offset = Vector2(0.0, float(textura.get_height()) * 0.5)
+    # Em pe e virado para a camera. Sem travar o eixo Y a moita deita quando o
+    # jogador chega perto, porque passa a mirar a camera tambem na vertical.
+    sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+    # Recebe a luz do sol: e o que faz o mato escurecer junto com o resto quando
+    # anoitece. Sem sombreado, o campo continuaria em pleno dia as duas da manha.
+    sprite.shaded = true
+    sprite.double_sided = true
+    # Transparencia por recorte, nao por mistura. Mistura obriga a ordenar cada
+    # moita contra as outras a cada quadro, e moitas que se cruzam piscam trocando
+    # de ordem — com recorte, o teste de profundidade normal resolve.
+    sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+    sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+    # Mato nao projeta sombra. Sao centenas por tela, e a sombra de cada folha
+    # custa uma passada a mais no mapa de sombras sem mudar o que se ve.
+    sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    return sprite
+
+static func _load_texture(path: String) -> Texture2D:
+    if not _texture_cache.has(path):
+        _texture_cache[path] = load(path) as Texture2D
+    return _texture_cache[path]
 
 static func _load_scene(path: String) -> PackedScene:
     if not _scene_cache.has(path):

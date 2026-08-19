@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="5_joystick"]
 [ext_resource type="Script" path="res://scripts/hero.gd" id="7_hero"]
 [ext_resource type="Script" path="res://scripts/world_map.gd" id="6_map"]
+[ext_resource type="Script" path="res://scripts/ciclo_dia_noite.gd" id="9_ciclo"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_day"]
 sky_top_color = Color(0.16, 0.42, 0.72, 1)
@@ -55,6 +56,11 @@ light_color = Color(1, 0.94, 0.82, 1)
 light_energy = 2.0
 shadow_enabled = true
 directional_shadow_max_distance = 45.0
+
+[node name="CicloDiaNoite" type="Node" parent="." node_paths=PackedStringArray("sol", "ambiente")]
+script = ExtResource("9_ciclo")
+sol = NodePath("../Sunlight")
+ambiente = NodePath("../WorldEnvironment")
 
 [node name="Player" type="CharacterBody3D" parent="."]
 script = ExtResource("2_player")
