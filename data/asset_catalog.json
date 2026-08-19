@@ -2,7 +2,7 @@
   "_nota": "Etiqueta -> modelos que podem nascer nela. Os .glb em models/ sao os decimados por .tools/decimar_malha.py; os originais do TripoSR ficam fora do projeto (AcordeLot 2.0/output), pesados demais para o jogo. y/scale saem das arvores postas a mao em scenes/forest_map.tscn. Asset novo: gere o .glb, decime, e acrescente o caminho aqui.",
   "tags": {
     "tree": {
-      "y": 2.2,
+      "y": 0.0,
       "scale": [
         5.0,
         5.6
@@ -22,7 +22,7 @@
       ]
     },
     "bush": {
-      "y": 0.9,
+      "y": 0.0,
       "scale": [
         1.6,
         2.4
@@ -33,7 +33,7 @@
       ]
     },
     "crystal": {
-      "y": 1.0,
+      "y": 0.0,
       "scale": [
         1.8,
         2.8
@@ -44,7 +44,7 @@
       ]
     },
     "wall": {
-      "y": 1.7,
+      "y": 0.0,
       "scale": [
         2.6,
         3.4
@@ -129,5 +129,6 @@
       ]
     }
   },
-  "_nota_sprites": "Etiqueta com 'sprites' nasce como plaquinha 2D virada para a camera, nao como malha. 'altura' e o tamanho do objeto em metros — o recorte e justo, entao vale para o desenho inteiro. Sem 'y': a plaquinha ja apoia o pe na origem."
+  "_nota_sprites": "Etiqueta com 'sprites' nasce como plaquinha 2D virada para a camera, nao como malha. 'altura' e o tamanho do objeto em metros — o recorte e justo, entao vale para o desenho inteiro. Sem 'y': a plaquinha ja apoia o pe na origem.",
+  "_nota_y": "y agora e so um empurrao manual, quase sempre 0: a altura real sai da caixa da malha, medida quando o objeto nasce."
 }

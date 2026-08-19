@@ -139,10 +139,44 @@ static func _criar(kind: Dictionary, rng: RandomNumberGenerator) -> Node3D:
     var scene := _load_scene(String(models[rng.randi() % models.size()]))
     if scene == null:
         return null
-    var prop: Node3D = scene.instantiate()
-    for mesh_node in prop.find_children("*", "MeshInstance3D", true, false):
+    var modelo: Node3D = scene.instantiate()
+    for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):
         mesh_node.material_override = prop_material()
-    return prop
+
+    # O modelo entra dentro de um suporte, e quem recebe posicao, giro e escala
+    # la fora e o suporte. Assim a correcao de altura viaja junto com a escala
+    # sorteada, em vez de brigar com ela.
+    var suporte := Node3D.new()
+    suporte.name = modelo.name
+    suporte.add_child(modelo)
+    modelo.position.y = -_base_do_modelo(modelo)
+    return suporte
+
+## Onde esta o ponto mais baixo da malha, no espaco do proprio modelo.
+##
+## Era uma altura fixa por etiqueta no catalogo — 1.7 m para o muro, 2.2 m para
+## a arvore. Nao tinha como acertar: os GLB do TripoSR trazem o centro em lugar
+## diferente cada um, e a escala ainda e sorteada numa faixa. Numero fixo contra
+## escala sorteada da objeto enterrado ou flutuando, e foi o que deu.
+static func _base_do_modelo(modelo: Node3D) -> float:
+    var caixa := AABB()
+    var achou := false
+    for malha in modelo.find_children("*", "MeshInstance3D", true, false):
+        var local: AABB = _ate_a_raiz(malha, modelo) * malha.get_aabb()
+        caixa = local if not achou else caixa.merge(local)
+        achou = true
+    return caixa.position.y if achou else 0.0
+
+## Transformacao de um no ate a raiz do modelo. A malha costuma estar dois ou
+## tres nos abaixo, cada um com o seu deslocamento, e ignorar esse caminho mede
+## a caixa no lugar errado.
+static func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
+    var acumulado := Transform3D.IDENTITY
+    var atual: Node3D = no
+    while atual != null and atual != raiz:
+        acumulado = atual.transform * acumulado
+        atual = atual.get_parent() as Node3D
+    return acumulado
 
 static func _criar_sprite(caminho: String, altura: float) -> Sprite3D:
     var textura := _load_texture(caminho)

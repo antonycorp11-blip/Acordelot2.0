@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/hero.gd" id="7_hero"]
 [ext_resource type="Script" path="res://scripts/world_map.gd" id="6_map"]
 [ext_resource type="Script" path="res://scripts/ciclo_dia_noite.gd" id="9_ciclo"]
+[ext_resource type="Script" path="res://scripts/gerador_de_bichos.gd" id="11_bichos"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_day"]
 sky_top_color = Color(0.16, 0.42, 0.72, 1)
@@ -77,16 +78,20 @@ script = ExtResource("3_camera")
 target = NodePath("../Player")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
-position = Vector3(0, 11.5, 13.5)
-rotation = Vector3(-0.705, 0, 0)
+position = Vector3(0, 17.1, 13.35)
+rotation = Vector3(-0.9076, 0, 0)
 current = true
-fov = 48.0
+fov = 40.0
 near = 0.2
 far = 70.0
 
 [node name="WorldStreamer" type="Node3D" parent="." node_paths=PackedStringArray("player")]
 script = ExtResource("4_streamer")
 player = NodePath("../Player")
+
+[node name="GeradorDeBichos" type="Node3D" parent="." node_paths=PackedStringArray("jogador")]
+script = ExtResource("11_bichos")
+jogador = NodePath("../Player")
 
 [node name="MobileControls" type="CanvasLayer" parent="."]
 layer = 10

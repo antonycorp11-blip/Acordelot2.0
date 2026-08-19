@@ -12,6 +12,21 @@ const ALTURA_ALVO := 1.75
 const VELOCIDADE_DE_CORRIDA := 4.2
 const MISTURA := 0.18
 
+## As animacoes do Mixamo sao feitas para cinematica, nao para combate: no
+## ritmo original o golpe parece que esta carregando. Acelerar a reproducao e o
+## que da peso de jogo sem reanimar nada.
+const VELOCIDADE_DO_GOLPE := 1.45
+
+## Alcance da lamina, em metros, medido do peito do heroi.
+const ALCANCE_DO_GOLPE := 2.6
+## Abertura do golpe em graus. Nao e cone estreito: espada larga acerta o que
+## esta de lado, e exigir mira fina num jogo de toque so gera golpe no vazio.
+const ABERTURA_DO_GOLPE := 120.0
+const DANO := 34.0
+## Em que ponto da animacao a lamina passa pelo alvo. Aplicar o dano no comeco
+## faz o bicho voar antes do golpe sair, e no fim faz parecer que nao pegou.
+const INSTANTE_DO_IMPACTO := 0.38
+
 ## Encaixe da espada na mao. Sao @export e nao constantes porque nao existe
 ## numero certo deduzivel: o cabo do modelo, a pose da mao do Mixamo e a escala
 ## do heroi so batem olhando. Com a cena rodando, mexer nestes campos no
@@ -183,9 +198,39 @@ func atacar() -> void:
     _atacando = true
     if _espada:
         _espada.visible = true
-    _animador.play("heroi/" + COMBO[_golpe], MISTURA)
+    _animador.play("heroi/" + COMBO[_golpe], MISTURA, VELOCIDADE_DO_GOLPE)
     _golpe = (_golpe + 1) % COMBO.size()
     _tocar_nota()
+    _marcar_impacto()
+
+## Espera a lamina chegar no alvo e entao cobra o dano.
+##
+## O contato nao vem de area de colisao seguindo a espada: a lamina esta presa
+## ao osso, e area de colisao em osso animado dispara varias vezes no mesmo
+## swing e erra quando dois quadros pulam por cima do alvo. Uma checagem unica
+## no instante do impacto e mais previsivel — e e o que jogo de acao costuma
+## fazer.
+func _marcar_impacto() -> void:
+    var duracao := _animador.current_animation_length / VELOCIDADE_DO_GOLPE
+    await get_tree().create_timer(duracao * INSTANTE_DO_IMPACTO).timeout
+    if not _atacando:
+        return
+    _atingir()
+
+func _atingir() -> void:
+    var origem := global_position
+    var frente := global_transform.basis.z.normalized()
+    for bicho in get_tree().get_nodes_in_group("bicho"):
+        if not is_instance_valid(bicho):
+            continue
+        var ate: Vector3 = bicho.global_position - origem
+        ate.y = 0.0
+        var distancia := ate.length()
+        if distancia > ALCANCE_DO_GOLPE or distancia < 0.05:
+            continue
+        if frente.angle_to(ate.normalized()) > deg_to_rad(ABERTURA_DO_GOLPE * 0.5):
+            continue
+        bicho.levar_dano(DANO, ate.normalized())
 
 func _tocar_nota() -> void:
     var nota: String = ESCALA[_proxima_nota]

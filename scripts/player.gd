@@ -6,6 +6,11 @@ extends CharacterBody3D
 @export var acceleration := 18.0
 @export var gravity := 24.0
 
+func _ready() -> void:
+    # Os bichos procuram o alvo pelo grupo. Marcar aqui, e nao na cena, mantem
+    # o vinculo mesmo se o jogador for instanciado por codigo mais tarde.
+    add_to_group("jogador")
+
 func _physics_process(delta: float) -> void:
     var input_vector := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 

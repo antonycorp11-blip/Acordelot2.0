@@ -10,9 +10,16 @@ extends Node3D
 ## carrega exatamente o que ela ve, menos pedaco entra em cena. Zoom perto e o
 ## botao de desempenho do jogador.
 @export var zoom_minimo := 0.26
-@export var zoom_maximo := 1.6
-## Comeca ja aproximado: e a distancia em que se ve o personagem e o que ele faz.
-@export var zoom_inicial := 0.7
+@export var zoom_maximo := 2.1
+## Comeca afastado, no enquadramento das referencias: o heroi pequeno e o
+## cenario em volta ocupando a tela. Nao e so gosto — a vista de diorama SO
+## funciona se couber cenario suficiente para ler como lugar, e de perto o jogo
+## vira passeio por textura de chao.
+##
+## Custa desempenho: o mundo carrega exatamente o que a camera enxerga, entao
+## afastar multiplica os pedacos montados. Se cair quadro no celular, este e o
+## primeiro numero a baixar.
+@export var zoom_inicial := 1.15
 @export var velocidade_do_zoom := 8.0
 
 var _camera: Camera3D
