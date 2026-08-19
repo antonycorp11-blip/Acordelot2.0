@@ -18,6 +18,10 @@ const PASSO_DO_CHAO := 1.0
 ## Os dois triangulos de um quadrado do chao, em ordem de vertice.
 const CANTOS := [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1),
                  Vector2(0, 0), Vector2(1, 1), Vector2(0, 1)]
+## Os quatro cantos sem repetir, para testar se o quadrado esta seco.
+const CANTOS_DO_QUADRADO := [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]
+## A agua e plana: nao precisa do vertice por metro que a encosta precisa.
+const PASSO_DA_AGUA := 2.5
 ## Praca limpa no centro de cada regiao: e onde da para andar e por NPC.
 ##
 ## Encolheu de 11 para 4 m. Onze metros de raio abriam um circulo de mato de 22
@@ -37,6 +41,7 @@ static var _material_cache: Dictionary = {}
 ## Centro do pedaco em construcao. A malha e a colisao precisam da coordenada de
 ## mundo para perguntar a altura, e ambas nascem dentro de build().
 static var _centro_em_construcao := Vector3.ZERO
+static var _agua: ShaderMaterial = null
 
 ## Pelo caminho e nao pelo nome global: o nome so existe depois que o editor
 ## varre o projeto, e isso quebra exportacao limpa.
@@ -69,6 +74,9 @@ static func build(chunk: Vector2i, ground_material: Material) -> Node3D:
     root.name = "Chunk_%d_%d" % [chunk.x, chunk.y]
     root.position = center
     root.add_child(_build_ground(ground_material))
+    var agua := _lamina_de_agua()
+    if agua:
+        root.add_child(agua)
 
     if region.is_empty():
         return root
@@ -243,6 +251,65 @@ static func _malha_do_chao(material: Material) -> MeshInstance3D:
     # mesma da acne de sombra, e a acne desenhava a grade dos pedacos no terreno.
     no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     return no
+
+## A lamina de agua do pedaco, ou nada se ali nao houver vale fundo.
+##
+## Nao ha lago desenhado em lugar nenhum: enche-se o que estiver abaixo de uma
+## altura fixa. Isso sai de graca — nenhum dado a mais para carregar — e o lago
+## casa com a margem em qualquer regiao, porque agua e terreno saem da mesma
+## funcao de altura.
+static func _lamina_de_agua() -> MeshInstance3D:
+    var passos := int(CHUNK_SIZE / PASSO_DA_AGUA)
+    var meio := CHUNK_SIZE * 0.5
+    var centro := _centro_em_construcao
+    var nivel: float = RELEVO.NIVEL_DA_AGUA
+
+    var malha := SurfaceTool.new()
+    malha.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var molhou := false
+
+    for iz in passos:
+        for ix in passos:
+            var a := Vector2(ix, iz)
+            # Quadrado inteiro acima da linha da agua nao vira triangulo. Poderia
+            # sair transparente, mas transparente ainda custa preenchimento de
+            # tela — e a maior parte do mundo e seca.
+            var seco := true
+            for canto: Vector2 in CANTOS_DO_QUADRADO:
+                var l := (a + canto) * PASSO_DA_AGUA - Vector2(meio, meio)
+                if RELEVO.altura(centro.x + l.x, centro.z + l.y) < nivel:
+                    seco = false
+                    break
+            if seco:
+                continue
+
+            molhou = true
+            for canto: Vector2 in CANTOS:
+                var local: Vector2 = (a + canto) * PASSO_DA_AGUA - Vector2(meio, meio)
+                var fundo: float = RELEVO.altura(centro.x + local.x, centro.z + local.y)
+                # A profundidade viaja na cor do vertice. O shader usa para
+                # escurecer o meio do lago e por espuma na margem sem precisar
+                # ler o buffer de profundidade da tela, que e caro no alvo.
+                var quanto := clampf((nivel - fundo) / 3.0, 0.0, 1.0)
+                malha.set_color(Color(quanto, quanto, quanto, 1.0))
+                malha.set_normal(Vector3.UP)
+                malha.add_vertex(Vector3(local.x, nivel, local.y))
+
+    if not molhou:
+        return null
+
+    malha.set_material(_material_da_agua())
+    var no := MeshInstance3D.new()
+    no.name = "Agua"
+    no.mesh = malha.commit()
+    no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    return no
+
+static func _material_da_agua() -> ShaderMaterial:
+    if _agua == null:
+        _agua = ShaderMaterial.new()
+        _agua.shader = load("res://materials/agua.gdshader")
+    return _agua
 
 static func _colisao_do_chao() -> CollisionShape3D:
     var passos := int(CHUNK_SIZE / PASSO_DO_CHAO) + 1

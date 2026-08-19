@@ -12,11 +12,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 534577575
@@ -30,11 +34,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1262518196
@@ -48,11 +56,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1987870030
@@ -66,11 +78,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1716499877
@@ -84,11 +100,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1716499877
@@ -102,11 +122,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1554681868
@@ -120,11 +144,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 651599646
@@ -138,11 +166,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 66459652
@@ -156,11 +188,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 372759566
@@ -174,11 +210,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1190157750
@@ -192,11 +232,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1016123764
@@ -210,11 +254,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1716007888
@@ -228,11 +276,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 2135316262
@@ -246,11 +298,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1190076080
@@ -264,11 +320,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1780673467
@@ -282,11 +342,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1780673467
@@ -299,12 +363,24 @@
       "biome": "sagrado",
       "props": [
         {
-          "tag": "crystal",
-          "count": 12
+          "tag": "tree",
+          "count": 40
         },
         {
-          "tag": "tree",
+          "tag": "pinheiro",
+          "count": 14
+        },
+        {
+          "tag": "bush",
+          "count": 20
+        },
+        {
+          "tag": "lampiao",
           "count": 8
+        },
+        {
+          "tag": "crystal",
+          "count": 12
         }
       ],
       "seed": 190338989
@@ -318,11 +394,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 62
+          "count": 95
+        },
+        {
+          "tag": "pinheiro",
+          "count": 55
         },
         {
           "tag": "bush",
-          "count": 24
+          "count": 34
         }
       ],
       "seed": 1501342393
@@ -335,12 +415,40 @@
       "biome": "cidade",
       "props": [
         {
-          "tag": "wall",
-          "count": 18
+          "tag": "casa",
+          "count": 9
+        },
+        {
+          "tag": "predio",
+          "count": 4
+        },
+        {
+          "tag": "lampiao",
+          "count": 12
+        },
+        {
+          "tag": "cerca_madeira",
+          "count": 16
+        },
+        {
+          "tag": "poco",
+          "count": 1
+        },
+        {
+          "tag": "fonte_praca",
+          "count": 1
         },
         {
           "tag": "tree",
-          "count": 5
+          "count": 14
+        },
+        {
+          "tag": "bush",
+          "count": 10
+        },
+        {
+          "tag": "wall",
+          "count": 18
         }
       ],
       "seed": 1568033525
@@ -354,11 +462,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1722449263
@@ -372,11 +484,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1767399436
@@ -390,11 +506,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 234227047
@@ -408,11 +528,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1039427316
@@ -426,11 +550,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 733127402
@@ -444,11 +572,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1767317766
@@ -462,11 +594,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 73865971
@@ -480,11 +616,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 73865971
@@ -498,11 +638,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1097651520
@@ -516,11 +660,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 991034264
@@ -534,11 +682,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 438390089
@@ -552,11 +704,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1995276349
@@ -570,11 +726,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 685308009
@@ -588,11 +748,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 626510146
@@ -606,11 +770,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1039427316
@@ -624,11 +792,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 733127402
@@ -642,11 +814,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1767317766
@@ -660,11 +836,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 73865971
@@ -678,11 +858,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 73865971
@@ -696,11 +880,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1097651520
@@ -714,11 +902,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 991034264
@@ -732,11 +924,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 438390089
@@ -750,11 +946,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1995276349
@@ -768,11 +968,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 13
+          "count": 34
+        },
+        {
+          "tag": "pinheiro",
+          "count": 10
         },
         {
           "tag": "bush",
-          "count": 20
+          "count": 26
         },
         {
           "tag": "crystal",
@@ -790,11 +994,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 626510146
@@ -808,11 +1016,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 887504067
@@ -826,11 +1038,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1987920201
@@ -844,11 +1060,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 785676736
@@ -862,11 +1082,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 294418235
@@ -880,11 +1104,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 294418235
@@ -897,12 +1125,40 @@
       "biome": "cidade",
       "props": [
         {
-          "tag": "wall",
-          "count": 18
+          "tag": "casa",
+          "count": 9
+        },
+        {
+          "tag": "predio",
+          "count": 4
+        },
+        {
+          "tag": "lampiao",
+          "count": 12
+        },
+        {
+          "tag": "cerca_madeira",
+          "count": 16
+        },
+        {
+          "tag": "poco",
+          "count": 1
+        },
+        {
+          "tag": "fonte_praca",
+          "count": 1
         },
         {
           "tag": "tree",
-          "count": 5
+          "count": 14
+        },
+        {
+          "tag": "bush",
+          "count": 10
+        },
+        {
+          "tag": "wall",
+          "count": 18
         }
       ],
       "seed": 757362422
@@ -916,11 +1172,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1377001651
@@ -934,11 +1194,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1488541294
@@ -952,11 +1216,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 62
+          "count": 95
+        },
+        {
+          "tag": "pinheiro",
+          "count": 55
         },
         {
           "tag": "bush",
-          "count": 24
+          "count": 34
         }
       ],
       "seed": 728988185
@@ -970,11 +1238,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1682727906
@@ -988,11 +1260,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1741525769
@@ -1006,11 +1282,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1279787166
@@ -1024,11 +1304,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1311339629
@@ -1042,11 +1326,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1939048597
@@ -1060,11 +1348,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1765321310
@@ -1077,12 +1369,24 @@
       "biome": "ruina",
       "props": [
         {
-          "tag": "wall",
-          "count": 22
+          "tag": "tree",
+          "count": 30
         },
         {
           "tag": "bush",
-          "count": 7
+          "count": 14
+        },
+        {
+          "tag": "escada_pedra",
+          "count": 4
+        },
+        {
+          "tag": "poco",
+          "count": 1
+        },
+        {
+          "tag": "wall",
+          "count": 22
         }
       ],
       "seed": 1436823089
@@ -1095,12 +1399,40 @@
       "biome": "cidade",
       "props": [
         {
-          "tag": "wall",
-          "count": 18
+          "tag": "casa",
+          "count": 9
+        },
+        {
+          "tag": "predio",
+          "count": 4
+        },
+        {
+          "tag": "lampiao",
+          "count": 12
+        },
+        {
+          "tag": "cerca_madeira",
+          "count": 16
+        },
+        {
+          "tag": "poco",
+          "count": 1
+        },
+        {
+          "tag": "fonte_praca",
+          "count": 1
         },
         {
           "tag": "tree",
-          "count": 5
+          "count": 14
+        },
+        {
+          "tag": "bush",
+          "count": 10
+        },
+        {
+          "tag": "wall",
+          "count": 18
         }
       ],
       "seed": 80781850
@@ -1114,11 +1446,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 13
+          "count": 34
+        },
+        {
+          "tag": "pinheiro",
+          "count": 10
         },
         {
           "tag": "bush",
-          "count": 20
+          "count": 26
         },
         {
           "tag": "crystal",
@@ -1136,11 +1472,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 13
+          "count": 34
+        },
+        {
+          "tag": "pinheiro",
+          "count": 10
         },
         {
           "tag": "bush",
-          "count": 20
+          "count": 26
         },
         {
           "tag": "crystal",
@@ -1158,11 +1498,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 323938133
@@ -1176,11 +1520,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1141336317
@@ -1194,11 +1542,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1164284083
@@ -1212,11 +1564,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1764829321
@@ -1230,11 +1586,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1458529407
@@ -1248,11 +1608,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1105567890
@@ -1266,11 +1630,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1447554561
@@ -1283,12 +1651,24 @@
       "biome": "ruina",
       "props": [
         {
-          "tag": "wall",
-          "count": 22
+          "tag": "tree",
+          "count": 30
         },
         {
           "tag": "bush",
-          "count": 7
+          "count": 14
+        },
+        {
+          "tag": "escada_pedra",
+          "count": 4
+        },
+        {
+          "tag": "poco",
+          "count": 1
+        },
+        {
+          "tag": "wall",
+          "count": 22
         }
       ],
       "seed": 255392776
@@ -1301,12 +1681,40 @@
       "biome": "cidade",
       "props": [
         {
-          "tag": "wall",
-          "count": 18
+          "tag": "casa",
+          "count": 9
+        },
+        {
+          "tag": "predio",
+          "count": 4
+        },
+        {
+          "tag": "lampiao",
+          "count": 12
+        },
+        {
+          "tag": "cerca_madeira",
+          "count": 16
+        },
+        {
+          "tag": "poco",
+          "count": 1
+        },
+        {
+          "tag": "fonte_praca",
+          "count": 1
         },
         {
           "tag": "tree",
-          "count": 5
+          "count": 14
+        },
+        {
+          "tag": "bush",
+          "count": 10
+        },
+        {
+          "tag": "wall",
+          "count": 18
         }
       ],
       "seed": 227971628
@@ -1320,11 +1728,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 62
+          "count": 95
+        },
+        {
+          "tag": "pinheiro",
+          "count": 55
         },
         {
           "tag": "bush",
-          "count": 24
+          "count": 34
         }
       ],
       "seed": 1550163826
@@ -1338,11 +1750,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1163792094
@@ -1356,11 +1772,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 573194707
@@ -1374,11 +1794,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 2107389651
@@ -1392,11 +1816,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 2048591788
@@ -1410,11 +1838,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1088248749
@@ -1427,12 +1859,12 @@
       "biome": "caverna",
       "props": [
         {
-          "tag": "wall",
+          "tag": "crystal",
           "count": 26
         },
         {
-          "tag": "crystal",
-          "count": 8
+          "tag": "wall",
+          "count": 26
         }
       ],
       "seed": 667496677
@@ -1445,12 +1877,12 @@
       "biome": "caverna",
       "props": [
         {
-          "tag": "wall",
+          "tag": "crystal",
           "count": 26
         },
         {
-          "tag": "crystal",
-          "count": 8
+          "tag": "wall",
+          "count": 26
         }
       ],
       "seed": 1832948491
@@ -1463,12 +1895,12 @@
       "biome": "caverna",
       "props": [
         {
-          "tag": "wall",
+          "tag": "crystal",
           "count": 26
         },
         {
-          "tag": "crystal",
-          "count": 8
+          "tag": "wall",
+          "count": 26
         }
       ],
       "seed": 8235246
@@ -1481,12 +1913,12 @@
       "biome": "caverna",
       "props": [
         {
-          "tag": "wall",
+          "tag": "crystal",
           "count": 26
         },
         {
-          "tag": "crystal",
-          "count": 8
+          "tag": "wall",
+          "count": 26
         }
       ],
       "seed": 8235246
@@ -1500,7 +1932,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 74
+          "count": 120
+        },
+        {
+          "tag": "pinheiro",
+          "count": 20
+        },
+        {
+          "tag": "bush",
+          "count": 16
         },
         {
           "tag": "crystal",
@@ -1518,7 +1958,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 74
+          "count": 120
+        },
+        {
+          "tag": "pinheiro",
+          "count": 20
+        },
+        {
+          "tag": "bush",
+          "count": 16
         },
         {
           "tag": "crystal",
@@ -1536,11 +1984,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 487211522
@@ -1554,11 +2006,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 180911608
@@ -1572,11 +2028,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 636486576
@@ -1590,11 +2050,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 577688713
@@ -1608,11 +2072,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 511007063
@@ -1626,11 +2094,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 565838559
@@ -1644,11 +2116,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 636404906
@@ -1662,11 +2138,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1127663407
@@ -1680,11 +2160,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1127663407
@@ -1698,11 +2182,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 62
+          "count": 95
+        },
+        {
+          "tag": "pinheiro",
+          "count": 55
         },
         {
           "tag": "bush",
-          "count": 24
+          "count": 34
         }
       ],
       "seed": 512399357
@@ -1716,11 +2204,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1158323107
@@ -1734,11 +2226,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 763139289
@@ -1752,11 +2248,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1069439203
@@ -1770,11 +2270,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 2046998501
@@ -1788,11 +2292,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 319444127
@@ -1806,11 +2314,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 554385161
@@ -1824,11 +2336,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 2036741634
@@ -1842,11 +2358,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1213646592
@@ -1860,11 +2380,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 343239668
@@ -1878,11 +2402,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 343239668
@@ -1896,11 +2424,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 780458430
@@ -1914,11 +2446,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1425823084
@@ -1932,11 +2468,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1439719861
@@ -1950,11 +2490,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1746019775
@@ -1968,11 +2512,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 415934312
@@ -1986,11 +2534,15 @@
       "props": [
         {
           "tag": "tree",
-          "count": 114
+          "count": 110
+        },
+        {
+          "tag": "pinheiro",
+          "count": 35
         },
         {
           "tag": "bush",
-          "count": 31
+          "count": 30
         }
       ],
       "seed": 1889686088

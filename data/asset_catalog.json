@@ -4,21 +4,14 @@
     "tree": {
       "y": 0.0,
       "scale": [
-        5.0,
-        5.6
+        3.4,
+        4.6
       ],
       "solid": true,
       "models": [
-        "res://models/media_1787068821885.glb",
-        "res://models/media_1787068825917.glb",
-        "res://models/media_1787068829583.glb",
-        "res://models/media_1787068833589.glb",
-        "res://models/media_1787068852522.glb",
-        "res://models/media_1787078412208.glb",
-        "res://models/media_1787078420469.glb",
-        "res://models/media_1787078441421.glb",
-        "res://models/media_1787078448833.glb",
-        "res://models/media_1787078454231.glb"
+        "res://models/arvore_frondosa.glb",
+        "res://models/arvore_carvalho.glb",
+        "res://models/arvore_pequena.glb"
       ]
     },
     "bush": {
@@ -143,6 +136,111 @@
       "solid": false,
       "sprites": [
         "res://textures/props/poste_tocha.png"
+      ]
+    },
+    "pinheiro": {
+      "y": 0.0,
+      "scale": [
+        3.6,
+        5.0
+      ],
+      "solid": true,
+      "models": [
+        "res://models/pinheiro.glb"
+      ]
+    },
+    "casa": {
+      "y": 0.0,
+      "scale": [
+        5.5,
+        6.5
+      ],
+      "solid": true,
+      "models": [
+        "res://models/casa_camponesa.glb",
+        "res://models/casa_mercador.glb",
+        "res://models/oficina_ferreiro.glb",
+        "res://models/moinho.glb",
+        "res://models/celeiro.glb"
+      ]
+    },
+    "predio": {
+      "y": 0.0,
+      "scale": [
+        6.0,
+        7.5
+      ],
+      "solid": true,
+      "models": [
+        "res://models/casa_nobre.glb",
+        "res://models/torre_guarda.glb",
+        "res://models/banca_feira.glb"
+      ]
+    },
+    "fonte_praca": {
+      "y": 0.0,
+      "scale": [
+        3.008,
+        3.3920000000000003
+      ],
+      "solid": true,
+      "models": [
+        "res://models/fonte_praca.glb"
+      ]
+    },
+    "poco": {
+      "y": 0.0,
+      "scale": [
+        1.7859999999999998,
+        2.014
+      ],
+      "solid": true,
+      "models": [
+        "res://models/poco.glb"
+      ]
+    },
+    "cerca_madeira": {
+      "y": 0.0,
+      "scale": [
+        2.256,
+        2.544
+      ],
+      "solid": false,
+      "models": [
+        "res://models/cerca_madeira.glb"
+      ]
+    },
+    "ponte_pedra": {
+      "y": 0.0,
+      "scale": [
+        3.1959999999999997,
+        3.604
+      ],
+      "solid": false,
+      "models": [
+        "res://models/ponte_pedra.glb"
+      ]
+    },
+    "lampiao": {
+      "y": 0.0,
+      "scale": [
+        2.82,
+        3.18
+      ],
+      "solid": false,
+      "models": [
+        "res://models/lampiao.glb"
+      ]
+    },
+    "escada_pedra": {
+      "y": 0.0,
+      "scale": [
+        2.068,
+        2.3320000000000003
+      ],
+      "solid": false,
+      "models": [
+        "res://models/escada_pedra.glb"
       ]
     }
   },

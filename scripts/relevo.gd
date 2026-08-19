@@ -21,6 +21,12 @@ const TAMANHO_DAS_COLINAS := 48.0
 const ALTURA_DO_RELEVO := 1.0
 const TAMANHO_DO_RELEVO := 15.0
 
+## Onde a agua para. O relevo varia de uns -7 a +7 m; a -2,2 m os fundos de vale
+## enchem e viram lagoa, e o resto do terreno fica seco. Nao ha mapa de lagos: o
+## vale ja existe no relevo, e a agua so preenche o que estava baixo — que e como
+## lagoa se forma no mundo real.
+const NIVEL_DA_AGUA := -2.2
+
 static var _colinas: FastNoiseLite
 static var _detalhe: FastNoiseLite
 
