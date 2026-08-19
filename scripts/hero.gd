@@ -78,7 +78,10 @@ func _ready() -> void:
     add_child(modelo)
 
     _animador = modelo.find_child("AnimationPlayer", true, false)
-    _animador.add_animation_library("heroi", load("res://personagem/heroi_anims.res"))
+    var biblioteca: AnimationLibrary = load("res://personagem/heroi_anims.res")
+    for nome in COMBO:
+        _fixar_no_lugar(biblioteca.get_animation(nome))
+    _animador.add_animation_library("heroi", biblioteca)
     _animador.animation_finished.connect(_ao_terminar)
 
     for malha in modelo.find_children("*", "MeshInstance3D", true, false):
@@ -169,6 +172,35 @@ func _process(_delta: float) -> void:
     # encaixe a cada quadro seria conta jogada fora.
     if OS.is_debug_build():
         _atualizar_encaixe()
+
+## Tira o avanco do quadril de um golpe.
+##
+## As animacoes de espada do Mixamo carregam deslocamento: o "great sword jump
+## attack" avanca quase dois metros. Quem move o personagem no mundo e o codigo,
+## entao esse avanco nao leva o corpo junto — leva so a MALHA, que sai de dentro
+## da propria capsula de colisao e volta de tranco no fim do golpe. Era o
+## personagem "mudando de posicao" no ultimo ataque do combo.
+##
+## Feito ao carregar, e nao ao assar a biblioteca, porque os FBX do Mixamo vivem
+## fora do projeto (16 MB cada) e reassar exigiria traze-los de volta. Aqui vale
+## para qualquer biblioteca, inclusive uma assada antes desta correcao.
+##
+## O sobe-e-desce (Y) fica: e ele que da peso ao golpe.
+func _fixar_no_lugar(animacao: Animation) -> void:
+    if animacao == null:
+        return
+    for trilha in animacao.get_track_count():
+        if animacao.track_get_type(trilha) != Animation.TYPE_POSITION_3D:
+            continue
+        if not String(animacao.track_get_path(trilha)).ends_with("Hips"):
+            continue
+        for chave in animacao.track_get_key_count(trilha):
+            var valor: Vector3 = animacao.track_get_key_value(trilha, chave)
+            animacao.track_set_key_value(trilha, chave, Vector3(0.0, valor.y, 0.0))
+
+## Para o jogador saber que nao pode girar o corpo no meio do swing.
+func atacando() -> bool:
+    return _atacando
 
 ## Chamado pelo jogador a cada quadro com a velocidade no plano.
 func atualizar_movimento(velocidade: float) -> void:

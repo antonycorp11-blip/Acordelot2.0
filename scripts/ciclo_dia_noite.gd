@@ -49,6 +49,12 @@ const CORES := [
 
 ## hora -> [energia da luz, energia do ambiente, energia da nevoa]
 ##
+## O DIA tambem nao vai ao teto. Sol em 2.0 com ambiente em 0.95 e exposicao
+## 1.35 estourava o verde no celular: o navegador entrega a cena mais clara que
+## o desktop, e o que aqui era vivo la virava chapa branca. Os tres numeros
+## desceram juntos — mexer so na exposicao lavaria a cor em vez de baixar o
+## brilho.
+##
 ## A noite NAO vai a zero, e nem perto disso. A primeira versao dava a lua 12%
 ## da forca do sol, que no papel parecia noite e na tela deu preto: o tom
 ## escuro do ambiente e o mapeamento de tons do jogo multiplicam para baixo, e
@@ -57,11 +63,11 @@ const CORES := [
 const FORCAS := [
     [0.0, 0.85, 0.55, 0.12],
     [4.5, 0.90, 0.58, 0.14],
-    [6.0, 1.60, 0.78, 0.30],
-    [7.5, 1.70, 0.85, 0.26],
-    [12.0, 2.00, 0.95, 0.25],
-    [16.5, 1.85, 0.90, 0.26],
-    [18.5, 1.65, 0.78, 0.34],
+    [6.0, 1.25, 0.64, 0.30],
+    [7.5, 1.30, 0.68, 0.26],
+    [12.0, 1.50, 0.74, 0.25],
+    [16.5, 1.40, 0.72, 0.26],
+    [18.5, 1.28, 0.64, 0.34],
     [20.0, 1.00, 0.62, 0.18],
     [21.5, 0.86, 0.56, 0.13],
 ]
