@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_game"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="2_player"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/hero.gd" id="7_hero"]
 [ext_resource type="Script" path="res://scripts/world_map.gd" id="6_map"]
 [ext_resource type="Script" path="res://scripts/ciclo_dia_noite.gd" id="9_ciclo"]
+[ext_resource type="Script" path="res://scripts/gerador_de_bichos.gd" id="11_bichos"]
 [ext_resource type="Script" path="res://scripts/barra_do_dia.gd" id="12_barra"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_ataque.png" id="13_btn_ataque"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_voo.png" id="14_btn_voo"]
