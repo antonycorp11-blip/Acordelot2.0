@@ -12,10 +12,12 @@ class_name CicloDiaNoite
 
 ## Um dia inteiro em minutos reais. Curto de proposito enquanto se testa: o
 ## amanhecer e o entardecer sao os unicos momentos que valem olhar, e a 24 min
-## por dia eles passam a cada 12.
-@export var minutos_por_dia := 12.0
-## Meio da manha: comeca com o mundo legivel, nao no escuro.
-@export var hora_inicial := 9.0
+## por dia eles passam a cada 4.
+@export var minutos_por_dia := 8.0
+## Meia tarde: o mundo abre legivel E o entardecer chega em um minuto e meio,
+## em vez de exigir quatro minutos de caminhada para o jogador ver que existe
+## ciclo. Foi a queixa de quem testou no celular.
+@export var hora_inicial := 15.5
 ## Parado, o ciclo congela na hora inicial — util para tirar print ou depurar
 ## uma cena sem o chao mudando de cor no meio.
 @export var rodando := true

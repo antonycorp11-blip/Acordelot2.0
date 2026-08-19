@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/world_map.gd" id="6_map"]
 [ext_resource type="Script" path="res://scripts/ciclo_dia_noite.gd" id="9_ciclo"]
 [ext_resource type="Script" path="res://scripts/gerador_de_bichos.gd" id="11_bichos"]
+[ext_resource type="Script" path="res://scripts/barra_do_dia.gd" id="12_barra"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_day"]
 sky_top_color = Color(0.16, 0.42, 0.72, 1)
@@ -29,7 +30,7 @@ ambient_light_color = Color(0.66, 0.70, 0.66, 1)
 ambient_light_energy = 0.95
 reflected_light_source = 1
 tonemap_mode = 3
-tonemap_exposure = 1.0
+tonemap_exposure = 1.18
 fog_enabled = true
 fog_light_color = Color(0.72, 0.8, 0.82, 1)
 fog_light_energy = 0.25
@@ -122,6 +123,19 @@ grow_horizontal = 0
 grow_vertical = 0
 text = "⚔"
 theme_override_font_sizes/font_size = 64
+
+[node name="BarraDoDia" type="Control" parent="MobileControls" node_paths=PackedStringArray("ciclo")]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -170.0
+offset_top = 14.0
+offset_right = 170.0
+offset_bottom = 54.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("12_barra")
+ciclo = NodePath("../../CicloDiaNoite")
 
 [node name="MapLayer" type="CanvasLayer" parent="."]
 layer = 12

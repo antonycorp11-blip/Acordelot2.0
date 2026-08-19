@@ -15,7 +15,12 @@ const MISTURA := 0.18
 ## As animacoes do Mixamo sao feitas para cinematica, nao para combate: no
 ## ritmo original o golpe parece que esta carregando. Acelerar a reproducao e o
 ## que da peso de jogo sem reanimar nada.
-const VELOCIDADE_DO_GOLPE := 1.45
+##
+## Foi de 1,45 para 1,85 depois do teste no celular — a 45% mais rapido ainda
+## estava "super lento". Passar muito disso comeca a mostrar que a animacao esta
+## correndo, com o braco pulando etapa; se ainda parecer lento, o caminho e
+## trocar a animacao no Mixamo por uma mais curta, nao acelerar mais esta.
+const VELOCIDADE_DO_GOLPE := 1.85
 
 ## Alcance da lamina, em metros, medido do peito do heroi.
 const ALCANCE_DO_GOLPE := 2.6
