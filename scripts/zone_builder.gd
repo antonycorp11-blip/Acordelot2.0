@@ -118,12 +118,12 @@ func _construir_terreno() -> void:
             var i3 := i2 + 1
             
             st.add_index(i0)
-            st.add_index(i2)
             st.add_index(i1)
+            st.add_index(i2)
             
             st.add_index(i1)
-            st.add_index(i2)
             st.add_index(i3)
+            st.add_index(i2)
             
     st.generate_normals()
     var mesh := st.commit()
