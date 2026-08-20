@@ -1,1039 +1,1853 @@
 {
-  "_nota": "Plantas urbanas autorais 100% 3D (modelos GLB reais). position=[x,z] em metros a partir do centro da regiao.",
-  "pracas": {
-    "custom_1785884200706_430": {
-      "raio": 42.0
-    },
-    "custom_1785880661560_858": {
-      "raio": 48.0
-    },
-    "custom_1785869541494_557": {
-      "raio": 54.0
-    },
-    "custom_1786499037621_343": {
-      "raio": 28.0
-    }
+ "_nota": "GERADO por .tools/planejar_cidades.py — nao editar a mao, o proximo run sobrescreve. E plano radial, nao sorteio: praca no centro, avenidas em raio, aneis concentricos, e o quarteirao ocupando a fatia entre duas avenidas. Mexer no desenho e mexer no script.",
+ "pracas": {
+  "custom_1785869541494_557": {
+   "raio": 52.0
   },
-  "layouts": {
-    "custom_1785884200706_430": [
-      {
-        "id": "vila_ponte_sul",
-        "tag": "ponte_madeira",
-        "model": "res://models/ponte_madeira.glb",
-        "position": [
-          0.0,
-          24.0
-        ],
-        "rotation": 0,
-        "scale": 1.4
-      },
-      {
-        "id": "vila_poco",
-        "tag": "poco",
-        "model": "res://models/poco.glb",
-        "position": [
-          -2.0,
-          3.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "vila_loja_no",
-        "tag": "casa",
-        "model": "res://models/loja_toldo.glb",
-        "position": [
-          -16.0,
-          -12.0
-        ],
-        "rotation": 20,
-        "scale": 1.25
-      },
-      {
-        "id": "vila_barris_no",
-        "tag": "mobilia",
-        "model": "res://models/barris.glb",
-        "position": [
-          -12.5,
-          -9.0
-        ],
-        "rotation": 0,
-        "scale": 1.1
-      },
-      {
-        "id": "vila_banca_no",
-        "tag": "banca",
-        "model": "res://models/banca_verde.glb",
-        "position": [
-          -19.0,
-          -7.0
-        ],
-        "rotation": 15,
-        "scale": 1.1
-      },
-      {
-        "id": "vila_casa_ne",
-        "tag": "casa",
-        "model": "res://models/casa_vila.glb",
-        "position": [
-          14.0,
-          -14.0
-        ],
-        "rotation": -15,
-        "scale": 1.25
-      },
-      {
-        "id": "vila_cerca_ne",
-        "tag": "cerca",
-        "model": "res://models/cerca_madeira.glb",
-        "position": [
-          18.5,
-          -9.5
-        ],
-        "rotation": 0,
-        "scale": 1.1
-      },
-      {
-        "id": "vila_moinho",
-        "tag": "moinho",
-        "model": "res://models/moinho.glb",
-        "position": [
-          21.0,
-          -1.0
-        ],
-        "rotation": -25,
-        "scale": 1.35
-      },
-      {
-        "id": "vila_carroca_l",
-        "tag": "mobilia",
-        "model": "res://models/carroca.glb",
-        "position": [
-          16.5,
-          3.5
-        ],
-        "rotation": 10,
-        "scale": 1.1
-      },
-      {
-        "id": "vila_barris_l",
-        "tag": "mobilia",
-        "model": "res://models/barris.glb",
-        "position": [
-          22.5,
-          4.0
-        ],
-        "rotation": 0,
-        "scale": 1.1
-      },
-      {
-        "id": "vila_loja_se",
-        "tag": "casa",
-        "model": "res://models/casa_chale.glb",
-        "position": [
-          15.0,
-          12.0
-        ],
-        "rotation": -30,
-        "scale": 1.2
-      },
-      {
-        "id": "vila_banca_se",
-        "tag": "banca",
-        "model": "res://models/banca_vermelha.glb",
-        "position": [
-          11.0,
-          10.0
-        ],
-        "rotation": -20,
-        "scale": 1.1
-      },
-      {
-        "id": "vila_cerca_se",
-        "tag": "cerca",
-        "model": "res://models/cerca_madeira.glb",
-        "position": [
-          18.5,
-          16.0
-        ],
-        "rotation": 0,
-        "scale": 1.1
-      },
-      {
-        "id": "vila_casa_so",
-        "tag": "casa",
-        "model": "res://models/casa_camponesa.glb",
-        "position": [
-          -16.0,
-          13.0
-        ],
-        "rotation": 25,
-        "scale": 1.2
-      },
-      {
-        "id": "vila_cerca_so",
-        "tag": "cerca",
-        "model": "res://models/cerca_madeira.glb",
-        "position": [
-          -12.0,
-          17.0
-        ],
-        "rotation": 0,
-        "scale": 1.1
-      },
-      {
-        "id": "vila_est_no",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_agudo.glb",
-        "position": [
-          -20.0,
-          -4.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "vila_est_l",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_agudo.glb",
-        "position": [
-          23.0,
-          7.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "vila_est_so",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_grave.glb",
-        "position": [
-          -21.0,
-          10.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "vila_lamp_1",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          -6.0,
-          8.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "vila_lamp_2",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          6.0,
-          8.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "vila_lamp_3",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          -6.0,
-          -5.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "vila_lamp_4",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          6.0,
-          -5.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      }
-    ],
-    "custom_1785880661560_858": [
-      {
-        "id": "portao_ponte",
-        "tag": "ponte_pedra",
-        "model": "res://models/ponte_pedra.glb",
-        "position": [
-          0.0,
-          13.0
-        ],
-        "rotation": 0,
-        "scale": 1.5
-      },
-      {
-        "id": "portao_est_ponte_e",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_agudo.glb",
-        "position": [
-          -3.8,
-          17.5
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "portao_est_ponte_d",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_agudo.glb",
-        "position": [
-          3.8,
-          17.5
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "portao_torre_o",
-        "tag": "torre",
-        "model": "res://models/torre_guarda.glb",
-        "position": [
-          -8.5,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.4
-      },
-      {
-        "id": "portao_torre_l",
-        "tag": "torre",
-        "model": "res://models/torre_guarda.glb",
-        "position": [
-          8.5,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.4
-      },
-      {
-        "id": "portao_est_torre_o",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_grave.glb",
-        "position": [
-          -8.5,
-          3.8
-        ],
-        "rotation": 0,
-        "scale": 1.4
-      },
-      {
-        "id": "portao_est_torre_l",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_grave.glb",
-        "position": [
-          8.5,
-          3.8
-        ],
-        "rotation": 0,
-        "scale": 1.4
-      },
-      {
-        "id": "portao_arco",
-        "tag": "muralha",
-        "model": "res://models/muralha_portao.glb",
-        "position": [
-          0.0,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.4
-      },
-      {
-        "id": "portao_mur_o1",
-        "tag": "muralha",
-        "model": "res://models/stone_wall_segment_1787079001245.glb",
-        "position": [
-          -15.5,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "portao_mur_o2",
-        "tag": "muralha",
-        "model": "res://models/stone_wall_segment_1787079001245.glb",
-        "position": [
-          -22.5,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "portao_mur_o3",
-        "tag": "muralha",
-        "model": "res://models/torre_redonda.glb",
-        "position": [
-          -29.5,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "portao_mur_l1",
-        "tag": "muralha",
-        "model": "res://models/stone_wall_segment_1787079001245.glb",
-        "position": [
-          15.5,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "portao_mur_l2",
-        "tag": "muralha",
-        "model": "res://models/stone_wall_segment_1787079001245.glb",
-        "position": [
-          22.5,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "portao_mur_l3",
-        "tag": "muralha",
-        "model": "res://models/torre_redonda.glb",
-        "position": [
-          29.5,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "portao_guarda_no",
-        "tag": "casa",
-        "model": "res://models/casa_sobrado.glb",
-        "position": [
-          -16.0,
-          -15.0
-        ],
-        "rotation": 15,
-        "scale": 1.25
-      },
-      {
-        "id": "portao_guarda_ne",
-        "tag": "casa",
-        "model": "res://models/casa_vila.glb",
-        "position": [
-          16.0,
-          -15.0
-        ],
-        "rotation": -15,
-        "scale": 1.25
-      },
-      {
-        "id": "portao_poco",
-        "tag": "poco",
-        "model": "res://models/poco.glb",
-        "position": [
-          -8.0,
-          -10.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "portao_leao_o",
-        "tag": "estatua",
-        "model": "res://models/leao_de_pe.glb",
-        "position": [
-          -4.5,
-          5.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "portao_leao_l",
-        "tag": "estatua",
-        "model": "res://models/leao_de_pe.glb",
-        "position": [
-          4.5,
-          5.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "portao_lamp_1",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          -4.5,
-          -3.5
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "portao_lamp_2",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          4.5,
-          -3.5
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "portao_lamp_3",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          -4.5,
-          8.5
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "portao_lamp_4",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          4.5,
-          8.5
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      }
-    ],
-    "custom_1785869541494_557": [
-      {
-        "id": "praca_fonte",
-        "tag": "fonte_praca",
-        "model": "res://models/fonte_musical.glb",
-        "position": [
-          0.0,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.6
-      },
-      {
-        "id": "praca_cerca_1",
-        "tag": "cerca",
-        "model": "res://models/cerca_madeira.glb",
-        "position": [
-          -4.5,
-          -4.5
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "praca_cerca_2",
-        "tag": "cerca",
-        "model": "res://models/cerca_madeira.glb",
-        "position": [
-          4.5,
-          -4.5
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "praca_cerca_3",
-        "tag": "cerca",
-        "model": "res://models/cerca_madeira.glb",
-        "position": [
-          -4.5,
-          4.5
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "praca_cerca_4",
-        "tag": "cerca",
-        "model": "res://models/cerca_madeira.glb",
-        "position": [
-          4.5,
-          4.5
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "praca_ponte_s",
-        "tag": "ponte_pedra",
-        "model": "res://models/ponte_pedra.glb",
-        "position": [
-          0.0,
-          18.0
-        ],
-        "rotation": 0,
-        "scale": 1.35
-      },
-      {
-        "id": "praca_ponte_n",
-        "tag": "ponte_pedra",
-        "model": "res://models/ponte_pedra.glb",
-        "position": [
-          0.0,
-          -18.0
-        ],
-        "rotation": 180,
-        "scale": 1.35
-      },
-      {
-        "id": "praca_ponte_o",
-        "tag": "ponte_pedra",
-        "model": "res://models/ponte_pedra.glb",
-        "position": [
-          -18.0,
-          0.0
-        ],
-        "rotation": 90,
-        "scale": 1.35
-      },
-      {
-        "id": "praca_ponte_l",
-        "tag": "ponte_pedra",
-        "model": "res://models/ponte_pedra.glb",
-        "position": [
-          18.0,
-          0.0
-        ],
-        "rotation": -90,
-        "scale": 1.35
-      },
-      {
-        "id": "praca_banca_so",
-        "tag": "banca",
-        "model": "res://models/banca_verde.glb",
-        "position": [
-          -10.0,
-          11.0
-        ],
-        "rotation": 25,
-        "scale": 1.15
-      },
-      {
-        "id": "praca_barris_so",
-        "tag": "mobilia",
-        "model": "res://models/barris.glb",
-        "position": [
-          -13.0,
-          12.0
-        ],
-        "rotation": 0,
-        "scale": 1.1
-      },
-      {
-        "id": "praca_banca_se",
-        "tag": "banca",
-        "model": "res://models/banca_vermelha.glb",
-        "position": [
-          10.0,
-          11.0
-        ],
-        "rotation": -25,
-        "scale": 1.15
-      },
-      {
-        "id": "praca_carroca_se",
-        "tag": "mobilia",
-        "model": "res://models/carroca.glb",
-        "position": [
-          13.0,
-          12.0
-        ],
-        "rotation": 0,
-        "scale": 1.1
-      },
-      {
-        "id": "praca_banca_no",
-        "tag": "banca",
-        "model": "res://models/banca_verde.glb",
-        "position": [
-          -10.0,
-          -11.0
-        ],
-        "rotation": -25,
-        "scale": 1.15
-      },
-      {
-        "id": "praca_banca_ne",
-        "tag": "banca",
-        "model": "res://models/banca_vermelha.glb",
-        "position": [
-          10.0,
-          -11.0
-        ],
-        "rotation": 25,
-        "scale": 1.15
-      },
-      {
-        "id": "praca_casa_no",
-        "tag": "casa",
-        "model": "res://models/casa_nobre.glb",
-        "position": [
-          -28.0,
-          -24.0
-        ],
-        "rotation": 35,
-        "scale": 1.35
-      },
-      {
-        "id": "praca_palacio_n",
-        "tag": "casa",
-        "model": "res://models/casa_sobrado.glb",
-        "position": [
-          0.0,
-          -30.0
-        ],
-        "rotation": 0,
-        "scale": 1.45
-      },
-      {
-        "id": "praca_casa_ne",
-        "tag": "casa",
-        "model": "res://models/casa_mercador.glb",
-        "position": [
-          28.0,
-          -24.0
-        ],
-        "rotation": -35,
-        "scale": 1.35
-      },
-      {
-        "id": "praca_ferreiro_so",
-        "tag": "oficina_ferreiro",
-        "model": "res://models/oficina_ferreiro.glb",
-        "position": [
-          -28.0,
-          24.0
-        ],
-        "rotation": -35,
-        "scale": 1.3
-      },
-      {
-        "id": "praca_casa_se",
-        "tag": "casa",
-        "model": "res://models/casa_nobre.glb",
-        "position": [
-          28.0,
-          24.0
-        ],
-        "rotation": 35,
-        "scale": 1.35
-      },
-      {
-        "id": "praca_torre_no",
-        "tag": "torre",
-        "model": "res://models/torre_guarda.glb",
-        "position": [
-          -34.0,
-          -10.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "praca_torre_ne",
-        "tag": "torre",
-        "model": "res://models/torre_guarda.glb",
-        "position": [
-          34.0,
-          -10.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "praca_leao_s1",
-        "tag": "estatua",
-        "model": "res://models/leao_sentado.glb",
-        "position": [
-          -3.5,
-          14.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "praca_leao_s2",
-        "tag": "estatua",
-        "model": "res://models/leao_sentado.glb",
-        "position": [
-          3.5,
-          14.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "praca_leao_n1",
-        "tag": "estatua",
-        "model": "res://models/leao_sentado.glb",
-        "position": [
-          -3.5,
-          -14.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "praca_leao_n2",
-        "tag": "estatua",
-        "model": "res://models/leao_sentado.glb",
-        "position": [
-          3.5,
-          -14.0
-        ],
-        "rotation": 0,
-        "scale": 1.2
-      },
-      {
-        "id": "praca_est_1",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_agudo.glb",
-        "position": [
-          -14.0,
-          -18.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "praca_est_2",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_agudo.glb",
-        "position": [
-          14.0,
-          -18.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "praca_est_3",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_grave.glb",
-        "position": [
-          -14.0,
-          18.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "praca_est_4",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_grave.glb",
-        "position": [
-          14.0,
-          18.0
-        ],
-        "rotation": 0,
-        "scale": 1.3
-      },
-      {
-        "id": "praca_lamp_1",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          -7.0,
-          -7.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "praca_lamp_2",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          7.0,
-          -7.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "praca_lamp_3",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          -7.0,
-          7.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "praca_lamp_4",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          7.0,
-          7.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "praca_lamp_5",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          0.0,
-          24.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "praca_lamp_6",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          0.0,
-          -24.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      }
-    ],
-    "custom_1786499037621_343": [
-      {
-        "id": "art_casa1",
-        "tag": "casa",
-        "model": "res://models/casa_camponesa.glb",
-        "position": [
-          -10.0,
-          -8.0
-        ],
-        "rotation": 15,
-        "scale": 1.15
-      },
-      {
-        "id": "art_casa2",
-        "tag": "casa",
-        "model": "res://models/casa_mercador.glb",
-        "position": [
-          10.0,
-          -8.0
-        ],
-        "rotation": -15,
-        "scale": 1.15
-      },
-      {
-        "id": "art_celeiro",
-        "tag": "celeiro",
-        "model": "res://models/celeiro.glb",
-        "position": [
-          14.0,
-          10.0
-        ],
-        "rotation": -25,
-        "scale": 1.15
-      },
-      {
-        "id": "art_poco",
-        "tag": "poco",
-        "model": "res://models/poco.glb",
-        "position": [
-          0.0,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.15
-      },
-      {
-        "id": "art_barris",
-        "tag": "mobilia",
-        "model": "res://models/barris.glb",
-        "position": [
-          -6.0,
-          4.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "art_carroca",
-        "tag": "mobilia",
-        "model": "res://models/carroca.glb",
-        "position": [
-          6.0,
-          4.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "art_cerca1",
-        "tag": "cerca",
-        "model": "res://models/cerca_madeira.glb",
-        "position": [
-          -12.0,
-          12.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "art_cerca2",
-        "tag": "cerca",
-        "model": "res://models/cerca_madeira.glb",
-        "position": [
-          12.0,
-          -14.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "art_est",
-        "tag": "estandarte",
-        "model": "res://models/estandarte_agudo.glb",
-        "position": [
-          0.0,
-          -12.0
-        ],
-        "rotation": 0,
-        "scale": 1.15
-      },
-      {
-        "id": "art_lamp1",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          -4.0,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      },
-      {
-        "id": "art_lamp2",
-        "tag": "lampiao",
-        "model": "res://models/lampiao.glb",
-        "position": [
-          4.0,
-          0.0
-        ],
-        "rotation": 0,
-        "scale": 1.0
-      }
-    ]
+  "custom_1785880661560_858": {
+   "raio": 44.0
+  },
+  "custom_1785884200706_430": {
+   "raio": 34.0
+  },
+  "custom_1786499037621_343": {
+   "raio": 26.0
   }
+ },
+ "layouts": {
+  "custom_1785869541494_557": [
+   {
+    "id": "monumento",
+    "tag": "fonte",
+    "model": "res://models/fonte_musical.glb",
+    "position": [
+     0,
+     0
+    ],
+    "rotation": 0.0,
+    "scale": 1.6
+   },
+   {
+    "id": "lamp_praca_00",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_01",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     5.3,
+     5.3
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_02",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     0.0,
+     7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_03",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -5.3,
+     5.3
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_00",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     22.02,
+     6.64
+    ],
+    "rotation": 253.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_01",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     21.25,
+     8.8
+    ],
+    "rotation": 247.5,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_02",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     20.27,
+     10.88
+    ],
+    "rotation": 241.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_03",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     10.88,
+     20.27
+    ],
+    "rotation": 208.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_04",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     8.8,
+     21.25
+    ],
+    "rotation": 202.5,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_05",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     6.64,
+     22.02
+    ],
+    "rotation": 196.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_06",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     -6.64,
+     22.02
+    ],
+    "rotation": 163.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_07",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -8.8,
+     21.25
+    ],
+    "rotation": 157.5,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_08",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -10.88,
+     20.27
+    ],
+    "rotation": 151.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_09",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -20.27,
+     10.88
+    ],
+    "rotation": 118.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_10",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -21.25,
+     8.8
+    ],
+    "rotation": 112.5,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_11",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -22.02,
+     6.64
+    ],
+    "rotation": 106.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_12",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     -22.02,
+     -6.64
+    ],
+    "rotation": 73.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_13",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     -21.25,
+     -8.8
+    ],
+    "rotation": 67.5,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_14",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -20.27,
+     -10.88
+    ],
+    "rotation": 61.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_15",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -10.88,
+     -20.27
+    ],
+    "rotation": 28.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_16",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -8.8,
+     -21.25
+    ],
+    "rotation": 22.5,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_17",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -6.64,
+     -22.02
+    ],
+    "rotation": 16.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_18",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     6.64,
+     -22.02
+    ],
+    "rotation": 343.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_19",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     8.8,
+     -21.25
+    ],
+    "rotation": 337.5,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_20",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     10.88,
+     -20.27
+    ],
+    "rotation": 331.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_21",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     20.27,
+     -10.88
+    ],
+    "rotation": 298.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_22",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     21.25,
+     -8.8
+    ],
+    "rotation": 292.5,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_23",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     22.02,
+     -6.64
+    ],
+    "rotation": 286.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_00",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     33.16,
+     7.51
+    ],
+    "rotation": 257.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_01",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     32.1,
+     11.21
+    ],
+    "rotation": 250.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_02",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     30.62,
+     14.77
+    ],
+    "rotation": 244.3,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_03",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     28.76,
+     18.14
+    ],
+    "rotation": 237.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_04",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     18.14,
+     28.76
+    ],
+    "rotation": 212.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_05",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     14.77,
+     30.62
+    ],
+    "rotation": 205.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_06",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     11.21,
+     32.1
+    ],
+    "rotation": 199.3,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_07",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     7.51,
+     33.16
+    ],
+    "rotation": 192.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_08",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -7.51,
+     33.16
+    ],
+    "rotation": 167.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_09",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -11.21,
+     32.1
+    ],
+    "rotation": 160.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_10",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -14.77,
+     30.62
+    ],
+    "rotation": 154.3,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_11",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -18.14,
+     28.76
+    ],
+    "rotation": 147.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_12",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     -28.76,
+     18.14
+    ],
+    "rotation": 122.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_13",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     -30.62,
+     14.77
+    ],
+    "rotation": 115.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_14",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -32.1,
+     11.21
+    ],
+    "rotation": 109.3,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_15",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -33.16,
+     7.51
+    ],
+    "rotation": 102.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_16",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -33.16,
+     -7.51
+    ],
+    "rotation": 77.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_17",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -32.1,
+     -11.21
+    ],
+    "rotation": 70.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_18",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -30.62,
+     -14.77
+    ],
+    "rotation": 64.3,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_19",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     -28.76,
+     -18.14
+    ],
+    "rotation": 57.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_20",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     -18.14,
+     -28.76
+    ],
+    "rotation": 32.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_21",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -14.77,
+     -30.62
+    ],
+    "rotation": 25.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_22",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -11.21,
+     -32.1
+    ],
+    "rotation": 19.3,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_23",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -7.51,
+     -33.16
+    ],
+    "rotation": 12.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_24",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     7.51,
+     -33.16
+    ],
+    "rotation": 347.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_25",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     11.21,
+     -32.1
+    ],
+    "rotation": 340.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_26",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     14.77,
+     -30.62
+    ],
+    "rotation": 334.3,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_27",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     18.14,
+     -28.76
+    ],
+    "rotation": 327.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_28",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     28.76,
+     -18.14
+    ],
+    "rotation": 302.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_29",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     30.62,
+     -14.77
+    ],
+    "rotation": 295.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_30",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     32.1,
+     -11.21
+    ],
+    "rotation": 289.3,
+    "scale": 1.0
+   },
+   {
+    "id": "anel2_31",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     33.16,
+     -7.51
+    ],
+    "rotation": 282.8,
+    "scale": 1.0
+   },
+   {
+    "id": "castelo",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -0.0,
+     -34.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.6
+   },
+   {
+    "id": "catedral",
+    "tag": "sobrado",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -23.33,
+     -23.33
+    ],
+    "rotation": 45.0,
+    "scale": 1.3
+   },
+   {
+    "id": "mercado_a",
+    "tag": "banca",
+    "model": "res://models/banca_verde.glb",
+    "position": [
+     18.39,
+     15.43
+    ],
+    "rotation": 230.0,
+    "scale": 1.0
+   },
+   {
+    "id": "mercado_b",
+    "tag": "banca",
+    "model": "res://models/banca_vermelha.glb",
+    "position": [
+     12.0,
+     20.78
+    ],
+    "rotation": 210.0,
+    "scale": 1.0
+   },
+   {
+    "id": "moinho",
+    "tag": "moinho",
+    "model": "res://models/moinho.glb",
+    "position": [
+     -31.11,
+     31.11
+    ],
+    "rotation": 135.0,
+    "scale": 1.0
+   },
+   {
+    "id": "leao_o",
+    "tag": "estatua",
+    "model": "res://models/leao_sentado.glb",
+    "position": [
+     -2.26,
+     12.8
+    ],
+    "rotation": 170.0,
+    "scale": 1.0
+   },
+   {
+    "id": "leao_l",
+    "tag": "estatua",
+    "model": "res://models/leao_de_pe.glb",
+    "position": [
+     2.26,
+     12.8
+    ],
+    "rotation": 190.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_00",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     50.0,
+     0.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_01",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     46.19,
+     19.13
+    ],
+    "rotation": 247.5,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_02",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     35.36,
+     35.36
+    ],
+    "rotation": 225.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_03",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     19.13,
+     46.19
+    ],
+    "rotation": 202.5,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_05",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -19.13,
+     46.19
+    ],
+    "rotation": 157.5,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_06",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -35.36,
+     35.36
+    ],
+    "rotation": 135.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_07",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -46.19,
+     19.13
+    ],
+    "rotation": 112.5,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_08",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -50.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_09",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -46.19,
+     -19.13
+    ],
+    "rotation": 67.5,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_10",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -35.36,
+     -35.36
+    ],
+    "rotation": 45.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_11",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -19.13,
+     -46.19
+    ],
+    "rotation": 22.5,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_12",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -0.0,
+     -50.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_13",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     19.13,
+     -46.19
+    ],
+    "rotation": 337.5,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_14",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     35.36,
+     -35.36
+    ],
+    "rotation": 315.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_15",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     46.19,
+     -19.13
+    ],
+    "rotation": 292.5,
+    "scale": 1.0
+   },
+   {
+    "id": "portao_0",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
+     0.0,
+     50.0
+    ],
+    "rotation": 180.0,
+    "scale": 1.2
+   }
+  ],
+  "custom_1785880661560_858": [
+   {
+    "id": "monumento",
+    "tag": "fonte",
+    "model": "res://models/fonte_musical.glb",
+    "position": [
+     0,
+     0
+    ],
+    "rotation": 0.0,
+    "scale": 1.6
+   },
+   {
+    "id": "lamp_praca_00",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_01",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     0.0,
+     7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_02",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_03",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -0.0,
+     -7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_00",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     11.66,
+     7.74
+    ],
+    "rotation": 236.4,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_01",
+    "tag": "casa",
+    "model": "res://models/casa_nobre.glb",
+    "position": [
+     7.74,
+     11.66
+    ],
+    "rotation": 213.6,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_02",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -7.74,
+     11.66
+    ],
+    "rotation": 146.4,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_03",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -11.66,
+     7.74
+    ],
+    "rotation": 123.6,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_04",
+    "tag": "casa",
+    "model": "res://models/casa_nobre.glb",
+    "position": [
+     -11.66,
+     -7.74
+    ],
+    "rotation": 56.4,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_05",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -7.74,
+     -11.66
+    ],
+    "rotation": 33.6,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_06",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     7.74,
+     -11.66
+    ],
+    "rotation": 326.4,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_07",
+    "tag": "casa",
+    "model": "res://models/casa_nobre.glb",
+    "position": [
+     11.66,
+     -7.74
+    ],
+    "rotation": 303.6,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_00",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     23.36,
+     8.91
+    ],
+    "rotation": 249.1,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_01",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     19.98,
+     15.03
+    ],
+    "rotation": 233.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_02",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     15.03,
+     19.98
+    ],
+    "rotation": 217.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_03",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     8.91,
+     23.36
+    ],
+    "rotation": 200.9,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_04",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -8.91,
+     23.36
+    ],
+    "rotation": 159.1,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_05",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     -15.03,
+     19.98
+    ],
+    "rotation": 143.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_06",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     -19.98,
+     15.03
+    ],
+    "rotation": 127.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_07",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -23.36,
+     8.91
+    ],
+    "rotation": 110.9,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_08",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -23.36,
+     -8.91
+    ],
+    "rotation": 69.1,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_09",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -19.98,
+     -15.03
+    ],
+    "rotation": 53.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_10",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -15.03,
+     -19.98
+    ],
+    "rotation": 37.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_11",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -8.91,
+     -23.36
+    ],
+    "rotation": 20.9,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_12",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     8.91,
+     -23.36
+    ],
+    "rotation": 339.1,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_13",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     15.03,
+     -19.98
+    ],
+    "rotation": 323.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_14",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     19.98,
+     -15.03
+    ],
+    "rotation": 307.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_15",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     23.36,
+     -8.91
+    ],
+    "rotation": 290.9,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_mestra",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -30.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.5
+   },
+   {
+    "id": "estandarte_o",
+    "tag": "estandarte",
+    "model": "res://models/estandarte_agudo.glb",
+    "position": [
+     -3.76,
+     -10.34
+    ],
+    "rotation": 20.0,
+    "scale": 1.0
+   },
+   {
+    "id": "estandarte_l",
+    "tag": "estandarte",
+    "model": "res://models/estandarte_grave.glb",
+    "position": [
+     3.76,
+     -10.34
+    ],
+    "rotation": 340.0,
+    "scale": 1.0
+   },
+   {
+    "id": "poco",
+    "tag": "poco",
+    "model": "res://models/poco.glb",
+    "position": [
+     -14.1,
+     -5.13
+    ],
+    "rotation": 70.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_01",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     28.99,
+     28.99
+    ],
+    "rotation": 225.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_03",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -28.99,
+     28.99
+    ],
+    "rotation": 135.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_04",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -41.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_05",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -28.99,
+     -28.99
+    ],
+    "rotation": 45.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_06",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -0.0,
+     -41.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "torre_07",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     28.99,
+     -28.99
+    ],
+    "rotation": 315.0,
+    "scale": 1.0
+   },
+   {
+    "id": "portao_0",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
+     41.0,
+     0.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.2
+   },
+   {
+    "id": "portao_1",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
+     0.0,
+     41.0
+    ],
+    "rotation": 180.0,
+    "scale": 1.2
+   }
+  ],
+  "custom_1785884200706_430": [
+   {
+    "id": "monumento",
+    "tag": "fonte",
+    "model": "res://models/fonte_musical.glb",
+    "position": [
+     0,
+     0
+    ],
+    "rotation": 0.0,
+    "scale": 1.6
+   },
+   {
+    "id": "lamp_praca_00",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_01",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     0.0,
+     7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_02",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_03",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -0.0,
+     -7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_00",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     9.81,
+     6.92
+    ],
+    "rotation": 234.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_01",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     6.92,
+     9.81
+    ],
+    "rotation": 215.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_02",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -6.92,
+     9.81
+    ],
+    "rotation": 144.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_03",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -9.81,
+     6.92
+    ],
+    "rotation": 125.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_04",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -9.81,
+     -6.92
+    ],
+    "rotation": 54.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_05",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     -6.92,
+     -9.81
+    ],
+    "rotation": 35.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_06",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     6.92,
+     -9.81
+    ],
+    "rotation": 324.8,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_07",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     9.81,
+     -6.92
+    ],
+    "rotation": 305.2,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_00",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     19.01,
+     8.92
+    ],
+    "rotation": 244.9,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_01",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     14.85,
+     14.85
+    ],
+    "rotation": 225.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_02",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     8.92,
+     19.01
+    ],
+    "rotation": 205.1,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_03",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -8.92,
+     19.01
+    ],
+    "rotation": 154.9,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_04",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -14.85,
+     14.85
+    ],
+    "rotation": 135.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_05",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     -19.01,
+     8.92
+    ],
+    "rotation": 115.1,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_06",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     -19.01,
+     -8.92
+    ],
+    "rotation": 64.9,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_07",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -14.85,
+     -14.85
+    ],
+    "rotation": 45.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_08",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -8.92,
+     -19.01
+    ],
+    "rotation": 25.1,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_09",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     8.92,
+     -19.01
+    ],
+    "rotation": 334.9,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_10",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     14.85,
+     -14.85
+    ],
+    "rotation": 315.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel1_11",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     19.01,
+     -8.92
+    ],
+    "rotation": 295.1,
+    "scale": 1.0
+   },
+   {
+    "id": "poco",
+    "tag": "poco",
+    "model": "res://models/poco.glb",
+    "position": [
+     6.36,
+     6.36
+    ],
+    "rotation": 225.0,
+    "scale": 1.0
+   },
+   {
+    "id": "feira",
+    "tag": "banca",
+    "model": "res://models/banca_verde.glb",
+    "position": [
+     -7.07,
+     7.07
+    ],
+    "rotation": 135.0,
+    "scale": 1.0
+   },
+   {
+    "id": "carroca",
+    "tag": "mobilia",
+    "model": "res://models/carroca.glb",
+    "position": [
+     7.07,
+     -7.07
+    ],
+    "rotation": 315.0,
+    "scale": 1.0
+   },
+   {
+    "id": "celeiro",
+    "tag": "celeiro",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     -19.09,
+     -19.09
+    ],
+    "rotation": 45.0,
+    "scale": 1.0
+   }
+  ],
+  "custom_1786499037621_343": [
+   {
+    "id": "monumento",
+    "tag": "fonte",
+    "model": "res://models/fonte_musical.glb",
+    "position": [
+     0,
+     0
+    ],
+    "rotation": 0.0,
+    "scale": 1.6
+   },
+   {
+    "id": "lamp_praca_00",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "lamp_praca_01",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_00",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     7.32,
+     8.21
+    ],
+    "rotation": 221.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_01",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     0.0,
+     11.0
+    ],
+    "rotation": 180.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_02",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -7.32,
+     8.21
+    ],
+    "rotation": 138.3,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_03",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -7.32,
+     -8.21
+    ],
+    "rotation": 41.7,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_04",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -0.0,
+     -11.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0
+   },
+   {
+    "id": "anel0_05",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     7.32,
+     -8.21
+    ],
+    "rotation": 318.3,
+    "scale": 1.0
+   },
+   {
+    "id": "oficina",
+    "tag": "oficina_ferreiro",
+    "model": "res://models/oficina_ferreiro.glb",
+    "position": [
+     -17.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0
+   },
+   {
+    "id": "poco",
+    "tag": "poco",
+    "model": "res://models/poco.glb",
+    "position": [
+     0.0,
+     8.0
+    ],
+    "rotation": 180.0,
+    "scale": 1.0
+   },
+   {
+    "id": "barris",
+    "tag": "mobilia",
+    "model": "res://models/barris.glb",
+    "position": [
+     4.5,
+     -7.79
+    ],
+    "rotation": 330.0,
+    "scale": 1.0
+   }
+  ]
+ }
 }

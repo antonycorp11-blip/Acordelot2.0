@@ -103,16 +103,20 @@ static func build(chunk: Vector2i, ground_material: Material) -> Node3D:
 
     # As plaquinhas nao viram no na hora: acumulam aqui, por textura, e no fim
     # cada textura sai como UM objeto so com milhares de copias dentro.
+    # Dentro da praca desenhada nada nasce por sorteio — nem arvore, nem mato.
+    # A lista de etiquetas proibidas nao bastava: bastava alguem acrescentar uma
+    # etiqueta nova em regions.json para voltar a chover objeto no meio da rua.
+    # A regra por AREA nao tem esse buraco.
+    var raio_reservado := CLEARING_RADIUS
+    if not layout.is_empty():
+        raio_reservado = RELEVO.raio_da_praca(World.cell_center(World.cell_at(center)))
+
     var lotes: Dictionary = {}
     for entry in region.get("props", []):
         # Tudo que define a leitura urbana vem da planta assinada, abaixo.
         # Vegetacao miuda ainda pode preencher o limite da celula, mas casa,
         # monumento, muro e mobiliario nunca mais sao sorteados.
-        if not layout.is_empty() and String(entry.get("tag", "")) in [
-            "casa", "predio", "fonte_praca", "poco", "cerca_madeira",
-            "lampiao", "escada_pedra", "wall"]:
-            continue
-        _scatter(root, entry, rng, center, lotes)
+        _scatter(root, entry, rng, center, lotes, raio_reservado)
     if not layout.is_empty():
         _montar_layout_urbano(root, layout, center)
     _montar_lotes(root, lotes)
@@ -396,7 +400,8 @@ static func _colisao_do_chao() -> CollisionShape3D:
     return no
 
 static func _scatter(root: Node3D, entry: Dictionary, rng: RandomNumberGenerator,
-                     center: Vector3, lotes: Dictionary) -> void:
+                     center: Vector3, lotes: Dictionary,
+                     raio_reservado := CLEARING_RADIUS) -> void:
     var tag := String(entry.get("tag", ""))
     var kind: Dictionary = World.catalog.get(tag, {})
     if kind.get("models", []).is_empty() and kind.get("sprites", []).is_empty():
@@ -448,7 +453,7 @@ static func _scatter(root: Node3D, entry: Dictionary, rng: RandomNumberGenerator
 
             # A praca e da REGIAO, entao a distancia se mede do centro dela, nao
             # do pedaco: senao cada pedaco abriria a propria clareira.
-            if (center + offset - region_center).length() < CLEARING_RADIUS:
+            if (center + offset - region_center).length() < raio_reservado:
                 continue
 
             var tamanho := rng.randf_range(float(scale_range[0]), float(scale_range[1]))
@@ -539,7 +544,23 @@ static func _criar(kind: Dictionary, rng: RandomNumberGenerator, model_path := "
             mesh_node.material_override = material
         suporte.name = modelo.name
         suporte.add_child(modelo)
-        modelo.position.y = -_base_do_modelo(modelo)
+
+        # A altura em METROS do catalogo manda, igual ao caminho das plaquinhas.
+        #
+        # O TripoSR devolve tudo normalizado a mais ou menos uma unidade, seja
+        # casa ou barril. Sem esta conta, uma casa entrava no mundo com 1,25 m —
+        # menor que o heroi, que tem 1,75 — e a cidade inteira virava maquete.
+        # O 'scale' da planta urbana continua valendo por cima, como ajuste fino.
+        var caixa := _caixa_do_modelo(modelo)
+        var fator := 1.0
+        var altura_alvo := float(kind.get("altura", 0.0))
+        if altura_alvo > 0.0 and caixa.size.y > 0.0001:
+            fator = altura_alvo / caixa.size.y
+            modelo.scale = Vector3.ONE * fator
+        # O deslocamento que apoia o pe no chao vale no espaco do SUPORTE, e nao
+        # e afetado pela escala do modelo: tem de ser multiplicado a mao, senao o
+        # objeto sobe ou afunda na exata proporcao em que foi redimensionado.
+        modelo.position.y = -caixa.position.y * fator
 
     if bool(kind.get("luz", false)):
         suporte.add_child(_lampada())
@@ -618,13 +639,22 @@ static func _lampada() -> OmniLight3D:
 ## diferente cada um, e a escala ainda e sorteada numa faixa. Numero fixo contra
 ## escala sorteada da objeto enterrado ou flutuando, e foi o que deu.
 static func _base_do_modelo(modelo: Node3D) -> float:
+    return _caixa_do_modelo(modelo).position.y
+
+## A caixa que envolve todas as malhas do modelo, no espaco do proprio modelo.
+##
+## Serve a duas perguntas que precisam da MESMA medida: onde esta o pe do objeto
+## (para apoia-lo no chao) e qual a altura dele (para leva-lo ao tamanho que o
+## catalogo declara). Medir duas vezes, em lugares diferentes, e como as duas
+## acabariam discordando.
+static func _caixa_do_modelo(modelo: Node3D) -> AABB:
     var caixa := AABB()
     var achou := false
     for malha in modelo.find_children("*", "MeshInstance3D", true, false):
         var local: AABB = _ate_a_raiz(malha, modelo) * malha.get_aabb()
         caixa = local if not achou else caixa.merge(local)
         achou = true
-    return caixa.position.y if achou else 0.0
+    return caixa if achou else AABB()
 
 ## Transformacao de um no ate a raiz do modelo. A malha costuma estar dois ou
 ## tres nos abaixo, cada um com o seu deslocamento, e ignorar esse caminho mede

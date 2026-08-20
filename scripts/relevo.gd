@@ -142,6 +142,15 @@ static func pracas() -> Array[Vector3]:
         lista.append(Vector3(_vilas[i].x, _vilas[i].y, _raios[i]))
     return lista
 
+## Raio do plato da vila cujo centro e este ponto, ou zero se ali nao ha vila.
+static func raio_da_praca(centro: Vector3) -> float:
+    _preparar()
+    var alvo := Vector2(centro.x, centro.z)
+    for i in _vilas.size():
+        if _vilas[i].distance_to(alvo) < 1.0:
+            return _raios[i]
+    return 0.0
+
 ## Normal aproximada do terreno, por diferenca finita.
 ##
 ## Serve para deitar objeto na encosta em vez de deixa-lo em pe como poste. Um

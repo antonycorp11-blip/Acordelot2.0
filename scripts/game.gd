@@ -15,6 +15,13 @@ const EXPOSICAO_NA_WEB := 0.52
 
 func _ready() -> void:
     _player.global_position = World.start_position()
+    # Gancho de teste, irmao do --shot e do --hora: `-- --onde=0,240` nasce o
+    # jogador naquela coordenada de mundo. Conferir uma cidade do outro lado do
+    # mapa sem ele exigiria atravessar o mundo andando a cada captura.
+    for arg in OS.get_cmdline_user_args():
+        if arg.begins_with("--onde="):
+            var partes := arg.trim_prefix("--onde=").split(",")
+            _player.global_position = Vector3(float(partes[0]), 16.0, float(partes[1]))
     for arg in OS.get_cmdline_user_args():
         if arg.begins_with("--pos="):
             var parts := arg.substr(6).split(",")
