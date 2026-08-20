@@ -2,16 +2,16 @@ extends Node3D
 class_name EditorDeMapa
 ## Editor de mapa que roda DENTRO do jogo publicado, no navegador.
 ##
-## Permite posicionar modelos 3D (do catálogo ou importados via GLB em tempo de execução),
-## pintar ruas de calçamento ou terra em estilo SimCity com atualização do shader em tempo real,
-## e controlar posição, escala, elevação e rotação completa nos três eixos (X, Y, Z).
+## Permite posicionar e manipular modelos 3D (do catálogo, importados via GLB ou já
+## existentes no mapa original), pintar ruas de calçamento ou terra em estilo SimCity,
+## visualizar gizmo 3D com setas nos eixos e anel de seleção, e manter iluminação diurna total.
 
 const ARQUIVO := "user://mapa_editado.json"
 const ARQUIVO_MASCARA_RUA := "user://road_mask_custom.png"
 const DIRETORIO_CUSTOM := "user://modelos_custom/"
 
 ## Distância máxima do raio de mira até o chão.
-const ALCANCE_DO_CLIQUE := 400.0
+const ALCANCE_DO_CLIQUE := 500.0
 
 const WORLD_MIN := Vector2(-660.0, -540.0)
 const WORLD_SIZE := Vector2(1320.0, 1200.0)
@@ -43,7 +43,16 @@ var _camera: Camera3D
 var _alvo := Vector3.ZERO
 var _altura := 60.0
 var _arrastando := false
+var _arrastando_peca := false
 var _ultimo_ponto_rua := Vector2(-1, -1)
+
+# Ciclo dia/noite congelado em dia claro
+var _ciclo: Node = null
+var _hora_salva: float = 12.0
+var _rodando_salvo: bool = true
+
+# Gizmo visual 3D
+var _gizmo: Node3D = null
 
 # UI
 var _painel: CanvasLayer
@@ -65,7 +74,7 @@ var _js_file_callback: JavaScriptObject = null
 func _ready() -> void:
     _camera = Camera3D.new()
     _camera.current = false
-    _camera.far = 600.0
+    _camera.far = 700.0
     add_child(_camera)
 
     DirAccess.make_dir_recursive_absolute(DIRETORIO_CUSTOM)
@@ -73,28 +82,61 @@ func _ready() -> void:
     get_window().files_dropped.connect(_ao_soltar_arquivos_janela)
     _configurar_web_file_drop()
 
+    _criar_gizmo_3d()
     _inicializar_mascara_ruas()
     _montar_painel()
     _carregar_modelos_custom_salvos()
+    
+    # Faz o editor assumir o gerenciamento dos layouts urbanos
+    ChunkBuilder.editor_gerencia_pecas = true
     carregar()
+    
     _painel.visible = false
+    _gizmo.visible = false
 
 
-# ─────────────────────────────────────────────────────────────────── entrada
+# ─────────────────────────────────────────────────────────────────── entrada e alternância
 
 func alternar() -> void:
     ativo = not ativo
     _painel.visible = ativo
     _camera.current = ativo
+    
+    _controlar_iluminacao_diurna(ativo)
+    
     if ativo:
         _alvo = jogador.global_position if jogador else Vector3.ZERO
         _posicionar_camera()
         _sincronizar_textura_rua()
-    elif camera_do_jogo:
-        var c := camera_do_jogo.find_child("Camera3D", true, false) as Camera3D
-        if c:
-            c.current = true
+        _atualizar_gizmo()
+    else:
+        _selecionada = -1
+        _gizmo.visible = false
+        if camera_do_jogo:
+            var c := camera_do_jogo.find_child("Camera3D", true, false) as Camera3D
+            if c:
+                c.current = true
     _atualizar_status()
+
+
+func _controlar_iluminacao_diurna(congelar_de_dia: bool) -> void:
+    if _ciclo == null:
+        _ciclo = get_tree().root.find_child("CicloDiaNoite", true, false)
+    if _ciclo == null:
+        return
+    
+    if congelar_de_dia:
+        _hora_salva = _ciclo.get("hora") if "hora" in _ciclo else 12.0
+        _rodando_salvo = _ciclo.get("rodando") if "rodando" in _ciclo else true
+        _ciclo.set("hora", 12.5) # Meio-dia límpido e com iluminação total
+        _ciclo.set("rodando", false)
+        if _ciclo.has_method("_aplicar"):
+            _ciclo.call("_aplicar")
+    else:
+        _ciclo.set("hora", _hora_salva)
+        _ciclo.set("rodando", _rodando_salvo)
+        if _ciclo.has_method("_aplicar"):
+            _ciclo.call("_aplicar")
 
 
 func _unhandled_input(evento: InputEvent) -> void:
@@ -112,6 +154,7 @@ func _unhandled_input(evento: InputEvent) -> void:
                 _ultimo_ponto_rua = Vector2(-1, -1)
                 _clicar(evento.position)
             else:
+                _arrastando_peca = false
                 _ultimo_ponto_rua = Vector2(-1, -1)
         elif evento.button_index == MOUSE_BUTTON_RIGHT and evento.pressed:
             if _modo == ModoEditor.OBJETOS:
@@ -122,6 +165,8 @@ func _unhandled_input(evento: InputEvent) -> void:
             return
         if _modo != ModoEditor.OBJETOS:
             _pintar_rua_em(evento.position)
+        elif _arrastando_peca and _selecionada >= 0:
+            _mover_peca_selecionada_com_mouse(evento.position)
         elif _pincel and not _modelo_atual.is_empty():
             _plantar_em(evento.position)
         else:
@@ -184,15 +229,17 @@ func _tecla(codigo: int) -> void:
             return
         KEY_ESCAPE:
             _selecionada = -1
+            _atualizar_gizmo()
             _atualizar_status()
             return
         _:
             return
     _refazer(_selecionada)
+    _atualizar_gizmo()
     _atualizar_status()
 
 
-# ─────────────────────────────────────────────────────────────────── camera
+# ─────────────────────────────────────────────────────────────────── câmera
 
 func _zoom(quanto: float) -> void:
     _altura = clampf(_altura * (1.0 + quanto), 8.0, 220.0)
@@ -213,7 +260,7 @@ func _posicionar_camera() -> void:
 func _ponto_no_chao(tela: Vector2) -> Vector3:
     var origem := _camera.project_ray_origin(tela)
     var direcao := _camera.project_ray_normal(tela)
-    if direcao.y >= -0.001:
+    if direcao.y >= -0.0001:
         return Vector3.INF
     var chao := RELEVO.altura(_alvo.x, _alvo.z)
     var distancia := (chao - origem.y) / direcao.y
@@ -224,13 +271,98 @@ func _ponto_no_chao(tela: Vector2) -> Vector3:
     return ponto
 
 
-# ────────────────────────────────────────────────────────────────── edicao de pecas
+# ────────────────────────────────────────────────────────────────── gizmo visual 3D
+
+func _criar_gizmo_3d() -> void:
+    _gizmo = Node3D.new()
+    _gizmo.name = "Gizmo3D"
+    add_child(_gizmo)
+
+    # Anel de seleção no chão
+    var ring_mesh := TorusMesh.new()
+    ring_mesh.inner_radius = 1.3
+    ring_mesh.outer_radius = 1.55
+    var mat_ring := StandardMaterial3D.new()
+    mat_ring.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat_ring.albedo_color = Color(1.0, 0.85, 0.2, 0.95)
+    mat_ring.no_depth_test = true
+    mat_ring.cull_mode = BaseMaterial3D.CULL_DISABLED
+    var ring_node := MeshInstance3D.new()
+    ring_node.mesh = ring_mesh
+    ring_node.material_override = mat_ring
+    ring_node.position.y = 0.05
+    _gizmo.add_child(ring_node)
+
+    # Eixo X (Vermelho)
+    _gizmo.add_child(_criar_seta_eixo(Vector3.RIGHT, Color(1.0, 0.15, 0.15)))
+    # Eixo Y (Verde - Vertical)
+    _gizmo.add_child(_criar_seta_eixo(Vector3.UP, Color(0.2, 1.0, 0.25)))
+    # Eixo Z (Azul)
+    _gizmo.add_child(_criar_seta_eixo(Vector3.BACK, Color(0.25, 0.6, 1.0)))
+
+
+func _criar_seta_eixo(direcao: Vector3, cor: Color) -> Node3D:
+    var haste_node := Node3D.new()
+    
+    var mat := StandardMaterial3D.new()
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat.albedo_color = cor
+    mat.no_depth_test = true
+    mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+    var cilindro := CylinderMesh.new()
+    cilindro.top_radius = 0.07
+    cilindro.bottom_radius = 0.07
+    cilindro.height = 2.2
+
+    var m_cilindro := MeshInstance3D.new()
+    m_cilindro.mesh = cilindro
+    m_cilindro.material_override = mat
+    m_cilindro.position = Vector3(0, 1.1, 0)
+    haste_node.add_child(m_cilindro)
+
+    var cone := CylinderMesh.new()
+    cone.top_radius = 0.0
+    cone.bottom_radius = 0.24
+    cone.height = 0.65
+
+    var m_cone := MeshInstance3D.new()
+    m_cone.mesh = cone
+    m_cone.material_override = mat
+    m_cone.position = Vector3(0, 2.4, 0)
+    haste_node.add_child(m_cone)
+
+    if direcao == Vector3.RIGHT:
+        haste_node.rotation.z = -PI * 0.5
+    elif direcao == Vector3.BACK:
+        haste_node.rotation.x = PI * 0.5
+
+    return haste_node
+
+
+func _atualizar_gizmo() -> void:
+    if _selecionada >= 0 and _selecionada < _pecas.size() and _modo == ModoEditor.OBJETOS:
+        var p := _pecas[_selecionada]
+        var x: float = p["position"][0]
+        var z: float = p["position"][1]
+        var y: float = RELEVO.altura(x, z) + float(p.get("y", 0.0))
+        _gizmo.global_position = Vector3(x, y, z)
+        var rot := _obter_rotacao_peca(p)
+        _gizmo.rotation.y = deg_to_rad(rot[1])
+        _gizmo.visible = true
+    else:
+        _gizmo.visible = false
+
+
+# ────────────────────────────────────────────────────────────────── edição de peças
 
 func _clicar(tela: Vector2) -> void:
     if _modo != ModoEditor.OBJETOS:
         _pintar_rua_em(tela)
     elif _modelo_atual.is_empty():
         _selecionar_em(tela)
+        if _selecionada >= 0:
+            _arrastando_peca = true
     else:
         _plantar_em(tela)
 
@@ -254,6 +386,7 @@ func _plantar_em(tela: Vector2) -> void:
     _nos.append(null)
     _refazer(_pecas.size() - 1)
     _selecionada = _pecas.size() - 1
+    _atualizar_gizmo()
     _atualizar_status()
 
 
@@ -262,7 +395,7 @@ func _selecionar_em(tela: Vector2) -> void:
     if ponto == Vector3.INF:
         return
     var melhor := -1
-    var menor := 4.0
+    var menor := 7.5 # Alcance generoso para selecionar construções grandes com facilidade
     for i in _pecas.size():
         var onde := Vector2(_pecas[i]["position"][0], _pecas[i]["position"][1])
         var d := onde.distance_to(Vector2(ponto.x, ponto.z))
@@ -270,7 +403,20 @@ func _selecionar_em(tela: Vector2) -> void:
             menor = d
             melhor = i
     _selecionada = melhor
+    _atualizar_gizmo()
     _atualizar_status()
+
+
+func _mover_peca_selecionada_com_mouse(tela: Vector2) -> void:
+    if _selecionada < 0 or _selecionada >= _pecas.size():
+        return
+    var ponto := _ponto_no_chao(tela)
+    if ponto == Vector3.INF:
+        return
+    _pecas[_selecionada]["position"][0] = snappedf(ponto.x, 0.25)
+    _pecas[_selecionada]["position"][1] = snappedf(ponto.z, 0.25)
+    _refazer(_selecionada)
+    _atualizar_gizmo()
 
 
 func _obter_rotacao_peca(peca: Dictionary) -> Array:
@@ -308,6 +454,7 @@ func _apagar(indice: int) -> void:
     _pecas.remove_at(indice)
     _nos.remove_at(indice)
     _selecionada = -1
+    _atualizar_gizmo()
     _atualizar_status()
 
 
@@ -568,12 +715,12 @@ func _carregar_modelos_custom_salvos() -> void:
     dir.list_dir_end()
 
 
-# ────────────────────────────────────────────────────────── disco e painel
+# ────────────────────────────────────────────────────────── disco, importação inicial e painel
 
 func salvar() -> void:
     var arquivo := FileAccess.open(ARQUIVO, FileAccess.WRITE)
     if arquivo == null:
-        _avisar("Erro: não consegui salvar pecas")
+        _avisar("Erro: não consegui salvar peças")
         return
     arquivo.store_string(JSON.stringify({"pecas": _pecas}, " "))
     arquivo.close()
@@ -585,16 +732,56 @@ func salvar() -> void:
 
 
 func carregar() -> void:
-    if not FileAccess.file_exists(ARQUIVO):
-        return
-    var arquivo := FileAccess.open(ARQUIVO, FileAccess.READ)
-    var dados = JSON.parse_string(arquivo.get_as_text())
-    if typeof(dados) != TYPE_DICTIONARY:
-        return
-    for peca in dados.get("pecas", []):
-        _pecas.append(peca)
-        _nos.append(null)
-        _refazer(_pecas.size() - 1)
+    if FileAccess.file_exists(ARQUIVO):
+        var arquivo := FileAccess.open(ARQUIVO, FileAccess.READ)
+        var dados = JSON.parse_string(arquivo.get_as_text())
+        if typeof(dados) == TYPE_DICTIONARY:
+            for peca in dados.get("pecas", []):
+                _pecas.append(peca)
+                _nos.append(null)
+                _refazer(_pecas.size() - 1)
+            return
+
+    # Se não houver arquivo salvo ainda, importa todas as peças das cidades originais
+    _importar_layouts_iniciais()
+
+
+func _importar_layouts_iniciais() -> void:
+    var regioes_por_id: Dictionary = {}
+    for cell in World.regions:
+        var r: Dictionary = World.regions[cell]
+        regioes_por_id[r.get("id", "")] = cell
+
+    for rid in World.city_layouts:
+        var cell = regioes_por_id.get(rid, null)
+        if cell == null:
+            continue
+        var centro_regiao: Vector3 = World.cell_center(cell)
+        var layout: Array = World.city_layouts[rid]
+        for item in layout:
+            var tag := String(item.get("tag", ""))
+            var model := String(item.get("model", ""))
+            var local: Array = item.get("position", [0.0, 0.0])
+            var mundo_x := centro_regiao.x + float(local[0])
+            var mundo_z := centro_regiao.z + float(local[1])
+            var rot = item.get("rotation", [0.0, 0.0, 0.0])
+            var rot_arr: Array = [0.0, 0.0, 0.0]
+            if typeof(rot) == TYPE_ARRAY:
+                rot_arr = [float(rot[0]) if rot.size() > 0 else 0.0, float(rot[1]) if rot.size() > 1 else 0.0, float(rot[2]) if rot.size() > 2 else 0.0]
+            else:
+                rot_arr = [0.0, float(rot), 0.0]
+
+            _pecas.append({
+                "id": item.get("id", "%s_%d" % [tag, _pecas.size()]),
+                "tag": tag,
+                "model": model,
+                "position": [snappedf(mundo_x, 0.25), snappedf(mundo_z, 0.25)],
+                "rotation": rot_arr,
+                "scale": float(item.get("scale", 1.0)),
+                "y": float(item.get("y", 0.0))
+            })
+            _nos.append(null)
+            _refazer(_pecas.size() - 1)
 
 
 func exportar() -> void:
@@ -614,11 +801,11 @@ func _montar_painel() -> void:
 
     var fundo := PanelContainer.new()
     fundo.position = Vector2(12, 60)
-    fundo.custom_minimum_size = Vector2(250, 600)
+    fundo.custom_minimum_size = Vector2(260, 620)
     _painel.add_child(fundo)
 
     var caixa := VBoxContainer.new()
-    caixa.custom_minimum_size = Vector2(240, 0)
+    caixa.custom_minimum_size = Vector2(250, 0)
     fundo.add_child(caixa)
 
     # 1. Seletor de Modo
@@ -663,7 +850,7 @@ func _montar_painel() -> void:
     _painel_objetos.add_child(btn_importar)
 
     _lista = ItemList.new()
-    _lista.custom_minimum_size = Vector2(240, 210)
+    _lista.custom_minimum_size = Vector2(250, 200)
     for tag in World.catalog:
         var kind: Dictionary = World.catalog[tag]
         for caminho in kind.get("models", []) + kind.get("sprites", []):
@@ -700,7 +887,7 @@ func _montar_painel() -> void:
     btn_limpar_rua.pressed.connect(_limpar_ruas_custom)
     _painel_ruas.add_child(btn_limpar_rua)
 
-    # 4. Inspector de Peça Selecionada (Rotação 3D X, Y, Z + Altura + Escala)
+    # 4. Inspector de Peça Selecionada (Setas/Gizmo + Rotação 3D X, Y, Z + Altura + Escala)
     _inspector_peca = VBoxContainer.new()
     _inspector_peca.visible = false
     caixa.add_child(_inspector_peca)
@@ -769,7 +956,7 @@ func _montar_painel() -> void:
         caixa.add_child(botao)
 
     _status = Label.new()
-    _status.custom_minimum_size = Vector2(240, 80)
+    _status.custom_minimum_size = Vector2(250, 80)
     _status.autowrap_mode = TextServer.AUTOWRAP_WORD
     caixa.add_child(_status)
 
@@ -779,6 +966,7 @@ func _trocar_modo(novo_modo: ModoEditor) -> void:
     _painel_objetos.visible = (_modo == ModoEditor.OBJETOS)
     _painel_ruas.visible = (_modo != ModoEditor.OBJETOS)
     _selecionada = -1
+    _atualizar_gizmo()
     _atualizar_status()
 
 
@@ -794,6 +982,7 @@ func _ajustar_rotacao_selecionada(eixo: int, delta_graus: float) -> void:
         rot[eixo] = fposmod(rot[eixo] + delta_graus, 360.0)
     peca["rotation"] = rot
     _refazer(_selecionada)
+    _atualizar_gizmo()
     _atualizar_status()
 
 
@@ -808,6 +997,7 @@ func _duplicar_selecionada() -> void:
     _nos.append(null)
     _refazer(_pecas.size() - 1)
     _selecionada = _pecas.size() - 1
+    _atualizar_gizmo()
     _atualizar_status()
 
 
@@ -816,6 +1006,7 @@ func _escolher(indice: int) -> void:
     _tag_atual = dados[0]
     _modelo_atual = dados[1]
     _selecionada = -1
+    _atualizar_gizmo()
     _atualizar_status()
 
 
@@ -838,14 +1029,14 @@ func _atualizar_status() -> void:
     var linhas: Array[String] = []
     match _modo:
         ModoEditor.OBJETOS:
-            linhas.append("Modo: 📦 Objetos (%d peças)" % _pecas.size())
+            linhas.append("Modo: 📦 Objetos (%d peças no mapa)" % _pecas.size())
             if not _modelo_atual.is_empty():
                 linhas.append("Plantando: " + _modelo_atual.get_file().get_basename())
             if _selecionada >= 0:
                 var r := _obter_rotacao_peca(_pecas[_selecionada])
-                linhas.append("Sel: WASD move | QE(Y) ZC(X) TG(Z) gira | RF alt | +- esc | Del apaga | Rot:[%.0f,%.0f,%.0f]" % [r[0], r[1], r[2]])
+                linhas.append("Sel: Arraste p/ mover | WASD | QE(Y) ZC(X) TG(Z) | RF alt | +- esc | Del apaga | Rot:[%.0f,%.0f,%.0f]" % [r[0], r[1], r[2]])
             else:
-                linhas.append("Clique planta | Botão dir. seleciona | Arrastar move câmera | Arraste .GLB para importar")
+                linhas.append("Clique / arraste planta | Botão dir. seleciona | Arrastar no vazio move câmera | Arraste .GLB")
         ModoEditor.RUA_PEDRA:
             linhas.append("Modo: 🏛️ Pintar Calçamento de Pedra")
             linhas.append("Arraste com o botão esquerdo para traçar ruas de pedra")

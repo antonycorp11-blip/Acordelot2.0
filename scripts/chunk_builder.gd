@@ -46,6 +46,7 @@ static var _agua: ShaderMaterial = null
 ## Se as lampadas do mundo estao acesas. Quem manda e o ciclo do dia; fica aqui
 ## porque o pedaco que nasce no meio da noite precisa acender o poste dele na
 ## hora, sem esperar a proxima virada.
+static var editor_gerencia_pecas := false
 static var luzes_acesas := false
 
 ## Pelo caminho e nao pelo nome global: o nome so existe depois que o editor
@@ -117,7 +118,7 @@ static func build(chunk: Vector2i, ground_material: Material) -> Node3D:
         # Vegetacao miuda ainda pode preencher o limite da celula, mas casa,
         # monumento, muro e mobiliario nunca mais sao sorteados.
         _scatter(root, entry, rng, center, lotes, raio_reservado)
-    if not layout.is_empty():
+    if not layout.is_empty() and not editor_gerencia_pecas:
         _montar_layout_urbano(root, layout, center)
     _montar_lotes(root, lotes)
     return root
