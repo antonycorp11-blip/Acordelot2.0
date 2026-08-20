@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/zoned_game.gd" id="1_zoned_game"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="2_player"]
@@ -12,6 +12,9 @@
 [ext_resource type="Script" path="res://scripts/barra_do_dia.gd" id="10_barra"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_ataque.png" id="11_btn_ataque"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_voo.png" id="12_btn_voo"]
+[ext_resource type="Texture2D" path="res://textures/ui/btn_inventario.png" id="13_btn_inv"]
+[ext_resource type="Script" path="res://scripts/player_hud.gd" id="14_player_hud"]
+[ext_resource type="Script" path="res://scripts/inventory_ui.gd" id="15_inventory_ui"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_zoned"]
 sky_top_color = Color(0.18, 0.45, 0.78, 1)
@@ -93,6 +96,12 @@ zone_builder = NodePath("../ZoneBuilder")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
+[node name="PlayerHUD" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+script = ExtResource("14_player_hud")
+
 [node name="ZoneMinimap" type="Control" parent="HUD" node_paths=PackedStringArray("zone_manager", "player")]
 layout_mode = 3
 anchors_preset = 15
@@ -110,10 +119,10 @@ layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = -212.0
-offset_right = 212.0
-offset_bottom = -32.0
+offset_left = 36.0
+offset_top = -225.0
+offset_right = 246.0
+offset_bottom = -15.0
 grow_vertical = 0
 script = ExtResource("9_joystick")
 
@@ -137,38 +146,59 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -190.0
-offset_top = -140.0
+offset_left = -280.0
+offset_top = -180.0
 offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
+mouse_filter = 2
 
-[node name="BtnAtaque" type="TextureButton" parent="HUD/BotoesAcao"]
+[node name="BtnInventario" type="TextureButton" parent="HUD/BotoesAcao"]
 layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -76.0
-offset_top = -38.0
-offset_bottom = 38.0
-grow_horizontal = 0
-grow_vertical = 2
-texture_normal = ExtResource("11_btn_ataque")
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 78.0
+offset_right = 82.0
+offset_bottom = 150.0
+texture_normal = ExtResource("13_btn_inv")
 ignore_texture_size = true
 stretch_mode = 5
 
 [node name="BtnVoo" type="TextureButton" parent="HUD/BotoesAcao"]
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_top = -34.0
-offset_right = 68.0
-offset_bottom = 34.0
-grow_vertical = 2
+anchors_preset = 0
+offset_left = 88.0
+offset_top = 22.0
+offset_right = 160.0
+offset_bottom = 94.0
 texture_normal = ExtResource("12_btn_voo")
 ignore_texture_size = true
 stretch_mode = 5
+
+[node name="BtnAtaque" type="TextureButton" parent="HUD/BotoesAcao"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -94.0
+offset_top = -94.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("11_btn_ataque")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="InventoryUI" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15_inventory_ui")

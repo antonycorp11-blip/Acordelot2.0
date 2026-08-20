@@ -2,6 +2,7 @@ extends Node3D
 class_name ZoneBuilder
 
 const PortalScript = preload("res://scripts/zone_portal.gd")
+const BichoScript = preload("res://scripts/bicho.gd")
 
 signal portal_triggered(dest_zone_id: String, from_direction: String)
 
@@ -9,9 +10,7 @@ const TAMANHO_ZONA: float = 160.0 # 160m x 160m cluster
 const SUBDIVISOES: int = 64        # Resolução de malha suave
 
 var _zone_data: Dictionary = {}
-var _asset_catalog: Dictionary = {}
 var _city_layouts: Dictionary = {}
-var _tripo_material: Material = preload("res://Material_TripoSR.tres")
 
 var _terrain_mesh: MeshInstance3D
 var _terrain_body: StaticBody3D
@@ -19,33 +18,24 @@ var _water_mesh: MeshInstance3D
 var _portals_node: Node3D
 var _props_node: Node3D
 
-# Banco de Árvores 3D com Alturas Reais Majestosas (em Metros)
-const ARVORES_3D := [
-    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 17.0, "keep_mat": true},
-    {"path": "res://models/oak_trees.glb", "tag": "carvalho_3d", "altura": 14.5, "keep_mat": true},
-    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_3d", "altura": 13.5, "keep_mat": true},
-    {"path": "res://models/arvore_frondosa.glb", "tag": "arvore_frondosa", "altura": 13.0, "keep_mat": false},
-    {"path": "res://models/arvore_carvalho.glb", "tag": "arvore_carvalho", "altura": 12.0, "keep_mat": false},
-    {"path": "res://models/pinheiro.glb", "tag": "pinheiro", "altura": 12.5, "keep_mat": false}
+# Banco Exclusivo de Novos Modelos 3D Reais com Texturas e Alturas Reais
+const ARVORES_FLORESTA_3D := [
+    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 17.0, "enterrar": 0.65},
+    {"path": "res://models/oak_trees.glb", "tag": "carvalho_real", "altura": 15.0, "enterrar": 0.55},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 14.0, "enterrar": 0.50}
 ]
 
-const ARVORES_FANTASIA := [
-    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 11.0, "keep_mat": true},
-    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 16.0, "keep_mat": true},
-    {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal", "altura": 4.5, "keep_mat": true}
+const ARVORES_MISTICAS_3D := [
+    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 11.5, "enterrar": 0.45},
+    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 16.5, "enterrar": 0.65},
+    {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal_arcano", "altura": 4.5, "enterrar": 0.25}
 ]
 
-const VEGETACAO_BAIXA_3D := [
-    {"path": "res://models/fantasy_bush_1787078968444.glb", "tag": "arbusto_3d", "altura": 2.8, "keep_mat": true},
-    {"path": "res://models/arvore_pequena.glb", "tag": "arbusto_pequeno", "altura": 3.2, "keep_mat": false}
+const ARBUSTOS_3D := [
+    {"path": "res://models/fantasy_bush_1787078968444.glb", "tag": "arbusto_3d", "altura": 2.8, "enterrar": 0.3}
 ]
 
 func carregar_dados() -> void:
-    if _asset_catalog.is_empty():
-        var f_cat := FileAccess.open("res://data/asset_catalog.json", FileAccess.READ)
-        if f_cat:
-            _asset_catalog = JSON.parse_string(f_cat.get_as_text())
-            
     if _city_layouts.is_empty():
         var f_lay := FileAccess.open("res://data/city_layouts.json", FileAccess.READ)
         if f_lay:
@@ -75,6 +65,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _construir_layout_urbano()
     _construir_floresta_3d_real()
     _construir_barreiras_perimetro_arvores_reais()
+    _construir_monstros()
     _construir_portais()
 
 # -------------------------------------------------------------
@@ -136,7 +127,6 @@ func _construir_terreno() -> void:
             var i2: int = (j + 1) * (SUBDIVISOES + 1) + i
             var i3: int = i2 + 1
             
-            # Winding anti-horário para normais apontando para cima (+Y)
             st.add_index(i0)
             st.add_index(i1)
             st.add_index(i2)
@@ -208,17 +198,16 @@ func _construir_layout_urbano() -> void:
         if modelo_path == "":
             continue
             
-        var altura_alvo: float = float(modelo_info.get("altura", 8.0))
-        var keep_mat: bool = bool(modelo_info.get("keep_mat", false))
+        var altura_alvo: float = float(modelo_info.get("altura", 9.5))
         var escala_layout: float = float(p.get("escala", 1.0))
         
-        var suporte := _instanciar_prop_3d(modelo_path, tag, altura_alvo, keep_mat, escala_layout)
+        var suporte := _instanciar_prop_3d(modelo_path, tag, altura_alvo, escala_layout)
         if not suporte:
             continue
             
         var px: float = float(p.get("x", 0.0))
         var pz: float = float(p.get("z", 0.0))
-        var py: float = calcular_altura(px, pz) + float(p.get("y", 0.0))
+        var py: float = calcular_altura(px, pz) + float(p.get("y", 0.0)) - 0.25 # Assenta a base da casa firme no solo
         var giro: float = float(p.get("giro", 0.0))
         
         suporte.position = Vector3(px, py, pz)
@@ -228,52 +217,43 @@ func _construir_layout_urbano() -> void:
         _props_node.add_child(suporte)
 
 func _obter_modelo_urbano_info(p: Dictionary, tag: String) -> Dictionary:
-    var m_nome: String = str(p.get("modelo", ""))
+    var houses = [
+        {"path": "res://models/medieval_house_1.glb", "altura": 10.0},
+        {"path": "res://models/medieval_house_3.glb", "altura": 9.5}
+    ]
     
-    # Casas Medievais 3D PBR de Alta Qualidade
-    if tag.begins_with("casa_enxaimel") or tag.begins_with("casa_grande") or tag.begins_with("sobrado"):
-        var houses = [
-            {"path": "res://models/medieval_house_1.glb", "altura": 9.5, "keep_mat": true},
-            {"path": "res://models/medieval_house_3.glb", "altura": 9.0, "keep_mat": true}
-        ]
+    if tag.begins_with("casa") or tag.begins_with("mansao") or tag.begins_with("sobrado") or tag.begins_with("predio"):
         return houses[hash(str(p.get("x", 0))) % houses.size()]
         
-    if tag.begins_with("casa") or tag.begins_with("mansao"):
-        return {"path": "res://models/medieval_house_1.glb", "altura": 9.5, "keep_mat": true}
-        
     if tag == "muralha" or tag == "muro":
-        return {"path": "res://models/stone_wall_segment_1787079001245.glb", "altura": 3.8, "keep_mat": true}
+        return {"path": "res://models/stone_wall_segment_1787079001245.glb", "altura": 3.8}
         
-    if m_nome != "":
-        var glb := "res://models/%s.glb" % m_nome
-        if ResourceLoader.exists(glb):
-            return {"path": glb, "altura": 7.5, "keep_mat": false}
-            
-    if _asset_catalog.has(tag):
-        var c_models: Array = _asset_catalog[tag].get("models", [])
-        if not c_models.is_empty() and ResourceLoader.exists(str(c_models[0])):
-            return {"path": str(c_models[0]), "altura": float(_asset_catalog[tag].get("altura", 6.5)), "keep_mat": false}
-            
-    return {}
+    if tag == "cristal":
+        return {"path": "res://models/crystal_cluster_1787078933118.glb", "altura": 4.5}
+        
+    return houses[0]
 
 # -------------------------------------------------------------
-# 4. Floresta e Vegetação 100% 3D em Escala Real de Árvore
+# 4. Floresta 100% 3D em Escala Real (Cidades Limpas)
 # -------------------------------------------------------------
 func _construir_floresta_3d_real() -> void:
+    var is_cidade: bool = (_zone_data.get("biome") == "cidade" or str(_zone_data.get("layout_id", "")) != "")
+    
+    # Cidades ficam bem limpas para planejamento urbano (apenas 3 a 5 árvores decorativas no perímetro)
+    var n_arvores: int = 4 if is_cidade else int(_zone_data.get("tree_count", 38))
+    var n_arbustos: int = 4 if is_cidade else int(_zone_data.get("bush_count", 22))
+    
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zone"))) + 77
     
     var biome: String = str(_zone_data.get("biome", "floresta"))
-    var n_arvores: int = int(_zone_data.get("tree_count", 36))
-    var n_arbustos: int = int(_zone_data.get("bush_count", 20))
+    var lista_arvores: Array = ARVORES_MISTICAS_3D if (biome == "sagrado" or biome == "sombria") else ARVORES_FLORESTA_3D
     
-    var lista_arvores: Array = ARVORES_FANTASIA if (biome == "sagrado" or biome == "sombria") else ARVORES_3D
-    
-    _espalhar_props_3d(rng, n_arvores, lista_arvores, 60.0, true, 1.0, 1.3)
-    _espalhar_props_3d(rng, n_arbustos, VEGETACAO_BAIXA_3D, 65.0, false, 0.9, 1.25)
+    var raio_min: float = 52.0 if is_cidade else 8.0
+    _espalhar_props_3d(rng, n_arvores, lista_arvores, 64.0, true, 1.0, 1.35, raio_min)
+    _espalhar_props_3d(rng, n_arbustos, ARBUSTOS_3D, 65.0, false, 0.9, 1.3, raio_min)
 
-func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio_max: float, solido: bool, sc_min: float, sc_max: float) -> void:
-    var is_cidade: bool = (_zone_data.get("biome") == "cidade")
+func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio_max: float, solido: bool, sc_min: float, sc_max: float, dist_min: float) -> void:
     var water_y: float = float(_zone_data.get("water_level", -2.0))
     var tem_agua: bool = bool(_zone_data.get("water", false))
     
@@ -282,19 +262,19 @@ func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio
         var path: String = str(item["path"])
         var tag: String = str(item["tag"])
         var alt_base: float = float(item["altura"])
-        var keep_mat: bool = bool(item.get("keep_mat", false))
+        var enterrar: float = float(item.get("enterrar", 0.5))
         
         var escala_extra: float = rng.randf_range(sc_min, sc_max)
-        var suporte := _instanciar_prop_3d(path, tag, alt_base, keep_mat, escala_extra)
+        var suporte := _instanciar_prop_3d(path, tag, alt_base, escala_extra)
         if not suporte:
             continue
             
         var ang: float = rng.randf_range(0.0, TAU)
-        var dist_min: float = 32.0 if is_cidade else 8.0
         var dist: float = rng.randf_range(dist_min, raio_max)
         var px: float = cos(ang) * dist
         var pz: float = sin(ang) * dist
-        var py: float = calcular_altura(px, pz)
+        # Enterra o tronco/raízes no terreno para não ficarem flutuando
+        var py: float = calcular_altura(px, pz) - (enterrar * escala_extra)
         
         if tem_agua and py < water_y + 0.5:
             suporte.queue_free()
@@ -334,15 +314,17 @@ func _construir_barreiras_perimetro_arvores_reais() -> void:
             _criar_arvore_borda_3d(Vector3(half, calcular_altura(half, pos_along), pos_along), step + 4)
 
 func _criar_arvore_borda_3d(pos: Vector3, idx_seed: int) -> void:
-    var item: Dictionary = ARVORES_3D[idx_seed % ARVORES_3D.size()]
+    var item: Dictionary = ARVORES_FLORESTA_3D[idx_seed % ARVORES_FLORESTA_3D.size()]
     var path: String = str(item["path"])
     var tag: String = str(item["tag"])
-    var alt_base: float = float(item["altura"]) * 1.15 # Árvores de borda bem imponentes
-    var keep_mat: bool = bool(item.get("keep_mat", false))
+    var alt_base: float = float(item["altura"]) * 1.2
+    var enterrar: float = float(item.get("enterrar", 0.6))
     
-    var suporte := _instanciar_prop_3d(path, tag, alt_base, keep_mat, 1.0)
+    var suporte := _instanciar_prop_3d(path, tag, alt_base, 1.0)
     if not suporte:
         return
+    # Enterra as raízes para ficarem bem firmes no declive da borda
+    pos.y -= enterrar
     suporte.position = pos
     _adicionar_colisor_prop(suporte, "arvore", alt_base / 10.0)
     _props_node.add_child(suporte)
@@ -391,7 +373,7 @@ func _obter_nome_zona(zid: String) -> String:
 # -------------------------------------------------------------
 # Instanciação 3D Real com Medição AABB e Assentamento no Chão
 # -------------------------------------------------------------
-func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, keep_mat: bool, escala_mult: float = 1.0) -> Node3D:
+func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, escala_mult: float = 1.0) -> Node3D:
     if not ResourceLoader.exists(path):
         return null
     var res := load(path)
@@ -404,12 +386,6 @@ func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, keep_mat
         
     var suporte := Node3D.new()
     suporte.name = tag
-    
-    # Se não for modelo com textura PBR embutida, aplica Material_TripoSR com vertex colors
-    if not keep_mat:
-        for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):
-            mesh_node.material_override = _tripo_material
-            
     suporte.add_child(modelo)
     
     # Medição da caixa AABB orientada real
@@ -449,8 +425,8 @@ func _adicionar_colisor_prop(node: Node3D, tag: String, escala: float) -> void:
     
     if tag.begins_with("arvore") or tag.begins_with("carvalho") or tag.begins_with("pinheiro") or tag.begins_with("cogumelo_arvore"):
         var shape := CylinderShape3D.new()
-        shape.radius = 0.85 * clampf(escala, 0.8, 1.8)
-        shape.height = 4.5 * clampf(escala, 0.8, 2.0)
+        shape.radius = 0.9 * clampf(escala, 0.8, 1.8)
+        shape.height = 5.0 * clampf(escala, 0.8, 2.0)
         col.shape = shape
         col.position.y = shape.height * 0.5
     elif tag.begins_with("casa") or tag.begins_with("mansao") or tag.begins_with("sobrado"):
@@ -467,3 +443,30 @@ func _adicionar_colisor_prop(node: Node3D, tag: String, escala: float) -> void:
         
     body.add_child(col)
     node.add_child(body)
+    
+func _construir_monstros() -> void:
+    var is_cidade: bool = (_zone_data.get("biome") == "cidade" or str(_zone_data.get("layout_id", "")) != "")
+    if is_cidade:
+        return
+        
+    var qtd_monstros := 6
+    var rng := RandomNumberGenerator.new()
+    rng.seed = hash(str(_zone_data.get("id", "zone"))) + 555
+    
+    for i in range(qtd_monstros):
+        var bicho = BichoScript.new()
+        bicho.monster_type = i % 4
+        bicho.name = "Bicho_%d" % i
+        
+        var ang: float = rng.randf_range(0.0, TAU)
+        var dist: float = rng.randf_range(16.0, 52.0)
+        var px: float = cos(ang) * dist
+        var pz: float = sin(ang) * dist
+        var py: float = calcular_altura(px, pz)
+        
+        if _zone_data.get("water", false) and py < float(_zone_data.get("water_level", -2.0)) + 0.4:
+            continue
+            
+        bicho.position = Vector3(px, py + 0.1, pz)
+        _props_node.add_child(bicho)
+
