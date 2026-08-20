@@ -19,9 +19,14 @@ func _ready() -> void:
     # Cria a forma de colisão do portal
     var col := CollisionShape3D.new()
     var shape := BoxShape3D.new()
-    shape.size = Vector3(8.0, 5.0, 4.0)
+    # A area de gatilho tem de ser MAIOR que o desenho do portal, nunca menor.
+    #
+    # Era 4 m de profundidade contra um portal que aparece com 7 m de largura: o
+    # jogador parava de frente para o brilho, achando que estava dentro, e nada
+    # acontecia. Agora quem chega perto do que ve, atravessa.
+    shape.size = Vector3(11.0, 8.0, 9.0)
     col.shape = shape
-    col.position.y = 2.0
+    col.position.y = 3.0
     add_child(col)
     
     # Conecta o sinal de corpo entrando
@@ -82,9 +87,33 @@ func _criar_postes_laterais() -> void:
         add_child(pillar)
 
 func _process(delta: float) -> void:
+    _conferir_distancia()
     if _mesh_ring:
         # Leve pulso vertical
         _mesh_ring.position.y = 2.8 + sin(Time.get_ticks_msec() * 0.003) * 0.15
+
+## Segundo caminho para disparar: distancia, conferida a cada quadro.
+##
+## A area de gatilho depende de o corpo ENTRAR nela por movimento de fisica, e ha
+## varias formas de isso nao acontecer — chegar por teleporte, nascer ja dentro,
+## ou o corpo passar por cima num quadro so. Um portal que as vezes nao abre e
+## pior que um portal feio: o jogador fica preso na zona sem entender por que.
+## Medir a distancia nao depende de nada disso.
+const RAIO_DE_ENTRADA := 5.0
+
+func _conferir_distancia() -> void:
+    if not _active:
+        return
+    var alvo := get_tree().get_first_node_in_group("player")
+    if alvo == null:
+        alvo = get_tree().root.find_child("Player", true, false)
+    if alvo == null or not (alvo is Node3D):
+        return
+    var perto: Vector3 = (alvo as Node3D).global_position - global_position
+    perto.y = 0.0
+    if perto.length() < RAIO_DE_ENTRADA:
+        _active = false
+        player_entered_portal.emit(dest_zone_id, direction)
 
 func _on_body_entered(body: Node3D) -> void:
     if not _active:

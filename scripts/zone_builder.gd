@@ -151,6 +151,13 @@ func _construir_terreno() -> void:
     mat.set_shader_parameter("stone_texture", load("res://textures/flagstone_seamless.png"))
     mat.set_shader_parameter("rock_texture", load("res://textures/stone_seamless.png"))
     mat.set_shader_parameter("zone_size", Vector2(TAMANHO_ZONA, TAMANHO_ZONA))
+    # O chao precisa saber onde estao as saidas para desenhar a trilha ate elas.
+    var ex: Dictionary = _zone_data.get("exits", {})
+    mat.set_shader_parameter("saidas", Vector4(
+        1.0 if String(ex.get("north", "")) != "" else 0.0,
+        1.0 if String(ex.get("south", "")) != "" else 0.0,
+        1.0 if String(ex.get("east", "")) != "" else 0.0,
+        1.0 if String(ex.get("west", "")) != "" else 0.0))
     
     _terrain_mesh.material_override = mat
     add_child(_terrain_mesh)
@@ -307,10 +314,26 @@ func _construir_props_bioma() -> void:
         "res://models/fantasy_bush_1787078968444.glb"
     ]
     
-    # Árvores
-    _espalhar_props(rng, n_arvores, modelos_arvores, 1.8, 3.2, 55.0, true)
-    # Arbustos
-    _espalhar_props(rng, n_arbustos, modelos_arbustos, 1.0, 1.8, 65.0, false)
+    # Alturas em METROS, contra um heroi de 1,75 m. Arvore de mata e alta: nove a
+    # quinze metros e o que faz a floresta cercar o jogador em vez de chegar na
+    # cintura dele.
+    _espalhar_props(rng, n_arvores, modelos_arvores, 9.0, 15.0, 55.0, true)
+    _espalhar_props(rng, n_arbustos, modelos_arbustos, 1.1, 2.0, 65.0, false)
+    _espalhar_props(rng, n_pedras, [
+        "res://models/media_1787068829583.glb",
+        "res://models/media_1787078448833.glb",
+        "res://models/media_1787078454231.glb",
+    ], 0.5, 1.6, 68.0, false)
+
+## Altura da malha de um modelo ja instanciado, em unidades do proprio arquivo.
+static func _altura_do_modelo(no: Node3D) -> float:
+    var caixa := AABB()
+    var achou := false
+    for malha in no.find_children("*", "MeshInstance3D", true, false):
+        var c: AABB = malha.get_aabb()
+        caixa = c if not achou else caixa.merge(c)
+        achou = true
+    return maxf(caixa.size.y, 0.001) if achou else 1.0
 
 ## A malha de um tufo, tirada do GLB e guardada.
 ##
@@ -339,6 +362,12 @@ static func _malha_do_tufo() -> Mesh:
     cena.queue_free()
     return _tufo
 
+## Espalha props pelo bioma. esc_min e esc_max sao ALTURA EM METROS, nao fator.
+##
+## Eram fator de multiplicacao, e por isso nao havia arvore no mapa: os modelos
+## do TripoSR chegam normalizados a mais ou menos uma unidade, entao "escala 1,8
+## a 3,2" dava arvore de dois a tres metros — altura de arbusto. Pedindo a altura
+## e dividindo pelo tamanho do arquivo, arvore de doze metros e doze metros.
 func _espalhar_props(rng: RandomNumberGenerator, qtd: int, modelos: Array, esc_min: float, esc_max: float, raio_max: float, solido: bool) -> void:
     var is_cidade: bool = (_zone_data.get("biome") == "cidade")
     var water_y: float = _zone_data.get("water_level", -2.0)
@@ -361,7 +390,8 @@ func _espalhar_props(rng: RandomNumberGenerator, qtd: int, modelos: Array, esc_m
             inst.queue_free()
             continue
             
-        var esc := rng.randf_range(esc_min, esc_max)
+        var alvo_m := rng.randf_range(esc_min, esc_max)
+        var esc := alvo_m / _altura_do_modelo(inst)
         inst.position = Vector3(px, py, pz)
         inst.rotation.y = rng.randf_range(0.0, TAU)
         inst.scale = Vector3(esc, esc, esc)
@@ -441,7 +471,9 @@ func _criar_arvore_borda(pos: Vector3) -> void:
 
     inst.position = pos
     inst.rotation.y = _rng_borda.randf_range(0.0, TAU)
-    var esc := _rng_borda.randf_range(2.0, 3.4)
+    # Doze a dezoito metros: e esta parede de copa que impede o jogador de ver o
+    # fim do mundo por cima do portal.
+    var esc := _rng_borda.randf_range(12.0, 18.0) / _altura_do_modelo(inst)
     inst.scale = Vector3(esc, esc, esc)
     _adicionar_colisor_prop(inst, "arvore", esc)
     _props_node.add_child(inst)

@@ -17,9 +17,14 @@ void fragment() {
     float spiral = sin(angle * 4.0 + dist * 12.0 - TIME * swirl_speed);
     float pulse = sin(TIME * 3.0) * 0.1 + 0.9;
     
-    float ring = smoothstep(1.0, 0.7, dist) * smoothstep(0.0, 0.4, dist);
+    // O anel comeca bem mais para fora: o vao central sobe de 0,4 para 0,66 do
+    // raio, entao o buraco fica com metade do disco em vez de um quinto. Portal
+    // e uma passagem — o que vale nele e o vazio do meio, nao o brilho.
+    float ring = smoothstep(1.0, 0.74, dist) * smoothstep(0.42, 0.66, dist);
     vec3 col = mix(portal_color.rgb, inner_color.rgb, spiral * 0.5 + 0.5);
     
-    ALBEDO = col * (ring * pulse * 1.8);
-    ALPHA = clamp(ring * portal_color.a * 1.5, 0.0, 1.0);
+    // Metade do brilho de antes. Em 1,8 o disco estourava em branco na tela do
+    // celular e engolia o proprio desenho.
+    ALBEDO = col * (ring * pulse * 0.9);
+    ALPHA = clamp(ring * portal_color.a * 1.2, 0.0, 1.0);
 }

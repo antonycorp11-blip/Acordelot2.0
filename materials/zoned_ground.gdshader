@@ -21,6 +21,15 @@ uniform vec3 tint_lush : source_color = vec3(0.42, 0.65, 0.28);
 uniform vec3 tint_dry : source_color = vec3(0.62, 0.58, 0.38);
 uniform float tint_strength = 0.32;
 
+// Quais saidas esta zona tem: x = norte, y = sul, z = leste, w = oeste. 1 = ha
+// portal daquele lado.
+//
+// O caminho de terra ate o portal nao e enfeite: e o que diz ao jogador para
+// onde ir num campo aberto de 160 metros. Sem ele o portal e um brilho que se
+// encontra por acaso — e foi por acaso que ele nao foi encontrado.
+uniform vec4 saidas = vec4(0.0);
+uniform float largura_da_trilha = 3.2;
+
 // Altura e água
 uniform float water_level = -2.0;
 uniform float shore_blend = 1.0;
@@ -97,6 +106,31 @@ void fragment() {
         }
     }
     
+    // Trilhas de terra do centro ate cada portal.
+    float trilha = 0.0;
+    float meio_x = zone_size.x * 0.5;
+    float meio_z = zone_size.y * 0.5;
+    if (saidas.x > 0.5 && world_pos.z < 0.0) {
+        trilha = max(trilha, 1.0 - smoothstep(largura_da_trilha * 0.6,
+                                              largura_da_trilha, abs(world_pos.x)));
+    }
+    if (saidas.y > 0.5 && world_pos.z > 0.0) {
+        trilha = max(trilha, 1.0 - smoothstep(largura_da_trilha * 0.6,
+                                              largura_da_trilha, abs(world_pos.x)));
+    }
+    if (saidas.z > 0.5 && world_pos.x > 0.0) {
+        trilha = max(trilha, 1.0 - smoothstep(largura_da_trilha * 0.6,
+                                              largura_da_trilha, abs(world_pos.z)));
+    }
+    if (saidas.w > 0.5 && world_pos.x < 0.0) {
+        trilha = max(trilha, 1.0 - smoothstep(largura_da_trilha * 0.6,
+                                              largura_da_trilha, abs(world_pos.z)));
+    }
+    // Largo no centro, onde as trilhas se encontram: cruzamento de terra batida.
+    float centro = 1.0 - smoothstep(4.0, 7.5, length(world_pos.xz));
+    trilha = max(trilha, centro);
+    base_color = mix(base_color, texture(dirt_texture, world_pos.xz / meters_per_tile).rgb, trilha);
+
     ALBEDO = base_color;
     ROUGHNESS = mix(0.85, 0.95, rock_blend);
     SPECULAR = 0.15;
