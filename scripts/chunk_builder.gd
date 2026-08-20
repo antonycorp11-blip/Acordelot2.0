@@ -151,7 +151,14 @@ static func _montar_layout_urbano(root: Node3D, layout: Array, center: Vector3) 
             continue
         offset.y = RELEVO.altura(mundo.x, mundo.z) + float(item.get("y", 0.0))
         prop.position = offset
-        prop.rotation.y = deg_to_rad(float(item.get("rotation", 0.0)))
+        var rot = item.get("rotation", 0.0)
+        if typeof(rot) == TYPE_ARRAY:
+            var rx: float = float(rot[0]) if rot.size() > 0 else 0.0
+            var ry: float = float(rot[1]) if rot.size() > 1 else 0.0
+            var rz: float = float(rot[2]) if rot.size() > 2 else 0.0
+            prop.rotation = Vector3(deg_to_rad(rx), deg_to_rad(ry), deg_to_rad(rz))
+        else:
+            prop.rotation.y = deg_to_rad(float(rot))
         prop.scale = Vector3.ONE * float(item.get("scale", 1.0))
         prop.name = String(item.get("id", tag))
         root.add_child(prop)
@@ -539,9 +546,15 @@ static func _criar(kind: Dictionary, rng: RandomNumberGenerator, model_path := "
         var scene := _load_scene(caminho)
         if scene == null: return null
         var modelo: Node3D = scene.instantiate()
-        var material: Material = material_com_vento() if bool(kind.get("vento", false)) else prop_material()
-        for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):
-            mesh_node.material_override = material
+        var is_custom := caminho.begins_with("user://") or bool(kind.get("is_custom", false))
+        if not is_custom:
+            var material: Material = material_com_vento() if bool(kind.get("vento", false)) else prop_material()
+            for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):
+                mesh_node.material_override = material
+        else:
+            if bool(kind.get("vento", false)):
+                for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):
+                    mesh_node.material_override = material_com_vento()
         suporte.name = modelo.name
         suporte.add_child(modelo)
 
@@ -672,7 +685,42 @@ static func _load_texture(path: String) -> Texture2D:
         _texture_cache[path] = load(path) as Texture2D
     return _texture_cache[path]
 
+static var _custom_scenes: Dictionary = {}
+
+static func registrar_cena_custom(caminho: String, cena: PackedScene) -> void:
+    _custom_scenes[caminho] = cena
+
+static func _carregar_glb_bytes(bytes: PackedByteArray) -> PackedScene:
+    var doc := GLTFDocument.new()
+    var state := GLTFState.new()
+    var err := doc.append_from_buffer(bytes, "", state)
+    if err != OK:
+        push_error("Falha ao processar buffer GLTF: %d" % err)
+        return null
+    var root_node := doc.generate_scene(state)
+    if root_node == null:
+        push_error("Falha ao gerar cena GLTF")
+        return null
+    var packed := PackedScene.new()
+    packed.pack(root_node)
+    return packed
+
+static func _carregar_glb_de_arquivo(path: String) -> PackedScene:
+    var f := FileAccess.open(path, FileAccess.READ)
+    if f == null:
+        return null
+    var bytes := f.get_buffer(f.get_length())
+    f.close()
+    return _carregar_glb_bytes(bytes)
+
 static func _load_scene(path: String) -> PackedScene:
+    if _custom_scenes.has(path):
+        return _custom_scenes[path]
+    if path.begins_with("user://"):
+        var packed := _carregar_glb_de_arquivo(path)
+        if packed != null:
+            _custom_scenes[path] = packed
+            return packed
     if not _scene_cache.has(path):
         _scene_cache[path] = load(path) as PackedScene
-    return _scene_cache[path]
+    return _scene_cache.get(path)

@@ -31,8 +31,16 @@ func _ready() -> void:
         "dirt_texture", load("res://textures/dirt_seamless.png"))
     _ground_material.set_shader_parameter(
         "stone_texture", load("res://textures/stone_seamless.png"))
-    _ground_material.set_shader_parameter(
-        "road_mask", load("res://textures/road_mask.png"))
+    
+    var road_tex: Texture2D = null
+    if FileAccess.file_exists("user://road_mask_custom.png"):
+        var img := Image.load_from_file("user://road_mask_custom.png")
+        if img != null and not img.is_empty():
+            road_tex = ImageTexture.create_from_image(img)
+    if road_tex == null:
+        road_tex = load("res://textures/road_mask.png")
+    _ground_material.set_shader_parameter("road_mask", road_tex)
+
     # O nivel da agua vive no Relevo. Passar para o shader em vez de repetir o
     # numero la evita que um dia o leito de terra e a lamina de agua discordem
     # sobre onde fica a margem.
@@ -52,6 +60,13 @@ func _ready() -> void:
     for m in Relevo.malhas_viarias():
         malhas.append(Plane(m.x, m.y, m.z, m.w))
     _ground_material.set_shader_parameter("malha_viaria", malhas)
+
+func get_ground_material() -> ShaderMaterial:
+    return _ground_material
+
+func set_road_mask_texture(tex: Texture2D) -> void:
+    if _ground_material:
+        _ground_material.set_shader_parameter("road_mask", tex)
 
 ## Monta na hora o pedaco sob uma posicao. O mundo nasce um pedaco por quadro
 ## para nao engasgar, mas o jogador ja cai desde o primeiro: sem o chao dele
