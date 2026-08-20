@@ -15,10 +15,30 @@ var _tripo_material: Material = preload("res://Material_TripoSR.tres")
 
 var _terrain_mesh: MeshInstance3D
 var _terrain_body: StaticBody3D
-var _grass_multimesh: MultiMeshInstance3D
 var _water_mesh: MeshInstance3D
 var _portals_node: Node3D
 var _props_node: Node3D
+
+# Banco de Árvores 3D com Alturas Reais Majestosas (em Metros)
+const ARVORES_3D := [
+    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 17.0, "keep_mat": true},
+    {"path": "res://models/oak_trees.glb", "tag": "carvalho_3d", "altura": 14.5, "keep_mat": true},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_3d", "altura": 13.5, "keep_mat": true},
+    {"path": "res://models/arvore_frondosa.glb", "tag": "arvore_frondosa", "altura": 13.0, "keep_mat": false},
+    {"path": "res://models/arvore_carvalho.glb", "tag": "arvore_carvalho", "altura": 12.0, "keep_mat": false},
+    {"path": "res://models/pinheiro.glb", "tag": "pinheiro", "altura": 12.5, "keep_mat": false}
+]
+
+const ARVORES_FANTASIA := [
+    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 11.0, "keep_mat": true},
+    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 16.0, "keep_mat": true},
+    {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal", "altura": 4.5, "keep_mat": true}
+]
+
+const VEGETACAO_BAIXA_3D := [
+    {"path": "res://models/fantasy_bush_1787078968444.glb", "tag": "arbusto_3d", "altura": 2.8, "keep_mat": true},
+    {"path": "res://models/arvore_pequena.glb", "tag": "arbusto_pequeno", "altura": 3.2, "keep_mat": false}
+]
 
 func carregar_dados() -> void:
     if _asset_catalog.is_empty():
@@ -48,14 +68,13 @@ func construir_zona(zone_data: Dictionary) -> void:
     add_child(_portals_node)
     
     _construir_terreno()
-    _construir_grama_densa()
     
     if _zone_data.get("water", false):
         _construir_agua()
         
     _construir_layout_urbano()
-    _construir_props_bioma()
-    _construir_barreiras_perimetro()
+    _construir_floresta_3d_real()
+    _construir_barreiras_perimetro_arvores_reais()
     _construir_portais()
 
 # -------------------------------------------------------------
@@ -112,11 +131,12 @@ func _construir_terreno() -> void:
             
     for j in range(SUBDIVISOES):
         for i in range(SUBDIVISOES):
-            var i0 := j * (SUBDIVISOES + 1) + i
-            var i1 := i0 + 1
-            var i2 := (j + 1) * (SUBDIVISOES + 1) + i
-            var i3 := i2 + 1
+            var i0: int = j * (SUBDIVISOES + 1) + i
+            var i1: int = i0 + 1
+            var i2: int = (j + 1) * (SUBDIVISOES + 1) + i
+            var i3: int = i2 + 1
             
+            # Winding anti-horário para normais apontando para cima (+Y)
             st.add_index(i0)
             st.add_index(i1)
             st.add_index(i2)
@@ -151,67 +171,7 @@ func _construir_terreno() -> void:
     add_child(_terrain_body)
 
 # -------------------------------------------------------------
-# 2. Grama 3D Volumétrica com Vento
-# -------------------------------------------------------------
-func _construir_grama_densa() -> void:
-    var densidade: int = int(_zone_data.get("grass_density", 900))
-    if densidade <= 0:
-        return
-        
-    var mm := MultiMesh.new()
-    mm.transform_format = MultiMesh.TRANSFORM_3D
-    mm.instance_count = densidade
-    
-    var grass_quad := QuadMesh.new()
-    grass_quad.size = Vector2(0.9, 0.9)
-    grass_quad.center_offset = Vector3(0.0, 0.45, 0.0)
-    mm.mesh = grass_quad
-    
-    _grass_multimesh = MultiMeshInstance3D.new()
-    _grass_multimesh.name = "GrassMultiMesh"
-    _grass_multimesh.multimesh = mm
-    
-    var mat := ShaderMaterial.new()
-    mat.shader = load("res://materials/zoned_grass_blade.gdshader")
-    mat.set_shader_parameter("grass_albedo", load("res://textures/props/tufo_grama_1.png"))
-    _grass_multimesh.material_override = mat
-    
-    var rng := RandomNumberGenerator.new()
-    rng.seed = hash(str(_zone_data.get("id", "zone"))) + 99
-    
-    var half: float = (TAMANHO_ZONA * 0.5) - 8.0
-    var count: int = 0
-    var tries: int = 0
-    
-    while count < densidade and tries < densidade * 3:
-        tries += 1
-        var rx: float = rng.randf_range(-half, half)
-        var rz: float = rng.randf_range(-half, half)
-        
-        var dist_c: float = Vector2(rx, rz).length()
-        if _zone_data.get("biome") == "cidade" and dist_c < 26.0:
-            continue
-            
-        var ry: float = calcular_altura(rx, rz)
-        if _zone_data.get("water", false) and ry < float(_zone_data.get("water_level", -2.0)) + 0.3:
-            continue
-            
-        var scale_rnd: float = rng.randf_range(0.8, 1.2)
-        var rot_y: float = rng.randf_range(0.0, TAU)
-        
-        var t := Transform3D()
-        t = t.scaled(Vector3(scale_rnd, scale_rnd, scale_rnd))
-        t = t.rotated(Vector3.UP, rot_y)
-        t.origin = Vector3(rx, ry, rz)
-        
-        mm.set_instance_transform(count, t)
-        count += 1
-        
-    mm.visible_instance_count = count
-    add_child(_grass_multimesh)
-
-# -------------------------------------------------------------
-# 3. Lâmina d'água
+# 2. Lâmina d'água
 # -------------------------------------------------------------
 func _construir_agua() -> void:
     var water_y: float = float(_zone_data.get("water_level", -2.0))
@@ -231,7 +191,7 @@ func _construir_agua() -> void:
     add_child(_water_mesh)
 
 # -------------------------------------------------------------
-# 4. Construções da Cidade / Layout Urbano
+# 3. Construções 3D da Cidade / Casas Medievais PBR
 # -------------------------------------------------------------
 func _construir_layout_urbano() -> void:
     var layout_id: String = str(_zone_data.get("layout_id", ""))
@@ -243,12 +203,16 @@ func _construir_layout_urbano() -> void:
     
     for p in pecas:
         var tag: String = str(p.get("tag", ""))
-        var kind: Dictionary = _asset_catalog.get(tag, {})
-        var modelo_path: String = _obter_modelo_path(p, tag)
+        var modelo_info := _obter_modelo_urbano_info(p, tag)
+        var modelo_path: String = modelo_info.get("path", "")
         if modelo_path == "":
             continue
             
-        var suporte := _criar_suporte_prop(modelo_path, tag, kind, float(p.get("escala", 1.0)))
+        var altura_alvo: float = float(modelo_info.get("altura", 8.0))
+        var keep_mat: bool = bool(modelo_info.get("keep_mat", false))
+        var escala_layout: float = float(p.get("escala", 1.0))
+        
+        var suporte := _instanciar_prop_3d(modelo_path, tag, altura_alvo, keep_mat, escala_layout)
         if not suporte:
             continue
             
@@ -260,55 +224,79 @@ func _construir_layout_urbano() -> void:
         suporte.position = Vector3(px, py, pz)
         suporte.rotation.y = deg_to_rad(giro)
         
-        _adicionar_colisor_prop(suporte, tag, float(p.get("escala", 1.0)))
+        _adicionar_colisor_prop(suporte, tag, escala_layout * (altura_alvo / 7.0))
         _props_node.add_child(suporte)
 
-# -------------------------------------------------------------
-# 5. Vegetação e Props Orgânicos
-# -------------------------------------------------------------
-func _construir_props_bioma() -> void:
-    var rng := RandomNumberGenerator.new()
-    rng.seed = hash(str(_zone_data.get("id", "zone"))) + 42
+func _obter_modelo_urbano_info(p: Dictionary, tag: String) -> Dictionary:
+    var m_nome: String = str(p.get("modelo", ""))
     
-    var n_arvores: int = int(_zone_data.get("tree_count", 30))
-    var n_arbustos: int = int(_zone_data.get("bush_count", 15))
-    
-    var modelos_arvores = [
-        {"path": "res://models/arvore_frondosa.glb", "tag": "arvore_frondosa"},
-        {"path": "res://models/arvore_carvalho.glb", "tag": "arvore_carvalho"},
-        {"path": "res://models/arvore_pequena.glb", "tag": "arvore_pequena"}
-    ]
-    var modelos_arbustos = [
-        {"path": "res://models/fantasy_bush_1787078968444.glb", "tag": "arbusto"}
-    ]
-    
-    _espalhar_props(rng, n_arvores, modelos_arvores, 55.0, true)
-    _espalhar_props(rng, n_arbustos, modelos_arbustos, 65.0, false)
+    # Casas Medievais 3D PBR de Alta Qualidade
+    if tag.begins_with("casa_enxaimel") or tag.begins_with("casa_grande") or tag.begins_with("sobrado"):
+        var houses = [
+            {"path": "res://models/medieval_house_1.glb", "altura": 9.5, "keep_mat": true},
+            {"path": "res://models/medieval_house_3.glb", "altura": 9.0, "keep_mat": true}
+        ]
+        return houses[hash(str(p.get("x", 0))) % houses.size()]
+        
+    if tag.begins_with("casa") or tag.begins_with("mansao"):
+        return {"path": "res://models/medieval_house_1.glb", "altura": 9.5, "keep_mat": true}
+        
+    if tag == "muralha" or tag == "muro":
+        return {"path": "res://models/stone_wall_segment_1787079001245.glb", "altura": 3.8, "keep_mat": true}
+        
+    if m_nome != "":
+        var glb := "res://models/%s.glb" % m_nome
+        if ResourceLoader.exists(glb):
+            return {"path": glb, "altura": 7.5, "keep_mat": false}
+            
+    if _asset_catalog.has(tag):
+        var c_models: Array = _asset_catalog[tag].get("models", [])
+        if not c_models.is_empty() and ResourceLoader.exists(str(c_models[0])):
+            return {"path": str(c_models[0]), "altura": float(_asset_catalog[tag].get("altura", 6.5)), "keep_mat": false}
+            
+    return {}
 
-func _espalhar_props(rng: RandomNumberGenerator, qtd: int, lista_modelos: Array, raio_max: float, solido: bool) -> void:
+# -------------------------------------------------------------
+# 4. Floresta e Vegetação 100% 3D em Escala Real de Árvore
+# -------------------------------------------------------------
+func _construir_floresta_3d_real() -> void:
+    var rng := RandomNumberGenerator.new()
+    rng.seed = hash(str(_zone_data.get("id", "zone"))) + 77
+    
+    var biome: String = str(_zone_data.get("biome", "floresta"))
+    var n_arvores: int = int(_zone_data.get("tree_count", 36))
+    var n_arbustos: int = int(_zone_data.get("bush_count", 20))
+    
+    var lista_arvores: Array = ARVORES_FANTASIA if (biome == "sagrado" or biome == "sombria") else ARVORES_3D
+    
+    _espalhar_props_3d(rng, n_arvores, lista_arvores, 60.0, true, 1.0, 1.3)
+    _espalhar_props_3d(rng, n_arbustos, VEGETACAO_BAIXA_3D, 65.0, false, 0.9, 1.25)
+
+func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio_max: float, solido: bool, sc_min: float, sc_max: float) -> void:
     var is_cidade: bool = (_zone_data.get("biome") == "cidade")
     var water_y: float = float(_zone_data.get("water_level", -2.0))
     var tem_agua: bool = bool(_zone_data.get("water", false))
     
     for i in range(qtd):
-        var item: Dictionary = lista_modelos[rng.randi() % lista_modelos.size()]
+        var item: Dictionary = lista[rng.randi() % lista.size()]
         var path: String = str(item["path"])
         var tag: String = str(item["tag"])
-        var kind: Dictionary = _asset_catalog.get(tag, {})
+        var alt_base: float = float(item["altura"])
+        var keep_mat: bool = bool(item.get("keep_mat", false))
         
-        var escala_extra: float = rng.randf_range(0.9, 1.2)
-        var suporte := _criar_suporte_prop(path, tag, kind, escala_extra)
+        var escala_extra: float = rng.randf_range(sc_min, sc_max)
+        var suporte := _instanciar_prop_3d(path, tag, alt_base, keep_mat, escala_extra)
         if not suporte:
             continue
             
         var ang: float = rng.randf_range(0.0, TAU)
-        var dist_min: float = 30.0 if is_cidade else 6.0
+        var dist_min: float = 32.0 if is_cidade else 8.0
         var dist: float = rng.randf_range(dist_min, raio_max)
         var px: float = cos(ang) * dist
         var pz: float = sin(ang) * dist
         var py: float = calcular_altura(px, pz)
         
-        if tem_agua and py < water_y + 0.4:
+        if tem_agua and py < water_y + 0.5:
             suporte.queue_free()
             continue
             
@@ -316,46 +304,51 @@ func _espalhar_props(rng: RandomNumberGenerator, qtd: int, lista_modelos: Array,
         suporte.rotation.y = rng.randf_range(0.0, TAU)
         
         if solido:
-            _adicionar_colisor_prop(suporte, tag, escala_extra)
+            _adicionar_colisor_prop(suporte, tag, escala_extra * (alt_base / 12.0))
             
         _props_node.add_child(suporte)
 
 # -------------------------------------------------------------
-# 6. Barreiras Naturais de Perímetro
+# 5. Barreiras Naturais de Borda com Árvores 3D Gigantes
 # -------------------------------------------------------------
-func _construir_barreiras_perimetro() -> void:
+func _construir_barreiras_perimetro_arvores_reais() -> void:
     var exits: Dictionary = _zone_data.get("exits", {})
-    var half: float = (TAMANHO_ZONA * 0.5) - 4.0
-    var portal_gap: float = 14.0
-    var kind_arvore: Dictionary = _asset_catalog.get("arvore_frondosa", {"altura": 7.0})
+    var half: float = (TAMANHO_ZONA * 0.5) - 6.0
+    var portal_gap: float = 16.0
     
-    var num_passos: int = int(TAMANHO_ZONA / 7.0)
+    var num_passos: int = int(TAMANHO_ZONA / 8.5)
     for step in range(num_passos):
-        var pos_along: float = -half + float(step) * 7.0
+        var pos_along: float = -half + float(step) * 8.5
         
         # Norte
         if exits.get("north", "") == "" or abs(pos_along) > portal_gap:
-            _criar_arvore_borda(Vector3(pos_along, calcular_altura(pos_along, -half), -half), kind_arvore)
+            _criar_arvore_borda_3d(Vector3(pos_along, calcular_altura(pos_along, -half), -half), step + 1)
         # Sul
         if exits.get("south", "") == "" or abs(pos_along) > portal_gap:
-            _criar_arvore_borda(Vector3(pos_along, calcular_altura(pos_along, half), half), kind_arvore)
+            _criar_arvore_borda_3d(Vector3(pos_along, calcular_altura(pos_along, half), half), step + 2)
         # Oeste
         if exits.get("west", "") == "" or abs(pos_along) > portal_gap:
-            _criar_arvore_borda(Vector3(-half, calcular_altura(-half, pos_along), pos_along), kind_arvore)
+            _criar_arvore_borda_3d(Vector3(-half, calcular_altura(-half, pos_along), pos_along), step + 3)
         # Leste
         if exits.get("east", "") == "" or abs(pos_along) > portal_gap:
-            _criar_arvore_borda(Vector3(half, calcular_altura(half, pos_along), pos_along), kind_arvore)
+            _criar_arvore_borda_3d(Vector3(half, calcular_altura(half, pos_along), pos_along), step + 4)
 
-func _criar_arvore_borda(pos: Vector3, kind: Dictionary) -> void:
-    var suporte := _criar_suporte_prop("res://models/arvore_frondosa.glb", "arvore_frondosa", kind, 1.1)
+func _criar_arvore_borda_3d(pos: Vector3, idx_seed: int) -> void:
+    var item: Dictionary = ARVORES_3D[idx_seed % ARVORES_3D.size()]
+    var path: String = str(item["path"])
+    var tag: String = str(item["tag"])
+    var alt_base: float = float(item["altura"]) * 1.15 # Árvores de borda bem imponentes
+    var keep_mat: bool = bool(item.get("keep_mat", false))
+    
+    var suporte := _instanciar_prop_3d(path, tag, alt_base, keep_mat, 1.0)
     if not suporte:
         return
     suporte.position = pos
-    _adicionar_colisor_prop(suporte, "arvore", 1.1)
+    _adicionar_colisor_prop(suporte, "arvore", alt_base / 10.0)
     _props_node.add_child(suporte)
 
 # -------------------------------------------------------------
-# 7. Portais de Transição
+# 6. Portais de Transição
 # -------------------------------------------------------------
 func _construir_portais() -> void:
     var exits: Dictionary = _zone_data.get("exits", {})
@@ -376,6 +369,7 @@ func _construir_portais() -> void:
         var portal = PortalScript.new()
         portal.dest_zone_id = dest_id
         portal.direction = str(cfg["dir"])
+        portal.portal_label = "Portal para " + _obter_nome_zona(dest_id)
         portal.name = "Portal_" + str(cfg["dir"]).capitalize()
         
         var target_pos: Vector3 = cfg["pos"]
@@ -388,10 +382,16 @@ func _construir_portais() -> void:
         )
         _portals_node.add_child(portal)
 
+func _obter_nome_zona(zid: String) -> String:
+    var zdb = JSON.parse_string(FileAccess.get_file_as_string("res://data/zones_db.json"))
+    if zdb and zdb.has("zones") and zdb["zones"].has(zid):
+        return zdb["zones"][zid].get("name", "Destino")
+    return zid
+
 # -------------------------------------------------------------
-# Helpers de Medição, Material e Apoio de Pé no Chão
+# Instanciação 3D Real com Medição AABB e Assentamento no Chão
 # -------------------------------------------------------------
-func _criar_suporte_prop(path: String, tag: String, kind: Dictionary, escala_mult: float = 1.0) -> Node3D:
+func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, keep_mat: bool, escala_mult: float = 1.0) -> Node3D:
     if not ResourceLoader.exists(path):
         return null
     var res := load(path)
@@ -405,25 +405,23 @@ func _criar_suporte_prop(path: String, tag: String, kind: Dictionary, escala_mul
     var suporte := Node3D.new()
     suporte.name = tag
     
-    # Aplica Material_TripoSR com vertex_color_use_as_albedo caso não seja modelo com textura PBR customizada
-    var keep_mat: bool = bool(kind.get("keep_materials", false)) or tag.begins_with("casa_enxaimel") or tag.begins_with("mansao") or tag == "grama_3d"
+    # Se não for modelo com textura PBR embutida, aplica Material_TripoSR com vertex colors
     if not keep_mat:
         for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):
             mesh_node.material_override = _tripo_material
             
     suporte.add_child(modelo)
     
-    # Mede a caixa AABB real do modelo para alinhar perfeitamente no chão e escalar
+    # Medição da caixa AABB orientada real
     var caixa: AABB = _caixa_do_modelo(modelo)
     var fator: float = 1.0
-    var altura_alvo: float = float(kind.get("altura", 0.0))
     if altura_alvo > 0.0 and caixa.size.y > 0.0001:
         fator = (altura_alvo / caixa.size.y) * escala_mult
     else:
         fator = escala_mult
         
     modelo.scale = Vector3.ONE * fator
-    # Apoia o pé do modelo no chão (y = 0 local do suporte)
+    # Assenta a base exatamente no chão (y = 0 local)
     modelo.position.y = -caixa.position.y * fator
     
     return suporte
@@ -445,41 +443,27 @@ func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
         atual = atual.get_parent() as Node3D
     return acumulado
 
-func _obter_modelo_path(p: Dictionary, tag: String) -> String:
-    var m_nome: String = str(p.get("modelo", ""))
-    if m_nome != "":
-        var glb := "res://models/%s.glb" % m_nome
-        if ResourceLoader.exists(glb):
-            return glb
-            
-    if _asset_catalog.has(tag):
-        var c_models: Array = _asset_catalog[tag].get("models", [])
-        if not c_models.is_empty() and ResourceLoader.exists(str(c_models[0])):
-            return str(c_models[0])
-    return ""
-
 func _adicionar_colisor_prop(node: Node3D, tag: String, escala: float) -> void:
     var body := StaticBody3D.new()
     var col := CollisionShape3D.new()
-    var shape := CylinderShape3D.new()
     
-    if tag.begins_with("arvore"):
-        shape.radius = 0.5 * escala
-        shape.height = 3.5 * escala
+    if tag.begins_with("arvore") or tag.begins_with("carvalho") or tag.begins_with("pinheiro") or tag.begins_with("cogumelo_arvore"):
+        var shape := CylinderShape3D.new()
+        shape.radius = 0.85 * clampf(escala, 0.8, 1.8)
+        shape.height = 4.5 * clampf(escala, 0.8, 2.0)
+        col.shape = shape
         col.position.y = shape.height * 0.5
     elif tag.begins_with("casa") or tag.begins_with("mansao") or tag.begins_with("sobrado"):
         var box := BoxShape3D.new()
-        box.size = Vector3(5.5 * escala, 5.0 * escala, 5.5 * escala)
+        box.size = Vector3(6.5 * escala, 6.0 * escala, 6.5 * escala)
         col.shape = box
         col.position.y = box.size.y * 0.5
-        body.add_child(col)
-        node.add_child(body)
-        return
     else:
-        shape.radius = 0.6 * escala
-        shape.height = 1.4 * escala
+        var shape := CylinderShape3D.new()
+        shape.radius = 0.7 * escala
+        shape.height = 2.0 * escala
+        col.shape = shape
         col.position.y = shape.height * 0.5
         
-    col.shape = shape
     body.add_child(col)
     node.add_child(body)
