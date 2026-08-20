@@ -18,19 +18,27 @@ var _water_mesh: MeshInstance3D
 var _portals_node: Node3D
 var _props_node: Node3D
 
-# Banco Exclusivo de Novos Modelos 3D Reais com Texturas e Alturas Reais
+# Banco de modelos, escolhidos tambem pelo CUSTO e nao so pela aparencia.
+#
+# Cada malha separada dentro de um modelo e uma chamada de desenho por copia
+# plantada. O bordo japones tinha 2700 malhas e o carvalho 198: uma unica arvore
+# dessas custava mais chamadas que a cena inteira deveria custar, e a medicao
+# mostrou 2213 chamadas com 2,7 milhoes de primitivas — dois quadros e meio por
+# segundo. O platano trazia 143 mil triangulos por copia.
+#
+# Ficaram os tres que sao baratos E bonitos: seis, duas e duas malhas.
 const ARVORES_FLORESTA_3D := [
+    # A cara aparece uma vez em quatro: 22,5 mil triangulos contra 2,1 mil do
+    # pinheiro. Como destaque ela vale; como mata inteira, sozinha derruba o
+    # quadro. As outras tres entradas sao baratas de proposito.
     {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 10.5, "enterrar": 0.65},
-    {"path": "res://models/oak_trees.glb", "tag": "carvalho_real", "altura": 9.0, "enterrar": 0.55},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.0, "enterrar": 0.50},
     {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.5, "enterrar": 0.50},
-    {"path": "res://models/japanese_maple_tree.glb", "tag": "bordo_japones", "altura": 8.5, "enterrar": 0.55},
-    {"path": "res://models/platano_tree.glb", "tag": "platano_real", "altura": 9.5, "enterrar": 0.60}
+    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 8.0, "enterrar": 0.45}
 ]
 
 const ARVORES_MISTICAS_3D := [
     {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 7.0, "enterrar": 0.45},
-    {"path": "res://models/japanese_maple_tree.glb", "tag": "bordo_japones", "altura": 8.5, "enterrar": 0.55},
-    {"path": "res://models/platano_tree.glb", "tag": "platano_real", "altura": 9.5, "enterrar": 0.60},
     {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal_arcano", "altura": 3.6, "enterrar": 0.25}
 ]
 
@@ -299,7 +307,13 @@ func _construir_barreiras_perimetro_arvores_reais() -> void:
     var half: float = (TAMANHO_ZONA * 0.5) - 6.0
     var portal_gap: float = 16.0
     
-    var num_passos: int = int(TAMANHO_ZONA / 8.5)
+    # Espacamento maior no cinturao.
+    #
+    # A 8,5 m eram 134 arvores so na moldura, e cada uma custa 22 mil triangulos:
+    # a borda sozinha pesava mais que tudo dentro da zona. A 15 m sao menos da
+    # metade, e como cada arvore agora e maior e o giro e sorteado, a parede de
+    # copa continua fechada — o jogador nao ve o fim do mundo por causa disso.
+    var num_passos: int = int(TAMANHO_ZONA / 15.0)
     for step in range(num_passos):
         var pos_along: float = -half + float(step) * 8.5
         
@@ -316,8 +330,19 @@ func _construir_barreiras_perimetro_arvores_reais() -> void:
         if exits.get("east", "") == "" or abs(pos_along) > portal_gap:
             _criar_arvore_borda_3d(Vector3(half, calcular_altura(half, pos_along), pos_along), step + 4)
 
+## As arvores BARATAS ficam no cinturao.
+##
+## A moldura tem dezenas de copias e o miolo tem poucas, entao o custo mora na
+## borda: por copia, o pinheiro tem 2,1 mil triangulos e a outra tem 22,5 mil —
+## dez vezes mais, para uma silhueta que o jogador ve de longe e contra a luz.
+## O detalhe caro fica onde ele e olhado de perto.
+const ARVORES_DE_BORDA := [
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.5, "enterrar": 0.50},
+    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 8.0, "enterrar": 0.45},
+]
+
 func _criar_arvore_borda_3d(pos: Vector3, idx_seed: int) -> void:
-    var item: Dictionary = ARVORES_FLORESTA_3D[idx_seed % ARVORES_FLORESTA_3D.size()]
+    var item: Dictionary = ARVORES_DE_BORDA[idx_seed % ARVORES_DE_BORDA.size()]
     var path: String = str(item["path"])
     var tag: String = str(item["tag"])
     var alt_base: float = float(item["altura"]) * 1.2

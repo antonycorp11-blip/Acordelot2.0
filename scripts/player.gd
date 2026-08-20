@@ -83,7 +83,15 @@ func _physics_process(delta: float) -> void:
         var camera_right := camera.global_basis.x
         camera_right.y = 0.0
         camera_right = camera_right.normalized()
-        move_direction = (camera_right * input_vector.x - camera_forward * input_vector.y).normalized()
+        # A INTENSIDADE do empurrao sobrevive ate a velocidade.
+        #
+        # Antes o vetor era normalizado aqui, e com isso qualquer toque alem da
+        # zona morta virava velocidade cheia: nao havia andar devagar, so parado
+        # ou disparado. Num polegar sobre vidro isso e o que faz o controle
+        # parecer escorregadio e dificil de mirar.
+        var bruto := camera_right * input_vector.x - camera_forward * input_vector.y
+        var forca: float = clampf(input_vector.length(), 0.0, 1.0)
+        move_direction = bruto.normalized() * forca
 
     if _voando:
         velocity.x = move_toward(velocity.x, move_direction.x * fly_speed, acceleration * 1.5 * delta)
@@ -117,7 +125,7 @@ func _physics_process(delta: float) -> void:
     # No meio do golpe o corpo NAO gira com o direcional. Sem isso o jogador
     # anda durante o swing, o heroi acompanha, e a lamina termina apontada para
     # outro lado — o golpe sai visualmente errado mesmo tendo acertado.
-    if move_direction.length() > 0.0 and not _hero.atacando():
+    if move_direction.length() > 0.01 and not _hero.atacando():
         var target_angle := atan2(move_direction.x, move_direction.z)
         rotation.y = lerp_angle(rotation.y, target_angle, 10.0 * delta)
 
