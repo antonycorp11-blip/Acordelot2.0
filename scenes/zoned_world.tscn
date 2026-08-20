@@ -1,0 +1,174 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/zoned_game.gd" id="1_zoned_game"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="2_player"]
+[ext_resource type="Script" path="res://scripts/hero.gd" id="3_hero"]
+[ext_resource type="Script" path="res://scripts/isometric_camera.gd" id="4_camera"]
+[ext_resource type="Script" path="res://scripts/ciclo_dia_noite.gd" id="5_ciclo"]
+[ext_resource type="Script" path="res://scripts/zone_builder.gd" id="6_builder"]
+[ext_resource type="Script" path="res://scripts/zone_manager.gd" id="7_manager"]
+[ext_resource type="Script" path="res://scripts/zone_minimap.gd" id="8_minimap"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="9_joystick"]
+[ext_resource type="Script" path="res://scripts/barra_do_dia.gd" id="10_barra"]
+[ext_resource type="Texture2D" path="res://textures/ui/btn_ataque.png" id="11_btn_ataque"]
+[ext_resource type="Texture2D" path="res://textures/ui/btn_voo.png" id="12_btn_voo"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_zoned"]
+sky_top_color = Color(0.18, 0.45, 0.78, 1)
+sky_horizon_color = Color(0.75, 0.86, 0.94, 1)
+ground_bottom_color = Color(0.14, 0.2, 0.12, 1)
+ground_horizon_color = Color(0.6, 0.72, 0.54, 1)
+sun_angle_max = 20.0
+sun_curve = 0.09
+
+[sub_resource type="Sky" id="Sky_zoned"]
+sky_material = SubResource("SkyMaterial_zoned")
+
+[sub_resource type="Environment" id="Environment_zoned"]
+background_mode = 2
+sky = SubResource("Sky_zoned")
+ambient_light_source = 2
+ambient_light_color = Color(0.68, 0.72, 0.68, 1)
+ambient_light_energy = 1.0
+reflected_light_source = 1
+tonemap_mode = 3
+tonemap_exposure = 1.2
+fog_enabled = true
+fog_light_color = Color(0.74, 0.82, 0.85, 1)
+fog_light_energy = 0.25
+fog_density = 0.003
+fog_height = 2.0
+fog_height_density = 0.04
+
+[sub_resource type="CapsuleShape3D" id="Shape_player"]
+radius = 0.45
+height = 1.8
+
+[node name="ZonedWorld" type="Node3D"]
+script = ExtResource("1_zoned_game")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_zoned")
+
+[node name="Sunlight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.819152, -0.40558, 0.40558, 0, 0.707107, 0.707107, -0.573576, -0.579228, 0.579228, 0, 20, 0)
+light_color = Color(1, 0.95, 0.85, 1)
+light_energy = 2.1
+shadow_enabled = true
+directional_shadow_max_distance = 60.0
+
+[node name="CicloDiaNoite" type="Node" parent="." node_paths=PackedStringArray("sol", "ambiente")]
+script = ExtResource("5_ciclo")
+sol = NodePath("../Sunlight")
+ambiente = NodePath("../WorldEnvironment")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+script = ExtResource("2_player")
+
+[node name="Hero" type="Node3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
+script = ExtResource("3_hero")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("Shape_player")
+
+[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("4_camera")
+target = NodePath("../Player")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.615661, 0.788011, 0, -0.788011, 0.615661, 0, 17.5, 13.5)
+current = true
+fov = 42.0
+near = 0.2
+far = 90.0
+
+[node name="ZoneBuilder" type="Node3D" parent="."]
+script = ExtResource("6_builder")
+
+[node name="ZoneManager" type="Node3D" parent="." node_paths=PackedStringArray("player", "zone_builder")]
+script = ExtResource("7_manager")
+player = NodePath("../Player")
+zone_builder = NodePath("../ZoneBuilder")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="ZoneMinimap" type="Control" parent="HUD" node_paths=PackedStringArray("zone_manager", "player")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("8_minimap")
+zone_manager = NodePath("../../ZoneManager")
+player = NodePath("../../Player")
+
+[node name="VirtualJoystick" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -212.0
+offset_right = 212.0
+offset_bottom = -32.0
+grow_vertical = 0
+script = ExtResource("9_joystick")
+
+[node name="BarraDoDia" type="Control" parent="HUD" node_paths=PackedStringArray("ciclo")]
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -110.0
+offset_top = 16.0
+offset_right = 110.0
+offset_bottom = 44.0
+grow_horizontal = 2
+script = ExtResource("10_barra")
+ciclo = NodePath("../../CicloDiaNoite")
+
+[node name="BotoesAcao" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_top = -140.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="BtnAtaque" type="TextureButton" parent="HUD/BotoesAcao"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -76.0
+offset_top = -38.0
+offset_bottom = 38.0
+grow_horizontal = 0
+grow_vertical = 2
+texture_normal = ExtResource("11_btn_ataque")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BtnVoo" type="TextureButton" parent="HUD/BotoesAcao"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -34.0
+offset_right = 68.0
+offset_bottom = 34.0
+grow_vertical = 2
+texture_normal = ExtResource("12_btn_voo")
+ignore_texture_size = true
+stretch_mode = 5

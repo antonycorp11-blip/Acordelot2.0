@@ -1,0 +1,197 @@
+{
+  "zone_size": 160.0,
+  "start_zone": "zone_floresta_despertar",
+  "zones": {
+    "zone_floresta_despertar": {
+      "id": "zone_floresta_despertar",
+      "name": "🌲 Floresta do Despertar",
+      "tier": "Tier I — Zona Inicial",
+      "biome": "floresta",
+      "grid_pos": [0, 3],
+      "terrain_type": "colinas_suaves",
+      "water": false,
+      "grass_density": 1800,
+      "tree_count": 48,
+      "bush_count": 28,
+      "flower_count": 50,
+      "rock_count": 16,
+      "layout_id": "",
+      "exits": {
+        "north": "zone_vila_caminho",
+        "south": "zone_floresta_sombria",
+        "east": "",
+        "west": ""
+      }
+    },
+    "zone_vila_caminho": {
+      "id": "zone_vila_caminho",
+      "name": "🏘️ Vila do Caminho & Mercado",
+      "tier": "Tier II — Povoado Comercial",
+      "biome": "cidade",
+      "grid_pos": [0, 2],
+      "terrain_type": "plato_urbano",
+      "water": false,
+      "grass_density": 900,
+      "tree_count": 16,
+      "bush_count": 14,
+      "flower_count": 24,
+      "rock_count": 8,
+      "layout_id": "custom_1785884200706_430",
+      "exits": {
+        "north": "zone_portoes",
+        "south": "zone_floresta_despertar",
+        "east": "",
+        "west": ""
+      }
+    },
+    "zone_portoes": {
+      "id": "zone_portoes",
+      "name": "🛡️ Portões Reais da Fortaleza",
+      "tier": "Tier III — Guarnição Militar",
+      "biome": "cidade",
+      "grid_pos": [0, 1],
+      "terrain_type": "plato_urbano",
+      "water": false,
+      "grass_density": 750,
+      "tree_count": 12,
+      "bush_count": 10,
+      "flower_count": 18,
+      "rock_count": 12,
+      "layout_id": "custom_1785880661560_858",
+      "exits": {
+        "north": "zone_capital",
+        "south": "zone_vila_caminho",
+        "east": "",
+        "west": "zone_forjador"
+      }
+    },
+    "zone_capital": {
+      "id": "zone_capital",
+      "name": "🏰 Praça Imperial de Acordelot",
+      "tier": "Capital Real — Cidade Principal",
+      "biome": "cidade",
+      "grid_pos": [0, 0],
+      "terrain_type": "plato_urbano",
+      "water": false,
+      "grass_density": 600,
+      "tree_count": 10,
+      "bush_count": 8,
+      "flower_count": 30,
+      "rock_count": 6,
+      "layout_id": "custom_1785869541494_557",
+      "exits": {
+        "north": "zone_cidadela",
+        "south": "zone_portoes",
+        "east": "zone_enseada",
+        "west": "zone_forjador"
+      }
+    },
+    "zone_enseada": {
+      "id": "zone_enseada",
+      "name": "⛵ Vila Ribeirinha — Enseada do Lago",
+      "tier": "Tier III — Porto Lacustre",
+      "biome": "lago",
+      "grid_pos": [1, 0],
+      "terrain_type": "bacia_lago",
+      "water": true,
+      "water_level": -1.8,
+      "grass_density": 1200,
+      "tree_count": 22,
+      "bush_count": 24,
+      "flower_count": 40,
+      "rock_count": 20,
+      "layout_id": "custom_1786572518911_723",
+      "exits": {
+        "north": "",
+        "south": "",
+        "east": "",
+        "west": "zone_capital"
+      }
+    },
+    "zone_cidadela": {
+      "id": "zone_cidadela",
+      "name": "⛰️ Cidadela da Serra & Forte dos Ventos",
+      "tier": "Tier IV — Fortaleza Montanhosa",
+      "biome": "serra",
+      "grid_pos": [0, -1],
+      "terrain_type": "plato_montanha",
+      "water": false,
+      "grass_density": 1000,
+      "tree_count": 36,
+      "bush_count": 16,
+      "flower_count": 20,
+      "rock_count": 32,
+      "layout_id": "custom_1786572340509_998",
+      "exits": {
+        "north": "zone_santuario",
+        "south": "zone_capital",
+        "east": "",
+        "west": ""
+      }
+    },
+    "zone_santuario": {
+      "id": "zone_santuario",
+      "name": "✦ Santuário das Notas Sagradas",
+      "tier": "Tier V — Solo Sagrado",
+      "biome": "sagrado",
+      "grid_pos": [0, -2],
+      "terrain_type": "clareira_sagrada",
+      "water": true,
+      "water_level": -2.2,
+      "grass_density": 1600,
+      "tree_count": 24,
+      "bush_count": 20,
+      "flower_count": 60,
+      "rock_count": 14,
+      "layout_id": "notas_sagradas",
+      "exits": {
+        "north": "",
+        "south": "zone_cidadela",
+        "east": "",
+        "west": ""
+      }
+    },
+    "zone_forjador": {
+      "id": "zone_forjador",
+      "name": "🎼 Salão do Forjador — Altar das Escalas",
+      "tier": "Tier III — Distrito Artesanal",
+      "biome": "ruina",
+      "grid_pos": [-1, 0],
+      "terrain_type": "plato_urbano",
+      "water": false,
+      "grass_density": 800,
+      "tree_count": 14,
+      "bush_count": 12,
+      "flower_count": 16,
+      "rock_count": 24,
+      "layout_id": "custom_1786501580114_289",
+      "exits": {
+        "north": "",
+        "south": "",
+        "east": "zone_capital",
+        "west": ""
+      }
+    },
+    "zone_floresta_sombria": {
+      "id": "zone_floresta_sombria",
+      "name": "🌑 Floresta Sombria dos Ecos",
+      "tier": "Tier IV — Terras Hostis",
+      "biome": "sombria",
+      "grid_pos": [0, 4],
+      "terrain_type": "colinas_sombrias",
+      "water": false,
+      "grass_density": 1100,
+      "tree_count": 52,
+      "bush_count": 20,
+      "flower_count": 8,
+      "rock_count": 38,
+      "layout_id": "",
+      "exits": {
+        "north": "zone_floresta_despertar",
+        "south": "",
+        "east": "",
+        "west": ""
+      }
+    }
+  }
+}
