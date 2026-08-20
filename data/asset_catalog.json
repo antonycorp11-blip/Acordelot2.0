@@ -464,6 +464,59 @@
       ],
       "solid": false,
       "na_vila": true
+    },
+    "casa_enxaimel_1": {
+      "altura": 7.5,
+      "y": 0.0,
+      "scale": [1.0, 1.0],
+      "solid": true,
+      "na_vila": true,
+      "keep_materials": true,
+      "models": [
+        "res://models/medieval_house_1.glb"
+      ]
+    },
+    "casa_enxaimel_2": {
+      "altura": 8.5,
+      "y": 0.0,
+      "scale": [1.0, 1.0],
+      "solid": true,
+      "na_vila": true,
+      "keep_materials": true,
+      "models": [
+        "res://models/medieval_house_3.glb"
+      ]
+    },
+    "mansao_medieval": {
+      "altura": 9.2,
+      "y": 0.0,
+      "scale": [1.0, 1.0],
+      "solid": true,
+      "na_vila": true,
+      "keep_materials": true,
+      "models": [
+        "res://models/medieval_house_3.glb"
+      ]
+    },
+    "taverna_vinho": {
+      "altura": 8.8,
+      "y": 0.0,
+      "scale": [1.0, 1.0],
+      "solid": true,
+      "na_vila": true,
+      "keep_materials": true,
+      "models": [
+        "res://models/medieval_house_1.glb"
+      ]
+    },
+    "grama_3d": {
+      "y": 0.0,
+      "scale": [1.0, 1.6],
+      "solid": false,
+      "vento": true,
+      "models": [
+        "res://models/grass.glb"
+      ]
     }
   },
   "_nota_sprites": "Etiqueta com 'sprites' nasce como plaquinha 2D virada para a camera, nao como malha. 'altura' e o tamanho do objeto em metros — o recorte e justo, entao vale para o desenho inteiro. Sem 'y': a plaquinha ja apoia o pe na origem.",

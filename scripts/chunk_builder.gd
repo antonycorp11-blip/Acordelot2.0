@@ -547,7 +547,7 @@ static func _criar(kind: Dictionary, rng: RandomNumberGenerator, model_path := "
         var scene := _load_scene(caminho)
         if scene == null: return null
         var modelo: Node3D = scene.instantiate()
-        var is_custom := caminho.begins_with("user://") or bool(kind.get("is_custom", false))
+        var is_custom := caminho.begins_with("user://") or bool(kind.get("is_custom", false)) or bool(kind.get("keep_materials", false))
         if not is_custom:
             var material: Material = material_com_vento() if bool(kind.get("vento", false)) else prop_material()
             for mesh_node in modelo.find_children("*", "MeshInstance3D", true, false):

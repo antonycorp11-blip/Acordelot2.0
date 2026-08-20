@@ -1,38 +1,82 @@
 #!/usr/bin/env python3
-"""Gera data/regions.json a partir da grade do jogo 2D.
+"""Gera data/regions.json a partir da grade do jogo e configurações de biomas.
 
-A grade antiga (gridPos) vira a PLANTA de um terreno unico: a celula (col,row)
-ocupa o quadrado de REGION_SIZE metros naquela posicao. Nao ha teleporte — as
-celulas vazias do retangulo viram mata fechada para o mundo nao ter buraco.
+A grade (gridPos) vira a PLANTA de um terreno unico: a celula (col,row)
+ocupa o quadrado de REGION_SIZE metros naquela posicao. As
+celulas circundantes viram mata fechada e bosques densos para formar um mundo completo.
 """
 import json, re
 
 CFG = "data/world_config.json"
 OUT = "data/regions.json"
 
-# Bioma a partir do nome do cenario: o emoji do jogo 2D ja classificava tudo.
+# Mapeamento de biomas por palavra-chave no nome
 BIOMAS = [
-    ("caverna",  r"Caverna|Passagem Inferior|⛏|🕳"),
-    ("sombria",  r"Floresta Sombria|🌑"),
-    ("floresta", r"Floresta|Trilha|🌲|🌾"),
-    ("clareira", r"Clareira|Enseada|🌿|🏞"),
-    ("cidade",   r"Praça|Portões|Vila|🏰|🛡|🏘"),
-    ("ruina",    r"Ruínas|Salão|Altar|🏚|🎼"),
-    ("sagrado",  r"Notas Sagradas|✦"),
+    ("caverna",  r"Caverna|Gruta|Passagem|⛏|🕳"),
+    ("sombria",  r"Floresta Sombria|Sustenido|Pauta|🌑"),
+    ("floresta", r"Floresta|Trilha|Pomares|Coleta|Águas|🌲|🌾"),
+    ("clareira", r"Clareira|Enseada|🌿|🏞|⛵"),
+    ("cidade",   r"Praça|Portões|Vila|Cidadela|Bastião|🏰|🛡|🏘|⛰"),
+    ("ruina",    r"Ruínas|Altar|Forjador|Salão|🏚|🎼"),
+    ("sagrado",  r"Notas Sagradas|Santuário|✦"),
 ]
 
-# Cada bioma diz o que nasce nele. As escalas saem das arvores ja postas a mao
-# em forest_map.tscn (5.0–5.6), que e o tamanho que ficou certo na camera.
+# Densidade rica de props por bioma
 PALETAS = {
-    "floresta": [{"tag": "tree", "count": 26}, {"tag": "bush", "count": 10}],
-    "sombria":  [{"tag": "tree", "count": 34}, {"tag": "crystal", "count": 4}],
-    "clareira": [{"tag": "tree", "count": 10}, {"tag": "bush", "count": 16},
-                 {"tag": "crystal", "count": 3}],
-    "cidade":   [{"tag": "wall", "count": 18}, {"tag": "tree", "count": 6}],
-    "ruina":    [{"tag": "wall", "count": 22}, {"tag": "bush", "count": 6}],
-    "caverna":  [{"tag": "wall", "count": 26}, {"tag": "crystal", "count": 8}],
-    "sagrado":  [{"tag": "crystal", "count": 12}, {"tag": "tree", "count": 6}],
-    "mata":     [{"tag": "tree", "count": 44}, {"tag": "bush", "count": 12}],
+    "floresta": [
+        {"tag": "tree", "count": 32},
+        {"tag": "bush", "count": 14},
+        {"tag": "grama_alta", "count": 28},
+        {"tag": "flores", "count": 18},
+        {"tag": "cogumelo", "count": 10},
+        {"tag": "pedrinha", "count": 8}
+    ],
+    "sombria": [
+        {"tag": "arvore_morta", "count": 18},
+        {"tag": "pinheiro", "count": 20},
+        {"tag": "pedra", "count": 14},
+        {"tag": "raiz", "count": 12},
+        {"tag": "crystal", "count": 6}
+    ],
+    "clareira": [
+        {"tag": "tree", "count": 12},
+        {"tag": "bush", "count": 18},
+        {"tag": "grama_alta", "count": 34},
+        {"tag": "flores", "count": 30},
+        {"tag": "crystal", "count": 4},
+        {"tag": "pedrinha", "count": 12}
+    ],
+    "cidade": [
+        {"tag": "wall", "count": 16},
+        {"tag": "tree", "count": 8},
+        {"tag": "grama_alta", "count": 14},
+        {"tag": "flores", "count": 12}
+    ],
+    "ruina": [
+        {"tag": "wall", "count": 24},
+        {"tag": "pedra", "count": 16},
+        {"tag": "bush", "count": 10},
+        {"tag": "raiz", "count": 8}
+    ],
+    "caverna": [
+        {"tag": "wall", "count": 28},
+        {"tag": "pedra", "count": 22},
+        {"tag": "crystal", "count": 10}
+    ],
+    "sagrado": [
+        {"tag": "crystal", "count": 16},
+        {"tag": "tree", "count": 8},
+        {"tag": "flores", "count": 24},
+        {"tag": "grama_alta", "count": 20}
+    ],
+    "mata": [
+        {"tag": "tree", "count": 48},
+        {"tag": "pinheiro", "count": 16},
+        {"tag": "bush", "count": 18},
+        {"tag": "grama_alta", "count": 24},
+        {"tag": "cogumelo", "count": 12},
+        {"tag": "pedrinha", "count": 10}
+    ],
 }
 
 
@@ -49,7 +93,8 @@ def main():
 
     cols = [p["col"] for p in grid.values()]
     rows = [p["row"] for p in grid.values()]
-    # Uma faixa de mata em volta para a borda do mundo nao ser uma parede seca.
+    
+    # Grid de 11x10 cobrindo de -5 a 5 nas colunas e -4 a 5 nas linhas
     c0, c1 = min(cols) - 1, max(cols) + 1
     r0, r1 = min(rows) - 1, max(rows) + 1
 
@@ -72,8 +117,6 @@ def main():
                 "row": row,
                 "biome": bioma,
                 "props": PALETAS[bioma],
-                # Semente fixa por celula: o mesmo mundo em toda partida, sem
-                # precisar guardar milhares de posicoes num arquivo.
                 "seed": abs(hash((col, row, bioma))) % 2147483647,
             })
 
@@ -86,9 +129,9 @@ def main():
     json.dump(saida, open(OUT, "w"), ensure_ascii=False, indent=2)
 
     nomeadas = sum(1 for r in regioes if not r["id"].startswith("mata_"))
-    print(f"{len(regioes)} regioes ({nomeadas} do jogo antigo, "
+    print(f"{len(regioes)} regioes ({nomeadas} principais, "
           f"{len(regioes) - nomeadas} de mata) — {c1-c0+1}x{r1-r0+1} celulas")
-    print(f"mundo: {(c1-c0+1)*120}m x {(r1-r0+1)*120}m")
+    print(f"Mundo total: {(c1-c0+1)*120}m x {(r1-r0+1)*120}m")
 
 
 if __name__ == "__main__":

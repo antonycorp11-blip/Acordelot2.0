@@ -18,18 +18,13 @@ uniform sampler2D stone_texture : source_color, filter_linear_mipmap_anisotropic
 uniform sampler2D flagstone_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 
 // Centro e raio das pracas, em metros de mundo: xy = centro, z = raio, w = 0
-// quando a vaga nao e usada. Oito cabe de sobra — o mundo tem quatro cidades.
-uniform vec4 pracas[8];
+// quando a vaga nao e usada.
+uniform vec4 pracas[16];
 uniform int quantas_pracas = 0;
 
 // A malha viaria de cada cidade: quantas avenidas saem do centro e ate onde vai
 // cada anel. x = numero de avenidas, y/z/w = raio dos tres aneis (0 = sem anel).
-//
-// A rua e DESENHADA no chao, nao apenas reservada. Guardar o espaco vazio e
-// deixar o resto calcado nao le como cidade: le como praca gigante com casas na
-// borda — foi exatamente o que a vista de planta mostrou. O que faz um tracado
-// aparecer e o contraste entre o leito da rua e o miolo do quarteirao.
-uniform vec4 malha_viaria[8];
+uniform vec4 malha_viaria[16];
 
 // Mapa das estradas do mundo inteiro, desenhado por .tools/gerar_estradas.py a
 // partir da grade dos cenarios. Vermelho = terra batida, verde = calcamento.

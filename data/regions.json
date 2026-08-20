@@ -12,14 +12,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 177375874
+      "seed": 1583853649
     },
     {
       "id": "mata_-4_-4",
@@ -30,14 +46,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 483675788
+      "seed": 1890153563
     },
     {
       "id": "mata_-3_-4",
@@ -48,14 +80,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 461564398
+      "seed": 1301909156
     },
     {
       "id": "mata_-2_-4",
@@ -66,14 +114,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1142937219
+      "seed": 1745552300
     },
     {
       "id": "mata_-1_-4",
@@ -84,14 +148,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1142937219
+      "seed": 1745552300
     },
     {
       "id": "mata_0_-4",
@@ -102,14 +182,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 2028331981
+      "seed": 1525629445
     },
     {
       "id": "mata_1_-4",
@@ -120,14 +216,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 2087129844
+      "seed": 779990955
     },
     {
       "id": "mata_2_-4",
@@ -138,14 +250,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 334830015
+      "seed": 1075835887
     },
     {
       "id": "mata_3_-4",
@@ -156,14 +284,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1062770636
+      "seed": 343707143
     },
     {
       "id": "mata_4_-4",
@@ -174,14 +318,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 788868083
+      "seed": 2099621436
     },
     {
       "id": "mata_5_-4",
@@ -192,14 +352,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1843313332
+      "seed": 2037209109
     },
     {
       "id": "mata_-5_-3",
@@ -210,14 +386,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1143429208
+      "seed": 1436663871
     },
     {
       "id": "mata_-4_-3",
@@ -228,14 +420,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1734026595
+      "seed": 1154462924
     },
     {
       "id": "mata_-3_-3",
@@ -246,14 +454,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 788786413
+      "seed": 2095925302
     },
     {
       "id": "mata_-2_-3",
@@ -264,14 +488,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1802340382
+      "seed": 495201493
     },
     {
       "id": "mata_-1_-3",
@@ -282,68 +522,108 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1802340382
+      "seed": 495201493
     },
     {
       "id": "notas_sagradas",
-      "name": "✦ Lugar das Notas Sagradas",
+      "name": "✦ Santuário das Notas Sagradas",
       "col": 0,
       "row": -3,
       "biome": "sagrado",
       "props": [
         {
           "tag": "crystal",
-          "count": 12
+          "count": 16
         },
         {
           "tag": "tree",
-          "count": 6
+          "count": 8
+        },
+        {
+          "tag": "flores",
+          "count": 24
+        },
+        {
+          "tag": "grama_alta",
+          "count": 20
         }
       ],
-      "seed": 1894951686
+      "seed": 1843676943
     },
     {
       "id": "custom_1786572340509_998",
-      "name": "🏰 (sobra) Trilha da Serra em meia resolução",
+      "name": "⛰️ Cidadela da Serra & Forte dos Ventos",
       "col": 1,
       "row": -3,
-      "biome": "floresta",
+      "biome": "cidade",
       "props": [
         {
-          "tag": "tree",
-          "count": 26
+          "tag": "wall",
+          "count": 16
         },
         {
-          "tag": "bush",
-          "count": 10
+          "tag": "tree",
+          "count": 8
+        },
+        {
+          "tag": "grama_alta",
+          "count": 14
+        },
+        {
+          "tag": "flores",
+          "count": 12
         }
       ],
-      "seed": 1583648740
+      "seed": 2091190223
     },
     {
       "id": "custom_1786499037621_343",
-      "name": "🏰 (sobra) Salão do Forjador duplicado",
+      "name": "⛰️ Bastião da Vigia Alta",
       "col": 2,
       "row": -3,
       "biome": "cidade",
       "props": [
         {
           "tag": "wall",
-          "count": 18
+          "count": 16
         },
         {
           "tag": "tree",
-          "count": 6
+          "count": 8
+        },
+        {
+          "tag": "grama_alta",
+          "count": 14
+        },
+        {
+          "tag": "flores",
+          "count": 12
         }
       ],
-      "seed": 1524703024
+      "seed": 523848981
     },
     {
       "id": "mata_3_-3",
@@ -354,14 +634,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1860564586
+      "seed": 553425697
     },
     {
       "id": "mata_4_-3",
@@ -372,14 +668,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1465448655
+      "seed": 625103897
     },
     {
       "id": "mata_5_-3",
@@ -390,14 +702,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1201303155
+      "seed": 205174624
     },
     {
       "id": "mata_-5_-2",
@@ -408,14 +736,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1820009780
+      "seed": 2113244443
     },
     {
       "id": "mata_-4_-2",
@@ -426,14 +770,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 2126309694
+      "seed": 762179825
     },
     {
       "id": "mata_-3_-2",
@@ -444,14 +804,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1366028099
+      "seed": 1522461420
     },
     {
       "id": "mata_-2_-2",
@@ -462,14 +838,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1410057283
+      "seed": 102918394
     },
     {
       "id": "mata_-1_-2",
@@ -480,14 +872,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1410057283
+      "seed": 102918394
     },
     {
       "id": "mata_0_-2",
@@ -498,14 +906,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1761785576
+      "seed": 2055020239
     },
     {
       "id": "mata_1_-2",
@@ -516,14 +940,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 444495938
+      "seed": 961981841
     },
     {
       "id": "mata_2_-2",
@@ -534,14 +974,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 839679756
+      "seed": 566798023
     },
     {
       "id": "mata_3_-2",
@@ -552,14 +1008,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1283322900
+      "seed": 2024328772
     },
     {
       "id": "mata_4_-2",
@@ -570,14 +1042,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1863465305
+      "seed": 456987530
     },
     {
       "id": "mata_5_-2",
@@ -588,14 +1076,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 225220479
+      "seed": 515785393
     },
     {
       "id": "mata_-5_-1",
@@ -606,14 +1110,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1820009780
+      "seed": 2113244443
     },
     {
       "id": "mata_-4_-1",
@@ -624,14 +1144,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 2126309694
+      "seed": 762179825
     },
     {
       "id": "mata_-3_-1",
@@ -642,14 +1178,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1366028099
+      "seed": 1522461420
     },
     {
       "id": "mata_-2_-1",
@@ -660,14 +1212,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1410057283
+      "seed": 102918394
     },
     {
       "id": "mata_-1_-1",
@@ -678,14 +1246,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1410057283
+      "seed": 102918394
     },
     {
       "id": "mata_0_-1",
@@ -696,14 +1280,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1761785576
+      "seed": 2055020239
     },
     {
       "id": "mata_1_-1",
@@ -714,14 +1314,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 444495938
+      "seed": 961981841
     },
     {
       "id": "mata_2_-1",
@@ -732,14 +1348,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 839679756
+      "seed": 566798023
     },
     {
       "id": "mata_3_-1",
@@ -750,36 +1382,64 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1283322900
+      "seed": 2024328772
     },
     {
       "id": "custom_1786572518911_723",
-      "name": "🏞️ Enseada do Lago — Ecos",
+      "name": "⛵ Vila Ribeirinha — Enseada do Lago",
       "col": 4,
       "row": -1,
       "biome": "clareira",
       "props": [
         {
           "tag": "tree",
-          "count": 10
+          "count": 12
         },
         {
           "tag": "bush",
-          "count": 16
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 34
+        },
+        {
+          "tag": "flores",
+          "count": 30
         },
         {
           "tag": "crystal",
-          "count": 3
+          "count": 4
+        },
+        {
+          "tag": "pedrinha",
+          "count": 12
         }
       ],
-      "seed": 1559575831
+      "seed": 1432799715
     },
     {
       "id": "mata_5_-1",
@@ -790,14 +1450,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 225220479
+      "seed": 515785393
     },
     {
       "id": "mata_-5_0",
@@ -808,14 +1484,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1599457516
+      "seed": 858451644
     },
     {
       "id": "mata_-4_0",
@@ -826,14 +1518,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 241726221
+      "seed": 1164751558
     },
     {
       "id": "mata_-3_0",
@@ -844,14 +1552,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1186966403
+      "seed": 2027311161
     },
     {
       "id": "mata_-2_0",
@@ -862,14 +1586,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 417535214
+      "seed": 1824012989
     },
     {
       "id": "mata_-1_0",
@@ -880,32 +1620,56 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 417535214
+      "seed": 1824012989
     },
     {
       "id": "custom_1785869541494_557",
-      "name": "🏰 Praça Central de Acordelot",
+      "name": "🏰 Praça Imperial de Acordelot",
       "col": 0,
       "row": 0,
       "biome": "cidade",
       "props": [
         {
           "tag": "wall",
-          "count": 18
+          "count": 16
         },
         {
           "tag": "tree",
-          "count": 6
+          "count": 8
+        },
+        {
+          "tag": "grama_alta",
+          "count": 14
+        },
+        {
+          "tag": "flores",
+          "count": 12
         }
       ],
-      "seed": 925352636
+      "seed": 1321062657
     },
     {
       "id": "mata_1_0",
@@ -916,14 +1680,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1482435445
+      "seed": 1406054074
     },
     {
       "id": "mata_2_0",
@@ -934,32 +1714,64 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1060232020
+      "seed": 1801237892
     },
     {
       "id": "custom_1786572451743_753",
-      "name": "🌲 Trilha da Serra — Ecos",
+      "name": "🌲 Trilha das Águas Serenas",
       "col": 3,
       "row": 0,
       "biome": "floresta",
       "props": [
         {
           "tag": "tree",
-          "count": 26
+          "count": 32
         },
         {
           "tag": "bush",
+          "count": 14
+        },
+        {
+          "tag": "grama_alta",
+          "count": 28
+        },
+        {
+          "tag": "flores",
+          "count": 18
+        },
+        {
+          "tag": "cogumelo",
           "count": 10
+        },
+        {
+          "tag": "pedrinha",
+          "count": 8
         }
       ],
-      "seed": 731594022
+      "seed": 1214800643
     },
     {
       "id": "mata_4_0",
@@ -970,14 +1782,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 63466078
+      "seed": 1469943853
     },
     {
       "id": "mata_5_0",
@@ -988,14 +1816,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1117911327
+      "seed": 277566569
     },
     {
       "id": "mata_-5_1",
@@ -1006,14 +1850,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 878497499
+      "seed": 2009992020
     },
     {
       "id": "mata_-4_1",
@@ -1024,14 +1884,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 434854355
+      "seed": 1841332130
     },
     {
       "id": "mata_-3_1",
@@ -1042,14 +1918,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 609724717
+      "seed": 1350730589
     },
     {
       "id": "mata_-2_1",
@@ -1060,14 +1952,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1094115786
+      "seed": 1794373733
     },
     {
       "id": "custom_1786501580114_289",
@@ -1078,54 +1986,82 @@
       "props": [
         {
           "tag": "wall",
-          "count": 22
+          "count": 24
+        },
+        {
+          "tag": "pedra",
+          "count": 16
         },
         {
           "tag": "bush",
-          "count": 6
+          "count": 10
+        },
+        {
+          "tag": "raiz",
+          "count": 8
         }
       ],
-      "seed": 1671845310
+      "seed": 2060169007
     },
     {
       "id": "custom_1785880661560_858",
-      "name": "🛡️ Portões Reais",
+      "name": "🛡️ Portões Reais da Fortaleza",
       "col": 0,
       "row": 1,
       "biome": "cidade",
       "props": [
         {
           "tag": "wall",
-          "count": 18
+          "count": 16
         },
         {
           "tag": "tree",
-          "count": 6
+          "count": 8
+        },
+        {
+          "tag": "grama_alta",
+          "count": 14
+        },
+        {
+          "tag": "flores",
+          "count": 12
         }
       ],
-      "seed": 248772064
+      "seed": 1997643229
     },
     {
       "id": "custom_1785254692668_431",
-      "name": "🌿 Clareira dos Ecos",
+      "name": "🌿 Clareira dos Ecos I",
       "col": 1,
       "row": 1,
       "biome": "clareira",
       "props": [
         {
           "tag": "tree",
-          "count": 10
+          "count": 12
         },
         {
           "tag": "bush",
-          "count": 16
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 34
+        },
+        {
+          "tag": "flores",
+          "count": 30
         },
         {
           "tag": "crystal",
-          "count": 3
+          "count": 4
+        },
+        {
+          "tag": "pedrinha",
+          "count": 12
         }
       ],
-      "seed": 925958449
+      "seed": 413399669
     },
     {
       "id": "custom_1786545873824_206",
@@ -1136,18 +2072,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 10
+          "count": 12
         },
         {
           "tag": "bush",
-          "count": 16
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 34
+        },
+        {
+          "tag": "flores",
+          "count": 30
         },
         {
           "tag": "crystal",
-          "count": 3
+          "count": 4
+        },
+        {
+          "tag": "pedrinha",
+          "count": 12
         }
       ],
-      "seed": 706947454
+      "seed": 480832452
     },
     {
       "id": "mata_3_1",
@@ -1158,14 +2106,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1111592069
+      "seed": 294885710
     },
     {
       "id": "mata_4_1",
@@ -1176,14 +2140,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 740046650
+      "seed": 2047185539
     },
     {
       "id": "mata_5_1",
@@ -1194,14 +2174,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1695153013
+      "seed": 1988387676
     },
     {
       "id": "mata_-5_2",
@@ -1212,14 +2208,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1094607775
+      "seed": 1387842438
     },
     {
       "id": "mata_-4_2",
@@ -1230,14 +2242,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1400907689
+      "seed": 659901817
     },
     {
       "id": "mata_-3_2",
@@ -1248,14 +2276,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 640626094
+      "seed": 2047103869
     },
     {
       "id": "mata_-2_2",
@@ -1266,68 +2310,116 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 2135459288
+      "seed": 828320399
     },
     {
       "id": "custom_1785900374897_630",
-      "name": "🏚️ Pátio das Ruínas",
+      "name": "🏚️ Pátio das Ruínas Ancestrais",
       "col": -1,
       "row": 2,
       "biome": "ruina",
       "props": [
         {
           "tag": "wall",
-          "count": 22
+          "count": 24
+        },
+        {
+          "tag": "pedra",
+          "count": 16
         },
         {
           "tag": "bush",
-          "count": 6
+          "count": 10
+        },
+        {
+          "tag": "raiz",
+          "count": 8
         }
       ],
-      "seed": 1541030561
+      "seed": 1053367978
     },
     {
       "id": "custom_1785884200706_430",
-      "name": "🏘️ Vila do Caminho",
+      "name": "🏘️ Vila do Caminho & Mercado",
       "col": 0,
       "row": 2,
       "biome": "cidade",
       "props": [
         {
           "tag": "wall",
-          "count": 18
+          "count": 16
         },
         {
           "tag": "tree",
-          "count": 6
+          "count": 8
+        },
+        {
+          "tag": "grama_alta",
+          "count": 14
+        },
+        {
+          "tag": "flores",
+          "count": 12
         }
       ],
-      "seed": 816620160
+      "seed": 816212916
     },
     {
       "id": "custom_1786198430678_105",
-      "name": "🌾 Floresta de Coleta",
+      "name": "🌾 Bosque dos Pomares & Coleta",
       "col": 1,
       "row": 2,
       "biome": "floresta",
       "props": [
         {
           "tag": "tree",
-          "count": 26
+          "count": 32
         },
         {
           "tag": "bush",
+          "count": 14
+        },
+        {
+          "tag": "grama_alta",
+          "count": 28
+        },
+        {
+          "tag": "flores",
+          "count": 18
+        },
+        {
+          "tag": "cogumelo",
           "count": 10
+        },
+        {
+          "tag": "pedrinha",
+          "count": 8
         }
       ],
-      "seed": 1534827307
+      "seed": 701675758
     },
     {
       "id": "mata_2_2",
@@ -1338,14 +2430,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 681740776
+      "seed": 1988879665
     },
     {
       "id": "mata_3_2",
@@ -1356,14 +2464,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 138758742
+      "seed": 602247130
     },
     {
       "id": "mata_4_2",
@@ -1374,14 +2498,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1706099984
+      "seed": 1182389535
     },
     {
       "id": "mata_5_2",
@@ -1392,14 +2532,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1534422061
+      "seed": 1241187398
     },
     {
       "id": "mata_-5_3",
@@ -1410,14 +2566,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1771188347
+      "seed": 2064423010
     },
     {
       "id": "custom_1785976318486_785",
@@ -1428,14 +2600,18 @@
       "props": [
         {
           "tag": "wall",
-          "count": 26
+          "count": 28
+        },
+        {
+          "tag": "pedra",
+          "count": 22
         },
         {
           "tag": "crystal",
-          "count": 8
+          "count": 10
         }
       ],
-      "seed": 249721966
+      "seed": 42517045
     },
     {
       "id": "custom_1785976286672_61",
@@ -1446,14 +2622,18 @@
       "props": [
         {
           "tag": "wall",
-          "count": 26
+          "count": 28
+        },
+        {
+          "tag": "pedra",
+          "count": 22
         },
         {
           "tag": "crystal",
-          "count": 8
+          "count": 10
         }
       ],
-      "seed": 103239555
+      "seed": 1752005085
     },
     {
       "id": "custom_1785967453140_198",
@@ -1464,32 +2644,40 @@
       "props": [
         {
           "tag": "wall",
-          "count": 26
+          "count": 28
+        },
+        {
+          "tag": "pedra",
+          "count": 22
         },
         {
           "tag": "crystal",
-          "count": 8
+          "count": 10
         }
       ],
-      "seed": 508878355
+      "seed": 1445705171
     },
     {
       "id": "custom_1785976237901_373",
-      "name": "🕳️ Passagem Inferior",
+      "name": "🕳️ Passagem da Gruta Inferior",
       "col": -1,
       "row": 3,
       "biome": "caverna",
       "props": [
         {
           "tag": "wall",
-          "count": 26
+          "count": 28
+        },
+        {
+          "tag": "pedra",
+          "count": 22
         },
         {
           "tag": "crystal",
-          "count": 8
+          "count": 10
         }
       ],
-      "seed": 508878355
+      "seed": 1445705171
     },
     {
       "id": "custom_1786547045830_14",
@@ -1499,15 +2687,27 @@
       "biome": "sombria",
       "props": [
         {
-          "tag": "tree",
-          "count": 34
+          "tag": "arvore_morta",
+          "count": 18
+        },
+        {
+          "tag": "pinheiro",
+          "count": 20
+        },
+        {
+          "tag": "pedra",
+          "count": 14
+        },
+        {
+          "tag": "raiz",
+          "count": 12
         },
         {
           "tag": "crystal",
-          "count": 4
+          "count": 6
         }
       ],
-      "seed": 1742732683
+      "seed": 268766469
     },
     {
       "id": "custom_1786547066907_403",
@@ -1517,15 +2717,27 @@
       "biome": "sombria",
       "props": [
         {
-          "tag": "tree",
-          "count": 34
+          "tag": "arvore_morta",
+          "count": 18
+        },
+        {
+          "tag": "pinheiro",
+          "count": 20
+        },
+        {
+          "tag": "pedra",
+          "count": 14
+        },
+        {
+          "tag": "raiz",
+          "count": 12
         },
         {
           "tag": "crystal",
-          "count": 4
+          "count": 6
         }
       ],
-      "seed": 345953101
+      "seed": 686339894
     },
     {
       "id": "mata_2_3",
@@ -1536,14 +2748,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1258982462
+      "seed": 517976590
     },
     {
       "id": "mata_3_3",
@@ -1554,14 +2782,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 531041841
+      "seed": 209964031
     },
     {
       "id": "mata_4_3",
@@ -1572,14 +2816,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1912286738
+      "seed": 605147849
     },
     {
       "id": "mata_5_3",
@@ -1590,14 +2850,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 176399046
+      "seed": 1483537935
     },
     {
       "id": "mata_-5_4",
@@ -1608,14 +2884,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 200946386
+      "seed": 494181049
     },
     {
       "id": "mata_-4_4",
@@ -1626,14 +2918,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 967128226
+      "seed": 439349553
     },
     {
       "id": "mata_-3_4",
@@ -1644,14 +2952,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1912368408
+      "seed": 605229519
     },
     {
       "id": "mata_-2_4",
@@ -1662,14 +2986,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1938955742
+      "seed": 1098610984
     },
     {
       "id": "mata_-1_4",
@@ -1680,14 +3020,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1938955742
+      "seed": 1098610984
     },
     {
       "id": "custom_1785881037059_214",
@@ -1698,14 +3054,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 26
+          "count": 32
         },
         {
           "tag": "bush",
+          "count": 14
+        },
+        {
+          "tag": "grama_alta",
+          "count": 28
+        },
+        {
+          "tag": "flores",
+          "count": 18
+        },
+        {
+          "tag": "cogumelo",
           "count": 10
+        },
+        {
+          "tag": "pedrinha",
+          "count": 8
         }
       ],
-      "seed": 598237922
+      "seed": 716094180
     },
     {
       "id": "mata_1_4",
@@ -1716,14 +3088,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 757033440
+      "seed": 2131456079
     },
     {
       "id": "mata_2_4",
@@ -1734,14 +3122,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 361849622
+      "seed": 379156250
     },
     {
       "id": "mata_3_4",
@@ -1752,14 +3156,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 266752113
+      "seed": 1040386780
     },
     {
       "id": "mata_4_4",
@@ -1770,14 +3190,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1335045052
+      "seed": 2076050924
     },
     {
       "id": "mata_5_4",
@@ -1788,14 +3224,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 392509322
+      "seed": 1798987097
     },
     {
       "id": "mata_-5_5",
@@ -1806,14 +3258,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 153095494
+      "seed": 587910378
     },
     {
       "id": "mata_-4_5",
@@ -1824,14 +3292,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 290547654
+      "seed": 1115930125
     },
     {
       "id": "mata_-3_5",
@@ -1842,14 +3326,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1335126722
+      "seed": 2076132594
     },
     {
       "id": "mata_-2_5",
@@ -1860,14 +3360,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 368713781
+      "seed": 1775191556
     },
     {
       "id": "mata_-1_5",
@@ -1878,14 +3394,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 368713781
+      "seed": 1775191556
     },
     {
       "id": "mata_0_5",
@@ -1896,14 +3428,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 655071772
+      "seed": 1495416530
     },
     {
       "id": "mata_1_5",
@@ -1914,14 +3462,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1433614012
+      "seed": 1554214393
     },
     {
       "id": "mata_2_5",
@@ -1932,14 +3496,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1109053453
+      "seed": 1850059325
     },
     {
       "id": "mata_3_5",
@@ -1950,14 +3530,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 1836994074
+      "seed": 1716967352
     },
     {
       "id": "mata_4_5",
@@ -1968,14 +3564,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 14644645
+      "seed": 1321783534
     },
     {
       "id": "mata_5_5",
@@ -1986,14 +3598,30 @@
       "props": [
         {
           "tag": "tree",
-          "count": 44
+          "count": 48
+        },
+        {
+          "tag": "pinheiro",
+          "count": 16
         },
         {
           "tag": "bush",
+          "count": 18
+        },
+        {
+          "tag": "grama_alta",
+          "count": 24
+        },
+        {
+          "tag": "cogumelo",
           "count": 12
+        },
+        {
+          "tag": "pedrinha",
+          "count": 10
         }
       ],
-      "seed": 969751008
+      "seed": 228745136
     }
   ]
 }

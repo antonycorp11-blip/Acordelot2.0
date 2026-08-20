@@ -80,11 +80,14 @@ static func _preparar() -> void:
                 if typeof(urbano) == TYPE_DICTIONARY:
                     pracas = urbano.get("pracas", {})
             for regiao in dados.get("regions", []):
-                if String(regiao.get("biome", "")) != "cidade":
+                var reg_id := String(regiao.get("id", ""))
+                var is_cidade: bool = String(regiao.get("biome", "")) == "cidade"
+                var has_planta: bool = pracas.has(reg_id)
+                if not is_cidade and not has_planta:
                     continue
                 _vilas.append(Vector2(float(regiao["col"]) * lado,
                                       float(regiao["row"]) * lado))
-                var praca: Dictionary = pracas.get(String(regiao.get("id", "")), {})
+                var praca: Dictionary = pracas.get(reg_id, {})
                 _raios.append(float(praca.get("raio", RAIO_DA_VILA)))
 
                 var aneis: Array = praca.get("aneis", [])

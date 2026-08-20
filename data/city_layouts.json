@@ -5,9 +5,9 @@
    "raio": 52.0,
    "avenidas": 8,
    "aneis": [
-    18.0,
-    28.5,
-    39.0
+    20.0,
+    31.0,
+    41.5
    ]
   },
   "custom_1785880661560_858": {
@@ -19,25 +19,49 @@
    ]
   },
   "custom_1785884200706_430": {
+   "raio": 36.0,
+   "avenidas": 4,
+   "aneis": [
+    18.0,
+    28.0
+   ]
+  },
+  "custom_1786501580114_289": {
+   "raio": 28.0,
+   "avenidas": 4,
+   "aneis": [
+    16.0,
+    25.0
+   ]
+  },
+  "custom_1786572518911_723": {
    "raio": 34.0,
    "avenidas": 4,
    "aneis": [
-    16.5,
-    26.0
+    17.5,
+    27.0
    ]
   },
-  "custom_1786499037621_343": {
-   "raio": 26.0,
-   "avenidas": 2,
+  "custom_1786572340509_998": {
+   "raio": 36.0,
+   "avenidas": 4,
    "aneis": [
-    16.0
+    18.0,
+    28.0
+   ]
+  },
+  "notas_sagradas": {
+   "raio": 32.0,
+   "avenidas": 8,
+   "aneis": [
+    20.0
    ]
   }
  },
  "layouts": {
   "custom_1785869541494_557": [
    {
-    "id": "monumento",
+    "id": "fonte_imperial",
     "tag": "fonte",
     "model": "res://models/fonte_musical.glb",
     "position": [
@@ -45,7 +69,8 @@
      0
     ],
     "rotation": 0.0,
-    "scale": 1.6
+    "scale": 1.7,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_00",
@@ -56,7 +81,8 @@
      0.0
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_01",
@@ -67,7 +93,8 @@
      5.3
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_02",
@@ -78,7 +105,8 @@
      7.5
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_03",
@@ -89,889 +117,1246 @@
      5.3
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_00",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     13.52,
+     5.24
+    ],
+    "rotation": 248.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_01",
+    "tag": "casa",
+    "model": "res://models/casa_nobre.glb",
+    "position": [
+     13.27,
+     5.85
+    ],
+    "rotation": 246.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_02",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     5.85,
+     13.27
+    ],
+    "rotation": 203.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_03",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     5.24,
+     13.52
+    ],
+    "rotation": 201.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_04",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     -5.24,
+     13.52
+    ],
+    "rotation": 158.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_05",
+    "tag": "casa",
+    "model": "res://models/casa_nobre.glb",
+    "position": [
+     -5.85,
+     13.27
+    ],
+    "rotation": 156.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_06",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -13.27,
+     5.85
+    ],
+    "rotation": 113.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_07",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -13.52,
+     5.24
+    ],
+    "rotation": 111.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_08",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     -13.52,
+     -5.24
+    ],
+    "rotation": 68.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_09",
+    "tag": "casa",
+    "model": "res://models/casa_nobre.glb",
+    "position": [
+     -13.27,
+     -5.85
+    ],
+    "rotation": 66.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_10",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -5.85,
+     -13.27
+    ],
+    "rotation": 23.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_11",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -5.24,
+     -13.52
+    ],
+    "rotation": 21.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_12",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     5.24,
+     -13.52
+    ],
+    "rotation": 338.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_13",
+    "tag": "casa",
+    "model": "res://models/casa_nobre.glb",
+    "position": [
+     5.85,
+     -13.27
+    ],
+    "rotation": 336.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_14",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     13.27,
+     -5.85
+    ],
+    "rotation": 293.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_15",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     13.52,
+     -5.24
+    ],
+    "rotation": 291.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_00",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     22.02,
-     6.64
+     24.6,
+     6.71
     ],
-    "rotation": 253.2,
-    "scale": 1.0
+    "rotation": 254.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_01",
     "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     21.25,
-     8.8
+     23.56,
+     9.76
     ],
     "rotation": 247.5,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_02",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/loja_toldo.glb",
     "position": [
-     20.27,
-     10.88
+     22.14,
+     12.65
     ],
-    "rotation": 241.8,
-    "scale": 1.0
+    "rotation": 240.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_03",
-    "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     10.88,
-     20.27
+     12.65,
+     22.14
     ],
-    "rotation": 208.2,
-    "scale": 1.0
+    "rotation": 209.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_04",
     "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/oficina_ferreiro.glb",
     "position": [
-     8.8,
-     21.25
+     9.76,
+     23.56
     ],
     "rotation": 202.5,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_05",
-    "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     6.64,
-     22.02
+     6.71,
+     24.6
     ],
-    "rotation": 196.8,
-    "scale": 1.0
+    "rotation": 195.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_06",
     "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     -6.64,
-     22.02
+     -6.71,
+     24.6
     ],
-    "rotation": 163.2,
-    "scale": 1.0
+    "rotation": 164.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_07",
     "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "model": "res://models/loja_toldo.glb",
     "position": [
-     -8.8,
-     21.25
+     -9.76,
+     23.56
     ],
     "rotation": 157.5,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_08",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     -10.88,
-     20.27
+     -12.65,
+     22.14
     ],
-    "rotation": 151.8,
-    "scale": 1.0
+    "rotation": 150.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_09",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/oficina_ferreiro.glb",
     "position": [
-     -20.27,
-     10.88
+     -22.14,
+     12.65
     ],
-    "rotation": 118.2,
-    "scale": 1.0
+    "rotation": 119.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_10",
-    "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     -21.25,
-     8.8
+     -23.56,
+     9.76
     ],
     "rotation": 112.5,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_11",
     "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     -22.02,
-     6.64
+     -24.6,
+     6.71
     ],
-    "rotation": 106.8,
-    "scale": 1.0
+    "rotation": 105.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_12",
     "tag": "casa",
     "model": "res://models/loja_toldo.glb",
     "position": [
-     -22.02,
-     -6.64
+     -24.6,
+     -6.71
     ],
-    "rotation": 73.2,
-    "scale": 1.0
+    "rotation": 74.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_13",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     -21.25,
-     -8.8
+     -23.56,
+     -9.76
     ],
     "rotation": 67.5,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_14",
     "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "model": "res://models/oficina_ferreiro.glb",
     "position": [
-     -20.27,
-     -10.88
+     -22.14,
+     -12.65
     ],
-    "rotation": 61.8,
-    "scale": 1.0
+    "rotation": 60.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_15",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     -10.88,
-     -20.27
+     -12.65,
+     -22.14
     ],
-    "rotation": 28.2,
-    "scale": 1.0
+    "rotation": 29.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_16",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     -8.8,
-     -21.25
+     -9.76,
+     -23.56
     ],
     "rotation": 22.5,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_17",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/loja_toldo.glb",
     "position": [
-     -6.64,
-     -22.02
+     -6.71,
+     -24.6
     ],
-    "rotation": 16.8,
-    "scale": 1.0
+    "rotation": 15.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_18",
-    "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     6.64,
-     -22.02
+     6.71,
+     -24.6
     ],
-    "rotation": 343.2,
-    "scale": 1.0
+    "rotation": 344.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_19",
     "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "model": "res://models/oficina_ferreiro.glb",
     "position": [
-     8.8,
-     -21.25
+     9.76,
+     -23.56
     ],
     "rotation": 337.5,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_20",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     10.88,
-     -20.27
+     12.65,
+     -22.14
     ],
-    "rotation": 331.8,
-    "scale": 1.0
+    "rotation": 330.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_21",
     "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     20.27,
-     -10.88
+     22.14,
+     -12.65
     ],
-    "rotation": 298.2,
-    "scale": 1.0
+    "rotation": 299.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_22",
     "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "model": "res://models/loja_toldo.glb",
     "position": [
-     21.25,
-     -8.8
+     23.56,
+     -9.76
     ],
     "rotation": 292.5,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_23",
-    "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     22.02,
-     -6.64
+     24.6,
+     -6.71
     ],
-    "rotation": 286.8,
-    "scale": 1.0
+    "rotation": 285.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_00",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     33.16,
-     7.51
+     35.73,
+     7.44
     ],
-    "rotation": 257.2,
-    "scale": 1.0
+    "rotation": 258.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_01",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     32.1,
-     11.21
+     34.53,
+     11.84
     ],
-    "rotation": 250.7,
-    "scale": 1.0
+    "rotation": 251.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_02",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/casa_vila.glb",
     "position": [
-     30.62,
-     14.77
+     32.78,
+     16.05
     ],
-    "rotation": 244.3,
-    "scale": 1.0
+    "rotation": 243.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_03",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/casa_camponesa.glb",
     "position": [
-     28.76,
-     18.14
+     30.53,
+     20.01
     ],
-    "rotation": 237.8,
-    "scale": 1.0
+    "rotation": 236.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_04",
     "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     18.14,
-     28.76
+     20.01,
+     30.53
     ],
-    "rotation": 212.2,
-    "scale": 1.0
+    "rotation": 213.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_05",
     "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     14.77,
-     30.62
+     16.05,
+     32.78
     ],
-    "rotation": 205.7,
-    "scale": 1.0
+    "rotation": 206.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_06",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     11.21,
-     32.1
+     11.84,
+     34.53
     ],
-    "rotation": 199.3,
-    "scale": 1.0
+    "rotation": 198.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_07",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     7.51,
-     33.16
+     7.44,
+     35.73
     ],
-    "rotation": 192.8,
-    "scale": 1.0
+    "rotation": 191.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_08",
     "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "model": "res://models/casa_vila.glb",
     "position": [
-     -7.51,
-     33.16
+     -7.44,
+     35.73
     ],
-    "rotation": 167.2,
-    "scale": 1.0
+    "rotation": 168.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_09",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/casa_camponesa.glb",
     "position": [
-     -11.21,
-     32.1
+     -11.84,
+     34.53
     ],
-    "rotation": 160.7,
-    "scale": 1.0
+    "rotation": 161.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_10",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     -14.77,
-     30.62
+     -16.05,
+     32.78
     ],
-    "rotation": 154.3,
-    "scale": 1.0
+    "rotation": 153.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_11",
     "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     -18.14,
-     28.76
+     -20.01,
+     30.53
     ],
-    "rotation": 147.8,
-    "scale": 1.0
+    "rotation": 146.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_12",
-    "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     -28.76,
-     18.14
+     -30.53,
+     20.01
     ],
-    "rotation": 122.2,
-    "scale": 1.0
+    "rotation": 123.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_13",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     -30.62,
-     14.77
+     -32.78,
+     16.05
     ],
-    "rotation": 115.7,
-    "scale": 1.0
+    "rotation": 116.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_14",
     "tag": "casa",
     "model": "res://models/casa_vila.glb",
     "position": [
-     -32.1,
-     11.21
+     -34.53,
+     11.84
     ],
-    "rotation": 109.3,
-    "scale": 1.0
+    "rotation": 108.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_15",
     "tag": "casa",
     "model": "res://models/casa_camponesa.glb",
     "position": [
-     -33.16,
-     7.51
+     -35.73,
+     7.44
     ],
-    "rotation": 102.8,
-    "scale": 1.0
+    "rotation": 101.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_16",
     "tag": "casa",
     "model": "res://models/casa_chale.glb",
     "position": [
-     -33.16,
-     -7.51
+     -35.73,
+     -7.44
     ],
-    "rotation": 77.2,
-    "scale": 1.0
+    "rotation": 78.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_17",
     "tag": "casa",
     "model": "res://models/casa_mercador.glb",
     "position": [
-     -32.1,
-     -11.21
+     -34.53,
+     -11.84
     ],
-    "rotation": 70.7,
-    "scale": 1.0
+    "rotation": 71.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_18",
-    "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     -30.62,
-     -14.77
+     -32.78,
+     -16.05
     ],
-    "rotation": 64.3,
-    "scale": 1.0
+    "rotation": 63.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_19",
-    "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     -28.76,
-     -18.14
+     -30.53,
+     -20.01
     ],
-    "rotation": 57.8,
-    "scale": 1.0
+    "rotation": 56.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_20",
     "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "model": "res://models/casa_vila.glb",
     "position": [
-     -18.14,
-     -28.76
+     -20.01,
+     -30.53
     ],
-    "rotation": 32.2,
-    "scale": 1.0
+    "rotation": 33.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_21",
     "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "model": "res://models/casa_camponesa.glb",
     "position": [
-     -14.77,
-     -30.62
+     -16.05,
+     -32.78
     ],
-    "rotation": 25.7,
-    "scale": 1.0
+    "rotation": 26.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_22",
     "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     -11.21,
-     -32.1
+     -11.84,
+     -34.53
     ],
-    "rotation": 19.3,
-    "scale": 1.0
+    "rotation": 18.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_23",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     -7.51,
-     -33.16
+     -7.44,
+     -35.73
     ],
-    "rotation": 12.8,
-    "scale": 1.0
+    "rotation": 11.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_24",
-    "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     7.51,
-     -33.16
+     7.44,
+     -35.73
     ],
-    "rotation": 347.2,
-    "scale": 1.0
+    "rotation": 348.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_25",
-    "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     11.21,
-     -32.1
+     11.84,
+     -34.53
     ],
-    "rotation": 340.7,
-    "scale": 1.0
+    "rotation": 341.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_26",
     "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "model": "res://models/casa_vila.glb",
     "position": [
-     14.77,
-     -30.62
+     16.05,
+     -32.78
     ],
-    "rotation": 334.3,
-    "scale": 1.0
+    "rotation": 333.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_27",
     "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "model": "res://models/casa_camponesa.glb",
     "position": [
-     18.14,
-     -28.76
+     20.01,
+     -30.53
     ],
-    "rotation": 327.8,
-    "scale": 1.0
+    "rotation": 326.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_28",
     "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     28.76,
-     -18.14
+     30.53,
+     -20.01
     ],
-    "rotation": 302.2,
-    "scale": 1.0
+    "rotation": 303.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_29",
     "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     30.62,
-     -14.77
+     32.78,
+     -16.05
     ],
-    "rotation": 295.7,
-    "scale": 1.0
+    "rotation": 296.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_30",
-    "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     32.1,
-     -11.21
+     34.53,
+     -11.84
     ],
-    "rotation": 289.3,
-    "scale": 1.0
+    "rotation": 288.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel2_31",
-    "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     33.16,
-     -7.51
+     35.73,
+     -7.44
     ],
-    "rotation": 282.8,
-    "scale": 1.0
+    "rotation": 281.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
-    "id": "castelo",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     -0.0,
-     -34.0
-    ],
-    "rotation": 0.0,
-    "scale": 1.6
-   },
-   {
-    "id": "catedral",
+    "id": "palacio_norte",
     "tag": "sobrado",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/casa_nobre.glb",
     "position": [
-     -23.33,
-     -23.33
-    ],
-    "rotation": 45.0,
-    "scale": 1.3
-   },
-   {
-    "id": "mercado_a",
-    "tag": "banca",
-    "model": "res://models/banca_verde.glb",
-    "position": [
-     18.39,
-     15.43
-    ],
-    "rotation": 230.0,
-    "scale": 1.0
-   },
-   {
-    "id": "mercado_b",
-    "tag": "banca",
-    "model": "res://models/banca_vermelha.glb",
-    "position": [
-     12.0,
-     20.78
-    ],
-    "rotation": 210.0,
-    "scale": 1.0
-   },
-   {
-    "id": "moinho",
-    "tag": "moinho",
-    "model": "res://models/moinho.glb",
-    "position": [
-     -31.11,
-     31.11
-    ],
-    "rotation": 135.0,
-    "scale": 1.0
-   },
-   {
-    "id": "leao_o",
-    "tag": "estatua",
-    "model": "res://models/leao_sentado.glb",
-    "position": [
-     -2.26,
-     12.8
-    ],
-    "rotation": 170.0,
-    "scale": 1.0
-   },
-   {
-    "id": "leao_l",
-    "tag": "estatua",
-    "model": "res://models/leao_de_pe.glb",
-    "position": [
-     2.26,
-     12.8
-    ],
-    "rotation": 190.0,
-    "scale": 1.0
-   },
-   {
-    "id": "torre_00",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     50.0,
+     36.0,
      0.0
     ],
     "rotation": 270.0,
-    "scale": 1.0
+    "scale": 1.35,
+    "y": 0.0
+   },
+   {
+    "id": "torre_real_leste",
+    "tag": "torre",
+    "model": "res://models/torre_guarda.glb",
+    "position": [
+     0.0,
+     36.0
+    ],
+    "rotation": 180.0,
+    "scale": 1.3,
+    "y": 0.0
+   },
+   {
+    "id": "mansao_sul",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     -36.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.15,
+    "y": 0.0
+   },
+   {
+    "id": "bastiao_oeste",
+    "tag": "torre",
+    "model": "res://models/torre_guarda.glb",
+    "position": [
+     -0.0,
+     -36.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.3,
+    "y": 0.0
+   },
+   {
+    "id": "banca_mercado_1",
+    "tag": "banca",
+    "model": "res://models/banca_verde.glb",
+    "position": [
+     15.76,
+     12.31
+    ],
+    "rotation": 232.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "banca_mercado_2",
+    "tag": "banca",
+    "model": "res://models/banca_vermelha.glb",
+    "position": [
+     12.31,
+     15.76
+    ],
+    "rotation": 218.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "banca_mercado_3",
+    "tag": "banca",
+    "model": "res://models/banca_feira.glb",
+    "position": [
+     -12.31,
+     15.76
+    ],
+    "rotation": 142.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "estatua_leao_1",
+    "tag": "estatua",
+    "model": "res://models/leao_sentado.glb",
+    "position": [
+     2.59,
+     9.66
+    ],
+    "rotation": 195.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "estatua_leao_2",
+    "tag": "estatua",
+    "model": "res://models/leao_de_pe.glb",
+    "position": [
+     -2.59,
+     9.66
+    ],
+    "rotation": 165.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "estatua_leao_3",
+    "tag": "estatua",
+    "model": "res://models/leao_sentado.glb",
+    "position": [
+     -2.59,
+     -9.66
+    ],
+    "rotation": 15.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "estatua_leao_4",
+    "tag": "estatua",
+    "model": "res://models/leao_de_pe.glb",
+    "position": [
+     2.59,
+     -9.66
+    ],
+    "rotation": 345.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "poco_real",
+    "tag": "poco",
+    "model": "res://models/poco.glb",
+    "position": [
+     -7.07,
+     -7.07
+    ],
+    "rotation": 45.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "carroca_mercador",
+    "tag": "mobilia",
+    "model": "res://models/carroca.glb",
+    "position": [
+     12.21,
+     -14.55
+    ],
+    "rotation": 320.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "barris_mercado",
+    "tag": "mobilia",
+    "model": "res://models/barris.glb",
+    "position": [
+     15.56,
+     -10.9
+    ],
+    "rotation": 305.0,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "torre_01",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     46.19,
-     19.13
+     45.27,
+     18.75
     ],
     "rotation": 247.5,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_02",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     35.36,
-     35.36
+     34.65,
+     34.65
     ],
     "rotation": 225.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_03",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     19.13,
-     46.19
+     18.75,
+     45.27
     ],
     "rotation": 202.5,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_05",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     -19.13,
-     46.19
+     -18.75,
+     45.27
     ],
     "rotation": 157.5,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_06",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     -35.36,
-     35.36
+     -34.65,
+     34.65
     ],
     "rotation": 135.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_07",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     -46.19,
-     19.13
+     -45.27,
+     18.75
     ],
     "rotation": 112.5,
-    "scale": 1.0
-   },
-   {
-    "id": "torre_08",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     -50.0,
-     0.0
-    ],
-    "rotation": 90.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_09",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     -46.19,
-     -19.13
+     -45.27,
+     -18.75
     ],
     "rotation": 67.5,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_10",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     -35.36,
-     -35.36
+     -34.65,
+     -34.65
     ],
     "rotation": 45.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_11",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     -19.13,
-     -46.19
+     -18.75,
+     -45.27
     ],
     "rotation": 22.5,
-    "scale": 1.0
-   },
-   {
-    "id": "torre_12",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     -0.0,
-     -50.0
-    ],
-    "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_13",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     19.13,
-     -46.19
+     18.75,
+     -45.27
     ],
     "rotation": 337.5,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_14",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     35.36,
-     -35.36
+     34.65,
+     -34.65
     ],
     "rotation": 315.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_15",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
-     46.19,
-     -19.13
+     45.27,
+     -18.75
     ],
     "rotation": 292.5,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "portao_0",
     "tag": "muralha",
     "model": "res://models/muralha_portao.glb",
     "position": [
+     49.0,
+     0.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "portao_1",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
      0.0,
-     50.0
+     49.0
     ],
     "rotation": 180.0,
-    "scale": 1.2
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "portao_2",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
+     -49.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "portao_3",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
+     -0.0,
+     -49.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.25,
+    "y": 0.0
    }
   ],
   "custom_1785880661560_858": [
    {
-    "id": "monumento",
+    "id": "monumento_armas",
     "tag": "fonte",
-    "model": "res://models/fonte_musical.glb",
+    "model": "res://models/fonte_praca.glb",
     "position": [
      0,
      0
     ],
     "rotation": 0.0,
-    "scale": 1.6
+    "scale": 1.4,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_00",
@@ -982,7 +1367,8 @@
      0.0
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_01",
@@ -993,7 +1379,8 @@
      7.5
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_02",
@@ -1004,7 +1391,8 @@
      0.0
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_03",
@@ -1015,274 +1403,251 @@
      -7.5
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_00",
-    "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     11.66,
-     7.74
+     11.77,
+     7.58
     ],
-    "rotation": 236.4,
-    "scale": 1.0
+    "rotation": 237.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_01",
     "tag": "casa",
     "model": "res://models/casa_nobre.glb",
     "position": [
-     7.74,
-     11.66
+     7.58,
+     11.77
     ],
-    "rotation": 213.6,
-    "scale": 1.0
+    "rotation": 212.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_02",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/casa_sobrado.glb",
     "position": [
-     -7.74,
-     11.66
+     -7.58,
+     11.77
     ],
-    "rotation": 146.4,
-    "scale": 1.0
+    "rotation": 147.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_03",
-    "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     -11.66,
-     7.74
+     -11.77,
+     7.58
     ],
-    "rotation": 123.6,
-    "scale": 1.0
+    "rotation": 122.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_04",
-    "tag": "casa",
-    "model": "res://models/casa_nobre.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     -11.66,
-     -7.74
+     -11.77,
+     -7.58
     ],
-    "rotation": 56.4,
-    "scale": 1.0
+    "rotation": 57.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_05",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/casa_nobre.glb",
     "position": [
-     -7.74,
-     -11.66
+     -7.58,
+     -11.77
     ],
-    "rotation": 33.6,
-    "scale": 1.0
+    "rotation": 32.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_06",
     "tag": "casa",
     "model": "res://models/casa_sobrado.glb",
     "position": [
-     7.74,
-     -11.66
+     7.58,
+     -11.77
     ],
-    "rotation": 326.4,
-    "scale": 1.0
+    "rotation": 327.2,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_07",
-    "tag": "casa",
-    "model": "res://models/casa_nobre.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     11.66,
-     -7.74
+     11.77,
+     -7.58
     ],
-    "rotation": 303.6,
-    "scale": 1.0
+    "rotation": 302.8,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_00",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     23.36,
-     8.91
+     23.03,
+     9.73
     ],
-    "rotation": 249.1,
-    "scale": 1.0
+    "rotation": 247.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_01",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     19.98,
-     15.03
+     17.68,
+     17.68
     ],
-    "rotation": 233.0,
-    "scale": 1.0
+    "rotation": 225.0,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_02",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/casa_vila.glb",
     "position": [
-     15.03,
-     19.98
+     9.73,
+     23.03
     ],
-    "rotation": 217.0,
-    "scale": 1.0
+    "rotation": 202.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_03",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/casa_camponesa.glb",
     "position": [
-     8.91,
-     23.36
+     -9.73,
+     23.03
     ],
-    "rotation": 200.9,
-    "scale": 1.0
+    "rotation": 157.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_04",
     "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     -8.91,
-     23.36
+     -17.68,
+     17.68
     ],
-    "rotation": 159.1,
-    "scale": 1.0
+    "rotation": 135.0,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_05",
     "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     -15.03,
-     19.98
+     -23.03,
+     9.73
     ],
-    "rotation": 143.0,
-    "scale": 1.0
+    "rotation": 112.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_06",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     -19.98,
-     15.03
+     -23.03,
+     -9.73
     ],
-    "rotation": 127.0,
-    "scale": 1.0
+    "rotation": 67.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_07",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     -23.36,
-     8.91
+     -17.68,
+     -17.68
     ],
-    "rotation": 110.9,
-    "scale": 1.0
+    "rotation": 45.0,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_08",
     "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "model": "res://models/casa_vila.glb",
     "position": [
-     -23.36,
-     -8.91
+     -9.73,
+     -23.03
     ],
-    "rotation": 69.1,
-    "scale": 1.0
+    "rotation": 22.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_09",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/casa_camponesa.glb",
     "position": [
-     -19.98,
-     -15.03
+     9.73,
+     -23.03
     ],
-    "rotation": 53.0,
-    "scale": 1.0
+    "rotation": 337.1,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_10",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     -15.03,
-     -19.98
+     17.68,
+     -17.68
     ],
-    "rotation": 37.0,
-    "scale": 1.0
+    "rotation": 315.0,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_11",
     "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     -8.91,
-     -23.36
+     23.03,
+     -9.73
     ],
-    "rotation": 20.9,
-    "scale": 1.0
+    "rotation": 292.9,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
-    "id": "anel1_12",
-    "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
-    "position": [
-     8.91,
-     -23.36
-    ],
-    "rotation": 339.1,
-    "scale": 1.0
-   },
-   {
-    "id": "anel1_13",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
-    "position": [
-     15.03,
-     -19.98
-    ],
-    "rotation": 323.0,
-    "scale": 1.0
-   },
-   {
-    "id": "anel1_14",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
-    "position": [
-     19.98,
-     -15.03
-    ],
-    "rotation": 307.0,
-    "scale": 1.0
-   },
-   {
-    "id": "anel1_15",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
-    "position": [
-     23.36,
-     -8.91
-    ],
-    "rotation": 290.9,
-    "scale": 1.0
-   },
-   {
-    "id": "torre_mestra",
+    "id": "torre_comando",
     "tag": "torre",
     "model": "res://models/torre_redonda.glb",
     "position": [
@@ -1290,32 +1655,71 @@
      0.0
     ],
     "rotation": 90.0,
-    "scale": 1.5
+    "scale": 1.5,
+    "y": 0.0
    },
    {
-    "id": "estandarte_o",
+    "id": "quartel_mestre",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     28.0,
+     0.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.2,
+    "y": 0.0
+   },
+   {
+    "id": "estandarte_norte_1",
     "tag": "estandarte",
     "model": "res://models/estandarte_agudo.glb",
     "position": [
-     -3.76,
-     -10.34
+     7.78,
+     7.78
     ],
-    "rotation": 20.0,
-    "scale": 1.0
+    "rotation": 225.0,
+    "scale": 1.1,
+    "y": 0.0
    },
    {
-    "id": "estandarte_l",
+    "id": "estandarte_norte_2",
     "tag": "estandarte",
     "model": "res://models/estandarte_grave.glb",
     "position": [
-     3.76,
-     -10.34
+     -7.78,
+     7.78
     ],
-    "rotation": 340.0,
-    "scale": 1.0
+    "rotation": 135.0,
+    "scale": 1.1,
+    "y": 0.0
    },
    {
-    "id": "poco",
+    "id": "estandarte_sul_1",
+    "tag": "estandarte",
+    "model": "res://models/estandarte_agudo.glb",
+    "position": [
+     -7.78,
+     -7.78
+    ],
+    "rotation": 45.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "estandarte_sul_2",
+    "tag": "estandarte",
+    "model": "res://models/estandarte_grave.glb",
+    "position": [
+     7.78,
+     -7.78
+    ],
+    "rotation": 315.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "poco_guarnicao",
     "tag": "poco",
     "model": "res://models/poco.glb",
     "position": [
@@ -1323,7 +1727,20 @@
      -5.13
     ],
     "rotation": 70.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "barris_quartel",
+    "tag": "mobilia",
+    "model": "res://models/barris.glb",
+    "position": [
+     -12.29,
+     -8.6
+    ],
+    "rotation": 55.0,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "torre_01",
@@ -1334,7 +1751,8 @@
      28.99
     ],
     "rotation": 225.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_03",
@@ -1345,18 +1763,8 @@
      28.99
     ],
     "rotation": 135.0,
-    "scale": 1.0
-   },
-   {
-    "id": "torre_04",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     -41.0,
-     0.0
-    ],
-    "rotation": 90.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_05",
@@ -1367,18 +1775,8 @@
      -28.99
     ],
     "rotation": 45.0,
-    "scale": 1.0
-   },
-   {
-    "id": "torre_06",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     -0.0,
-     -41.0
-    ],
-    "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "torre_07",
@@ -1389,7 +1787,8 @@
      -28.99
     ],
     "rotation": 315.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
     "id": "portao_0",
@@ -1400,7 +1799,8 @@
      0.0
     ],
     "rotation": 270.0,
-    "scale": 1.2
+    "scale": 1.25,
+    "y": 0.0
    },
    {
     "id": "portao_1",
@@ -1411,20 +1811,46 @@
      41.0
     ],
     "rotation": 180.0,
-    "scale": 1.2
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "portao_2",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
+     -41.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "portao_3",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
+     -0.0,
+     -41.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.25,
+    "y": 0.0
    }
   ],
   "custom_1785884200706_430": [
    {
-    "id": "monumento",
-    "tag": "fonte",
-    "model": "res://models/fonte_musical.glb",
+    "id": "poco_central",
+    "tag": "poco",
+    "model": "res://models/poco.glb",
     "position": [
      0,
      0
     ],
     "rotation": 0.0,
-    "scale": 1.6
+    "scale": 1.2,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_00",
@@ -1435,7 +1861,8 @@
      0.0
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_01",
@@ -1446,7 +1873,8 @@
      7.5
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_02",
@@ -1457,7 +1885,8 @@
      0.0
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_03",
@@ -1468,276 +1897,361 @@
      -7.5
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_00",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     9.81,
-     6.92
+     10.84,
+     7.17
     ],
-    "rotation": 234.8,
-    "scale": 1.0
+    "rotation": 236.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_01",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     6.92,
-     9.81
+     7.17,
+     10.84
     ],
-    "rotation": 215.2,
-    "scale": 1.0
+    "rotation": 213.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_02",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/casa_vila.glb",
     "position": [
-     -6.92,
-     9.81
+     -7.17,
+     10.84
     ],
-    "rotation": 144.8,
-    "scale": 1.0
+    "rotation": 146.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_03",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/casa_camponesa.glb",
     "position": [
-     -9.81,
-     6.92
+     -10.84,
+     7.17
     ],
-    "rotation": 125.2,
-    "scale": 1.0
+    "rotation": 123.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_04",
     "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     -9.81,
-     -6.92
+     -10.84,
+     -7.17
     ],
-    "rotation": 54.8,
-    "scale": 1.0
+    "rotation": 56.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_05",
     "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     -6.92,
-     -9.81
+     -7.17,
+     -10.84
     ],
-    "rotation": 35.2,
-    "scale": 1.0
+    "rotation": 33.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_06",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     6.92,
-     -9.81
+     7.17,
+     -10.84
     ],
-    "rotation": 324.8,
-    "scale": 1.0
+    "rotation": 326.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_07",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     9.81,
-     -6.92
+     10.84,
+     -7.17
     ],
-    "rotation": 305.2,
-    "scale": 1.0
+    "rotation": 303.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_00",
     "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     19.01,
-     8.92
+     21.08,
+     9.2
     ],
-    "rotation": 244.9,
-    "scale": 1.0
+    "rotation": 246.4,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_01",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     14.85,
-     14.85
+     16.26,
+     16.26
     ],
     "rotation": 225.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_02",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/casa_camponesa.glb",
     "position": [
-     8.92,
-     19.01
+     9.2,
+     21.08
     ],
-    "rotation": 205.1,
-    "scale": 1.0
+    "rotation": 203.6,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_03",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/celeiro.glb",
     "position": [
-     -8.92,
-     19.01
+     -9.2,
+     21.08
     ],
-    "rotation": 154.9,
-    "scale": 1.0
+    "rotation": 156.4,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_04",
     "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/casa_vila.glb",
     "position": [
-     -14.85,
-     14.85
+     -16.26,
+     16.26
     ],
     "rotation": 135.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_05",
     "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     -19.01,
-     8.92
+     -21.08,
+     9.2
     ],
-    "rotation": 115.1,
-    "scale": 1.0
+    "rotation": 113.6,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_06",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     -19.01,
-     -8.92
+     -21.08,
+     -9.2
     ],
-    "rotation": 64.9,
-    "scale": 1.0
+    "rotation": 66.4,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_07",
     "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "model": "res://models/casa_camponesa.glb",
     "position": [
-     -14.85,
-     -14.85
+     -16.26,
+     -16.26
     ],
     "rotation": 45.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_08",
     "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "model": "res://models/celeiro.glb",
     "position": [
-     -8.92,
-     -19.01
+     -9.2,
+     -21.08
     ],
-    "rotation": 25.1,
-    "scale": 1.0
+    "rotation": 23.6,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_09",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/casa_vila.glb",
     "position": [
-     8.92,
-     -19.01
+     9.2,
+     -21.08
     ],
-    "rotation": 334.9,
-    "scale": 1.0
+    "rotation": 336.4,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_10",
     "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     14.85,
-     -14.85
+     16.26,
+     -16.26
     ],
     "rotation": 315.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel1_11",
-    "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     19.01,
-     -8.92
+     21.08,
+     -9.2
     ],
-    "rotation": 295.1,
-    "scale": 1.0
+    "rotation": 293.6,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
-    "id": "poco",
-    "tag": "poco",
-    "model": "res://models/poco.glb",
+    "id": "moinho_vento",
+    "tag": "moinho",
+    "model": "res://models/moinho.glb",
     "position": [
-     6.36,
-     6.36
-    ],
-    "rotation": 225.0,
-    "scale": 1.0
-   },
-   {
-    "id": "feira",
-    "tag": "banca",
-    "model": "res://models/banca_verde.glb",
-    "position": [
-     -7.07,
-     7.07
+     -20.51,
+     20.51
     ],
     "rotation": 135.0,
-    "scale": 1.0
+    "scale": 1.15,
+    "y": 0.0
    },
    {
-    "id": "carroca",
-    "tag": "mobilia",
-    "model": "res://models/carroca.glb",
-    "position": [
-     7.07,
-     -7.07
-    ],
-    "rotation": 315.0,
-    "scale": 1.0
-   },
-   {
-    "id": "celeiro",
+    "id": "celeiro_vila",
     "tag": "celeiro",
     "model": "res://models/celeiro.glb",
     "position": [
-     -19.09,
-     -19.09
+     -19.8,
+     -19.8
     ],
     "rotation": 45.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "banca_feira_1",
+    "tag": "banca",
+    "model": "res://models/banca_verde.glb",
+    "position": [
+     6.51,
+     5.46
+    ],
+    "rotation": 230.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "banca_feira_2",
+    "tag": "banca",
+    "model": "res://models/banca_vermelha.glb",
+    "position": [
+     4.25,
+     7.36
+    ],
+    "rotation": 210.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "banca_feira_3",
+    "tag": "banca",
+    "model": "res://models/banca_feira.glb",
+    "position": [
+     4.25,
+     -7.36
+    ],
+    "rotation": 330.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "carroca_vila",
+    "tag": "mobilia",
+    "model": "res://models/carroca.glb",
+    "position": [
+     6.89,
+     -5.79
+    ],
+    "rotation": 310.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "barris_taberna",
+    "tag": "mobilia",
+    "model": "res://models/barris.glb",
+    "position": [
+     -8.46,
+     3.08
+    ],
+    "rotation": 110.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lampiao_praca",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     0.0,
+     6.0
+    ],
+    "rotation": 180.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lampiao_praca_2",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -0.0,
+     -6.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
    }
   ],
-  "custom_1786499037621_343": [
+  "custom_1786501580114_289": [
    {
-    "id": "monumento",
+    "id": "altar_das_escalas",
     "tag": "fonte",
     "model": "res://models/fonte_musical.glb",
     "position": [
@@ -1745,7 +2259,8 @@
      0
     ],
     "rotation": 0.0,
-    "scale": 1.6
+    "scale": 1.4,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_00",
@@ -1756,10 +2271,23 @@
      0.0
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "lamp_praca_01",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     0.0,
+     7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_02",
     "tag": "lampiao",
     "model": "res://models/lampiao.glb",
     "position": [
@@ -1767,106 +2295,1442 @@
      0.0
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_03",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -0.0,
+     -7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_00",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     7.32,
-     8.21
+     9.91,
+     6.76
     ],
-    "rotation": 221.7,
-    "scale": 1.0
+    "rotation": 235.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_01",
     "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
+    "model": "res://models/casa_mercador.glb",
     "position": [
-     0.0,
-     11.0
+     6.76,
+     9.91
     ],
-    "rotation": 180.0,
-    "scale": 1.0
+    "rotation": 214.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_02",
     "tag": "casa",
-    "model": "res://models/casa_chale.glb",
+    "model": "res://models/loja_toldo.glb",
     "position": [
-     -7.32,
-     8.21
+     -6.76,
+     9.91
     ],
-    "rotation": 138.3,
-    "scale": 1.0
+    "rotation": 145.7,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_03",
-    "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     -7.32,
-     -8.21
+     -9.91,
+     6.76
     ],
-    "rotation": 41.7,
-    "scale": 1.0
+    "rotation": 124.3,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_04",
     "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
+    "model": "res://models/oficina_ferreiro.glb",
     "position": [
-     -0.0,
-     -11.0
+     -9.91,
+     -6.76
+    ],
+    "rotation": 55.7,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_05",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -6.76,
+     -9.91
+    ],
+    "rotation": 34.3,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_06",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     6.76,
+     -9.91
+    ],
+    "rotation": 325.7,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_07",
+    "tag": "casa",
+    "model": "res://models/loja_toldo.glb",
+    "position": [
+     9.91,
+     -6.76
+    ],
+    "rotation": 304.3,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_00",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     18.15,
+     8.39
+    ],
+    "rotation": 245.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_01",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     14.14,
+     14.14
+    ],
+    "rotation": 225.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_02",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     8.39,
+     18.15
+    ],
+    "rotation": 204.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_03",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -8.39,
+     18.15
+    ],
+    "rotation": 155.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_04",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -14.14,
+     14.14
+    ],
+    "rotation": 135.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_05",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -18.15,
+     8.39
+    ],
+    "rotation": 114.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_06",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -18.15,
+     -8.39
+    ],
+    "rotation": 65.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_07",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     -14.14,
+     -14.14
+    ],
+    "rotation": 45.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_08",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -8.39,
+     -18.15
+    ],
+    "rotation": 24.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_09",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     8.39,
+     -18.15
+    ],
+    "rotation": 335.2,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_10",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     14.14,
+     -14.14
+    ],
+    "rotation": 315.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_11",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     18.15,
+     -8.39
+    ],
+    "rotation": 294.8,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "grande_forja",
+    "tag": "oficina_ferreiro",
+    "model": "res://models/oficina_ferreiro.glb",
+    "position": [
+     12.73,
+     12.73
+    ],
+    "rotation": 225.0,
+    "scale": 1.2,
+    "y": 0.0
+   },
+   {
+    "id": "fundicao_sul",
+    "tag": "oficina_ferreiro",
+    "model": "res://models/oficina_ferreiro.glb",
+    "position": [
+     -12.73,
+     -12.73
+    ],
+    "rotation": 45.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "deposito_barris",
+    "tag": "mobilia",
+    "model": "res://models/barris.glb",
+    "position": [
+     -6.36,
+     6.36
+    ],
+    "rotation": 135.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "carroca_minerios",
+    "tag": "mobilia",
+    "model": "res://models/carroca.glb",
+    "position": [
+     6.36,
+     -6.36
+    ],
+    "rotation": 315.0,
+    "scale": 1.0,
+    "y": 0.0
+   }
+  ],
+  "custom_1786572518911_723": [
+   {
+    "id": "fonte_dos_pescadores",
+    "tag": "fonte",
+    "model": "res://models/fonte_praca.glb",
+    "position": [
+     0,
+     0
     ],
     "rotation": 0.0,
-    "scale": 1.0
+    "scale": 1.3,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_00",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_01",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     0.0,
+     7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_02",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_03",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -0.0,
+     -7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_00",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     10.84,
+     7.17
+    ],
+    "rotation": 236.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_01",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     7.17,
+     10.84
+    ],
+    "rotation": 213.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_02",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -7.17,
+     10.84
+    ],
+    "rotation": 146.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_03",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     -10.84,
+     7.17
+    ],
+    "rotation": 123.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_04",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -10.84,
+     -7.17
+    ],
+    "rotation": 56.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
     "id": "anel0_05",
     "tag": "casa",
-    "model": "res://models/loja_toldo.glb",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     7.32,
-     -8.21
+     -7.17,
+     -10.84
     ],
-    "rotation": 318.3,
-    "scale": 1.0
+    "rotation": 33.5,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
-    "id": "oficina",
-    "tag": "oficina_ferreiro",
-    "model": "res://models/oficina_ferreiro.glb",
+    "id": "anel0_06",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
-     -17.0,
+     7.17,
+     -10.84
+    ],
+    "rotation": 326.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_07",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     10.84,
+     -7.17
+    ],
+    "rotation": 303.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_00",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     20.11,
+     8.93
+    ],
+    "rotation": 246.1,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_01",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     15.56,
+     15.56
+    ],
+    "rotation": 225.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_02",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     8.93,
+     20.11
+    ],
+    "rotation": 203.9,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_03",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -8.93,
+     20.11
+    ],
+    "rotation": 156.1,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_04",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -15.56,
+     15.56
+    ],
+    "rotation": 135.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_05",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -20.11,
+     8.93
+    ],
+    "rotation": 113.9,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_06",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -20.11,
+     -8.93
+    ],
+    "rotation": 66.1,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_07",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     -15.56,
+     -15.56
+    ],
+    "rotation": 45.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_08",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -8.93,
+     -20.11
+    ],
+    "rotation": 23.9,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_09",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     8.93,
+     -20.11
+    ],
+    "rotation": 336.1,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_10",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     15.56,
+     -15.56
+    ],
+    "rotation": 315.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_11",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     20.11,
+     -8.93
+    ],
+    "rotation": 293.9,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "moinho_d_agua",
+    "tag": "moinho",
+    "model": "res://models/moinho.glb",
+    "position": [
+     16.97,
+     16.97
+    ],
+    "rotation": 225.0,
+    "scale": 1.15,
+    "y": 0.0
+   },
+   {
+    "id": "ponte_pedra_norte",
+    "tag": "ponte_pedra",
+    "model": "res://models/ponte_pedra.glb",
+    "position": [
+     25.0,
+     0.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "ponte_madeira_sul",
+    "tag": "ponte_madeira",
+    "model": "res://models/ponte_madeira.glb",
+    "position": [
+     -25.0,
      0.0
     ],
     "rotation": 90.0,
-    "scale": 1.0
+    "scale": 1.1,
+    "y": 0.0
    },
    {
-    "id": "poco",
-    "tag": "poco",
-    "model": "res://models/poco.glb",
+    "id": "mercado_peixes_1",
+    "tag": "banca",
+    "model": "res://models/banca_verde.glb",
     "position": [
-     0.0,
-     8.0
+     -5.46,
+     6.51
     ],
-    "rotation": 180.0,
-    "scale": 1.0
+    "rotation": 140.0,
+    "scale": 1.0,
+    "y": 0.0
    },
    {
-    "id": "barris",
+    "id": "mercado_peixes_2",
+    "tag": "banca",
+    "model": "res://models/banca_feira.glb",
+    "position": [
+     -7.36,
+     4.25
+    ],
+    "rotation": 120.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "barris_cais",
     "tag": "mobilia",
     "model": "res://models/barris.glb",
     "position": [
-     4.5,
-     -7.79
+     -5.46,
+     -6.51
     ],
-    "rotation": 330.0,
-    "scale": 1.0
+    "rotation": 40.0,
+    "scale": 1.0,
+    "y": 0.0
+   }
+  ],
+  "custom_1786572340509_998": [
+   {
+    "id": "farol_da_serra",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     0,
+     0
+    ],
+    "rotation": 0.0,
+    "scale": 1.5,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_00",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_01",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     0.0,
+     7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_02",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_03",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -0.0,
+     -7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_00",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     10.84,
+     7.17
+    ],
+    "rotation": 236.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_01",
+    "tag": "casa",
+    "model": "res://models/casa_nobre.glb",
+    "position": [
+     7.17,
+     10.84
+    ],
+    "rotation": 213.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_02",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     -7.17,
+     10.84
+    ],
+    "rotation": 146.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_03",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -10.84,
+     7.17
+    ],
+    "rotation": 123.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_04",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     -10.84,
+     -7.17
+    ],
+    "rotation": 56.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_05",
+    "tag": "casa",
+    "model": "res://models/casa_nobre.glb",
+    "position": [
+     -7.17,
+     -10.84
+    ],
+    "rotation": 33.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_06",
+    "tag": "casa",
+    "model": "res://models/casa_sobrado.glb",
+    "position": [
+     7.17,
+     -10.84
+    ],
+    "rotation": 326.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_07",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     10.84,
+     -7.17
+    ],
+    "rotation": 303.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_00",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     21.08,
+     9.2
+    ],
+    "rotation": 246.4,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_01",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     16.26,
+     16.26
+    ],
+    "rotation": 225.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_02",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     9.2,
+     21.08
+    ],
+    "rotation": 203.6,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_03",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -9.2,
+     21.08
+    ],
+    "rotation": 156.4,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_04",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     -16.26,
+     16.26
+    ],
+    "rotation": 135.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_05",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     -21.08,
+     9.2
+    ],
+    "rotation": 113.6,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_06",
+    "tag": "casa_enxaimel_1",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -21.08,
+     -9.2
+    ],
+    "rotation": 66.4,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_07",
+    "tag": "casa_enxaimel_2",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     -16.26,
+     -16.26
+    ],
+    "rotation": 45.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_08",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     -9.2,
+     -21.08
+    ],
+    "rotation": 23.6,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_09",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     9.2,
+     -21.08
+    ],
+    "rotation": 336.4,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_10",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     16.26,
+     -16.26
+    ],
+    "rotation": 315.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel1_11",
+    "tag": "casa",
+    "model": "res://models/casa_mercador.glb",
+    "position": [
+     21.08,
+     -9.2
+    ],
+    "rotation": 293.6,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "torre_vigia_norte",
+    "tag": "torre",
+    "model": "res://models/torre_guarda.glb",
+    "position": [
+     28.0,
+     0.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.35,
+    "y": 0.0
+   },
+   {
+    "id": "torre_vigia_sul",
+    "tag": "torre",
+    "model": "res://models/torre_guarda.glb",
+    "position": [
+     -28.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.35,
+    "y": 0.0
+   },
+   {
+    "id": "forja_forte",
+    "tag": "oficina_ferreiro",
+    "model": "res://models/oficina_ferreiro.glb",
+    "position": [
+     12.73,
+     12.73
+    ],
+    "rotation": 225.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "estandarte_forte_1",
+    "tag": "estandarte",
+    "model": "res://models/estandarte_agudo.glb",
+    "position": [
+     1.56,
+     8.86
+    ],
+    "rotation": 190.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "estandarte_forte_2",
+    "tag": "estandarte",
+    "model": "res://models/estandarte_grave.glb",
+    "position": [
+     -1.56,
+     8.86
+    ],
+    "rotation": 170.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "torre_00",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     33.0,
+     0.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "torre_01",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     23.33,
+     23.33
+    ],
+    "rotation": 225.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "torre_03",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -23.33,
+     23.33
+    ],
+    "rotation": 135.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "torre_04",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -33.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "torre_05",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     -23.33,
+     -23.33
+    ],
+    "rotation": 45.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "torre_07",
+    "tag": "torre",
+    "model": "res://models/torre_redonda.glb",
+    "position": [
+     23.33,
+     -23.33
+    ],
+    "rotation": 315.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "portao_0",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
+     0.0,
+     33.0
+    ],
+    "rotation": 180.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "portao_1",
+    "tag": "muralha",
+    "model": "res://models/muralha_portao.glb",
+    "position": [
+     -0.0,
+     -33.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.25,
+    "y": 0.0
+   }
+  ],
+  "notas_sagradas": [
+   {
+    "id": "altar_harmonia",
+    "tag": "fonte",
+    "model": "res://models/fonte_musical.glb",
+    "position": [
+     0,
+     0
+    ],
+    "rotation": 0.0,
+    "scale": 1.8,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_00",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     7.5,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_01",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     5.3,
+     5.3
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_02",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     0.0,
+     7.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lamp_praca_03",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -5.3,
+     5.3
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_00",
+    "tag": "casa",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     13.86,
+     5.74
+    ],
+    "rotation": 247.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_01",
+    "tag": "casa",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     5.74,
+     13.86
+    ],
+    "rotation": 202.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_02",
+    "tag": "casa",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     -5.74,
+     13.86
+    ],
+    "rotation": 157.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_03",
+    "tag": "casa",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     -13.86,
+     5.74
+    ],
+    "rotation": 112.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_04",
+    "tag": "casa",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     -13.86,
+     -5.74
+    ],
+    "rotation": 67.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_05",
+    "tag": "casa",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     -5.74,
+     -13.86
+    ],
+    "rotation": 22.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_06",
+    "tag": "casa",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     5.74,
+     -13.86
+    ],
+    "rotation": 337.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "anel0_07",
+    "tag": "casa",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     13.86,
+     -5.74
+    ],
+    "rotation": 292.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "cristal_monolito_0",
+    "tag": "crystal",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     24.0,
+     0.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.8,
+    "y": 0.0
+   },
+   {
+    "id": "cristal_monolito_1",
+    "tag": "crystal",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     16.97,
+     16.97
+    ],
+    "rotation": 225.0,
+    "scale": 1.8,
+    "y": 0.0
+   },
+   {
+    "id": "cristal_monolito_2",
+    "tag": "crystal",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     0.0,
+     24.0
+    ],
+    "rotation": 180.0,
+    "scale": 1.8,
+    "y": 0.0
+   },
+   {
+    "id": "cristal_monolito_3",
+    "tag": "crystal",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     -16.97,
+     16.97
+    ],
+    "rotation": 135.0,
+    "scale": 1.8,
+    "y": 0.0
+   },
+   {
+    "id": "cristal_monolito_4",
+    "tag": "crystal",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     -24.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.8,
+    "y": 0.0
+   },
+   {
+    "id": "cristal_monolito_5",
+    "tag": "crystal",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     -16.97,
+     -16.97
+    ],
+    "rotation": 45.0,
+    "scale": 1.8,
+    "y": 0.0
+   },
+   {
+    "id": "cristal_monolito_6",
+    "tag": "crystal",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     -0.0,
+     -24.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.8,
+    "y": 0.0
+   },
+   {
+    "id": "cristal_monolito_7",
+    "tag": "crystal",
+    "model": "res://models/crystal_cluster_1787078933118.glb",
+    "position": [
+     16.97,
+     -16.97
+    ],
+    "rotation": 315.0,
+    "scale": 1.8,
+    "y": 0.0
+   },
+   {
+    "id": "lampiao_sagrado_1",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     8.31,
+     3.44
+    ],
+    "rotation": 247.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lampiao_sagrado_2",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -3.44,
+     8.31
+    ],
+    "rotation": 157.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lampiao_sagrado_3",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     -8.31,
+     -3.44
+    ],
+    "rotation": 67.5,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lampiao_sagrado_4",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     3.44,
+     -8.31
+    ],
+    "rotation": 337.5,
+    "scale": 1.0,
+    "y": 0.0
    }
   ]
  }
