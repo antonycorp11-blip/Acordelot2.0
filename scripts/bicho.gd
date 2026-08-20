@@ -60,7 +60,7 @@ func _construir_modelo(cfg: Dictionary) -> void:
     _modelo = scene.instantiate()
     add_child(_modelo)
 
-    var mat_triposr := preload("res://Material_TripoSR.tres")
+    var mat_triposr := preload("res://materials/triposr_props.tres")
     for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
         var m_inst := malha as MeshInstance3D
         if m_inst and m_inst.mesh:

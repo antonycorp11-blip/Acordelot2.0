@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://materials/triposr.gdshader" id="1_triposr"]
+
+[resource]
+resource_name = "Material_TripoSR_Shader"
+shader = ExtResource("1_triposr")
+shader_parameter/roughness = 0.85
+shader_parameter/metallic = 0.05

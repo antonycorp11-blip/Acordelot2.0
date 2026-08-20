@@ -399,7 +399,7 @@ func _obter_nome_zona(zid: String) -> String:
 # -------------------------------------------------------------
 # Instanciação 3D Real com Medição AABB e Assentamento no Chão
 # -------------------------------------------------------------
-static var _material_triposr: Material = preload("res://Material_TripoSR.tres")
+static var _material_triposr: Material = preload("res://materials/triposr_props.tres")
 static var _material_com_vento: ShaderMaterial = null
 
 static func _obter_material_vento() -> ShaderMaterial:
