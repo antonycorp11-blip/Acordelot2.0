@@ -256,20 +256,153 @@ func _marcar_impacto() -> void:
         return
     _atingir()
 
+var _buff_aura_azul: bool = false
+var _buff_espada_gigante: bool = false
+var _aura_fx_node: Node3D
+
+func ativar_aura_azul() -> void:
+    _buff_aura_azul = true
+    _criar_aura_azul_visual()
+    var tw := create_tween()
+    tw.tween_interval(10.0)
+    tw.tween_callback(func():
+        _buff_aura_azul = false
+        if _aura_fx_node and is_instance_valid(_aura_fx_node):
+            _aura_fx_node.queue_free()
+    )
+
+func _criar_aura_azul_visual() -> void:
+    if _aura_fx_node and is_instance_valid(_aura_fx_node):
+        _aura_fx_node.queue_free()
+        
+    _aura_fx_node = Node3D.new()
+    _aura_fx_node.name = "AuraAzulFX"
+    add_child(_aura_fx_node)
+    
+    var light := OmniLight3D.new()
+    light.light_color = Color(0.2, 0.7, 1.0)
+    light.light_energy = 3.5
+    light.omni_range = 4.5
+    light.position.y = 1.0
+    _aura_fx_node.add_child(light)
+    
+    var ring := MeshInstance3D.new()
+    var tor := TorusMesh.new()
+    tor.inner_radius = 0.9
+    tor.outer_radius = 1.2
+    ring.mesh = tor
+    
+    var mat := StandardMaterial3D.new()
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat.albedo_color = Color(0.2, 0.85, 1.0, 0.85)
+    mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    ring.material_override = mat
+    ring.position.y = 0.2
+    _aura_fx_node.add_child(ring)
+
+func ativar_espada_gigante() -> void:
+    _buff_espada_gigante = true
+    if _espada:
+        _espada.scale = Vector3.ONE * 2.5
+    var tw := create_tween()
+    tw.tween_interval(8.0)
+    tw.tween_callback(func():
+        _buff_espada_gigante = false
+        if _espada:
+            _espada.scale = Vector3.ONE
+    )
+
+func lancar_raio_kamehameha() -> void:
+    _atacando = true
+    _animador.play("heroi/golpe_pesado", 0.1, 1.4)
+    
+    var frente := -global_transform.basis.z.normalized()
+    var origem := global_position + Vector3(0, 1.1, 0)
+    
+    # 1. Cria o Feixe Visual 3D (Cilindro Laser Gigante)
+    var feixe_root := Node3D.new()
+    feixe_root.name = "KamehamehaBeam"
+    get_parent().add_child(feixe_root)
+    feixe_root.global_position = origem
+    
+    # Orienta o feixe para frente
+    if frente.length_squared() > 0.001:
+        feixe_root.look_at(origem + frente, Vector3.UP)
+        
+    var mesh_inst := MeshInstance3D.new()
+    var cyl := CylinderMesh.new()
+    cyl.top_radius = 0.85
+    cyl.bottom_radius = 0.4
+    cyl.height = 24.0
+    mesh_inst.mesh = cyl
+    mesh_inst.position.z = -12.0
+    mesh_inst.rotation_degrees.x = 90.0
+    
+    var mat_beam := StandardMaterial3D.new()
+    mat_beam.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat_beam.albedo_color = Color(0.3, 0.85, 1.0, 0.95)
+    mat_beam.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    mesh_inst.material_override = mat_beam
+    feixe_root.add_child(mesh_inst)
+    
+    # Luz intensa no raio
+    var l_beam := OmniLight3D.new()
+    l_beam.light_color = Color(0.4, 0.9, 1.0)
+    l_beam.light_energy = 8.0
+    l_beam.omni_range = 14.0
+    l_beam.position.z = -8.0
+    feixe_root.add_child(l_beam)
+    
+    # 2. Dano Massivo (350 DMG) a todos os inimigos no cone do feixe
+    for bicho in get_tree().get_nodes_in_group("bicho"):
+        if not is_instance_valid(bicho):
+            continue
+        var ate: Vector3 = bicho.global_position - global_position
+        ate.y = 0.0
+        var dist := ate.length()
+        if dist > 24.0:
+            continue
+        if frente.angle_to(ate.normalized()) < deg_to_rad(45.0):
+            bicho.levar_dano(350.0, frente)
+            
+    # 3. Animação de Desaparecimento
+    var tw := create_tween()
+    tw.tween_property(mesh_inst, "scale", Vector3(1.4, 1.0, 1.4), 0.15)
+    tw.tween_property(mesh_inst, "scale", Vector3(0.0, 1.0, 0.0), 0.35)
+    tw.tween_callback(func():
+        feixe_root.queue_free()
+        _atacando = false
+        _animador.play("heroi/parado", 0.2)
+    )
+
 func _atingir() -> void:
     var origem := global_position
-    var frente := global_transform.basis.z.normalized()
+    var frente := -global_transform.basis.z.normalized()
+    var alcance: float = 5.5 if _buff_espada_gigante else ALCANCE_DO_GOLPE
+    var abertura: float = 360.0 if _buff_espada_gigante else ABERTURA_DO_GOLPE
+    var dano_base: float = DANO * 1.8 if _buff_aura_azul else DANO
+    
+    var acertou := false
     for bicho in get_tree().get_nodes_in_group("bicho"):
         if not is_instance_valid(bicho):
             continue
         var ate: Vector3 = bicho.global_position - origem
         ate.y = 0.0
         var distancia := ate.length()
-        if distancia > ALCANCE_DO_GOLPE or distancia < 0.05:
+        if distancia > alcance or distancia < 0.05:
             continue
-        if frente.angle_to(ate.normalized()) > deg_to_rad(ABERTURA_DO_GOLPE * 0.5):
+        if abertura < 350.0 and frente.angle_to(ate.normalized()) > deg_to_rad(abertura * 0.5):
             continue
-        bicho.levar_dano(DANO, ate.normalized())
+        bicho.levar_dano(dano_base, ate.normalized())
+        acertou = true
+        
+    if acertou and _buff_aura_azul:
+        # Roubo de Vida: Cura o jogador em 35 HP
+        var hud = get_tree().get_first_node_in_group("player_hud")
+        if hud == null:
+            hud = get_node_or_null("/root/ZonedWorld/HUD/PlayerHUD")
+        if hud and hud.has_method("curar"):
+            hud.curar(35.0)
 
 func _tocar_nota() -> void:
     var nota: String = ESCALA[_proxima_nota]

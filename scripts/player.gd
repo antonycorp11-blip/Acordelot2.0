@@ -18,6 +18,20 @@ func alternar_voo() -> void:
 func esta_voando() -> bool:
     return _voando
 
+func usar_skill(indice: int) -> void:
+    if _hero == null:
+        return
+    match indice:
+        1:
+            if _hero.has_method("ativar_aura_azul"):
+                _hero.ativar_aura_azul()
+        2:
+            if _hero.has_method("ativar_espada_gigante"):
+                _hero.ativar_espada_gigante()
+        3:
+            if _hero.has_method("lancar_raio_kamehameha"):
+                _hero.lancar_raio_kamehameha()
+
 ## Ate onde a mira procura um alvo, em metros. Um pouco alem do alcance da
 ## espada: e o que deixa o jogador comecar o golpe ja se virando para o bicho
 ## que esta chegando, em vez de errar e ter que se reposicionar.

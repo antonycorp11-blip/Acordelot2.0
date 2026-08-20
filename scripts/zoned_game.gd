@@ -27,6 +27,28 @@ func _ready() -> void:
             inv_ui.toggle_inventory()
         )
         
+    # Conexão dos 3 Botões de Habilidades (Skills)
+    var btn_skill1 := find_child("BtnSkill1", true, false)
+    if btn_skill1:
+        btn_skill1.pressed.connect(func():
+            if _player and _player.has_method("usar_skill"):
+                _player.usar_skill(1)
+        )
+        
+    var btn_skill2 := find_child("BtnSkill2", true, false)
+    if btn_skill2:
+        btn_skill2.pressed.connect(func():
+            if _player and _player.has_method("usar_skill"):
+                _player.usar_skill(2)
+        )
+        
+    var btn_skill3 := find_child("BtnSkill3", true, false)
+    if btn_skill3:
+        btn_skill3.pressed.connect(func():
+            if _player and _player.has_method("usar_skill"):
+                _player.usar_skill(3)
+        )
+        
     if inv_ui and hud_vida:
         inv_ui.item_used.connect(func(item_id: String):
             if item_id == "pocao_cura_g":
@@ -40,6 +62,20 @@ func _ready() -> void:
         joystick.add_to_group("virtual_joystick")
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event.is_action_pressed("ui_accept"):
-        if _player and _player.has_method("atacar"):
-            _player.atacar()
+    if event is InputEventKey and event.pressed and not event.echo:
+        if event.keycode == KEY_1:
+            if _player and _player.has_method("usar_skill"):
+                _player.usar_skill(1)
+                get_viewport().set_input_as_handled()
+        elif event.keycode == KEY_2:
+            if _player and _player.has_method("usar_skill"):
+                _player.usar_skill(2)
+                get_viewport().set_input_as_handled()
+        elif event.keycode == KEY_3:
+            if _player and _player.has_method("usar_skill"):
+                _player.usar_skill(3)
+                get_viewport().set_input_as_handled()
+        elif event.keycode == KEY_SPACE:
+            if _player and _player.has_method("atacar"):
+                _player.atacar()
+                get_viewport().set_input_as_handled()

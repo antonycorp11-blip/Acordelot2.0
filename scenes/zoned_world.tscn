@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/zoned_game.gd" id="1_zoned_game"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="2_player"]
@@ -15,6 +15,9 @@
 [ext_resource type="Texture2D" path="res://textures/ui/btn_inventario.png" id="13_btn_inv"]
 [ext_resource type="Script" path="res://scripts/player_hud.gd" id="14_player_hud"]
 [ext_resource type="Script" path="res://scripts/inventory_ui.gd" id="15_inventory_ui"]
+[ext_resource type="Texture2D" path="res://textures/ui/btn_skill1.png" id="16_skill1"]
+[ext_resource type="Texture2D" path="res://textures/ui/btn_skill2.png" id="17_skill2"]
+[ext_resource type="Texture2D" path="res://textures/ui/btn_skill3.png" id="18_skill3"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_zoned"]
 sky_top_color = Color(0.18, 0.45, 0.78, 1)
@@ -31,17 +34,17 @@ sky_material = SubResource("SkyMaterial_zoned")
 background_mode = 2
 sky = SubResource("Sky_zoned")
 ambient_light_source = 2
-ambient_light_color = Color(0.68, 0.72, 0.68, 1)
-ambient_light_energy = 1.0
+ambient_light_color = Color(0.72, 0.78, 0.85, 1)
+ambient_light_energy = 1.05
 reflected_light_source = 1
 tonemap_mode = 3
-tonemap_exposure = 1.2
+tonemap_exposure = 1.15
 fog_enabled = true
-fog_light_color = Color(0.74, 0.82, 0.85, 1)
-fog_light_energy = 0.25
-fog_density = 0.003
+fog_light_color = Color(0.74, 0.82, 0.88, 1)
+fog_light_energy = 0.20
+fog_density = 0.0025
 fog_height = 2.0
-fog_height_density = 0.04
+fog_height_density = 0.03
 
 [sub_resource type="CapsuleShape3D" id="Shape_player"]
 radius = 0.45
@@ -56,9 +59,9 @@ environment = SubResource("Environment_zoned")
 [node name="Sunlight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.819152, -0.40558, 0.40558, 0, 0.707107, 0.707107, -0.573576, -0.579228, 0.579228, 0, 20, 0)
 light_color = Color(1, 0.95, 0.85, 1)
-light_energy = 2.1
+light_energy = 1.9
 shadow_enabled = true
-directional_shadow_max_distance = 60.0
+directional_shadow_max_distance = 45.0
 
 [node name="CicloDiaNoite" type="Node" parent="." node_paths=PackedStringArray("sol", "ambiente")]
 script = ExtResource("5_ciclo")
@@ -167,17 +170,65 @@ grow_horizontal = 2
 script = ExtResource("10_barra")
 ciclo = NodePath("../../CicloDiaNoite")
 
-[node name="BtnAtaque" type="TextureButton" parent="HUD"]
+[node name="BotoesCombate" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -270.0
+offset_top = -270.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="BtnSkill3" type="TextureButton" parent="HUD/BotoesCombate"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 160.0
+offset_right = 78.0
+offset_bottom = 226.0
+texture_normal = ExtResource("18_skill3")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BtnSkill1" type="TextureButton" parent="HUD/BotoesCombate"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 38.0
+offset_top = 78.0
+offset_right = 98.0
+offset_bottom = 138.0
+texture_normal = ExtResource("16_skill1")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BtnSkill2" type="TextureButton" parent="HUD/BotoesCombate"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 126.0
+offset_top = 36.0
+offset_right = 188.0
+offset_bottom = 98.0
+texture_normal = ExtResource("17_skill2")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BtnAtaque" type="TextureButton" parent="HUD/BotoesCombate"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -114.0
-offset_top = -114.0
-offset_right = -24.0
-offset_bottom = -24.0
+offset_left = -98.0
+offset_top = -98.0
+offset_right = 0.0
+offset_bottom = 0.0
 grow_horizontal = 0
 grow_vertical = 0
 texture_normal = ExtResource("11_btn_ataque")
