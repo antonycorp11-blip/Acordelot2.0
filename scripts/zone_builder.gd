@@ -305,7 +305,12 @@ func _construir_props_bioma() -> void:
     var n_arbustos: int = _zone_data.get("bush_count", 15)
     var n_pedras: int = _zone_data.get("rock_count", 10)
     
+    # Sete silhuetas diferentes. De cima, o que distingue uma arvore da outra e a
+    # forma — copa larga, cone, tronco torto — e nao o desenho da folha.
     var modelos_arvores = [
+        "res://models/tree_gn.glb",
+        "res://models/pine_tree.glb",
+        "res://models/mushroom_tree.glb",
         "res://models/arvore_frondosa.glb",
         "res://models/arvore_carvalho.glb",
         "res://models/arvore_pequena.glb"
@@ -328,23 +333,27 @@ func _construir_props_bioma() -> void:
 ## O ponto mais baixo do modelo, em unidades do proprio arquivo. Negativo quando
 ## a origem esta acima do pe, que e o caso de quase todo modelo exportado.
 static func _base_do_modelo(no: Node3D) -> float:
+    return _caixa_orientada(no).position.y
+
+## A caixa do modelo JA CONSIDERANDO a rotacao que o no recebeu.
+##
+## O modelo deitado e posto em pe girando o proprio no. Medir a caixa das malhas
+## sem essa rotacao devolve a altura de quando ele estava deitado — e o objeto
+## entra no mundo enterrado ou boiando, na exata medida do engano.
+static func _caixa_orientada(no: Node3D) -> AABB:
     var caixa := AABB()
     var achou := false
     for malha in no.find_children("*", "MeshInstance3D", true, false):
         var c: AABB = malha.get_aabb()
         caixa = c if not achou else caixa.merge(c)
         achou = true
-    return caixa.position.y if achou else 0.0
+    if not achou:
+        return AABB()
+    return Transform3D(no.transform.basis.orthonormalized(), Vector3.ZERO) * caixa
 
 ## Altura da malha de um modelo ja instanciado, em unidades do proprio arquivo.
 static func _altura_do_modelo(no: Node3D) -> float:
-    var caixa := AABB()
-    var achou := false
-    for malha in no.find_children("*", "MeshInstance3D", true, false):
-        var c: AABB = malha.get_aabb()
-        caixa = c if not achou else caixa.merge(c)
-        achou = true
-    return maxf(caixa.size.y, 0.001) if achou else 1.0
+    return maxf(_caixa_orientada(no).size.y, 0.001)
 
 ## A malha de um tufo, tirada do GLB e guardada.
 ##
@@ -565,7 +574,28 @@ func _instanciar_modelo(path: String) -> Node3D:
     # do TripoSR aparecer colorida. Por isso tudo continuava branco.
     for malha in no.find_children("*", "MeshInstance3D", true, false):
         malha.material_override = _material_de_prop()
+    _levantar_se_deitado(no)
     return no
+
+## Poe em pe o modelo exportado com Z para cima.
+##
+## Blender trata Z como altura e o glTF trata Y; quem exporta sem converter
+## entrega a arvore deitada, e ela entra no mundo como uma parede no chao. Nao ha
+## como perguntar ao arquivo qual foi a convencao — mas arvore, pedra e casa sao
+## mais ALTAS que largas, entao um objeto cuja maior dimensao esta em Z quase
+## sempre esta tombado. Uma malha realmente achatada nao dispara isto, porque
+## nela o Z nao domina com folga.
+static func _levantar_se_deitado(no: Node3D) -> void:
+    var caixa := AABB()
+    var achou := false
+    for malha in no.find_children("*", "MeshInstance3D", true, false):
+        var c: AABB = malha.get_aabb()
+        caixa = c if not achou else caixa.merge(c)
+        achou = true
+    if not achou:
+        return
+    if caixa.size.z > caixa.size.y * 1.25:
+        no.rotation.x = -PI * 0.5
 
 static var _mat_prop: Material = null
 static func _material_de_prop() -> Material:
