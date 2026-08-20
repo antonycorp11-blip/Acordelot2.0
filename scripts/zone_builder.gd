@@ -214,7 +214,10 @@ func _construir_grama_densa() -> void:
         if _zone_data.get("water", false) and ry < _zone_data.get("water_level", -2.0) + 0.3:
             continue
             
-        var scale_rnd := rng.randf_range(0.85, 1.35)
+        # O modelo do tufo mede 19 cm de altura no arquivo. Sem levar a escala
+        # para a altura de grama de verdade, os mil e oitocentos tufos ficam la —
+        # e invisiveis, que foi o que aconteceu.
+        var scale_rnd := rng.randf_range(0.85, 1.35) * ALTURA_DO_TUFO / _altura_do_modelo_do_tufo()
         var rot_y := rng.randf_range(0.0, TAU)
         
         var t := Transform3D()
@@ -313,7 +316,17 @@ func _construir_props_bioma() -> void:
 ##
 ## MultiMesh precisa de UMA malha, nao de uma cena: abre-se o modelo, pega-se a
 ## malha de dentro e descarta-se o resto.
+## Altura desejada do tufo no mundo, em metros.
+const ALTURA_DO_TUFO := 0.55
+
 static var _tufo: Mesh = null
+
+## Altura do tufo COMO ESTA NO ARQUIVO, para converter em escala.
+static func _altura_do_modelo_do_tufo() -> float:
+    var malha := _malha_do_tufo()
+    if malha == null:
+        return 1.0
+    return maxf(malha.get_aabb().size.y, 0.001)
 static func _malha_do_tufo() -> Mesh:
     if _tufo != null:
         return _tufo
@@ -388,15 +401,52 @@ func _construir_barreiras_perimetro() -> void:
         if exits.get("east", "") == "" or abs(pos_along) > portal_gap:
             _criar_arvore_borda(Vector3(half, calcular_altura(half, pos_along), pos_along))
 
+## Uma arvore da mata que fecha a zona.
+##
+## O cinturao antigo plantava a MESMA arvore, do MESMO tamanho, a cada 5,5 m
+## exatos nas quatro bordas: lia como cerca de estaca, nao como mata. Aqui cada
+## uma sorteia especie, tamanho, giro e um desvio para dentro e para os lados —
+## borda de floresta e irregular, e e a irregularidade que a faz desaparecer
+## como limite e virar paisagem.
 func _criar_arvore_borda(pos: Vector3) -> void:
-    var inst := _instanciar_modelo("res://models/arvore_frondosa.glb")
+    const ESPECIES := [
+        "res://models/arvore_frondosa.glb",
+        "res://models/arvore_carvalho.glb",
+        "res://models/arvore_pequena.glb",
+    ]
+    if _rng_borda == null:
+        _rng_borda = RandomNumberGenerator.new()
+        _rng_borda.seed = hash(_zone_data.get("id", "zona")) + 7
+
+    # Uma em cada seis nao nasce: o vao quebra o ritmo do passo fixo.
+    if _rng_borda.randf() < 0.16:
+        return
+
+    var inst := _instanciar_modelo(ESPECIES[_rng_borda.randi() % ESPECIES.size()])
     if not inst:
         return
+
+    # Desvio para DENTRO da zona, nunca para fora: para fora abriria buraco na
+    # parede de mata e o jogador veria o fim do mundo.
+    var para_dentro := _rng_borda.randf_range(0.0, 5.0)
+    var ao_longo := _rng_borda.randf_range(-2.2, 2.2)
+    var eixo_x: bool = absf(pos.x) > absf(pos.z)
+    if eixo_x:
+        pos.x -= signf(pos.x) * para_dentro
+        pos.z += ao_longo
+    else:
+        pos.z -= signf(pos.z) * para_dentro
+        pos.x += ao_longo
+    pos.y = calcular_altura(pos.x, pos.z)
+
     inst.position = pos
-    var esc := 2.6
+    inst.rotation.y = _rng_borda.randf_range(0.0, TAU)
+    var esc := _rng_borda.randf_range(2.0, 3.4)
     inst.scale = Vector3(esc, esc, esc)
     _adicionar_colisor_prop(inst, "arvore", esc)
     _props_node.add_child(inst)
+
+var _rng_borda: RandomNumberGenerator = null
 
 # -------------------------------------------------------------
 # 7. Portais de Transição
@@ -459,9 +509,15 @@ func _instanciar_modelo(path: String) -> Node3D:
     # As malhas do TripoSR nao tem textura: a cor viaja POR VERTICE. Sem um
     # material que leia essa cor como albedo, elas chegam BRANCAS — era o que
     # parecia "pedra branca" no mapa, e sao os arbustos e as arvores.
+    # SEMPRE sobrepoe, sem perguntar se ja ha material.
+    #
+    # A primeira versao so aplicava quando a malha vinha sem material — e nao
+    # veio nenhuma. O gerador de 3D grava um material dentro do proprio GLB, mas
+    # e um StandardMaterial3D branco: o formato glTF nao tem como dizer "use a
+    # cor do vertice como albedo", e essa e justamente a chave que faz a malha
+    # do TripoSR aparecer colorida. Por isso tudo continuava branco.
     for malha in no.find_children("*", "MeshInstance3D", true, false):
-        if malha.mesh and malha.mesh.surface_get_material(0) == null:
-            malha.material_override = _material_de_prop()
+        malha.material_override = _material_de_prop()
     return no
 
 static var _mat_prop: Material = null
