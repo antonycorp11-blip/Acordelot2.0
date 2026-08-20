@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cd6e4i7uw2fom"
-valid=false
+uid="uid://bq1atmrodfqe"
+path="res://.godot/imported/black_dragon.glb-179b83e9d11dded9c7e5c2068564cfa7.scn"
 
 [deps]
 
 source_file="res://models/black_dragon.glb"
+dest_files=["res://.godot/imported/black_dragon.glb-179b83e9d11dded9c7e5c2068564cfa7.scn"]
 
 [params]
 
