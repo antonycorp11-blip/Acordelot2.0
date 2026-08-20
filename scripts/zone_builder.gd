@@ -20,22 +20,22 @@ var _props_node: Node3D
 
 # Banco Exclusivo de Novos Modelos 3D Reais com Texturas e Alturas Reais
 const ARVORES_FLORESTA_3D := [
-    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 17.0, "enterrar": 0.65},
-    {"path": "res://models/oak_trees.glb", "tag": "carvalho_real", "altura": 15.0, "enterrar": 0.55},
-    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 14.0, "enterrar": 0.50},
-    {"path": "res://models/japanese_maple_tree.glb", "tag": "bordo_japones", "altura": 15.5, "enterrar": 0.55},
-    {"path": "res://models/platano_tree.glb", "tag": "platano_real", "altura": 16.0, "enterrar": 0.60}
+    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 10.5, "enterrar": 0.65},
+    {"path": "res://models/oak_trees.glb", "tag": "carvalho_real", "altura": 9.0, "enterrar": 0.55},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.5, "enterrar": 0.50},
+    {"path": "res://models/japanese_maple_tree.glb", "tag": "bordo_japones", "altura": 8.5, "enterrar": 0.55},
+    {"path": "res://models/platano_tree.glb", "tag": "platano_real", "altura": 9.5, "enterrar": 0.60}
 ]
 
 const ARVORES_MISTICAS_3D := [
-    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 11.5, "enterrar": 0.45},
-    {"path": "res://models/japanese_maple_tree.glb", "tag": "bordo_japones", "altura": 15.0, "enterrar": 0.55},
-    {"path": "res://models/platano_tree.glb", "tag": "platano_real", "altura": 15.5, "enterrar": 0.60},
-    {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal_arcano", "altura": 4.5, "enterrar": 0.25}
+    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 7.0, "enterrar": 0.45},
+    {"path": "res://models/japanese_maple_tree.glb", "tag": "bordo_japones", "altura": 8.5, "enterrar": 0.55},
+    {"path": "res://models/platano_tree.glb", "tag": "platano_real", "altura": 9.5, "enterrar": 0.60},
+    {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal_arcano", "altura": 3.6, "enterrar": 0.25}
 ]
 
 const ARBUSTOS_3D := [
-    {"path": "res://models/fantasy_bush_1787078968444.glb", "tag": "arbusto_3d", "altura": 2.8, "enterrar": 0.3}
+    {"path": "res://models/fantasy_bush_1787078968444.glb", "tag": "arbusto_3d", "altura": 2.2, "enterrar": 0.3}
 ]
 
 func carregar_dados() -> void:

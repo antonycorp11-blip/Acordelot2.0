@@ -54,7 +54,16 @@ func _nascer() -> void:
         sin(angulo) * distancia_de_nascimento)
     # Um pouco acima do CHAO DALI, nao acima do zero: com o terreno dobrado, um
     # y fixo faria o bicho nascer enterrado no morro ou despencando do ar.
-    ponto.y = RELEVO.altura(ponto.x, ponto.z) + 1.5
+    # A altura vem de quem construiu o chao que esta ali.
+    #
+    # O mundo por zonas tem o proprio relevo, e Relevo.altura descreve o mundo
+    # ANTIGO, de pedacos. Perguntar ao mapa errado nasce o bicho no ar ou dentro
+    # da terra — era o dragao sem chao.
+    var construtor := get_tree().root.find_child("ZoneBuilder", true, false)
+    if construtor and construtor.has_method("calcular_altura"):
+        ponto.y = construtor.calcular_altura(ponto.x, ponto.z) + 1.5
+    else:
+        ponto.y = RELEVO.altura(ponto.x, ponto.z) + 1.5
 
     var bicho: Node3D = BICHO.new()
     bicho.position = ponto
