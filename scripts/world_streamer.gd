@@ -48,6 +48,10 @@ func _ready() -> void:
         pracas.append(Plane(praca.x, praca.y, praca.z, 0.0))
     _ground_material.set_shader_parameter("pracas", pracas)
     _ground_material.set_shader_parameter("quantas_pracas", pracas.size())
+    var malhas: Array[Plane] = []
+    for m in Relevo.malhas_viarias():
+        malhas.append(Plane(m.x, m.y, m.z, m.w))
+    _ground_material.set_shader_parameter("malha_viaria", malhas)
 
 ## Monta na hora o pedaco sob uma posicao. O mundo nasce um pedaco por quadro
 ## para nao engasgar, mas o jogador ja cai desde o primeiro: sem o chao dele

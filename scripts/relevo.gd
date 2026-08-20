@@ -47,6 +47,8 @@ static var _detalhe: FastNoiseLite
 ## em volta de um vilarejo.
 static var _vilas: Array[Vector2] = []
 static var _raios: Array[float] = []
+## Geometria viaria por cidade: x = avenidas, yzw = raio de cada anel.
+static var _malhas: Array[Vector4] = []
 static var _estradas: Image = null
 static var _mundo_min := Vector2(-660.0, -540.0)
 static var _mundo_tam := Vector2(1320.0, 1200.0)
@@ -84,6 +86,13 @@ static func _preparar() -> void:
                                       float(regiao["row"]) * lado))
                 var praca: Dictionary = pracas.get(String(regiao.get("id", "")), {})
                 _raios.append(float(praca.get("raio", RAIO_DA_VILA)))
+
+                var aneis: Array = praca.get("aneis", [])
+                _malhas.append(Vector4(
+                    float(praca.get("avenidas", 0)),
+                    float(aneis[0]) if aneis.size() > 0 else 0.0,
+                    float(aneis[1]) if aneis.size() > 1 else 0.0,
+                    float(aneis[2]) if aneis.size() > 2 else 0.0))
 
     var textura: Texture2D = load("res://textures/road_mask.png")
     if textura:
@@ -150,6 +159,12 @@ static func raio_da_praca(centro: Vector3) -> float:
         if _vilas[i].distance_to(alvo) < 1.0:
             return _raios[i]
     return 0.0
+
+## A malha viaria de cada cidade, na ordem de pracas(). Vai para o shader do
+## chao, que e quem desenha o leito das ruas.
+static func malhas_viarias() -> Array[Vector4]:
+    _preparar()
+    return _malhas
 
 ## Normal aproximada do terreno, por diferenca finita.
 ##

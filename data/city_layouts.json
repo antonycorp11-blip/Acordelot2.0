@@ -2,16 +2,36 @@
  "_nota": "GERADO por .tools/planejar_cidades.py — nao editar a mao, o proximo run sobrescreve. E plano radial, nao sorteio: praca no centro, avenidas em raio, aneis concentricos, e o quarteirao ocupando a fatia entre duas avenidas. Mexer no desenho e mexer no script.",
  "pracas": {
   "custom_1785869541494_557": {
-   "raio": 52.0
+   "raio": 52.0,
+   "avenidas": 8,
+   "aneis": [
+    18.0,
+    28.5,
+    39.0
+   ]
   },
   "custom_1785880661560_858": {
-   "raio": 44.0
+   "raio": 44.0,
+   "avenidas": 4,
+   "aneis": [
+    19.5,
+    30.0
+   ]
   },
   "custom_1785884200706_430": {
-   "raio": 34.0
+   "raio": 34.0,
+   "avenidas": 4,
+   "aneis": [
+    16.5,
+    26.0
+   ]
   },
   "custom_1786499037621_343": {
-   "raio": 26.0
+   "raio": 26.0,
+   "avenidas": 2,
+   "aneis": [
+    16.0
+   ]
   }
  },
  "layouts": {

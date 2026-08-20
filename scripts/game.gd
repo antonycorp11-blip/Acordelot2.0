@@ -48,6 +48,21 @@ func _shoot_and_quit() -> void:
     # Espera o mundo assentar: com o build a um pedaco por quadro, medir cedo
     # mede a montagem, nao o jogo.
     await get_tree().create_timer(8.0).timeout
+    # Vista de planta: camera ortografica direto de cima.
+    #
+    # Existe para desenhar cidade. A camera do jogo olha a 52 graus, e de 52
+    # graus nao da para julgar tracado urbano — casa esconde casa, e a distancia
+    # entre duas ruas muda conforme a posicao na tela. Em projecao ortografica de
+    # cima, o que se ve E a planta: as ruas ficam retas, os aneis ficam redondos
+    # e o alinhamento dos lotes salta aos olhos.
+    for arg in OS.get_cmdline_user_args():
+        if arg.begins_with("--planta"):
+            var alcance := 130.0
+            if "=" in arg:
+                alcance = float(arg.split("=")[1])
+            _vista_de_planta(alcance)
+            await get_tree().create_timer(2.5).timeout
+
     # Camera colada no heroi: e a unica forma de julgar como a espada esta na mao.
     if OS.get_cmdline_user_args().has("--perto"):
         $CameraRig.definir_zoom(0.2)
@@ -68,6 +83,31 @@ func _shoot_and_quit() -> void:
     image.save_png("user://shot.png")
     print("SHOT ", ProjectSettings.globalize_path("user://shot.png"))
     get_tree().quit()
+
+## Troca a camera do jogo por uma ortografica olhando o chao de cima.
+##
+## Ortografica e nao perspectiva: em perspectiva, dois quarteiroes de mesmo
+## tamanho aparecem com tamanhos diferentes conforme a distancia do centro da
+## tela, e e impossivel saber se o desalinhamento e do desenho ou da lente.
+func _vista_de_planta(alcance: float) -> void:
+    var camera := get_viewport().get_camera_3d()
+    if camera == null:
+        return
+    camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+    camera.size = alcance
+    camera.far = 400.0
+    camera.global_position = _player.global_position + Vector3(0.0, 180.0, 0.0)
+    camera.global_rotation = Vector3(-PI * 0.5, 0.0, 0.0)
+    # O seguidor continuaria arrastando a camera de volta para o heroi.
+    $CameraRig.set_process(false)
+    # HUD fora: barra do dia, joystick e mapa nao pertencem a uma planta.
+    $MobileControls.visible = false
+    $DebugHud.visible = false
+    $MapLayer.visible = false
+    # Nevoa fora tambem. Ela e calculada pela distancia a camera, e a camera de
+    # planta esta a 180 m: a cidade inteira sai lavada de cinza.
+    var ambiente: Environment = $WorldEnvironment.environment
+    ambiente.fog_enabled = false
 
 func _hero_atacar() -> void:
     _player.atacar()

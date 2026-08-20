@@ -122,7 +122,12 @@ def iluminar(pecas, raio, angulos, marca):
 
 
 def cidade_radial(avenidas, aneis, raio_da_muralha, portoes, marcos):
-    """Monta uma cidade inteira a partir da sua geometria."""
+    """Monta uma cidade inteira a partir da sua geometria.
+
+    Devolve as pecas E a geometria: o shader do chao precisa dos mesmos numeros
+    para desenhar o leito das ruas. Se os dois calculassem por conta propria, a
+    casa acabaria no meio da avenida na primeira vez que um numero mudasse.
+    """
     pecas = []
 
     # O monumento no centro exato: e o ponto de fuga de todas as avenidas, e
@@ -151,7 +156,12 @@ def cidade_radial(avenidas, aneis, raio_da_muralha, portoes, marcos):
     if raio_da_muralha > 0.0:
         muralha_circular(pecas, raio_da_muralha,
                          torres=max(8, avenidas * 2), portoes=portoes)
-    return pecas
+
+    # As ruas correm entre os aneis de casas, nao sobre eles.
+    raios = [r for r, _, _ in aneis]
+    entre = [round((raios[i] + raios[i + 1]) * 0.5, 1) for i in range(len(raios) - 1)]
+    entre.append(round(raios[-1] + 5.0, 1))
+    return pecas, {"avenidas": avenidas, "aneis": entre[:3]}
 
 
 # ─────────────────────────────────────────────────────────── as quatro cidades
@@ -232,11 +242,15 @@ def main():
         "pracas": {}, "layouts": {},
     }
     for ident, cidade in CIDADES.items():
-        saida["pracas"][ident] = {"raio": cidade["raio"]}
-        saida["layouts"][ident] = cidade["planta"]
-        alcance = max(math.hypot(*p["position"]) for p in cidade["planta"])
-        print(f'{ident}  {len(cidade["planta"]):3d} pecas  '
-              f'alcance {alcance:.0f} m  praca {cidade["raio"]:.0f} m')
+        pecas, geometria = cidade["planta"]
+        saida["pracas"][ident] = {"raio": cidade["raio"],
+                                  "avenidas": geometria["avenidas"],
+                                  "aneis": geometria["aneis"]}
+        saida["layouts"][ident] = pecas
+        alcance = max(math.hypot(*p["position"]) for p in pecas)
+        print(f'{ident}  {len(pecas):3d} pecas  alcance {alcance:.0f} m  '
+              f'praca {cidade["raio"]:.0f} m  '
+              f'{geometria["avenidas"]} avenidas, aneis {geometria["aneis"]}')
 
     destino = os.path.join(RAIZ, "data", "city_layouts.json")
     with open(destino, "w") as arquivo:

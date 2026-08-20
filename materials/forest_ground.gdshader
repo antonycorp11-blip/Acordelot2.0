@@ -22,6 +22,15 @@ uniform sampler2D flagstone_texture : source_color, filter_linear_mipmap_anisotr
 uniform vec4 pracas[8];
 uniform int quantas_pracas = 0;
 
+// A malha viaria de cada cidade: quantas avenidas saem do centro e ate onde vai
+// cada anel. x = numero de avenidas, y/z/w = raio dos tres aneis (0 = sem anel).
+//
+// A rua e DESENHADA no chao, nao apenas reservada. Guardar o espaco vazio e
+// deixar o resto calcado nao le como cidade: le como praca gigante com casas na
+// borda — foi exatamente o que a vista de planta mostrou. O que faz um tracado
+// aparecer e o contraste entre o leito da rua e o miolo do quarteirao.
+uniform vec4 malha_viaria[8];
+
 // Mapa das estradas do mundo inteiro, desenhado por .tools/gerar_estradas.py a
 // partir da grade dos cenarios. Vermelho = terra batida, verde = calcamento.
 // Uma leitura de textura resolve um tracado que ruido nenhum saberia fazer:
@@ -157,6 +166,36 @@ void fragment() {
     if (na_praca > 0.001) {
         vec3 lajota = texture(flagstone_texture, world_position.xz / 4.2).rgb;
         ground = mix(ground, lajota, na_praca);
+
+        // Por cima da lajota, o leito das ruas em pedra de passagem.
+        float rua = 0.0;
+        for (int i = 0; i < quantas_pracas; i++) {
+            vec2 rel = world_position.xz - pracas[i].xy;
+            float dist = length(rel);
+            if (dist > pracas[i].z) { continue; }
+
+            float avenidas = malha_viaria[i].x;
+            if (avenidas > 0.5) {
+                // Distancia ate o eixo da avenida mais proxima. O angulo dobrado
+                // pelo numero de avenidas transforma "qual raio" em "quanto
+                // falta para o proximo", sem laco sobre as avenidas.
+                float passo = 6.28318530718 / avenidas;
+                float sobra = mod(atan(rel.y, rel.x) + passo * 0.5, passo) - passo * 0.5;
+                // A largura da rua e constante em METROS: o desvio angular
+                // multiplica pela distancia ao centro.
+                rua = max(rua, 1.0 - smoothstep(2.6, 4.0, abs(sobra) * dist));
+            }
+            // Aneis: faixas circulares na distancia declarada.
+            for (int k = 1; k < 4; k++) {
+                float raio = malha_viaria[i][k];
+                if (raio < 0.5) { continue; }
+                rua = max(rua, 1.0 - smoothstep(2.2, 3.4, abs(dist - raio)));
+            }
+            // A praca central e toda calcada de passagem, sem quarteirao.
+            rua = max(rua, 1.0 - smoothstep(7.0, 9.5, dist));
+        }
+        vec3 leito = texture(stone_texture, world_position.xz / 3.2).rgb;
+        ground = mix(ground, leito, rua * na_praca);
     }
 
     // Leito do lago: terra, nunca grama. Uma lamina de agua por cima de campo
