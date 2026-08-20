@@ -1,38 +1,20 @@
 shader_type spatial;
 render_mode diffuse_burley, specular_schlick_ggx;
 
-// Texturas do terreno
 uniform sampler2D grass_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D dirt_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D stone_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D rock_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 
-// Máscara local de caminhos/estradas da zona (R=Terra, G=Pedra)
-uniform sampler2D path_mask : filter_linear, repeat_disable;
-uniform bool use_path_mask = false;
 uniform vec2 zone_size = vec2(160.0, 160.0);
+uniform float meters_per_tile = 4.0;
 
-// Configurações de escala
-uniform float meters_per_tile = 3.5;
-uniform float macro_scale = 35.0;
+// Tinturas suaves para manter verde vibrante
+uniform vec3 tint_lush : source_color = vec3(0.55, 0.72, 0.45);
+uniform vec3 tint_dry : source_color = vec3(0.68, 0.65, 0.48);
 
-// Tinturas para variação visual estilo Albion
-uniform vec3 tint_lush : source_color = vec3(0.42, 0.65, 0.28);
-uniform vec3 tint_dry : source_color = vec3(0.62, 0.58, 0.38);
-uniform float tint_strength = 0.32;
-
-// Quais saidas esta zona tem: x = norte, y = sul, z = leste, w = oeste. 1 = ha
-// portal daquele lado.
-//
-// O caminho de terra ate o portal nao e enfeite: e o que diz ao jogador para
-// onde ir num campo aberto de 160 metros. Sem ele o portal e um brilho que se
-// encontra por acaso — e foi por acaso que ele nao foi encontrado.
-uniform vec4 saidas = vec4(0.0);
-uniform float largura_da_trilha = 3.2;
-
-// Altura e água
 uniform float water_level = -2.0;
-uniform float shore_blend = 1.0;
+uniform float shore_blend = 0.8;
 
 varying vec3 world_pos;
 varying vec3 world_normal;
@@ -50,12 +32,11 @@ float noise(vec2 p) {
 }
 
 float fbm(vec2 p) {
-    const mat2 rot = mat2(vec2(0.8, 0.6), vec2(-0.6, 0.8));
     float total = 0.0;
     float weight = 0.5;
     for (int i = 0; i < 3; i++) {
         total += noise(p) * weight;
-        p = rot * p * 2.02;
+        p = p * 2.05;
         weight *= 0.5;
     }
     return total;
@@ -69,69 +50,31 @@ void vertex() {
 void fragment() {
     vec2 uv = world_pos.xz / meters_per_tile;
     
-    // Coleta as 4 texturas
     vec3 col_grass = texture(grass_texture, uv).rgb;
     vec3 col_dirt  = texture(dirt_texture, uv).rgb;
-    vec3 col_stone = texture(stone_texture, uv * 0.85).rgb;
-    vec3 col_rock  = texture(rock_texture, uv * 0.7).rgb;
+    vec3 col_stone = texture(stone_texture, uv * 0.8).rgb;
+    vec3 col_rock  = texture(rock_texture, uv * 0.65).rgb;
     
-    // Variação macro de cor para dar riqueza visual
-    float macro_noise = fbm(world_pos.xz / macro_scale);
-    vec3 grass_tinted = mix(col_grass * tint_lush * 1.25, col_grass * tint_dry * 1.15, macro_noise);
+    // Variação suave de tom verdejante
+    float macro = fbm(world_pos.xz / 42.0);
+    vec3 grass_varied = mix(col_grass * tint_lush * 1.15, col_grass * tint_dry * 1.05, macro * 0.4);
     
-    // Ruído orgânico para misturar grama e terra batida natural
-    float path_noise = smoothstep(0.42, 0.58, fbm(world_pos.xz / 12.0));
-    vec3 base_color = mix(grass_tinted, col_dirt, path_noise * 0.6);
+    // Caminhos orgânicos de terra batida
+    float path_noise = smoothstep(0.48, 0.56, fbm(world_pos.xz / 18.0));
+    vec3 base_color = mix(grass_varied, col_dirt, path_noise * 0.65);
     
-    // Inclinação: encostas íngremes viram rocha natural
+    // Encostas rochosas naturais
     float slope = 1.0 - world_normal.y;
-    float rock_blend = smoothstep(0.28, 0.55, slope);
+    float rock_blend = smoothstep(0.32, 0.58, slope);
     base_color = mix(base_color, col_rock, rock_blend);
     
-    // Margem de água / praia
+    // Praia perto do nível da água
     if (world_pos.y < water_level + shore_blend) {
-        float shore_factor = 1.0 - clamp((world_pos.y - water_level) / shore_blend, 0.0, 1.0);
-        base_color = mix(base_color, col_dirt * 0.85, shore_factor * 0.85);
+        float shore = 1.0 - clamp((world_pos.y - water_level) / shore_blend, 0.0, 1.0);
+        base_color = mix(base_color, col_dirt * 0.9, shore * 0.9);
     }
     
-    // Aplica máscara de estradas e calçamento da zona se existir
-    if (use_path_mask) {
-        vec2 mask_uv = (world_pos.xz / zone_size) + vec2(0.5, 0.5);
-        if (mask_uv.x >= 0.0 && mask_uv.x <= 1.0 && mask_uv.y >= 0.0 && mask_uv.y <= 1.0) {
-            vec4 mask = texture(path_mask, mask_uv);
-            // Canal R = Terra Batida de Trilha
-            base_color = mix(base_color, col_dirt, mask.r);
-            // Canal G = Calçamento de Pedra
-            base_color = mix(base_color, col_stone, mask.g);
-        }
-    }
-    
-    // Trilhas de terra do centro ate cada portal.
-    float trilha = 0.0;
-    float meio_x = zone_size.x * 0.5;
-    float meio_z = zone_size.y * 0.5;
-    if (saidas.x > 0.5 && world_pos.z < 0.0) {
-        trilha = max(trilha, 1.0 - smoothstep(largura_da_trilha * 0.6,
-                                              largura_da_trilha, abs(world_pos.x)));
-    }
-    if (saidas.y > 0.5 && world_pos.z > 0.0) {
-        trilha = max(trilha, 1.0 - smoothstep(largura_da_trilha * 0.6,
-                                              largura_da_trilha, abs(world_pos.x)));
-    }
-    if (saidas.z > 0.5 && world_pos.x > 0.0) {
-        trilha = max(trilha, 1.0 - smoothstep(largura_da_trilha * 0.6,
-                                              largura_da_trilha, abs(world_pos.z)));
-    }
-    if (saidas.w > 0.5 && world_pos.x < 0.0) {
-        trilha = max(trilha, 1.0 - smoothstep(largura_da_trilha * 0.6,
-                                              largura_da_trilha, abs(world_pos.z)));
-    }
-    // Largo no centro, onde as trilhas se encontram: cruzamento de terra batida.
-    float centro = 1.0 - smoothstep(4.0, 7.5, length(world_pos.xz));
-    trilha = max(trilha, centro);
-    base_color = mix(base_color, texture(dirt_texture, world_pos.xz / meters_per_tile).rgb, trilha);
-
     ALBEDO = base_color;
-    ROUGHNESS = mix(0.85, 0.95, rock_blend);
-    SPECULAR = 0.15;
+    ROUGHNESS = 0.9;
+    SPECULAR = 0.05;
 }
