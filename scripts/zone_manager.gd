@@ -10,6 +10,9 @@ var _zones_db: Dictionary = {}
 var _current_zone_id: String = ""
 var _is_transitioning := false
 
+var _cartao: VBoxContainer
+var _cartao_titulo: Label
+var _cartao_tier: Label
 var _fade_rect: ColorRect
 var _zone_title_label: Label
 var _zone_tier_label: Label
@@ -49,6 +52,33 @@ func _criar_ui_transicao() -> void:
     _banner_container.position.y = 80.0
     _banner_container.modulate.a = 0.0
     canvas.add_child(_banner_container)
+
+    # Cartao de travessia, por cima do escurecimento.
+    _cartao = VBoxContainer.new()
+    _cartao.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _cartao.alignment = BoxContainer.ALIGNMENT_CENTER
+    _cartao.modulate.a = 0.0
+    _cartao.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    canvas.add_child(_cartao)
+
+    var indo := Label.new()
+    indo.text = "viajando para"
+    indo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    indo.add_theme_font_size_override("font_size", 14)
+    indo.add_theme_color_override("font_color", Color(0.55, 0.68, 0.85))
+    _cartao.add_child(indo)
+
+    _cartao_titulo = Label.new()
+    _cartao_titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _cartao_titulo.add_theme_font_size_override("font_size", 30)
+    _cartao_titulo.add_theme_color_override("font_color", Color(0.98, 0.94, 0.82))
+    _cartao.add_child(_cartao_titulo)
+
+    _cartao_tier = Label.new()
+    _cartao_tier.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _cartao_tier.add_theme_font_size_override("font_size", 15)
+    _cartao_tier.add_theme_color_override("font_color", Color(0.62, 0.72, 0.88))
+    _cartao.add_child(_cartao_tier)
     
     _zone_title_label = Label.new()
     _zone_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -115,16 +145,26 @@ func _on_portal_triggered(dest_zone_id: String, from_direction: String) -> void:
         return
     _is_transitioning = true
     
-    # 1. Fade Out para Preto
+    # A tela do meio da travessia NAO fica vazia.
+    #
+    # Preto puro por meio segundo le como falha: o jogador nao sabe se travou,
+    # se saiu do jogo ou se esta carregando. Escrever para onde ele esta indo
+    # transforma o vazio em informacao, e e o que todo jogo com carregamento
+    # entre areas faz. Nao custa nada: e o mesmo retangulo com um texto por cima.
+    var zonas: Dictionary = _zones_db.get("zones", {})
+    var destino: Dictionary = zonas.get(dest_zone_id, {})
+    _cartao_titulo.text = String(destino.get("name", "Viajando..."))
+    _cartao_tier.text = String(destino.get("tier", ""))
+
     var tween := create_tween()
     tween.tween_property(_fade_rect, "color:a", 1.0, 0.35).set_trans(Tween.TRANS_SINE)
+    tween.parallel().tween_property(_cartao, "modulate:a", 1.0, 0.35)
     await tween.finished
-    
-    # 2. Constrói a nova zona e reposiciona jogador
+
     carregar_zona(dest_zone_id, from_direction)
-    
-    # 3. Fade In da nova zona
+
     var tween_in := create_tween()
+    tween_in.tween_property(_cartao, "modulate:a", 0.0, 0.25)
     tween_in.tween_property(_fade_rect, "color:a", 0.0, 0.45).set_trans(Tween.TRANS_SINE)
     await tween_in.finished
     _is_transitioning = false

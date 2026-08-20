@@ -165,11 +165,16 @@ func _criar_modal_mapa_mundi() -> void:
     var scroll := ScrollContainer.new()
     scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    scroll.custom_minimum_size = Vector2(580, 310)
+    # Sem rolagem lateral. A largura minima de 580 px empurrava o conteudo para
+    # fora em tela estreita, e o mapa do reino precisava ser arrastado de lado
+    # para ser lido — que e o oposto de um mapa.
+    scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    scroll.custom_minimum_size = Vector2(0, 310)
     vbox.add_child(scroll)
     
     _grid_container = GridContainer.new()
-    _grid_container.columns = 3
+    # Duas colunas cabem em celular em pe; tres exigem tela larga.
+    _grid_container.columns = 2 if DisplayServer.window_get_size().x < 900 else 3
     _grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _grid_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
     _grid_container.add_theme_constant_override("h_separation", 10)

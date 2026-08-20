@@ -175,20 +175,22 @@ func _construir_grama_densa() -> void:
     mm.transform_format = MultiMesh.TRANSFORM_3D
     mm.instance_count = densidade
     
-    # Malha de tufo em cruz (2 quads cruzados em 90 graus)
-    var grass_quad := QuadMesh.new()
-    grass_quad.size = Vector2(1.1, 1.3)
-    grass_quad.center_offset = Vector3(0.0, 0.65, 0.0)
-    mm.mesh = grass_quad
+    # Tufo de grama em MALHA, nao em plaquinha.
+    #
+    # A plaquinha denuncia que e plaquinha: de perto se ve o papel, e nenhuma
+    # quantidade dela resolve. Com malha o tufo tem volume e recebe luz de todos
+    # os lados, e continua barato — o agrupamento nao mudou, entao os milhares de
+    # tufos seguem saindo numa chamada de desenho so.
+    var tufo: Mesh = _malha_do_tufo()
+    if tufo == null:
+        return
+    mm.mesh = tufo
     
     _grass_multimesh = MultiMeshInstance3D.new()
     _grass_multimesh.name = "GrassMultiMesh"
     _grass_multimesh.multimesh = mm
     
-    var mat := ShaderMaterial.new()
-    mat.shader = load("res://materials/zoned_grass_blade.gdshader")
-    mat.set_shader_parameter("grass_albedo", load("res://textures/props/tufo_grama_1.png"))
-    _grass_multimesh.material_override = mat
+    _grass_multimesh.material_override = _material_de_prop()
     
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(_zone_data.get("id", "zone")) + 99
@@ -306,6 +308,23 @@ func _construir_props_bioma() -> void:
     _espalhar_props(rng, n_arvores, modelos_arvores, 1.8, 3.2, 55.0, true)
     # Arbustos
     _espalhar_props(rng, n_arbustos, modelos_arbustos, 1.0, 1.8, 65.0, false)
+
+## A malha de um tufo, tirada do GLB e guardada.
+##
+## MultiMesh precisa de UMA malha, nao de uma cena: abre-se o modelo, pega-se a
+## malha de dentro e descarta-se o resto.
+static var _tufo: Mesh = null
+static func _malha_do_tufo() -> Mesh:
+    if _tufo != null:
+        return _tufo
+    if not ResourceLoader.exists("res://models/grass.glb"):
+        return null
+    var cena: Node3D = (load("res://models/grass.glb") as PackedScene).instantiate()
+    for malha in cena.find_children("*", "MeshInstance3D", true, false):
+        _tufo = malha.mesh
+        break
+    cena.queue_free()
+    return _tufo
 
 func _espalhar_props(rng: RandomNumberGenerator, qtd: int, modelos: Array, esc_min: float, esc_max: float, raio_max: float, solido: bool) -> void:
     var is_cidade: bool = (_zone_data.get("biome") == "cidade")
@@ -433,32 +452,60 @@ func _instanciar_modelo(path: String) -> Node3D:
     if not ResourceLoader.exists(path):
         return null
     var res := load(path)
-    if res is PackedScene:
-        return res.instantiate() as Node3D
-    return null
+    if not (res is PackedScene):
+        return null
+    var no := res.instantiate() as Node3D
+
+    # As malhas do TripoSR nao tem textura: a cor viaja POR VERTICE. Sem um
+    # material que leia essa cor como albedo, elas chegam BRANCAS — era o que
+    # parecia "pedra branca" no mapa, e sao os arbustos e as arvores.
+    for malha in no.find_children("*", "MeshInstance3D", true, false):
+        if malha.mesh and malha.mesh.surface_get_material(0) == null:
+            malha.material_override = _material_de_prop()
+    return no
+
+static var _mat_prop: Material = null
+static func _material_de_prop() -> Material:
+    if _mat_prop == null:
+        _mat_prop = load("res://Material_TripoSR.tres")
+    return _mat_prop
 
 func _adicionar_colisor_prop(node: Node3D, tag: String, escala: float) -> void:
+    # A caixa de colisao sai da MALHA, nao de um numero escrito a mao.
+    #
+    # Antes o raio era constante por familia — 0,8 m para tudo que nao fosse
+    # arvore — multiplicado pela escala sorteada. Um arbusto pequeno ganhava um
+    # cilindro de metro e meio invisivel em volta, e o jogador esbarrava longe do
+    # que via. Medindo a malha, o colisor tem o tamanho do que esta na tela.
+    var caixa := AABB()
+    var achou := false
+    for malha in node.find_children("*", "MeshInstance3D", true, false):
+        var c: AABB = malha.get_aabb()
+        caixa = c if not achou else caixa.merge(c)
+        achou = true
+    if not achou:
+        return
+
+    var largura: float = maxf(caixa.size.x, caixa.size.z) * escala
+    var altura: float = caixa.size.y * escala
+    if altura < 0.05:
+        return
+
     var body := StaticBody3D.new()
     var col := CollisionShape3D.new()
-    var shape := CylinderShape3D.new()
-    
-    if tag.begins_with("arvore"):
-        shape.radius = 0.55 * escala
-        shape.height = 3.5 * escala
-        col.position.y = shape.height * 0.5
-    elif tag.begins_with("casa") or tag.begins_with("mansao") or tag.begins_with("sobrado"):
+
+    if tag.begins_with("casa") or tag.begins_with("mansao") or tag.begins_with("sobrado"):
         var box := BoxShape3D.new()
-        box.size = Vector3(6.5 * escala, 6.0 * escala, 6.5 * escala)
+        box.size = Vector3(caixa.size.x * escala, altura, caixa.size.z * escala)
         col.shape = box
-        col.position.y = box.size.y * 0.5
-        body.add_child(col)
-        node.add_child(body)
-        return
     else:
-        shape.radius = 0.8 * escala
-        shape.height = 1.6 * escala
-        col.position.y = shape.height * 0.5
-        
-    col.shape = shape
+        var cil := CylinderShape3D.new()
+        # Tronco e mais estreito que a copa: para arvore vale um quinto da
+        # largura, senao o jogador esbarra na sombra da folhagem.
+        cil.radius = maxf(0.15, largura * (0.20 if tag.begins_with("arvore") else 0.42))
+        cil.height = altura
+        col.shape = cil
+
+    col.position.y = altura * 0.5
     body.add_child(col)
     node.add_child(body)
