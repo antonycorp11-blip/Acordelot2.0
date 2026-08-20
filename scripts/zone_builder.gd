@@ -325,6 +325,17 @@ func _construir_props_bioma() -> void:
         "res://models/media_1787078454231.glb",
     ], 0.5, 1.6, 68.0, false)
 
+## O ponto mais baixo do modelo, em unidades do proprio arquivo. Negativo quando
+## a origem esta acima do pe, que e o caso de quase todo modelo exportado.
+static func _base_do_modelo(no: Node3D) -> float:
+    var caixa := AABB()
+    var achou := false
+    for malha in no.find_children("*", "MeshInstance3D", true, false):
+        var c: AABB = malha.get_aabb()
+        caixa = c if not achou else caixa.merge(c)
+        achou = true
+    return caixa.position.y if achou else 0.0
+
 ## Altura da malha de um modelo ja instanciado, em unidades do proprio arquivo.
 static func _altura_do_modelo(no: Node3D) -> float:
     var caixa := AABB()
@@ -392,9 +403,12 @@ func _espalhar_props(rng: RandomNumberGenerator, qtd: int, modelos: Array, esc_m
             
         var alvo_m := rng.randf_range(esc_min, esc_max)
         var esc := alvo_m / _altura_do_modelo(inst)
-        inst.position = Vector3(px, py, pz)
         inst.rotation.y = rng.randf_range(0.0, TAU)
         inst.scale = Vector3(esc, esc, esc)
+        # O modelo tem a origem no MEIO, nao no pe: pousar a origem na altura do
+        # terreno enterra metade dele. Com arvore de quinze metros isso e sete
+        # metros de tronco debaixo da terra, e so a copa aparece.
+        inst.position = Vector3(px, py - _base_do_modelo(inst) * esc, pz)
         
         if solido:
             _adicionar_colisor_prop(inst, "arvore", esc)
@@ -469,12 +483,13 @@ func _criar_arvore_borda(pos: Vector3) -> void:
         pos.x += ao_longo
     pos.y = calcular_altura(pos.x, pos.z)
 
-    inst.position = pos
     inst.rotation.y = _rng_borda.randf_range(0.0, TAU)
     # Doze a dezoito metros: e esta parede de copa que impede o jogador de ver o
     # fim do mundo por cima do portal.
     var esc := _rng_borda.randf_range(12.0, 18.0) / _altura_do_modelo(inst)
     inst.scale = Vector3(esc, esc, esc)
+    pos.y -= _base_do_modelo(inst) * esc
+    inst.position = pos
     _adicionar_colisor_prop(inst, "arvore", esc)
     _props_node.add_child(inst)
 
