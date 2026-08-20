@@ -84,7 +84,7 @@ script = ExtResource("4_camera")
 target = NodePath("../Player")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
-transform = Transform3D(1, 0, 0, 0, 0.573576, 0.819152, 0, -0.819152, 0.573576, 0, 12.5, 7.2)
+transform = Transform3D(1, 0, 0, 0, 0.669131, 0.743145, 0, -0.743145, 0.669131, 0, 10.5, 8.5)
 current = true
 fov = 50.0
 near = 0.2

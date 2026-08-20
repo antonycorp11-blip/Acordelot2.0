@@ -28,18 +28,16 @@ var _props_node: Node3D
 #
 # Ficaram os tres que sao baratos E bonitos: seis, duas e duas malhas.
 const ARVORES_FLORESTA_3D := [
-    # A cara aparece uma vez em quatro: 22,5 mil triangulos contra 2,1 mil do
-    # pinheiro. Como destaque ela vale; como mata inteira, sozinha derruba o
-    # quadro. As outras tres entradas sao baratas de proposito.
     {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 10.5, "enterrar": 0.65},
     {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.0, "enterrar": 0.50},
     {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.5, "enterrar": 0.50},
-    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 8.0, "enterrar": 0.45}
+    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo", "altura": 2.2, "enterrar": 0.20}
 ]
 
 const ARVORES_MISTICAS_3D := [
-    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 7.0, "enterrar": 0.45},
-    {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal_arcano", "altura": 3.6, "enterrar": 0.25}
+    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 10.5, "enterrar": 0.65},
+    {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal_arcano", "altura": 3.6, "enterrar": 0.25},
+    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo", "altura": 2.2, "enterrar": 0.20}
 ]
 
 const ARBUSTOS_3D := [
@@ -338,7 +336,7 @@ func _construir_barreiras_perimetro_arvores_reais() -> void:
 ## O detalhe caro fica onde ele e olhado de perto.
 const ARVORES_DE_BORDA := [
     {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.5, "enterrar": 0.50},
-    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 8.0, "enterrar": 0.45},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 10.5, "enterrar": 0.55},
 ]
 
 func _criar_arvore_borda_3d(pos: Vector3, idx_seed: int) -> void:
@@ -447,17 +445,19 @@ func _corrigir_materiais_prop(modelo: Node3D, tag: String) -> void:
         var m_inst := malha as MeshInstance3D
         if not m_inst or not m_inst.mesh:
             continue
-        var precisa_triposr := false
+        var precisa_override := false
         for s in range(m_inst.mesh.get_surface_count()):
-            var mat := m_inst.get_active_material(s)
-            if mat == null:
-                precisa_triposr = true
+            var mat: Material = m_inst.get_active_material(s)
+            var fmt: int = m_inst.mesh.surface_get_format(s)
+            var has_vc: bool = (fmt & Mesh.ARRAY_FORMAT_COLOR) != 0
+            var has_tex: bool = false
+            if mat is StandardMaterial3D:
+                var sm := mat as StandardMaterial3D
+                has_tex = (sm.albedo_texture != null)
+            if has_vc and not has_tex:
+                precisa_override = true
                 break
-            if mat.resource_name == "Material_TripoSR" or mat.resource_name == "":
-                if mat is StandardMaterial3D and (mat as StandardMaterial3D).albedo_texture == null:
-                    precisa_triposr = true
-                    break
-        if precisa_triposr:
+        if precisa_override:
             if tem_vento:
                 m_inst.material_override = _obter_material_vento()
             else:

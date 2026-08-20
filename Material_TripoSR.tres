@@ -1,9 +1,10 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://dpsnx7mblt8w5"]
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://dpsnx7mblt8w5"]
+
+[ext_resource type="Shader" path="res://materials/triposr.gdshader" id="1_triposr"]
 
 [resource]
 resource_name = "Material_TripoSR"
-albedo_color = Color(1, 1, 1, 1)
-roughness = 0.85
-metallic = 0.05
-vertex_color_use_as_albedo = true
-
+render_priority = 0
+shader = ExtResource("1_triposr")
+shader_parameter/roughness = 0.85
+shader_parameter/metallic = 0.05

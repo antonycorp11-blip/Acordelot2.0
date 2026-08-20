@@ -37,10 +37,8 @@ func atualizar_mira_skill(indice: int, direcao_na_tela: Vector2) -> void:
         return
     if indice == 3 and direcao_na_tela.length() > 0.01:
         var dir_mundo := converter_direcao_tela_para_mundo(direcao_na_tela)
-        if dir_mundo.length() > 0.01:
-            rotation.y = atan2(dir_mundo.x, dir_mundo.z)
-            if _hero.has_method("mostrar_mira_laser"):
-                _hero.mostrar_mira_laser(dir_mundo)
+        if _hero.has_method("mostrar_mira_laser"):
+            _hero.mostrar_mira_laser(dir_mundo)
 
 func cancelar_mira_skill(indice: int) -> void:
     if _hero == null:
@@ -52,11 +50,6 @@ func cancelar_mira_skill(indice: int) -> void:
 func usar_skill(indice: int, direcao_na_tela := Vector2.ZERO) -> void:
     if _hero == null:
         return
-    var dir_mundo := Vector3.ZERO
-    if direcao_na_tela.length() > 0.01:
-        dir_mundo = converter_direcao_tela_para_mundo(direcao_na_tela)
-        if dir_mundo.length() > 0.01:
-            rotation.y = atan2(dir_mundo.x, dir_mundo.z)
     match indice:
         1:
             if _hero.has_method("ativar_aura_azul"):
@@ -66,6 +59,11 @@ func usar_skill(indice: int, direcao_na_tela := Vector2.ZERO) -> void:
                 _hero.ativar_espada_gigante()
         3:
             if _hero.has_method("lancar_raio_kamehameha"):
+                var dir_mundo := Vector3.ZERO
+                if direcao_na_tela.length() > 0.01:
+                    dir_mundo = converter_direcao_tela_para_mundo(direcao_na_tela)
+                    if dir_mundo.length() > 0.01:
+                        rotation.y = atan2(dir_mundo.x, dir_mundo.z)
                 _hero.lancar_raio_kamehameha(dir_mundo)
 
 ## Vira o corpo para onde o dedo apontou na tela.

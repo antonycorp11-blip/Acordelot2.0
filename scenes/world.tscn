@@ -82,8 +82,8 @@ script = ExtResource("3_camera")
 target = NodePath("../Player")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
-position = Vector3(0, 18.0, 10.5)
-rotation = Vector3(-0.959931, 0, 0)
+position = Vector3(0, 10.5, 8.5)
+rotation = Vector3(-0.837758, 0, 0)
 current = true
 fov = 50.0
 near = 0.2

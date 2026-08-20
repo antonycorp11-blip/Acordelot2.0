@@ -59,6 +59,25 @@ func _construir_modelo(cfg: Dictionary) -> void:
         
     _modelo = scene.instantiate()
     add_child(_modelo)
+
+    var mat_triposr := preload("res://Material_TripoSR.tres")
+    for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
+        var m_inst := malha as MeshInstance3D
+        if m_inst and m_inst.mesh:
+            var precisa_override := false
+            for s in range(m_inst.mesh.get_surface_count()):
+                var mat: Material = m_inst.get_active_material(s)
+                var fmt: int = m_inst.mesh.surface_get_format(s)
+                var has_vc: bool = (fmt & Mesh.ARRAY_FORMAT_COLOR) != 0
+                var has_tex: bool = false
+                if mat is StandardMaterial3D:
+                    var sm := mat as StandardMaterial3D
+                    has_tex = (sm.albedo_texture != null)
+                if has_vc and not has_tex:
+                    precisa_override = true
+                    break
+            if precisa_override:
+                m_inst.material_override = mat_triposr
     
     # Toca animação de idle se existir no modelo (ex: black dragon)
     _anim_player = _modelo.find_child("AnimationPlayer", true, false) as AnimationPlayer

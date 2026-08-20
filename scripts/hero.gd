@@ -83,13 +83,14 @@ func _ready() -> void:
 func _construir_indicador_mira_chao() -> void:
     _indicador_mira_chao = Node3D.new()
     _indicador_mira_chao.name = "IndicadorMiraLaser"
+    _indicador_mira_chao.top_level = true
     _indicador_mira_chao.visible = false
     add_child(_indicador_mira_chao)
 
     var st := SurfaceTool.new()
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
-    var y_chao := 0.94 # Levemente acima do chão (-0.9 + 0.94 = +0.04m)
+    var y_chao := 0.04 # 4 cm acima do solo global
 
     # 1. Haste principal (retângulo de 0.8m a 20m de alcance)
     var w := 0.45
@@ -137,9 +138,12 @@ func _construir_indicador_mira_chao() -> void:
 
     _indicador_mira_chao.add_child(mi)
 
-func mostrar_mira_laser(_direcao_mundo: Vector3) -> void:
+func mostrar_mira_laser(direcao_mundo: Vector3) -> void:
     if _indicador_mira_chao:
         _indicador_mira_chao.visible = true
+        _indicador_mira_chao.global_position = global_position
+        if direcao_mundo.length_squared() > 0.01:
+            _indicador_mira_chao.global_rotation.y = atan2(direcao_mundo.x, direcao_mundo.z)
 
 func esconder_mira_laser() -> void:
     if _indicador_mira_chao:
@@ -203,6 +207,8 @@ func _atualizar_encaixe() -> void:
 func _process(_delta: float) -> void:
     if OS.is_debug_build():
         _atualizar_encaixe()
+    if _indicador_mira_chao and _indicador_mira_chao.visible:
+        _indicador_mira_chao.global_position = global_position
 
 func _fixar_no_lugar(animacao: Animation) -> void:
     if animacao == null:
