@@ -67,21 +67,31 @@ func _construir_modelo(cfg: Dictionary) -> void:
         if not anim_list.is_empty():
             _anim_player.play(anim_list[0])
     
-    # Mede AABB e assenta no chão
+    # Mede AABB no espaço do modelo e assenta no chão
     var caixa := AABB()
     var achou := false
     for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
-        var local: AABB = (malha as MeshInstance3D).get_aabb()
+        var local: AABB = _ate_a_raiz(malha as Node3D, _modelo) * (malha as MeshInstance3D).get_aabb()
         caixa = local if not achou else caixa.merge(local)
         achou = true
         
     var altura_alvo: float = float(cfg.get("altura", 2.2))
     var fator := 1.0
-    if altura_alvo > 0.0 and caixa.size.y > 0.0001:
-        fator = altura_alvo / caixa.size.y
-        _modelo.scale = Vector3.ONE * fator
+    if altura_alvo > 0.0 and caixa.size.y > 0.05:
+        fator = clampf(altura_alvo / caixa.size.y, 0.05, 3.5)
+    else:
+        fator = 1.0
         
+    _modelo.scale = Vector3.ONE * fator
     _modelo.position.y = -caixa.position.y * fator
+
+func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
+    var acumulado := Transform3D.IDENTITY
+    var atual: Node3D = no
+    while atual != null and atual != raiz:
+        acumulado = atual.transform * acumulado
+        atual = atual.get_parent() as Node3D
+    return acumulado
 
 func _construir_barra_vida_3d(cfg: Dictionary) -> void:
     var h: float = float(cfg.get("altura", 2.2)) + 0.6

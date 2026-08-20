@@ -300,75 +300,145 @@ func _criar_aura_azul_visual() -> void:
     ring.position.y = 0.2
     _aura_fx_node.add_child(ring)
 
+var _espada_light: OmniLight3D
+
 func ativar_espada_gigante() -> void:
     _buff_espada_gigante = true
     if _espada:
         _espada.scale = Vector3.ONE * 2.5
+        _fazer_espada_brilhar(true)
+        
     var tw := create_tween()
     tw.tween_interval(8.0)
     tw.tween_callback(func():
         _buff_espada_gigante = false
         if _espada:
             _espada.scale = Vector3.ONE
+            _fazer_espada_brilhar(false)
     )
+
+func _fazer_espada_brilhar(brilhar: bool) -> void:
+    if not _espada:
+        return
+    if brilhar:
+        if _espada_light == null or not is_instance_valid(_espada_light):
+            _espada_light = OmniLight3D.new()
+            _espada_light.light_color = Color(1.0, 0.85, 0.25)
+            _espada_light.light_energy = 5.0
+            _espada_light.omni_range = 6.0
+            _espada.add_child(_espada_light)
+        for malha in _espada.find_children("*", "MeshInstance3D", true, false):
+            var mat = malha.material_override as StandardMaterial3D
+            if mat:
+                mat.emission_enabled = true
+                mat.emission = Color(1.0, 0.85, 0.2)
+                mat.emission_energy_multiplier = 4.0
+    else:
+        if _espada_light and is_instance_valid(_espada_light):
+            _espada_light.queue_free()
+            _espada_light = null
+        for malha in _espada.find_children("*", "MeshInstance3D", true, false):
+            var mat = malha.material_override as StandardMaterial3D
+            if mat:
+                mat.emission_enabled = false
 
 func lancar_raio_kamehameha() -> void:
     _atacando = true
-    _animador.play("heroi/golpe_pesado", 0.1, 1.4)
+    _animador.play("heroi/golpe_pesado", 0.1, 1.2)
     
+    # 1. Mira Inteligente no Inimigo Mais Próximo ou Direção do Jogador
     var frente := -global_transform.basis.z.normalized()
-    var origem := global_position + Vector3(0, 1.1, 0)
+    var melhor_alvo: Node3D = null
+    var menor_dist: float = 30.0
     
-    # 1. Cria o Feixe Visual 3D (Cilindro Laser Gigante)
+    for bicho in get_tree().get_nodes_in_group("bicho"):
+        if not is_instance_valid(bicho):
+            continue
+        var ate: Vector3 = bicho.global_position - global_position
+        ate.y = 0.0
+        var d := ate.length()
+        if d < menor_dist and frente.angle_to(ate.normalized()) < deg_to_rad(60.0):
+            menor_dist = d
+            melhor_alvo = bicho
+            
+    if melhor_alvo:
+        frente = (melhor_alvo.global_position - global_position)
+        frente.y = 0.0
+        frente = frente.normalized()
+        var target_yaw := atan2(-frente.x, -frente.z)
+        rotation.y = target_yaw
+        
+    var origem := global_position + Vector3(0, 1.15, 0)
+    
+    # 2. Esfera de Carga de Energia nas Mãos (0.15s)
+    var carga := MeshInstance3D.new()
+    var sphere := SphereMesh.new()
+    sphere.radius = 0.4
+    sphere.height = 0.8
+    carga.mesh = sphere
+    
+    var mat_orb := StandardMaterial3D.new()
+    mat_orb.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat_orb.albedo_color = Color(0.4, 0.9, 1.0, 0.95)
+    carga.material_override = mat_orb
+    carga.position = Vector3(0, 1.15, -0.6)
+    add_child(carga)
+    
+    var tw_charge := create_tween()
+    tw_charge.tween_property(carga, "scale", Vector3(1.6, 1.6, 1.6), 0.18)
+    tw_charge.tween_callback(func():
+        carga.queue_free()
+        _disparar_feixe_laser(origem, frente)
+    )
+
+func _disparar_feixe_laser(origem: Vector3, frente: Vector3) -> void:
+    # 3. Disparo Contínuo do Feixe Laser
     var feixe_root := Node3D.new()
     feixe_root.name = "KamehamehaBeam"
     get_parent().add_child(feixe_root)
     feixe_root.global_position = origem
     
-    # Orienta o feixe para frente
     if frente.length_squared() > 0.001:
         feixe_root.look_at(origem + frente, Vector3.UP)
         
     var mesh_inst := MeshInstance3D.new()
     var cyl := CylinderMesh.new()
-    cyl.top_radius = 0.85
-    cyl.bottom_radius = 0.4
-    cyl.height = 24.0
+    cyl.top_radius = 0.95
+    cyl.bottom_radius = 0.35
+    cyl.height = 28.0
     mesh_inst.mesh = cyl
-    mesh_inst.position.z = -12.0
+    mesh_inst.position.z = -14.0
     mesh_inst.rotation_degrees.x = 90.0
     
     var mat_beam := StandardMaterial3D.new()
     mat_beam.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-    mat_beam.albedo_color = Color(0.3, 0.85, 1.0, 0.95)
+    mat_beam.albedo_color = Color(0.25, 0.85, 1.0, 0.95)
     mat_beam.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
     mesh_inst.material_override = mat_beam
     feixe_root.add_child(mesh_inst)
     
-    # Luz intensa no raio
     var l_beam := OmniLight3D.new()
     l_beam.light_color = Color(0.4, 0.9, 1.0)
-    l_beam.light_energy = 8.0
-    l_beam.omni_range = 14.0
-    l_beam.position.z = -8.0
+    l_beam.light_energy = 9.0
+    l_beam.omni_range = 16.0
+    l_beam.position.z = -10.0
     feixe_root.add_child(l_beam)
     
-    # 2. Dano Massivo (350 DMG) a todos os inimigos no cone do feixe
+    # Dano Massivo (350 DMG) a todos os inimigos no cone do feixe
     for bicho in get_tree().get_nodes_in_group("bicho"):
         if not is_instance_valid(bicho):
             continue
         var ate: Vector3 = bicho.global_position - global_position
         ate.y = 0.0
         var dist := ate.length()
-        if dist > 24.0:
+        if dist > 28.0:
             continue
-        if frente.angle_to(ate.normalized()) < deg_to_rad(45.0):
+        if frente.angle_to(ate.normalized()) < deg_to_rad(40.0):
             bicho.levar_dano(350.0, frente)
             
-    # 3. Animação de Desaparecimento
     var tw := create_tween()
-    tw.tween_property(mesh_inst, "scale", Vector3(1.4, 1.0, 1.4), 0.15)
-    tw.tween_property(mesh_inst, "scale", Vector3(0.0, 1.0, 0.0), 0.35)
+    tw.tween_property(mesh_inst, "scale", Vector3(1.5, 1.0, 1.5), 0.15)
+    tw.tween_property(mesh_inst, "scale", Vector3(0.0, 1.0, 0.0), 0.45)
     tw.tween_callback(func():
         feixe_root.queue_free()
         _atacando = false
