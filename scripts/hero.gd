@@ -346,8 +346,13 @@ func lancar_raio_kamehameha() -> void:
     _atacando = true
     _animador.play("heroi/golpe_pesado", 0.1, 1.2)
     
-    # 1. Mira Inteligente no Inimigo Mais Próximo ou Direção do Jogador
-    var frente := -global_transform.basis.z.normalized()
+    # A frente do heroi e +Z, como em todo o resto do projeto.
+    #
+    # Aqui estava -Z, e a rotacao logo abaixo usava atan2(-x, -z): meia volta de
+    # diferenca da convencao usada pelo movimento. Depois do raio o corpo ficava
+    # virado ao contrario e nunca voltava, entao andar para frente parecia andar
+    # para tras — era o "joystick invertido depois do laser".
+    var frente := global_transform.basis.z.normalized()
     var melhor_alvo: Node3D = null
     var menor_dist: float = 30.0
     
@@ -365,8 +370,16 @@ func lancar_raio_kamehameha() -> void:
         frente = (melhor_alvo.global_position - global_position)
         frente.y = 0.0
         frente = frente.normalized()
-        var target_yaw := atan2(-frente.x, -frente.z)
-        rotation.y = target_yaw
+        # Quem gira e o CORPO, nao o heroi dentro dele.
+        #
+        # Girar o heroi cria um desvio permanente entre o que se ve e a direcao
+        # em que o corpo anda, porque o movimento le a rotacao do corpo. Girando
+        # o corpo, os dois continuam de acordo e a mira do raio tambem passa a
+        # valer para o golpe seguinte.
+        var corpo := get_parent() as Node3D
+        if corpo:
+            corpo.rotation.y = atan2(frente.x, frente.z)
+        rotation.y = 0.0
         
     var origem := global_position + Vector3(0, 1.15, 0)
     

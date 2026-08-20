@@ -72,26 +72,44 @@ func _release_joystick() -> void:
     movement_vector = Vector2.ZERO
     _target_knob = size * 0.5
 
+## A arte do kit no lugar do desenho de teste.
+##
+## Carregadas uma vez e guardadas: o desenho roda a cada quadro, e pedir a
+## textura ao disco dentro dele seria buscar o mesmo arquivo sessenta vezes por
+## segundo. Se faltarem, cai no circulo desenhado — melhor um joystick feio que
+## um joystick invisivel.
+static var _arte_base: Texture2D = null
+static var _arte_botao: Texture2D = null
+static var _arte_carregada := false
+
+static func _carregar_arte() -> void:
+    if _arte_carregada:
+        return
+    _arte_carregada = true
+    if ResourceLoader.exists("res://textures/ui/joystick_base.png"):
+        _arte_base = load("res://textures/ui/joystick_base.png")
+    if ResourceLoader.exists("res://textures/ui/joystick_botao.png"):
+        _arte_botao = load("res://textures/ui/joystick_botao.png")
+
 func _draw() -> void:
+    _carregar_arte()
     var center := size * 0.5
-    
-    # 1. Base translúcida glassmorphism
-    draw_circle(center, outer_radius, Color(0.05, 0.08, 0.12, 0.55))
-    
-    # 2. Anel externo com brilho ciano suave
-    var ring_col := Color(0.3, 0.8, 1.0, 0.85) if _is_dragging else Color(0.5, 0.65, 0.8, 0.45)
-    draw_arc(center, outer_radius, 0.0, TAU, 48, ring_col, 3.0)
-    
-    # 3. Vetor de direção sutil
-    if _is_dragging and movement_vector.length() > 0.1:
-        draw_line(center, knob_position, Color(0.3, 0.85, 1.0, 0.4), 2.5)
-        
-    # 4. Botão analógico central (Knob)
-    var knob_col := Color(0.18, 0.45, 0.7, 0.95) if _is_dragging else Color(0.12, 0.22, 0.32, 0.85)
-    draw_circle(knob_position, knob_radius, knob_col)
-    
-    var knob_border := Color(0.5, 0.9, 1.0, 0.95) if _is_dragging else Color(0.7, 0.8, 0.9, 0.7)
-    draw_arc(knob_position, knob_radius, 0.0, TAU, 36, knob_border, 2.5)
-    
-    # Detalhe central do knob
-    draw_circle(knob_position, knob_radius * 0.35, Color(1.0, 1.0, 1.0, 0.25 if not _is_dragging else 0.6))
+
+    if _arte_base:
+        var lado := outer_radius * 2.25
+        draw_texture_rect(_arte_base,
+            Rect2(center - Vector2(lado, lado) * 0.5, Vector2(lado, lado)), false,
+            Color(1, 1, 1, 1.0 if _is_dragging else 0.86))
+    else:
+        draw_circle(center, outer_radius, Color(0.05, 0.08, 0.12, 0.55))
+        draw_arc(center, outer_radius, 0.0, TAU, 48,
+            Color(0.5, 0.65, 0.8, 0.45), 3.0)
+
+    if _arte_botao:
+        var lado_b := knob_radius * 2.5
+        draw_texture_rect(_arte_botao,
+            Rect2(knob_position - Vector2(lado_b, lado_b) * 0.5, Vector2(lado_b, lado_b)),
+            false, Color(1.12, 1.12, 1.06) if _is_dragging else Color(1, 1, 1))
+    else:
+        draw_circle(knob_position, knob_radius,
+            Color(0.18, 0.45, 0.7, 0.95) if _is_dragging else Color(0.12, 0.22, 0.32, 0.85))

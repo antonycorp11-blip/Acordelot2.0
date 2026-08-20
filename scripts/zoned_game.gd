@@ -1,5 +1,9 @@
 extends Node3D
 
+## Pelo caminho, nao pelo nome global: o nome so existe depois que o editor
+## varre o projeto, e isso quebra exportacao limpa.
+const MIRA := preload("res://scripts/botao_de_mira.gd")
+
 @onready var _player: CharacterBody3D = $Player
 @onready var _zone_manager: ZoneManager = $ZoneManager
 
@@ -42,11 +46,23 @@ func _ready() -> void:
                 _player.usar_skill(2)
         )
         
+    # O raio ganha mira por arrasto, no gesto do Brawl Stars.
+    #
+    # E a unica das tres em que errar o alvo custa caro, e a mira automatica
+    # escolhe sozinha quando ha mais de um inimigo perto — sem o jogador poder
+    # discordar. As outras duas seguem no toque simples, que basta para elas.
     var btn_skill3 := find_child("BtnSkill3", true, false)
-    if btn_skill3:
-        btn_skill3.pressed.connect(func():
+    if btn_skill3 and btn_skill3 is Control:
+        var alvo := btn_skill3 as Control
+        var mira: Control = MIRA.new()
+        mira.set_anchors_preset(Control.PRESET_FULL_RECT)
+        alvo.add_child(mira)
+        # A arte continua sendo a do botao embaixo; a mira so desenha a seta.
+        if alvo is TextureButton and alvo.texture_normal:
+            mira.definir_arte(null)
+        mira.disparar.connect(func(direcao: Vector2):
             if _player and _player.has_method("usar_skill"):
-                _player.usar_skill(3)
+                _player.usar_skill(3, direcao)
         )
         
     if inv_ui and hud_vida:

@@ -18,9 +18,11 @@ func alternar_voo() -> void:
 func esta_voando() -> bool:
     return _voando
 
-func usar_skill(indice: int) -> void:
+func usar_skill(indice: int, direcao_na_tela := Vector2.ZERO) -> void:
     if _hero == null:
         return
+    if direcao_na_tela.length() > 0.01:
+        _virar_para_a_tela(direcao_na_tela)
     match indice:
         1:
             if _hero.has_method("ativar_aura_azul"):
@@ -31,6 +33,27 @@ func usar_skill(indice: int) -> void:
         3:
             if _hero.has_method("lancar_raio_kamehameha"):
                 _hero.lancar_raio_kamehameha()
+
+## Vira o corpo para onde o dedo apontou na tela.
+##
+## A direcao vem em pixels e precisa virar direcao de MUNDO. A conversao e a
+## mesma do joystick — pelos eixos da camera — porque senao apontar para cima na
+## tela levaria o tiro para o norte do mundo, e nao para o "longe" que o jogador
+## esta vendo. Y da tela cresce para baixo, dai o sinal trocado.
+func _virar_para_a_tela(direcao: Vector2) -> void:
+    var camera := get_viewport().get_camera_3d()
+    if camera == null:
+        return
+    var frente := -camera.global_basis.z
+    frente.y = 0.0
+    frente = frente.normalized()
+    var direita := camera.global_basis.x
+    direita.y = 0.0
+    direita = direita.normalized()
+
+    var no_mundo := (direita * direcao.x - frente * direcao.y).normalized()
+    if no_mundo.length() > 0.01:
+        rotation.y = atan2(no_mundo.x, no_mundo.z)
 
 ## Ate onde a mira procura um alvo, em metros. Um pouco alem do alcance da
 ## espada: e o que deixa o jogador comecar o golpe ja se virando para o bicho
