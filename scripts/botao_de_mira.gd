@@ -12,6 +12,8 @@ class_name BotaoDeMira
 ## quem se arrependeu no meio do gesto.
 
 signal disparar(direcao: Vector2)
+signal mirando(direcao: Vector2)
+signal mira_cancelada
 signal cancelado
 
 ## Arrasto menor que isto conta como toque simples, nao como mira. Sem essa
@@ -65,6 +67,10 @@ func _gui_input(evento: InputEvent) -> void:
         _distancia = minf(do_centro.length(), ALCANCE_DA_SETA)
         if _distancia > 0.001:
             _direcao = do_centro.normalized()
+        if _distancia >= RAIO_DE_CANCELAR:
+            mirando.emit(_direcao)
+        elif _distancia > FOLGA_DO_TOQUE:
+            mira_cancelada.emit()
         queue_redraw()
 
 

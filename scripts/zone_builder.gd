@@ -401,6 +401,15 @@ func _obter_nome_zona(zid: String) -> String:
 # -------------------------------------------------------------
 # Instanciação 3D Real com Medição AABB e Assentamento no Chão
 # -------------------------------------------------------------
+static var _material_triposr: Material = preload("res://Material_TripoSR.tres")
+static var _material_com_vento: ShaderMaterial = null
+
+static func _obter_material_vento() -> ShaderMaterial:
+    if _material_com_vento == null:
+        _material_com_vento = ShaderMaterial.new()
+        _material_com_vento.shader = load("res://materials/prop_vento.gdshader")
+    return _material_com_vento
+
 func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, escala_mult: float = 1.0) -> Node3D:
     if not ResourceLoader.exists(path):
         return null
@@ -411,6 +420,8 @@ func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, escala_m
     var modelo: Node3D = (res as PackedScene).instantiate()
     if not modelo:
         return null
+        
+    _corrigir_materiais_prop(modelo, tag)
         
     var suporte := Node3D.new()
     suporte.name = tag
@@ -429,6 +440,28 @@ func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, escala_m
     modelo.position.y = -caixa.position.y * fator
     
     return suporte
+
+func _corrigir_materiais_prop(modelo: Node3D, tag: String) -> void:
+    var tem_vento: bool = tag.begins_with("arbusto") or tag.begins_with("folhagem") or tag.begins_with("grama")
+    for malha in modelo.find_children("*", "MeshInstance3D", true, false):
+        var m_inst := malha as MeshInstance3D
+        if not m_inst or not m_inst.mesh:
+            continue
+        var precisa_triposr := false
+        for s in range(m_inst.mesh.get_surface_count()):
+            var mat := m_inst.get_active_material(s)
+            if mat == null:
+                precisa_triposr = true
+                break
+            if mat.resource_name == "Material_TripoSR" or mat.resource_name == "":
+                if mat is StandardMaterial3D and (mat as StandardMaterial3D).albedo_texture == null:
+                    precisa_triposr = true
+                    break
+        if precisa_triposr:
+            if tem_vento:
+                m_inst.material_override = _obter_material_vento()
+            else:
+                m_inst.material_override = _material_triposr
 
 func _caixa_do_modelo(modelo: Node3D) -> AABB:
     var caixa := AABB()

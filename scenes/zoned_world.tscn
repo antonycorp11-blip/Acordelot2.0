@@ -19,6 +19,7 @@
 [ext_resource type="Texture2D" path="res://textures/ui/btn_skill2.png" id="17_skill2"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_skill3.png" id="18_skill3"]
 
+
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_zoned"]
 sky_top_color = Color(0.18, 0.45, 0.78, 1)
 sky_horizon_color = Color(0.75, 0.86, 0.94, 1)
@@ -83,11 +84,11 @@ script = ExtResource("4_camera")
 target = NodePath("../Player")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
-transform = Transform3D(1, 0, 0, 0, 0.615661, 0.788011, 0, -0.788011, 0.615661, 0, 17.5, 13.5)
+transform = Transform3D(1, 0, 0, 0, 0.573576, 0.819152, 0, -0.819152, 0.573576, 0, 12.5, 7.2)
 current = true
-fov = 42.0
+fov = 50.0
 near = 0.2
-far = 90.0
+far = 120.0
 
 [node name="ZoneBuilder" type="Node3D" parent="."]
 script = ExtResource("6_builder")

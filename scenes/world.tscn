@@ -82,12 +82,12 @@ script = ExtResource("3_camera")
 target = NodePath("../Player")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
-position = Vector3(0, 17.1, 13.35)
-rotation = Vector3(-0.9076, 0, 0)
+position = Vector3(0, 18.0, 10.5)
+rotation = Vector3(-0.959931, 0, 0)
 current = true
-fov = 40.0
+fov = 50.0
 near = 0.2
-far = 70.0
+far = 120.0
 
 [node name="WorldStreamer" type="Node3D" parent="." node_paths=PackedStringArray("player")]
 script = ExtResource("4_streamer")

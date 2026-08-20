@@ -60,6 +60,18 @@ func _ready() -> void:
         # A arte continua sendo a do botao embaixo; a mira so desenha a seta.
         if alvo is TextureButton and alvo.texture_normal:
             mira.definir_arte(null)
+        mira.mirando.connect(func(direcao: Vector2):
+            if _player and _player.has_method("atualizar_mira_skill"):
+                _player.atualizar_mira_skill(3, direcao)
+        )
+        mira.mira_cancelada.connect(func():
+            if _player and _player.has_method("cancelar_mira_skill"):
+                _player.cancelar_mira_skill(3)
+        )
+        mira.cancelado.connect(func():
+            if _player and _player.has_method("cancelar_mira_skill"):
+                _player.cancelar_mira_skill(3)
+        )
         mira.disparar.connect(func(direcao: Vector2):
             if _player and _player.has_method("usar_skill"):
                 _player.usar_skill(3, direcao)

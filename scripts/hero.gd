@@ -15,11 +15,6 @@ const MISTURA := 0.18
 ## As animacoes do Mixamo sao feitas para cinematica, nao para combate: no
 ## ritmo original o golpe parece que esta carregando. Acelerar a reproducao e o
 ## que da peso de jogo sem reanimar nada.
-##
-## Foi de 1,45 para 1,85 depois do teste no celular — a 45% mais rapido ainda
-## estava "super lento". Passar muito disso comeca a mostrar que a animacao esta
-## correndo, com o braco pulando etapa; se ainda parecer lento, o caminho e
-## trocar a animacao no Mixamo por uma mais curta, nao acelerar mais esta.
 const VELOCIDADE_DO_GOLPE := 1.85
 
 ## Alcance da lamina, em metros, medido do peito do heroi.
@@ -32,34 +27,14 @@ const DANO := 34.0
 ## faz o bicho voar antes do golpe sair, e no fim faz parecer que nao pegou.
 const INSTANTE_DO_IMPACTO := 0.38
 
-## Encaixe da espada na mao. Sao @export e nao constantes porque nao existe
-## numero certo deduzivel: o cabo do modelo, a pose da mao do Mixamo e a escala
-## do heroi so batem olhando. Com a cena rodando, mexer nestes campos no
-## inspetor move a lamina na hora — em compilacao de depuracao o encaixe e
-## refeito a cada quadro.
-##
-## Comprimento da espada no mundo, em metros. 1.15 m num heroi de 1.75 m e a
-## proporcao da arte: lamina longa, quase montante.
+## Encaixe da espada na mao.
 @export var comprimento_da_espada := 1.15
-## Onde fica o cabo, medido de baixo para cima na imagem do modelo. Medido na
-## malha: a fatia mais estreita esta a 85% da altura, com a guarda aos 65%.
 @export var fracao_do_cabo := 0.85
-## Correcao fina no espaco do punho, em metros, se a lamina ficar atravessada na
-## palma em vez de dentro dela.
 @export var ajuste_do_punho := Vector3.ZERO
-## Meia volta em X leva a lamina para a direcao dos dedos: com o cabo na origem
-## ela aponta para -Y, e os ossos do Mixamo encadeiam ao longo do +Y.
 @export var giro_do_punho := Vector3(180.0, 0.0, 0.0)
 
-## A lamina do Akles e um teclado: cada golpe toca a proxima nota da escala de
-## Do maior, afinada de verdade (A4 = 440 Hz). E jogo de educacao musical — som
-## desafinado aqui ensinaria errado.
 const ESCALA := ["do", "re", "mi", "fa", "sol", "la", "si"]
-
-## Sequencia de golpes: cada toque puxa o proximo. Um so golpe repetido faz o
-## combate parecer quebrado mesmo quando esta funcionando.
 const COMBO := ["corte_fora", "corte_dentro", "ataque_pulo"]
-## Parado este tempo, o combo recomeca do primeiro golpe.
 const PAUSA_DO_COMBO := 1.2
 
 var _animador: AnimationPlayer
@@ -68,15 +43,17 @@ var _voz: AudioStreamPlayer
 var _proxima_nota := 0
 var _golpe := 0
 var _ultimo_golpe_em := -100.0
-## Toque dado no meio de um golpe. Sem guardar, quem aperta no ritmo do combate
-## perde o toque e o combo nunca passa do primeiro golpe.
 var _golpe_pedido := false
-## O punho inteiro, para poder sumir com a espada fora do golpe.
 var _espada: Node3D = null
-## A malha da lamina e a ampliacao do heroi, guardadas para refazer o encaixe
-## quando os campos do inspetor mudam.
 var _lamina: Node3D = null
 var _escala_do_modelo := 1.0
+
+var _indicador_mira_chao: Node3D = null
+
+var _buff_aura_azul: bool = false
+var _buff_espada_gigante: bool = false
+var _aura_fx_node: Node3D = null
+var _espada_light: OmniLight3D = null
 
 func _ready() -> void:
     var modelo := (load("res://personagem/heroi_base.fbx") as PackedScene).instantiate()
@@ -89,28 +66,90 @@ func _ready() -> void:
     _animador.add_animation_library("heroi", biblioteca)
     _animador.animation_finished.connect(_ao_terminar)
 
+    _equipar_espada(modelo)
+    _montar_audio()
+    _construir_indicador_mira_chao()
+
     for malha in modelo.find_children("*", "MeshInstance3D", true, false):
         var altura: float = malha.get_aabb().size.y
         if altura > 0.0:
             modelo.scale = Vector3.ONE * (ALTURA_ALVO / altura)
-        break
+            break
 
-    _voz = AudioStreamPlayer.new()
-    add_child(_voz)
-
-    _equipar_espada(modelo)
-    # O Akles nao anda pela floresta de lamina em punho: ela so aparece no
-    # golpe. Como nao ha animacao de sacar, o corte entra junto com o swing e o
-    # movimento da propria animacao cobre o aparecimento.
     if _espada:
         _espada.visible = false
     _animador.play("heroi/parado")
 
+func _construir_indicador_mira_chao() -> void:
+    _indicador_mira_chao = Node3D.new()
+    _indicador_mira_chao.name = "IndicadorMiraLaser"
+    _indicador_mira_chao.visible = false
+    add_child(_indicador_mira_chao)
+
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+    var y_chao := 0.94 # Levemente acima do chão (-0.9 + 0.94 = +0.04m)
+
+    # 1. Haste principal (retângulo de 0.8m a 20m de alcance)
+    var w := 0.45
+    var z_ini := 0.8
+    var z_fim := 20.0
+
+    st.set_color(Color(0.2, 0.85, 1.0, 0.55))
+    st.add_vertex(Vector3(-w, y_chao, z_ini))
+    st.add_vertex(Vector3(w, y_chao, z_ini))
+    st.add_vertex(Vector3(w, y_chao, z_fim))
+
+    st.add_vertex(Vector3(-w, y_chao, z_ini))
+    st.add_vertex(Vector3(w, y_chao, z_fim))
+    st.add_vertex(Vector3(-w, y_chao, z_fim))
+
+    # 2. Ponta de flecha (de 20m a 24.5m)
+    var w_ponta := 1.7
+    var z_bico := 24.5
+    st.set_color(Color(0.3, 0.95, 1.0, 0.8))
+    st.add_vertex(Vector3(-w_ponta, y_chao, z_fim))
+    st.add_vertex(Vector3(w_ponta, y_chao, z_fim))
+    st.add_vertex(Vector3(0.0, y_chao, z_bico))
+
+    # 3. Linha central brilhante
+    var w_linha := 0.08
+    st.set_color(Color(1.0, 1.0, 1.0, 0.9))
+    st.add_vertex(Vector3(-w_linha, y_chao + 0.01, z_ini))
+    st.add_vertex(Vector3(w_linha, y_chao + 0.01, z_ini))
+    st.add_vertex(Vector3(w_linha, y_chao + 0.01, z_bico - 0.5))
+
+    st.add_vertex(Vector3(-w_linha, y_chao + 0.01, z_ini))
+    st.add_vertex(Vector3(w_linha, y_chao + 0.01, z_bico - 0.5))
+    st.add_vertex(Vector3(-w_linha, y_chao + 0.01, z_bico - 0.5))
+
+    var mesh := st.commit()
+    var mi := MeshInstance3D.new()
+    mi.mesh = mesh
+
+    var mat := StandardMaterial3D.new()
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat.vertex_color_use_as_albedo = true
+    mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+    mi.material_override = mat
+
+    _indicador_mira_chao.add_child(mi)
+
+func mostrar_mira_laser(_direcao_mundo: Vector3) -> void:
+    if _indicador_mira_chao:
+        _indicador_mira_chao.visible = true
+
+func esconder_mira_laser() -> void:
+    if _indicador_mira_chao:
+        _indicador_mira_chao.visible = false
+
+func _montar_audio() -> void:
+    _voz = AudioStreamPlayer.new()
+    add_child(_voz)
+
 ## Prende a espada na mao direita.
-##
-## O nome do osso muda conforme a versao do importador (mixamorig:RightHand,
-## mixamorig_RightHand, RightHand), entao a busca e por sufixo em vez de nome
-## exato — chutar o nome quebraria calado, com a espada no chao.
 func _equipar_espada(modelo: Node3D) -> void:
     var esqueleto: Skeleton3D = null
     for node in modelo.find_children("*", "Skeleton3D", true, false):
@@ -134,10 +173,6 @@ func _equipar_espada(modelo: Node3D) -> void:
     suporte.bone_idx = indice
     esqueleto.add_child(suporte)
 
-    # A espada entra dentro de um suporte de orientacao. Sem ele, deslocar o
-    # punho e girar a lamina brigam entre si: a posicao vale no espaco do OSSO e
-    # a rotacao vale dentro da espada, entao somar os dois na mesma pessoa punha
-    # a mao no meio da lamina — foi o que aconteceu.
     var punho := Node3D.new()
     punho.name = "Punho"
     suporte.add_child(punho)
@@ -153,44 +188,22 @@ func _equipar_espada(modelo: Node3D) -> void:
     for malha in espada.find_children("*", "MeshInstance3D", true, false):
         malha.material_override = load("res://Material_TripoSR.tres")
 
-## Poe a lamina na mao a partir dos campos do inspetor.
-##
-## A espada esta DENTRO do esqueleto, que foi ampliado ~176x para o heroi ter
-## 1.75 m: sem descontar essa ampliacao ela sairia do tamanho de uma casa.
 func _atualizar_encaixe() -> void:
     if _lamina == null or _espada == null:
         return
 
-    # Altura da malha da espada no arquivo, antes de qualquer escala.
     const ALTURA_DA_MALHA := 0.94
     var escala := comprimento_da_espada / ALTURA_DA_MALHA / _escala_do_modelo
     _lamina.scale = Vector3.ONE * escala
 
-    # O cabo esta ACIMA do centro da malha. Trazer esse ponto para a origem e o
-    # que poe a mao no punho em vez de no meio da lamina.
     _lamina.position = Vector3(
         0.0, -(fracao_do_cabo - 0.5) * ALTURA_DA_MALHA * escala, 0.0) + ajuste_do_punho
     _espada.rotation_degrees = giro_do_punho
 
 func _process(_delta: float) -> void:
-    # So enquanto se ajusta. Na build final os campos nao mudam, e refazer o
-    # encaixe a cada quadro seria conta jogada fora.
     if OS.is_debug_build():
         _atualizar_encaixe()
 
-## Tira o avanco do quadril de um golpe.
-##
-## As animacoes de espada do Mixamo carregam deslocamento: o "great sword jump
-## attack" avanca quase dois metros. Quem move o personagem no mundo e o codigo,
-## entao esse avanco nao leva o corpo junto — leva so a MALHA, que sai de dentro
-## da propria capsula de colisao e volta de tranco no fim do golpe. Era o
-## personagem "mudando de posicao" no ultimo ataque do combo.
-##
-## Feito ao carregar, e nao ao assar a biblioteca, porque os FBX do Mixamo vivem
-## fora do projeto (16 MB cada) e reassar exigiria traze-los de volta. Aqui vale
-## para qualquer biblioteca, inclusive uma assada antes desta correcao.
-##
-## O sobe-e-desce (Y) fica: e ele que da peso ao golpe.
 func _fixar_no_lugar(animacao: Animation) -> void:
     if animacao == null:
         return
@@ -203,11 +216,9 @@ func _fixar_no_lugar(animacao: Animation) -> void:
             var valor: Vector3 = animacao.track_get_key_value(trilha, chave)
             animacao.track_set_key_value(trilha, chave, Vector3(0.0, valor.y, 0.0))
 
-## Para o jogador saber que nao pode girar o corpo no meio do swing.
 func atacando() -> bool:
     return _atacando
 
-## Chamado pelo jogador a cada quadro com a velocidade no plano.
 func atualizar_movimento(velocidade: float, voando: bool = false) -> void:
     if _atacando:
         return
@@ -226,11 +237,6 @@ func atacar() -> void:
         _golpe_pedido = true
         return
 
-    # A contagem da pausa corre a partir do FIM do ultimo golpe, nao do comeco.
-    # Medindo do comeco, a propria animacao (mais longa que PAUSA_DO_COMBO) ja
-    # estourava o prazo: quando o jogador podia atacar de novo, o combo se dava
-    # por expirado e voltava ao primeiro golpe — sempre o mesmo ataque, por mais
-    # rapido que se apertasse.
     if Time.get_ticks_msec() / 1000.0 - _ultimo_golpe_em > PAUSA_DO_COMBO:
         _golpe = 0
 
@@ -242,23 +248,12 @@ func atacar() -> void:
     _tocar_nota()
     _marcar_impacto()
 
-## Espera a lamina chegar no alvo e entao cobra o dano.
-##
-## O contato nao vem de area de colisao seguindo a espada: a lamina esta presa
-## ao osso, e area de colisao em osso animado dispara varias vezes no mesmo
-## swing e erra quando dois quadros pulam por cima do alvo. Uma checagem unica
-## no instante do impacto e mais previsivel — e e o que jogo de acao costuma
-## fazer.
 func _marcar_impacto() -> void:
     var duracao := _animador.current_animation_length / VELOCIDADE_DO_GOLPE
     await get_tree().create_timer(duracao * INSTANTE_DO_IMPACTO).timeout
     if not _atacando:
         return
     _atingir()
-
-var _buff_aura_azul: bool = false
-var _buff_espada_gigante: bool = false
-var _aura_fx_node: Node3D
 
 func ativar_aura_azul() -> void:
     _buff_aura_azul = true
@@ -300,8 +295,6 @@ func _criar_aura_azul_visual() -> void:
     ring.position.y = 0.2
     _aura_fx_node.add_child(ring)
 
-var _espada_light: OmniLight3D
-
 func ativar_espada_gigante() -> void:
     _buff_espada_gigante = true
     if _espada:
@@ -342,44 +335,42 @@ func _fazer_espada_brilhar(brilhar: bool) -> void:
             if mat:
                 mat.emission_enabled = false
 
-func lancar_raio_kamehameha() -> void:
+func lancar_raio_kamehameha(direcao_manual := Vector3.ZERO) -> void:
+    esconder_mira_laser()
     _atacando = true
     _animador.play("heroi/golpe_pesado", 0.1, 1.2)
     
-    # A frente do heroi e +Z, como em todo o resto do projeto.
-    #
-    # Aqui estava -Z, e a rotacao logo abaixo usava atan2(-x, -z): meia volta de
-    # diferenca da convencao usada pelo movimento. Depois do raio o corpo ficava
-    # virado ao contrario e nunca voltava, entao andar para frente parecia andar
-    # para tras — era o "joystick invertido depois do laser".
-    var frente := global_transform.basis.z.normalized()
-    var melhor_alvo: Node3D = null
-    var menor_dist: float = 30.0
-    
-    for bicho in get_tree().get_nodes_in_group("bicho"):
-        if not is_instance_valid(bicho):
-            continue
-        var ate: Vector3 = bicho.global_position - global_position
-        ate.y = 0.0
-        var d := ate.length()
-        if d < menor_dist and frente.angle_to(ate.normalized()) < deg_to_rad(60.0):
-            menor_dist = d
-            melhor_alvo = bicho
-            
-    if melhor_alvo:
-        frente = (melhor_alvo.global_position - global_position)
+    var frente: Vector3
+    if direcao_manual.length_squared() > 0.01:
+        frente = direcao_manual.normalized()
         frente.y = 0.0
-        frente = frente.normalized()
-        # Quem gira e o CORPO, nao o heroi dentro dele.
-        #
-        # Girar o heroi cria um desvio permanente entre o que se ve e a direcao
-        # em que o corpo anda, porque o movimento le a rotacao do corpo. Girando
-        # o corpo, os dois continuam de acordo e a mira do raio tambem passa a
-        # valer para o golpe seguinte.
         var corpo := get_parent() as Node3D
         if corpo:
             corpo.rotation.y = atan2(frente.x, frente.z)
         rotation.y = 0.0
+    else:
+        frente = global_transform.basis.z.normalized()
+        var melhor_alvo: Node3D = null
+        var menor_dist: float = 30.0
+        
+        for bicho in get_tree().get_nodes_in_group("bicho"):
+            if not is_instance_valid(bicho):
+                continue
+            var ate: Vector3 = bicho.global_position - global_position
+            ate.y = 0.0
+            var d := ate.length()
+            if d < menor_dist and frente.angle_to(ate.normalized()) < deg_to_rad(60.0):
+                menor_dist = d
+                melhor_alvo = bicho
+                
+        if melhor_alvo:
+            frente = (melhor_alvo.global_position - global_position)
+            frente.y = 0.0
+            frente = frente.normalized()
+            var corpo := get_parent() as Node3D
+            if corpo:
+                corpo.rotation.y = atan2(frente.x, frente.z)
+            rotation.y = 0.0
         
     var origem := global_position + Vector3(0, 1.15, 0)
     
@@ -405,7 +396,6 @@ func lancar_raio_kamehameha() -> void:
     )
 
 func _disparar_feixe_laser(origem: Vector3, frente: Vector3) -> void:
-    # 3. Disparo Contínuo do Feixe Laser
     var feixe_root := Node3D.new()
     feixe_root.name = "KamehamehaBeam"
     get_parent().add_child(feixe_root)
@@ -480,7 +470,6 @@ func _atingir() -> void:
         acertou = true
         
     if acertou and _buff_aura_azul:
-        # Roubo de Vida: Cura o jogador em 35 HP
         var hud = get_tree().get_first_node_in_group("player_hud")
         if hud == null:
             hud = get_node_or_null("/root/ZonedWorld/HUD/PlayerHUD")
