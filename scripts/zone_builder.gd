@@ -122,13 +122,19 @@ func _construir_terreno() -> void:
             var i2 := (j + 1) * (SUBDIVISOES + 1) + i
             var i3 := i2 + 1
             
+            # Ordem dos vertices virada para CIMA.
+            #
+            # Invertida, dois defeitos aparecem juntos e parecem um so: o chao
+            # some (a face de tras e descartada pelo renderizador) e o jogador
+            # atravessa (malha de colisao concava so bloqueia pela frente).
+            # Era o "nao tenho chao e caio direto".
             st.add_index(i0)
-            st.add_index(i2)
-            st.add_index(i1)
-            
             st.add_index(i1)
             st.add_index(i2)
+
+            st.add_index(i1)
             st.add_index(i3)
+            st.add_index(i2)
             
     st.generate_normals()
     var mesh := st.commit()
