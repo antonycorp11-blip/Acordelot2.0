@@ -574,9 +574,17 @@ func _adicionar_colisor_prop(node: Node3D, tag: String, escala: float) -> void:
     if not achou:
         return
 
-    var largura: float = maxf(caixa.size.x, caixa.size.z) * escala
-    var altura: float = caixa.size.y * escala
-    if altura < 0.05:
+    # SEM multiplicar pela escala.
+    #
+    # O corpo de colisao entra como FILHO do prop, e o prop ja esta escalado —
+    # entao a forma e escalada junto, pelo no. Multiplicar aqui tambem elevava o
+    # tamanho ao quadrado: com arvore em 15x, o cilindro passava de quarenta
+    # metros de raio e duzentos de altura. Esses cilindros invisiveis cobriam a
+    # zona inteira e empurravam o jogador para baixo do terreno — era o
+    # "despencando para debaixo do chao".
+    var largura: float = maxf(caixa.size.x, caixa.size.z)
+    var altura: float = caixa.size.y
+    if altura < 0.001:
         return
 
     var body := StaticBody3D.new()
