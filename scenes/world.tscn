@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/ciclo_dia_noite.gd" id="9_ciclo"]
 [ext_resource type="Script" path="res://scripts/gerador_de_bichos.gd" id="11_bichos"]
 [ext_resource type="Script" path="res://scripts/barra_do_dia.gd" id="12_barra"]
+[ext_resource type="Script" path="res://scripts/editor_de_mapa.gd" id="13_editor"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_ataque.png" id="13_btn_ataque"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_voo.png" id="14_btn_voo"]
 
@@ -95,6 +96,11 @@ player = NodePath("../Player")
 [node name="GeradorDeBichos" type="Node3D" parent="." node_paths=PackedStringArray("jogador")]
 script = ExtResource("11_bichos")
 jogador = NodePath("../Player")
+
+[node name="EditorDeMapa" type="Node3D" parent="." node_paths=PackedStringArray("jogador", "camera_do_jogo")]
+script = ExtResource("13_editor")
+jogador = NodePath("../Player")
+camera_do_jogo = NodePath("../CameraRig")
 
 [node name="MobileControls" type="CanvasLayer" parent="."]
 layer = 10

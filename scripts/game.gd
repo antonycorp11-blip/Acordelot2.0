@@ -37,6 +37,14 @@ func _ready() -> void:
     $MapLayer/MapButton.pressed.connect(_map.toggle)
     $MobileControls/AttackButton.pressed.connect(_player.atacar)
     $MobileControls/FlyButton.pressed.connect(_player.alternar_voo)
+    # Botao de editor: um so, no canto, porque o editor e ferramenta de autor e
+    # nao pode competir por espaco com os controles de jogo.
+    var abrir := Button.new()
+    abrir.text = "EDITOR"
+    abrir.position = Vector2(12, 12)
+    abrir.pressed.connect($EditorDeMapa.alternar)
+    $MapLayer.add_child(abrir)
+
     if OS.get_cmdline_user_args().has("--shot"):
         _shoot_and_quit()
 
