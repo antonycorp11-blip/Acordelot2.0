@@ -22,12 +22,15 @@ var _props_node: Node3D
 const ARVORES_FLORESTA_3D := [
     {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 17.0, "enterrar": 0.65},
     {"path": "res://models/oak_trees.glb", "tag": "carvalho_real", "altura": 15.0, "enterrar": 0.55},
-    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 14.0, "enterrar": 0.50}
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 14.0, "enterrar": 0.50},
+    {"path": "res://models/japanese_maple_tree.glb", "tag": "bordo_japones", "altura": 15.5, "enterrar": 0.55},
+    {"path": "res://models/platano_tree.glb", "tag": "platano_real", "altura": 16.0, "enterrar": 0.60}
 ]
 
 const ARVORES_MISTICAS_3D := [
     {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo_arvore", "altura": 11.5, "enterrar": 0.45},
-    {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 16.5, "enterrar": 0.65},
+    {"path": "res://models/japanese_maple_tree.glb", "tag": "bordo_japones", "altura": 15.0, "enterrar": 0.55},
+    {"path": "res://models/platano_tree.glb", "tag": "platano_real", "altura": 15.5, "enterrar": 0.60},
     {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal_arcano", "altura": 4.5, "enterrar": 0.25}
 ]
 
@@ -449,7 +452,7 @@ func _construir_monstros() -> void:
     if is_cidade:
         return
         
-    var qtd_monstros := 6
+    var qtd_monstros := 16
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zone"))) + 555
     
@@ -459,7 +462,7 @@ func _construir_monstros() -> void:
         bicho.name = "Bicho_%d" % i
         
         var ang: float = rng.randf_range(0.0, TAU)
-        var dist: float = rng.randf_range(16.0, 52.0)
+        var dist: float = rng.randf_range(14.0, 65.0)
         var px: float = cos(ang) * dist
         var pz: float = sin(ang) * dist
         var py: float = calcular_altura(px, pz)

@@ -114,6 +114,20 @@ script = ExtResource("8_minimap")
 zone_manager = NodePath("../../ZoneManager")
 player = NodePath("../../Player")
 
+[node name="BtnInventario" type="TextureButton" parent="HUD"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -282.0
+offset_top = 20.0
+offset_right = -222.0
+offset_bottom = 80.0
+grow_horizontal = 0
+texture_normal = ExtResource("13_btn_inv")
+ignore_texture_size = true
+stretch_mode = 5
+
 [node name="VirtualJoystick" type="Control" parent="HUD"]
 layout_mode = 3
 anchors_preset = 2
@@ -125,6 +139,20 @@ offset_right = 246.0
 offset_bottom = -15.0
 grow_vertical = 0
 script = ExtResource("9_joystick")
+
+[node name="BtnVoo" type="TextureButton" parent="HUD"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 36.0
+offset_top = -298.0
+offset_right = 100.0
+offset_bottom = -234.0
+grow_vertical = 0
+texture_normal = ExtResource("12_btn_voo")
+ignore_texture_size = true
+stretch_mode = 5
 
 [node name="BarraDoDia" type="Control" parent="HUD" node_paths=PackedStringArray("ciclo")]
 layout_mode = 3
@@ -139,54 +167,17 @@ grow_horizontal = 2
 script = ExtResource("10_barra")
 ciclo = NodePath("../../CicloDiaNoite")
 
-[node name="BotoesAcao" type="Control" parent="HUD"]
-layout_mode = 3
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -280.0
-offset_top = -180.0
-offset_right = -20.0
-offset_bottom = -20.0
-grow_horizontal = 0
-grow_vertical = 0
-mouse_filter = 2
-
-[node name="BtnInventario" type="TextureButton" parent="HUD/BotoesAcao"]
-layout_mode = 1
-anchors_preset = 0
-offset_left = 10.0
-offset_top = 78.0
-offset_right = 82.0
-offset_bottom = 150.0
-texture_normal = ExtResource("13_btn_inv")
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="BtnVoo" type="TextureButton" parent="HUD/BotoesAcao"]
-layout_mode = 1
-anchors_preset = 0
-offset_left = 88.0
-offset_top = 22.0
-offset_right = 160.0
-offset_bottom = 94.0
-texture_normal = ExtResource("12_btn_voo")
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="BtnAtaque" type="TextureButton" parent="HUD/BotoesAcao"]
+[node name="BtnAtaque" type="TextureButton" parent="HUD"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -94.0
-offset_top = -94.0
-offset_right = 0.0
-offset_bottom = 0.0
+offset_left = -114.0
+offset_top = -114.0
+offset_right = -24.0
+offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
 texture_normal = ExtResource("11_btn_ataque")
