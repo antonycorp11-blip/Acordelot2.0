@@ -2,20 +2,20 @@ extends CharacterBody3D
 class_name Bicho
 
 const MONSTROS_CONFIG := [
-    {"nome": "Golem da Floresta", "path": "res://models/media_1787068821885.glb", "altura": 2.2, "hp": 180.0, "cor": Color(0.9, 0.4, 0.2)},
-    {"nome": "Besta Voraz", "path": "res://models/media_1787068825917.glb", "altura": 1.8, "hp": 140.0, "cor": Color(0.3, 0.85, 0.4)},
-    {"nome": "Lobo Espectral", "path": "res://models/media_1787068829583.glb", "altura": 1.7, "hp": 120.0, "cor": Color(0.4, 0.6, 0.95)},
-    {"nome": "Guardião Abissal", "path": "res://models/media_1787068833589.glb", "altura": 2.5, "hp": 220.0, "cor": Color(0.85, 0.3, 0.85)}
+    {"nome": "Dragão Negro", "path": "res://models/black_dragon.glb", "altura": 3.2, "hp": 350.0, "cor": Color(0.85, 0.25, 0.25)},
+    {"nome": "Golem Demoníaco", "path": "res://models/monster.glb", "altura": 2.2, "hp": 220.0, "cor": Color(0.9, 0.45, 0.15)},
+    {"nome": "Monstro do Pântano", "path": "res://models/swamp_monster.glb", "altura": 2.4, "hp": 240.0, "cor": Color(0.3, 0.85, 0.4)},
+    {"nome": "Orc Guerreiro", "path": "res://models/monster_orc.glb", "altura": 2.0, "hp": 180.0, "cor": Color(0.4, 0.65, 0.95)}
 ]
 
 @export var monster_type: int = 0
 
-var vida_maxima: float = 150.0
-var vida: float = 150.0
+var vida_maxima: float = 200.0
+var vida: float = 200.0
 
 const VELOCIDADE := 3.2
 const RAIO_DE_ATENCAO := 15.0
-const DISTANCIA_DE_PARADA := 1.9
+const DISTANCIA_DE_PARADA := 2.2
 const GRAVIDADE := 24.0
 const ATORDOAMENTO := 0.4
 const EMPURRAO := 6.5
@@ -27,21 +27,20 @@ var _fase := 0.0
 var _jogador: Node3D
 var _hp_label_3d: Label3D
 var _name_label_3d: Label3D
-var _spawn_pos: Vector3
+var _anim_player: AnimationPlayer
 
 func _ready() -> void:
     add_to_group("bicho")
-    _spawn_pos = global_position
     _fase = randf() * TAU
     
     var cfg: Dictionary = MONSTROS_CONFIG[monster_type % MONSTROS_CONFIG.size()]
-    vida_maxima = float(cfg.get("hp", 150.0))
+    vida_maxima = float(cfg.get("hp", 200.0))
     vida = vida_maxima
     
     var forma := CollisionShape3D.new()
     var capsula := CapsuleShape3D.new()
-    capsula.radius = 0.65
-    capsula.height = float(cfg.get("altura", 2.0))
+    capsula.radius = 0.75
+    capsula.height = float(cfg.get("altura", 2.2))
     forma.shape = capsula
     forma.position.y = capsula.height * 0.5
     add_child(forma)
@@ -61,22 +60,22 @@ func _construir_modelo(cfg: Dictionary) -> void:
     _modelo = scene.instantiate()
     add_child(_modelo)
     
+    # Toca animação de idle se existir no modelo (ex: black dragon)
+    _anim_player = _modelo.find_child("AnimationPlayer", true, false) as AnimationPlayer
+    if _anim_player:
+        var anim_list := _anim_player.get_animation_list()
+        if not anim_list.is_empty():
+            _anim_player.play(anim_list[0])
+    
     # Mede AABB e assenta no chão
     var caixa := AABB()
     var achou := false
     for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
-        var mat := StandardMaterial3D.new()
-        mat.albedo_color = Color(1.0, 1.0, 1.0)
-        mat.vertex_color_use_as_albedo = true
-        mat.roughness = 0.85
-        malha.material_override = mat
-        _materials.append(mat)
-        
         var local: AABB = (malha as MeshInstance3D).get_aabb()
         caixa = local if not achou else caixa.merge(local)
         achou = true
         
-    var altura_alvo: float = float(cfg.get("altura", 2.0))
+    var altura_alvo: float = float(cfg.get("altura", 2.2))
     var fator := 1.0
     if altura_alvo > 0.0 and caixa.size.y > 0.0001:
         fator = altura_alvo / caixa.size.y
@@ -85,24 +84,24 @@ func _construir_modelo(cfg: Dictionary) -> void:
     _modelo.position.y = -caixa.position.y * fator
 
 func _construir_barra_vida_3d(cfg: Dictionary) -> void:
-    var h: float = float(cfg.get("altura", 2.0)) + 0.5
+    var h: float = float(cfg.get("altura", 2.2)) + 0.6
     
     _name_label_3d = Label3D.new()
     _name_label_3d.text = str(cfg.get("nome", "Monstro"))
-    _name_label_3d.font_size = 20
+    _name_label_3d.font_size = 22
     _name_label_3d.outline_size = 5
-    _name_label_3d.modulate = Color(1.0, 0.9, 0.6)
-    _name_label_3d.outline_modulate = Color(0.1, 0.05, 0.02, 0.9)
+    _name_label_3d.modulate = Color(1.0, 0.9, 0.5)
+    _name_label_3d.outline_modulate = Color(0.1, 0.05, 0.02, 0.95)
     _name_label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    _name_label_3d.position = Vector3(0.0, h + 0.4, 0.0)
+    _name_label_3d.position = Vector3(0.0, h + 0.45, 0.0)
     add_child(_name_label_3d)
     
     _hp_label_3d = Label3D.new()
     _hp_label_3d.text = "❤️ %d / %d" % [int(vida), int(vida_maxima)]
-    _hp_label_3d.font_size = 18
+    _hp_label_3d.font_size = 19
     _hp_label_3d.outline_size = 4
     _hp_label_3d.modulate = Color(0.95, 0.3, 0.3)
-    _hp_label_3d.outline_modulate = Color(0.1, 0.0, 0.0, 0.9)
+    _hp_label_3d.outline_modulate = Color(0.15, 0.0, 0.0, 0.95)
     _hp_label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
     _hp_label_3d.position = Vector3(0.0, h, 0.0)
     add_child(_hp_label_3d)
@@ -136,7 +135,6 @@ func _physics_process(delta: float) -> void:
             var target_angle := atan2(ate.x, ate.z)
             rotation.y = lerp_angle(rotation.y, target_angle, 8.0 * delta)
         elif dist <= DISTANCIA_DE_PARADA:
-            # Encara o jogador em pose de combate
             var target_angle := atan2(ate.x, ate.z)
             rotation.y = lerp_angle(rotation.y, target_angle, 10.0 * delta)
             
@@ -172,17 +170,11 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
         _morrer()
 
 func _piscar_dano() -> void:
-    for mat in _materials:
-        mat.emission_enabled = true
-        mat.emission = Color(1.0, 0.25, 0.25)
-        mat.emission_energy_multiplier = 3.5
-        
+    if not _modelo:
+        return
     var tw := create_tween()
-    tw.tween_interval(0.15)
-    tw.tween_callback(func():
-        for mat in _materials:
-            mat.emission_enabled = false
-    )
+    tw.tween_property(_modelo, "position:y", _modelo.position.y + 0.15, 0.08)
+    tw.tween_property(_modelo, "position:y", _modelo.position.y, 0.08)
 
 func _criar_popup_dano(qtd: float) -> void:
     var lbl := Label3D.new()
@@ -192,11 +184,11 @@ func _criar_popup_dano(qtd: float) -> void:
     lbl.modulate = Color(1.0, 0.85, 0.2)
     lbl.outline_modulate = Color(0.8, 0.1, 0.1, 1.0)
     lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    lbl.position = Vector3(randf_range(-0.3, 0.3), 2.8, randf_range(-0.3, 0.3))
+    lbl.position = Vector3(randf_range(-0.3, 0.3), 3.2, randf_range(-0.3, 0.3))
     add_child(lbl)
     
     var tw := create_tween()
-    tw.tween_property(lbl, "position:y", lbl.position.y + 1.2, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+    tw.tween_property(lbl, "position:y", lbl.position.y + 1.3, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
     tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.6)
     tw.tween_callback(lbl.queue_free)
 

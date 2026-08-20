@@ -13,9 +13,11 @@ var _grid_container: GridContainer
 var _info_label: Label
 
 var _current_zone_data: Dictionary = {}
+var _minimap_frame_tex: Texture2D
 
 func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _minimap_frame_tex = load("res://textures/ui/minimap_frame.png")
     _criar_minimap_hud()
     _criar_modal_mapa_mundi()
     
@@ -39,54 +41,46 @@ func toggle_world_map(force_state = null) -> void:
         _atualizar_grid_mapa_mundi()
 
 func _criar_minimap_hud() -> void:
-    # Painel no canto superior direito
-    var panel := PanelContainer.new()
-    panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-    panel.anchor_left = 1.0
-    panel.anchor_right = 1.0
-    panel.anchor_top = 0.0
-    panel.anchor_bottom = 0.0
-    panel.offset_left = -225.0
-    panel.offset_top = 18.0
-    panel.offset_right = -18.0
-    panel.offset_bottom = 240.0
-    panel.mouse_filter = Control.MOUSE_FILTER_STOP
-    add_child(panel)
-    
-    var style := StyleBoxFlat.new()
-    style.bg_color = Color(0.06, 0.08, 0.12, 0.92)
-    style.border_width_bottom = 2
-    style.border_width_left = 2
-    style.border_width_right = 2
-    style.border_width_top = 2
-    style.border_color = Color(0.85, 0.72, 0.35, 0.95)
-    style.corner_radius_bottom_left = 10
-    style.corner_radius_bottom_right = 10
-    style.corner_radius_top_left = 10
-    style.corner_radius_top_right = 10
-    panel.add_theme_stylebox_override("panel", style)
+    # Container no canto superior direito
+    var hud_box := Control.new()
+    hud_box.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+    hud_box.anchor_left = 1.0
+    hud_box.anchor_right = 1.0
+    hud_box.anchor_top = 0.0
+    hud_box.anchor_bottom = 0.0
+    hud_box.offset_left = -215.0
+    hud_box.offset_top = 16.0
+    hud_box.offset_right = -15.0
+    hud_box.offset_bottom = 240.0
+    hud_box.mouse_filter = Control.MOUSE_FILTER_STOP
+    add_child(hud_box)
     
     var vbox := VBoxContainer.new()
-    vbox.add_theme_constant_override("separation", 3)
-    panel.add_child(vbox)
+    vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+    vbox.add_theme_constant_override("separation", 2)
+    hud_box.add_child(vbox)
     
     _title_label = Label.new()
-    _title_label.text = "Carregando..."
+    _title_label.text = "Zona"
     _title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     _title_label.add_theme_font_size_override("font_size", 13)
     _title_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.65))
+    _title_label.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.02, 0.95))
+    _title_label.add_theme_constant_override("outline_size", 4)
     vbox.add_child(_title_label)
     
     _tier_label = Label.new()
-    _tier_label.text = "Zona"
+    _tier_label.text = "Tier I"
     _tier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     _tier_label.add_theme_font_size_override("font_size", 10)
-    _tier_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
+    _tier_label.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0))
+    _tier_label.add_theme_color_override("font_outline_color", Color(0.05, 0.08, 0.12, 0.95))
+    _tier_label.add_theme_constant_override("outline_size", 3)
     vbox.add_child(_tier_label)
     
-    # Área de desenho do radar em miniatura
+    # Área de desenho do radar com a moldura artística
     _minimap_draw = Control.new()
-    _minimap_draw.custom_minimum_size = Vector2(190, 120)
+    _minimap_draw.custom_minimum_size = Vector2(170, 150)
     _minimap_draw.mouse_filter = Control.MOUSE_FILTER_PASS
     _minimap_draw.draw.connect(_on_minimap_draw)
     _minimap_draw.gui_input.connect(func(ev: InputEvent):
@@ -194,56 +188,41 @@ func _process(_delta: float) -> void:
 func _on_minimap_draw() -> void:
     var rect := _minimap_draw.get_rect()
     var center := rect.size * 0.5
-    var radius := 50.0
+    var frame_size := 148.0
+    var frame_rect := Rect2(center - Vector2(frame_size, frame_size) * 0.5, Vector2(frame_size, frame_size))
     
-    # 1. Fundo do radar com bioma
-    var biome: String = str(_current_zone_data.get("biome", "floresta"))
-    var biome_color := Color(0.12, 0.22, 0.14, 0.95)
-    if biome == "cidade":
-        biome_color = Color(0.24, 0.2, 0.16, 0.95)
-    elif biome == "sombria":
-        biome_color = Color(0.12, 0.1, 0.18, 0.95)
-    elif biome == "sagrado":
-        biome_color = Color(0.16, 0.18, 0.28, 0.95)
+    # 1. Desenha a moldura de bússola dourada em alta resolução
+    if _minimap_frame_tex:
+        _minimap_draw.draw_texture_rect(_minimap_frame_tex, frame_rect, false)
         
-    _minimap_draw.draw_circle(center, radius, biome_color)
-    _minimap_draw.draw_arc(center, radius, 0.0, TAU, 48, Color(0.85, 0.72, 0.35, 0.95), 2.5)
+    var radius := 48.0
     
-    # 2. Grade de relevo sutil
-    _minimap_draw.draw_line(center - Vector2(radius, 0), center + Vector2(radius, 0), Color(1.0, 1.0, 1.0, 0.08), 1.0)
-    _minimap_draw.draw_line(center - Vector2(0, radius), center + Vector2(0, radius), Color(1.0, 1.0, 1.0, 0.08), 1.0)
-    
-    # 3. Portais de Saída Cardinais com anel pulsante
+    # 2. Portais de Saída Cardinais com anel pulsante
     var pulse: float = sin(Time.get_ticks_msec() * 0.005) * 1.2
     var exits: Dictionary = _current_zone_data.get("exits", {})
     if exits.get("north", "") != "":
-        _minimap_draw.draw_circle(center + Vector2(0, -radius + 4), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.9))
+        _minimap_draw.draw_circle(center + Vector2(0, -radius + 6), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.95))
     if exits.get("south", "") != "":
-        _minimap_draw.draw_circle(center + Vector2(0, radius - 4), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.9))
+        _minimap_draw.draw_circle(center + Vector2(0, radius - 6), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.95))
     if exits.get("east", "") != "":
-        _minimap_draw.draw_circle(center + Vector2(radius - 4, 0), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.9))
+        _minimap_draw.draw_circle(center + Vector2(radius - 6, 0), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.95))
     if exits.get("west", "") != "":
-        _minimap_draw.draw_circle(center + Vector2(-radius + 4, 0), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.9))
+        _minimap_draw.draw_circle(center + Vector2(-radius + 6, 0), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.95))
         
-    # 4. Rosa dos ventos (Norte)
-    _minimap_draw.draw_string(ThemeDB.fallback_font, center + Vector2(-3, -radius + 14), "N", HORIZONTAL_ALIGNMENT_CENTER, -1, 9, Color(1.0, 0.85, 0.4))
-    
-    # 5. Posição e Seta de Direção do Jogador
+    # 3. Posição e Seta de Direção do Jogador
     if player:
         var px: float = player.global_position.x
         var pz: float = player.global_position.z
         var half_zone: float = 80.0
-        var norm_x: float = clampf(px / half_zone, -0.92, 0.92)
-        var norm_z: float = clampf(pz / half_zone, -0.92, 0.92)
+        var norm_x: float = clampf(px / half_zone, -0.85, 0.85)
+        var norm_z: float = clampf(pz / half_zone, -0.85, 0.85)
         var p_radar := center + Vector2(norm_x, norm_z) * (radius - 8.0)
         
-        # Ponto do herói
-        _minimap_draw.draw_circle(p_radar, 4.5, Color(1.0, 0.9, 0.2))
+        _minimap_draw.draw_circle(p_radar, 4.5, Color(1.0, 0.95, 0.2))
         
-        # Seta de orientação
         var rot_y: float = player.rotation.y
         var dir := Vector2(sin(rot_y), -cos(rot_y))
-        _minimap_draw.draw_line(p_radar, p_radar + dir * 8.0, Color(1.0, 0.95, 0.6), 2.0)
+        _minimap_draw.draw_line(p_radar, p_radar + dir * 8.5, Color(1.0, 0.98, 0.7), 2.2)
 
 func _atualizar_grid_mapa_mundi() -> void:
     for c in _grid_container.get_children():

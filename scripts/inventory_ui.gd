@@ -9,38 +9,37 @@ var _inventory_modal: PanelContainer
 var _equipment_grid: GridContainer
 var _inventory_grid: GridContainer
 var _gold_label: Label
-var _details_panel: PanelContainer
 var _details_title: Label
 var _details_desc: Label
 var _details_stats: Label
 var _btn_action: Button
 var _selected_item: Dictionary = {}
+var _inv_bg_tex: Texture2D
 
 var gold_amount: int = 1450
 
-# Equipamentos Ativos do Jogador
 var equipped_slots := {
-    "Elmo": {"id": "elmo_ferro", "name": "Capacete de Ferro Forjado", "icon": "🪖", "tier": "Tier IV", "rarity": "Raro", "stats": "+35 Defesa\n+120 Vida"},
-    "Peitoral": {"id": "peitoral_guardiao", "name": "Armadura do Guardião Imperial", "icon": "🛡️", "tier": "Tier V", "rarity": "Épico", "stats": "+85 Defesa\n+350 Vida\n+15% Resistência"},
-    "Botas": {"id": "botas_couro", "name": "Botas de Couro de Andarilho", "icon": "👢", "tier": "Tier IV", "rarity": "Raro", "stats": "+22 Defesa\n+12% Velocidade"},
-    "Arma": {"id": "espada_akles", "name": "Espada de Akles", "icon": "⚔️", "tier": "Tier V", "rarity": "Lendário", "stats": "+125 Dano Físico\n+18% Chance Crítica\nGolpe em Arco"},
-    "Escudo": {"id": "escudo_nobre", "name": "Escudo de Carvalho e Ferro", "icon": "🔰", "tier": "Tier IV", "rarity": "Raro", "stats": "+45 Bloqueio\n+80 Vida"},
-    "Anel": {"id": "anel_arcano", "name": "Anel da Floresta Ancestral", "icon": "💍", "tier": "Tier IV", "rarity": "Raro", "stats": "+50 Mana\n+8% Regen Vida"}
+    "Elmo": {"id": "elmo_ferro", "name": "Capacete de Ferro", "icon": "🪖", "tier": "Tier IV", "rarity": "Raro", "stats": "+35 Defesa\n+120 Vida"},
+    "Peitoral": {"id": "peitoral_guardiao", "name": "Armadura do Guardião", "icon": "🛡️", "tier": "Tier V", "rarity": "Épico", "stats": "+85 Defesa\n+350 Vida"},
+    "Botas": {"id": "botas_couro", "name": "Botas de Andarilho", "icon": "👢", "tier": "Tier IV", "rarity": "Raro", "stats": "+22 Defesa\n+12% Velocidade"},
+    "Arma": {"id": "espada_akles", "name": "Espada de Akles", "icon": "⚔️", "tier": "Tier V", "rarity": "Lendário", "stats": "+125 Dano Físico\n+18% Crítico"},
+    "Escudo": {"id": "escudo_nobre", "name": "Escudo Imperial", "icon": "🔰", "tier": "Tier IV", "rarity": "Raro", "stats": "+45 Bloqueio\n+80 Vida"},
+    "Anel": {"id": "anel_arcano", "name": "Anel da Floresta", "icon": "💍", "tier": "Tier IV", "rarity": "Raro", "stats": "+50 Mana\n+8% Regen Vida"}
 }
 
-# Mochila de Itens (20 slots)
 var bag_items: Array = [
     {"id": "pocao_cura_g", "name": "Poção de Vida Maior", "icon": "🧪", "qtd": 5, "tier": "Tier IV", "rarity": "Incomum", "desc": "Restaura 450 pontos de vida instantaneamente.", "tipo": "consumivel"},
     {"id": "pocao_mana_g", "name": "Poção de Mana Maior", "icon": "✨", "qtd": 8, "tier": "Tier IV", "rarity": "Incomum", "desc": "Restaura 300 pontos de mana arcana.", "tipo": "consumivel"},
-    {"id": "madeira_carvalho", "name": "Tronco de Carvalho Nobre", "icon": "🪵", "qtd": 32, "tier": "Tier IV", "rarity": "Comum", "desc": "Material nobre para forjar cabos e arcos.", "tipo": "material"},
-    {"id": "minerio_ferro", "name": "Minério de Ferro Puro", "icon": "⛏️", "qtd": 24, "tier": "Tier IV", "rarity": "Comum", "desc": "Minério bruto pronto para ser refinado em barras.", "tipo": "material"},
-    {"id": "cristal_arcano", "name": "Cristal de Mana Bruto", "icon": "💎", "qtd": 7, "tier": "Tier V", "rarity": "Raro", "desc": "Gema pulsante usada em encantamentos de armas.", "tipo": "material"},
-    {"id": "carne_assada", "name": "Pedaço de Carne Assada", "icon": "🍖", "qtd": 12, "tier": "Tier III", "rarity": "Comum", "desc": "Alimento que regenera vida gradualmente.", "tipo": "consumivel"},
-    {"id": "pergaminho_teleporte", "name": "Pergaminho da Capital", "icon": "📜", "qtd": 3, "tier": "Tier IV", "rarity": "Raro", "desc": "Retorna o herói instantaneamente aos portões da Capital.", "tipo": "consumivel"}
+    {"id": "madeira_carvalho", "name": "Madeira de Carvalho", "icon": "🪵", "qtd": 32, "tier": "Tier IV", "rarity": "Comum", "desc": "Material nobre para forjas e construções.", "tipo": "material"},
+    {"id": "minerio_ferro", "name": "Minério de Ferro", "icon": "⛏️", "qtd": 24, "tier": "Tier IV", "rarity": "Comum", "desc": "Minério bruto para barras de aço.", "tipo": "material"},
+    {"id": "cristal_arcano", "name": "Cristal de Mana", "icon": "💎", "qtd": 7, "tier": "Tier V", "rarity": "Raro", "desc": "Gema pulsante usada em encantamentos.", "tipo": "material"},
+    {"id": "carne_assada", "name": "Carne Assada", "icon": "🍖", "qtd": 12, "tier": "Tier III", "rarity": "Comum", "desc": "Alimento que regenera vida gradualmente.", "tipo": "consumivel"},
+    {"id": "pergaminho_teleporte", "name": "Pergaminho de Retorno", "icon": "📜", "qtd": 3, "tier": "Tier IV", "rarity": "Raro", "desc": "Teleporta o herói para os portões da Capital.", "tipo": "consumivel"}
 ]
 
 func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _inv_bg_tex = load("res://textures/ui/inventory_bg.png")
     _criar_modal_inventario()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -60,7 +59,6 @@ func toggle_inventory(force_state = null) -> void:
         _atualizar_ui_inventario()
 
 func _criar_modal_inventario() -> void:
-    # Fundo escurecido
     _modal_backdrop = ColorRect.new()
     _modal_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
     _modal_backdrop.color = Color(0.02, 0.03, 0.05, 0.75)
@@ -72,46 +70,49 @@ func _criar_modal_inventario() -> void:
     )
     add_child(_modal_backdrop)
     
-    # Painel Central do Inventário (Estilo Albion Online)
+    # Painel com a Arte Original de Fundo (inventory_bg.png)
     _inventory_modal = PanelContainer.new()
     _inventory_modal.anchor_left = 0.5
     _inventory_modal.anchor_right = 0.5
     _inventory_modal.anchor_top = 0.5
     _inventory_modal.anchor_bottom = 0.5
-    _inventory_modal.offset_left = -340.0
-    _inventory_modal.offset_top = -230.0
-    _inventory_modal.offset_right = 340.0
-    _inventory_modal.offset_bottom = 230.0
+    _inventory_modal.offset_left = -350.0
+    _inventory_modal.offset_top = -250.0
+    _inventory_modal.offset_right = 350.0
+    _inventory_modal.offset_bottom = 250.0
     _inventory_modal.visible = false
     _inventory_modal.mouse_filter = Control.MOUSE_FILTER_STOP
     
-    var panel_style := StyleBoxFlat.new()
-    panel_style.bg_color = Color(0.07, 0.09, 0.13, 0.98)
-    panel_style.border_width_bottom = 3
-    panel_style.border_width_left = 3
-    panel_style.border_width_right = 3
-    panel_style.border_width_top = 3
-    panel_style.border_color = Color(0.85, 0.72, 0.38, 1.0)
-    panel_style.corner_radius_bottom_left = 12
-    panel_style.corner_radius_bottom_right = 12
-    panel_style.corner_radius_top_left = 12
-    panel_style.corner_radius_top_right = 12
-    _inventory_modal.add_theme_stylebox_override("panel", panel_style)
+    var panel_style := StyleBoxTexture.new()
+    if _inv_bg_tex:
+        panel_style.texture = _inv_bg_tex
+    else:
+        var fb := StyleBoxFlat.new()
+        fb.bg_color = Color(0.07, 0.09, 0.13, 0.98)
+        _inventory_modal.add_theme_stylebox_override("panel", fb)
+    if _inv_bg_tex:
+        _inventory_modal.add_theme_stylebox_override("panel", panel_style)
     add_child(_inventory_modal)
+    
+    var main_margin := MarginContainer.new()
+    main_margin.add_theme_constant_override("margin_top", 45)
+    main_margin.add_theme_constant_override("margin_bottom", 25)
+    main_margin.add_theme_constant_override("margin_left", 35)
+    main_margin.add_theme_constant_override("margin_right", 35)
+    _inventory_modal.add_child(main_margin)
     
     var vbox := VBoxContainer.new()
     vbox.add_theme_constant_override("separation", 10)
-    _inventory_modal.add_child(vbox)
+    main_margin.add_child(vbox)
     
-    # Topo do Inventário
     var header := HBoxContainer.new()
     vbox.add_child(header)
     
     var title := Label.new()
-    title.text = "🎒 Inventário & Equipamentos do Herói"
+    title.text = "🎒 INVENTÁRIO DO HERÓI"
     title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    title.add_theme_font_size_override("font_size", 16)
-    title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+    title.add_theme_font_size_override("font_size", 15)
+    title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
     header.add_child(title)
     
     _gold_label = Label.new()
@@ -125,21 +126,20 @@ func _criar_modal_inventario() -> void:
     btn_close.pressed.connect(func(): toggle_inventory(false))
     header.add_child(btn_close)
     
-    # Conteúdo Principal: Esquerda (Equipamentos) | Centro (Mochila) | Direita (Detalhes)
     var content := HBoxContainer.new()
     content.size_flags_vertical = Control.SIZE_EXPAND_FILL
     content.add_theme_constant_override("separation", 14)
     vbox.add_child(content)
     
-    # Coluna 1: Equipamentos
+    # 1. Equipamentos
     var eq_vbox := VBoxContainer.new()
-    eq_vbox.custom_minimum_size = Vector2(170, 0)
+    eq_vbox.custom_minimum_size = Vector2(165, 0)
     content.add_child(eq_vbox)
     
     var lbl_eq := Label.new()
     lbl_eq.text = "🛡️ Equipados"
-    lbl_eq.add_theme_font_size_override("font_size", 13)
-    lbl_eq.add_theme_color_override("font_color", Color(0.8, 0.85, 0.9))
+    lbl_eq.add_theme_font_size_override("font_size", 12)
+    lbl_eq.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0))
     eq_vbox.add_child(lbl_eq)
     
     _equipment_grid = GridContainer.new()
@@ -148,15 +148,15 @@ func _criar_modal_inventario() -> void:
     _equipment_grid.add_theme_constant_override("v_separation", 6)
     eq_vbox.add_child(_equipment_grid)
     
-    # Coluna 2: Mochila de Itens (Grade 4x5)
+    # 2. Mochila
     var bag_vbox := VBoxContainer.new()
     bag_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     content.add_child(bag_vbox)
     
     var lbl_bag := Label.new()
-    lbl_bag.text = "📦 Mochila de Viagem"
-    lbl_bag.add_theme_font_size_override("font_size", 13)
-    lbl_bag.add_theme_color_override("font_color", Color(0.8, 0.85, 0.9))
+    lbl_bag.text = "📦 Mochila de Itens"
+    lbl_bag.add_theme_font_size_override("font_size", 12)
+    lbl_bag.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0))
     bag_vbox.add_child(lbl_bag)
     
     var scroll_bag := ScrollContainer.new()
@@ -169,31 +169,16 @@ func _criar_modal_inventario() -> void:
     _inventory_grid.add_theme_constant_override("v_separation", 6)
     scroll_bag.add_child(_inventory_grid)
     
-    # Coluna 3: Painel de Detalhes do Item
-    _details_panel = PanelContainer.new()
-    _details_panel.custom_minimum_size = Vector2(180, 0)
-    var det_style := StyleBoxFlat.new()
-    det_style.bg_color = Color(0.04, 0.06, 0.09, 0.95)
-    det_style.border_width_bottom = 1
-    det_style.border_width_left = 1
-    det_style.border_width_right = 1
-    det_style.border_width_top = 1
-    det_style.border_color = Color(0.4, 0.5, 0.6, 0.6)
-    det_style.corner_radius_bottom_left = 8
-    det_style.corner_radius_bottom_right = 8
-    det_style.corner_radius_top_left = 8
-    det_style.corner_radius_top_right = 8
-    _details_panel.add_theme_stylebox_override("panel", det_style)
-    content.add_child(_details_panel)
-    
+    # 3. Detalhes
     var det_vbox := VBoxContainer.new()
+    det_vbox.custom_minimum_size = Vector2(170, 0)
     det_vbox.add_theme_constant_override("separation", 6)
-    _details_panel.add_child(det_vbox)
+    content.add_child(det_vbox)
     
     _details_title = Label.new()
     _details_title.text = "Selecione um item"
     _details_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    _details_title.add_theme_font_size_override("font_size", 13)
+    _details_title.add_theme_font_size_override("font_size", 12)
     _details_title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
     det_vbox.add_child(_details_title)
     
@@ -221,19 +206,18 @@ func _criar_modal_inventario() -> void:
 func _atualizar_ui_inventario() -> void:
     _gold_label.text = "🪙 %s Ouro" % str(gold_amount)
     
-    # 1. Atualizar Slots de Equipamentos
     for c in _equipment_grid.get_children():
         c.queue_free()
         
     for slot_name in equipped_slots.keys():
         var eq_data: Dictionary = equipped_slots[slot_name]
         var btn := Button.new()
-        btn.custom_minimum_size = Vector2(78, 54)
+        btn.custom_minimum_size = Vector2(76, 52)
         btn.text = "%s\n%s" % [eq_data.get("icon", ""), slot_name]
         btn.add_theme_font_size_override("font_size", 10)
         
         var style := StyleBoxFlat.new()
-        style.bg_color = Color(0.12, 0.16, 0.22, 0.95)
+        style.bg_color = Color(0.1, 0.14, 0.2, 0.9)
         style.border_width_bottom = 2
         style.border_width_left = 2
         style.border_width_right = 2
@@ -249,16 +233,15 @@ func _atualizar_ui_inventario() -> void:
         btn.pressed.connect(func(): _exibir_detalhes_item(captured_item, true))
         _equipment_grid.add_child(btn)
         
-    # 2. Atualizar Mochila (20 slots)
     for c in _inventory_grid.get_children():
         c.queue_free()
         
     for i in range(20):
         var btn := Button.new()
-        btn.custom_minimum_size = Vector2(62, 54)
+        btn.custom_minimum_size = Vector2(58, 50)
         
         var style := StyleBoxFlat.new()
-        style.bg_color = Color(0.09, 0.12, 0.16, 0.9)
+        style.bg_color = Color(0.08, 0.1, 0.15, 0.85)
         style.border_width_bottom = 1
         style.border_width_left = 1
         style.border_width_right = 1
@@ -274,7 +257,7 @@ func _atualizar_ui_inventario() -> void:
             var item: Dictionary = bag_items[i]
             var qtd_txt := " (%d)" % int(item.get("qtd", 1)) if item.get("qtd", 1) > 1 else ""
             btn.text = "%s%s" % [item.get("icon", "📦"), qtd_txt]
-            btn.add_theme_font_size_override("font_size", 14)
+            btn.add_theme_font_size_override("font_size", 13)
             
             var captured: Dictionary = item
             btn.pressed.connect(func(): _exibir_detalhes_item(captured, false))
