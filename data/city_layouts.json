@@ -19,11 +19,10 @@
    ]
   },
   "custom_1785884200706_430": {
-   "raio": 36.0,
-   "avenidas": 4,
+   "raio": 30.0,
+   "avenidas": 2,
    "aneis": [
-    18.0,
-    28.0
+    14.0
    ]
   },
   "custom_1786501580114_289": {
@@ -1343,6 +1342,966 @@
     "rotation": 0.0,
     "scale": 1.25,
     "y": 0.0
+   },
+   {
+    "id": "arvore_rua_00",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     20.0,
+     -4.85
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_01",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     20.0,
+     4.85
+    ],
+    "rotation": 47.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_02",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     31.0,
+     -4.85
+    ],
+    "rotation": 94.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_03",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     31.0,
+     4.85
+    ],
+    "rotation": 141.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_04",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     17.57,
+     10.71
+    ],
+    "rotation": 188.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_05",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     10.71,
+     17.57
+    ],
+    "rotation": 235.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_06",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     25.35,
+     18.49
+    ],
+    "rotation": 282.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_07",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     18.49,
+     25.35
+    ],
+    "rotation": 329.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_08",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     4.85,
+     20.0
+    ],
+    "rotation": 16.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_09",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     20.0
+    ],
+    "rotation": 63.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_10",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     4.85,
+     31.0
+    ],
+    "rotation": 110.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_11",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -4.85,
+     31.0
+    ],
+    "rotation": 157.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_12",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -10.71,
+     17.57
+    ],
+    "rotation": 204.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_13",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -17.57,
+     10.71
+    ],
+    "rotation": 251.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_14",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -18.49,
+     25.35
+    ],
+    "rotation": 298.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_15",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -25.35,
+     18.49
+    ],
+    "rotation": 345.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_16",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -20.0,
+     4.85
+    ],
+    "rotation": 32.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_17",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -20.0,
+     -4.85
+    ],
+    "rotation": 79.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_18",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -31.0,
+     4.85
+    ],
+    "rotation": 126.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_19",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -31.0,
+     -4.85
+    ],
+    "rotation": 173.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_20",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -17.57,
+     -10.71
+    ],
+    "rotation": 220.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_21",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -10.71,
+     -17.57
+    ],
+    "rotation": 267.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_22",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -25.35,
+     -18.49
+    ],
+    "rotation": 314.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_23",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -18.49,
+     -25.35
+    ],
+    "rotation": 1.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_24",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     -20.0
+    ],
+    "rotation": 48.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_25",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     4.85,
+     -20.0
+    ],
+    "rotation": 95.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_26",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -4.85,
+     -31.0
+    ],
+    "rotation": 142.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_27",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     4.85,
+     -31.0
+    ],
+    "rotation": 189.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_28",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     10.71,
+     -17.57
+    ],
+    "rotation": 236.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_29",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     17.57,
+     -10.71
+    ],
+    "rotation": 283.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_30",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     18.49,
+     -25.35
+    ],
+    "rotation": 330.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_31",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     25.35,
+     -18.49
+    ],
+    "rotation": 17.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_00",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     18.72,
+     7.03
+    ],
+    "rotation": 0.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_01",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     18.21,
+     8.27
+    ],
+    "rotation": 61.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_02",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     8.27,
+     18.21
+    ],
+    "rotation": 122.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_03",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     7.03,
+     18.72
+    ],
+    "rotation": 183.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_04",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -7.03,
+     18.72
+    ],
+    "rotation": 244.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_05",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -8.27,
+     18.21
+    ],
+    "rotation": 305.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_06",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -18.21,
+     8.27
+    ],
+    "rotation": 6.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_07",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -18.72,
+     7.03
+    ],
+    "rotation": 67.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_08",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -18.72,
+     -7.03
+    ],
+    "rotation": 128.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_09",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -18.21,
+     -8.27
+    ],
+    "rotation": 189.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_10",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -8.27,
+     -18.21
+    ],
+    "rotation": 250.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_11",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -7.03,
+     -18.72
+    ],
+    "rotation": 311.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_12",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     7.03,
+     -18.72
+    ],
+    "rotation": 12.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_13",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     8.27,
+     -18.21
+    ],
+    "rotation": 73.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_14",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     18.21,
+     -8.27
+    ],
+    "rotation": 134.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_15",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     18.72,
+     -7.03
+    ],
+    "rotation": 195.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_16",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     29.58,
+     9.27
+    ],
+    "rotation": 256.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_17",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     27.47,
+     14.37
+    ],
+    "rotation": 317.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_18",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     14.37,
+     27.47
+    ],
+    "rotation": 18.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_19",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     9.27,
+     29.58
+    ],
+    "rotation": 79.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_20",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -9.27,
+     29.58
+    ],
+    "rotation": 140.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_21",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -14.37,
+     27.47
+    ],
+    "rotation": 201.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_22",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -27.47,
+     14.37
+    ],
+    "rotation": 262.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_23",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -29.58,
+     9.27
+    ],
+    "rotation": 323.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_24",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -29.58,
+     -9.27
+    ],
+    "rotation": 24.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_25",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -27.47,
+     -14.37
+    ],
+    "rotation": 85.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_26",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -14.37,
+     -27.47
+    ],
+    "rotation": 146.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_27",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -9.27,
+     -29.58
+    ],
+    "rotation": 207.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_28",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     9.27,
+     -29.58
+    ],
+    "rotation": 268.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_29",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     14.37,
+     -27.47
+    ],
+    "rotation": 329.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_30",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     27.47,
+     -14.37
+    ],
+    "rotation": 30.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_31",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     29.58,
+     -9.27
+    ],
+    "rotation": 91.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_32",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     39.43,
+     11.25
+    ],
+    "rotation": 152.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_33",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     35.83,
+     19.92
+    ],
+    "rotation": 213.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_34",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     19.92,
+     35.83
+    ],
+    "rotation": 274.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_35",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     11.25,
+     39.43
+    ],
+    "rotation": 335.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_36",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -11.25,
+     39.43
+    ],
+    "rotation": 36.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_37",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -19.92,
+     35.83
+    ],
+    "rotation": 97.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_38",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -35.83,
+     19.92
+    ],
+    "rotation": 158.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_39",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -39.43,
+     11.25
+    ],
+    "rotation": 219.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_40",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -39.43,
+     -11.25
+    ],
+    "rotation": 280.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_41",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -35.83,
+     -19.92
+    ],
+    "rotation": 341.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_42",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -19.92,
+     -35.83
+    ],
+    "rotation": 42.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_43",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -11.25,
+     -39.43
+    ],
+    "rotation": 103.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_44",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     11.25,
+     -39.43
+    ],
+    "rotation": 164.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_45",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     19.92,
+     -35.83
+    ],
+    "rotation": 225.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_46",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     35.83,
+     -19.92
+    ],
+    "rotation": 286.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_47",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     39.43,
+     -11.25
+    ],
+    "rotation": 347.0,
+    "scale": 1.05,
+    "y": 0.0
    }
   ],
   "custom_1785880661560_858": [
@@ -1837,11 +2796,299 @@
     "rotation": 0.0,
     "scale": 1.25,
     "y": 0.0
+   },
+   {
+    "id": "arvore_rua_00",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     19.5,
+     -4.85
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_01",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     19.5,
+     4.85
+    ],
+    "rotation": 47.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_02",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     4.85,
+     19.5
+    ],
+    "rotation": 94.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_03",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     19.5
+    ],
+    "rotation": 141.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_04",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -19.5,
+     4.85
+    ],
+    "rotation": 188.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_05",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -19.5,
+     -4.85
+    ],
+    "rotation": 235.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_06",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     -19.5
+    ],
+    "rotation": 282.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_07",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     4.85,
+     -19.5
+    ],
+    "rotation": 329.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_00",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     16.53,
+     10.35
+    ],
+    "rotation": 0.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_01",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     10.35,
+     16.53
+    ],
+    "rotation": 61.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_02",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -10.35,
+     16.53
+    ],
+    "rotation": 122.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_03",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -16.53,
+     10.35
+    ],
+    "rotation": 183.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_04",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -16.53,
+     -10.35
+    ],
+    "rotation": 244.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_05",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -10.35,
+     -16.53
+    ],
+    "rotation": 305.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_06",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     10.35,
+     -16.53
+    ],
+    "rotation": 6.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_07",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     16.53,
+     -10.35
+    ],
+    "rotation": 67.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_08",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     25.82,
+     14.28
+    ],
+    "rotation": 128.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_09",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     14.28,
+     25.82
+    ],
+    "rotation": 189.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_10",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -14.28,
+     25.82
+    ],
+    "rotation": 250.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_11",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -25.82,
+     14.28
+    ],
+    "rotation": 311.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_12",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -25.82,
+     -14.28
+    ],
+    "rotation": 12.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_13",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -14.28,
+     -25.82
+    ],
+    "rotation": 73.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_14",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     14.28,
+     -25.82
+    ],
+    "rotation": 134.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_15",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     25.82,
+     -14.28
+    ],
+    "rotation": 195.0,
+    "scale": 1.05,
+    "y": 0.0
    }
   ],
   "custom_1785884200706_430": [
    {
-    "id": "poco_central",
+    "id": "poco_da_vila",
     "tag": "poco",
     "model": "res://models/poco.glb",
     "position": [
@@ -1849,400 +3096,736 @@
      0
     ],
     "rotation": 0.0,
-    "scale": 1.2,
-    "y": 0.0
-   },
-   {
-    "id": "lamp_praca_00",
-    "tag": "lampiao",
-    "model": "res://models/lampiao.glb",
-    "position": [
-     7.5,
-     0.0
-    ],
-    "rotation": 0.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "lamp_praca_01",
-    "tag": "lampiao",
-    "model": "res://models/lampiao.glb",
-    "position": [
-     0.0,
-     7.5
-    ],
-    "rotation": 0.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "lamp_praca_02",
-    "tag": "lampiao",
-    "model": "res://models/lampiao.glb",
-    "position": [
-     -7.5,
-     0.0
-    ],
-    "rotation": 0.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "lamp_praca_03",
-    "tag": "lampiao",
-    "model": "res://models/lampiao.glb",
-    "position": [
-     -0.0,
-     -7.5
-    ],
-    "rotation": 0.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_00",
-    "tag": "casa_enxaimel_1",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     10.84,
-     7.17
-    ],
-    "rotation": 236.5,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_01",
-    "tag": "casa_enxaimel_2",
-    "model": "res://models/medieval_house_3.glb",
-    "position": [
-     7.17,
-     10.84
-    ],
-    "rotation": 213.5,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_02",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
-    "position": [
-     -7.17,
-     10.84
-    ],
-    "rotation": 146.5,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_03",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
-    "position": [
-     -10.84,
-     7.17
-    ],
-    "rotation": 123.5,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_04",
-    "tag": "casa",
-    "model": "res://models/casa_chale.glb",
-    "position": [
-     -10.84,
-     -7.17
-    ],
-    "rotation": 56.5,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_05",
-    "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
-    "position": [
-     -7.17,
-     -10.84
-    ],
-    "rotation": 33.5,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_06",
-    "tag": "casa_enxaimel_1",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     7.17,
-     -10.84
-    ],
-    "rotation": 326.5,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_07",
-    "tag": "casa_enxaimel_2",
-    "model": "res://models/medieval_house_3.glb",
-    "position": [
-     10.84,
-     -7.17
-    ],
-    "rotation": 303.5,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_00",
-    "tag": "casa",
-    "model": "res://models/casa_chale.glb",
-    "position": [
-     21.08,
-     9.2
-    ],
-    "rotation": 246.4,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_01",
-    "tag": "casa_enxaimel_1",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     16.26,
-     16.26
-    ],
-    "rotation": 225.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_02",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
-    "position": [
-     9.2,
-     21.08
-    ],
-    "rotation": 203.6,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_03",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
-    "position": [
-     -9.2,
-     21.08
-    ],
-    "rotation": 156.4,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_04",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
-    "position": [
-     -16.26,
-     16.26
-    ],
-    "rotation": 135.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_05",
-    "tag": "casa",
-    "model": "res://models/casa_chale.glb",
-    "position": [
-     -21.08,
-     9.2
-    ],
-    "rotation": 113.6,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_06",
-    "tag": "casa_enxaimel_1",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     -21.08,
-     -9.2
-    ],
-    "rotation": 66.4,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_07",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
-    "position": [
-     -16.26,
-     -16.26
-    ],
-    "rotation": 45.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_08",
-    "tag": "casa",
-    "model": "res://models/celeiro.glb",
-    "position": [
-     -9.2,
-     -21.08
-    ],
-    "rotation": 23.6,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_09",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
-    "position": [
-     9.2,
-     -21.08
-    ],
-    "rotation": 336.4,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_10",
-    "tag": "casa",
-    "model": "res://models/casa_chale.glb",
-    "position": [
-     16.26,
-     -16.26
-    ],
-    "rotation": 315.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_11",
-    "tag": "casa_enxaimel_1",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     21.08,
-     -9.2
-    ],
-    "rotation": 293.6,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "moinho_vento",
-    "tag": "moinho",
-    "model": "res://models/moinho.glb",
-    "position": [
-     -20.51,
-     20.51
-    ],
-    "rotation": 135.0,
-    "scale": 1.15,
-    "y": 0.0
-   },
-   {
-    "id": "celeiro_vila",
-    "tag": "celeiro",
-    "model": "res://models/celeiro.glb",
-    "position": [
-     -19.8,
-     -19.8
-    ],
-    "rotation": 45.0,
     "scale": 1.1,
     "y": 0.0
    },
    {
-    "id": "banca_feira_1",
-    "tag": "banca",
-    "model": "res://models/banca_verde.glb",
+    "id": "casa_vila_00",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     6.51,
-     5.46
+     -19.8,
+     -6.93
     ],
-    "rotation": 230.0,
+    "rotation": 92.7,
+    "scale": 0.93,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_01",
+    "tag": "casa",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -11.37,
+     -7.62
+    ],
+    "rotation": 82.0,
+    "scale": 1.02,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_02",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -5.5,
+     -7.84
+    ],
+    "rotation": 82.3,
+    "scale": 0.94,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_03",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     3.56,
+     -9.1
+    ],
+    "rotation": 83.2,
+    "scale": 0.96,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_04",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     11.96,
+     -9.48
+    ],
+    "rotation": 91.4,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "banca_feira_2",
-    "tag": "banca",
-    "model": "res://models/banca_vermelha.glb",
+    "id": "casa_vila_05",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
     "position": [
-     4.25,
-     7.36
+     20.88,
+     -6.6
     ],
-    "rotation": 210.0,
+    "rotation": 96.5,
+    "scale": 0.98,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_06",
+    "tag": "casa",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -20.45,
+     6.83
+    ],
+    "rotation": 266.6,
+    "scale": 1.08,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_07",
+    "tag": "casa",
+    "model": "res://models/casa_camponesa.glb",
+    "position": [
+     -12.65,
+     8.31
+    ],
+    "rotation": 272.5,
+    "scale": 0.99,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_08",
+    "tag": "casa",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     -3.66,
+     6.65
+    ],
+    "rotation": 262.1,
+    "scale": 0.96,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_09",
+    "tag": "casa",
+    "model": "res://models/casa_vila.glb",
+    "position": [
+     4.48,
+     7.82
+    ],
+    "rotation": 266.7,
+    "scale": 1.04,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_10",
+    "tag": "casa",
+    "model": "res://models/casa_chale.glb",
+    "position": [
+     11.33,
+     7.41
+    ],
+    "rotation": 275.3,
+    "scale": 1.06,
+    "y": 0.0
+   },
+   {
+    "id": "casa_vila_11",
+    "tag": "casa",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     18.25,
+     8.29
+    ],
+    "rotation": 270.5,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_00",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -22.54,
+     -11.16
+    ],
+    "rotation": 0.0,
+    "scale": 1.15,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_01",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -23.76,
+     -14.87
+    ],
+    "rotation": 53.0,
+    "scale": 1.09,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_02",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -16.03,
+     -11.48
+    ],
+    "rotation": 106.0,
+    "scale": 0.91,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_03",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -15.0,
+     -15.42
+    ],
+    "rotation": 159.0,
+    "scale": 1.04,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_04",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -6.92,
+     -11.2
+    ],
+    "rotation": 212.0,
+    "scale": 1.07,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_05",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -7.48,
+     -15.13
+    ],
+    "rotation": 265.0,
+    "scale": 1.01,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_06",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     0.68,
+     -12.21
+    ],
+    "rotation": 318.0,
+    "scale": 1.02,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_07",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     0.33,
+     -14.3
+    ],
+    "rotation": 11.0,
+    "scale": 1.08,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_08",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     7.96,
+     -12.29
+    ],
+    "rotation": 64.0,
+    "scale": 1.11,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_09",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     7.24,
+     -14.82
+    ],
+    "rotation": 117.0,
+    "scale": 1.07,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_10",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     14.38,
+     -11.44
+    ],
+    "rotation": 170.0,
+    "scale": 0.94,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_11",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     14.57,
+     -14.29
+    ],
+    "rotation": 223.0,
+    "scale": 1.09,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_12",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     22.26,
+     -11.1
+    ],
+    "rotation": 276.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "banca_feira_3",
-    "tag": "banca",
-    "model": "res://models/banca_feira.glb",
+    "id": "pomar_13",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
     "position": [
-     4.25,
-     -7.36
+     23.74,
+     -14.33
     ],
-    "rotation": 330.0,
+    "rotation": 329.0,
+    "scale": 1.01,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_14",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -22.9,
+     12.11
+    ],
+    "rotation": 22.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_15",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -22.27,
+     14.65
+    ],
+    "rotation": 75.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "carroca_vila",
-    "tag": "mobilia",
-    "model": "res://models/carroca.glb",
+    "id": "pomar_16",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
     "position": [
-     6.89,
-     -5.79
+     -15.62,
+     12.11
+    ],
+    "rotation": 128.0,
+    "scale": 1.14,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_17",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -16.03,
+     14.48
+    ],
+    "rotation": 181.0,
+    "scale": 0.96,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_18",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -8.2,
+     11.48
+    ],
+    "rotation": 234.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_19",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -8.14,
+     14.21
+    ],
+    "rotation": 287.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_20",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -0.26,
+     11.61
+    ],
+    "rotation": 340.0,
+    "scale": 1.14,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_21",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     0.38,
+     15.02
+    ],
+    "rotation": 33.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_22",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     8.02,
+     10.79
+    ],
+    "rotation": 86.0,
+    "scale": 1.12,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_23",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     8.23,
+     15.6
+    ],
+    "rotation": 139.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_24",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     15.12,
+     11.34
+    ],
+    "rotation": 192.0,
+    "scale": 0.93,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_25",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     15.6,
+     14.3
+    ],
+    "rotation": 245.0,
+    "scale": 0.92,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_26",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     22.42,
+     10.96
+    ],
+    "rotation": 298.0,
+    "scale": 0.99,
+    "y": 0.0
+   },
+   {
+    "id": "pomar_27",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     22.11,
+     14.2
+    ],
+    "rotation": 351.0,
+    "scale": 0.94,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_01",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -21.83,
+     7.11
+    ],
+    "rotation": 67.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_02",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     5.25,
+     -6.68
+    ],
+    "rotation": 134.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_04",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -6.25,
+     -7.17
+    ],
+    "rotation": 268.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_05",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     16.05,
+     9.37
+    ],
+    "rotation": 335.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_07",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -19.05,
+     -7.56
+    ],
+    "rotation": 109.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_08",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -7.24,
+     -4.47
+    ],
+    "rotation": 176.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_09",
+    "tag": "folhagem",
+    "model": "res://models/fantasy_bush_1787078968444.glb",
+    "position": [
+     15.13,
+     -6.43
+    ],
+    "rotation": 243.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_10",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -21.94,
+     8.57
     ],
     "rotation": 310.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "barris_taberna",
-    "tag": "mobilia",
-    "model": "res://models/barris.glb",
+    "id": "mato_vila_11",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
     "position": [
-     -8.46,
-     3.08
+     1.3,
+     -6.71
     ],
-    "rotation": 110.0,
+    "rotation": 17.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "lampiao_praca",
-    "tag": "lampiao",
-    "model": "res://models/lampiao.glb",
+    "id": "mato_vila_12",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
     "position": [
-     0.0,
-     6.0
+     1.99,
+     -8.99
+    ],
+    "rotation": 84.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_13",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     1.29,
+     9.09
+    ],
+    "rotation": 151.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_16",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -15.32,
+     5.17
+    ],
+    "rotation": 352.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "mato_vila_17",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     1.5,
+     5.3
+    ],
+    "rotation": 59.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "moinho_da_vila",
+    "tag": "moinho",
+    "model": "res://models/moinho.glb",
+    "position": [
+     -30.0,
+     13.0
+    ],
+    "rotation": 60.0,
+    "scale": 1.15,
+    "y": 0.0
+   },
+   {
+    "id": "celeiro_da_vila",
+    "tag": "celeiro",
+    "model": "res://models/celeiro.glb",
+    "position": [
+     27.0,
+     -12.5
+    ],
+    "rotation": 250.0,
+    "scale": 1.1,
+    "y": 0.0
+   },
+   {
+    "id": "banca_de_beira",
+    "tag": "banca",
+    "model": "res://models/banca_verde.glb",
+    "position": [
+     5.5,
+     -6.0
     ],
     "rotation": 180.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "lampiao_praca_2",
+    "id": "banca_de_beira_2",
+    "tag": "banca",
+    "model": "res://models/banca_vermelha.glb",
+    "position": [
+     -6.5,
+     6.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "carroca_parada",
+    "tag": "mobilia",
+    "model": "res://models/carroca.glb",
+    "position": [
+     11.0,
+     5.5
+    ],
+    "rotation": 15.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "barris_da_taberna",
+    "tag": "mobilia",
+    "model": "res://models/barris.glb",
+    "position": [
+     -11.5,
+     -5.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lampiao_entrada",
     "tag": "lampiao",
     "model": "res://models/lampiao.glb",
     "position": [
-     -0.0,
-     -6.0
+     -21.0,
+     0.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "lampiao_saida",
+    "tag": "lampiao",
+    "model": "res://models/lampiao.glb",
+    "position": [
+     21.0,
+     0.0
     ],
     "rotation": 0.0,
     "scale": 1.0,
@@ -2596,6 +4179,294 @@
     ],
     "rotation": 315.0,
     "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_00",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     16.0,
+     -4.85
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_01",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     16.0,
+     4.85
+    ],
+    "rotation": 47.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_02",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     4.85,
+     16.0
+    ],
+    "rotation": 94.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_03",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     16.0
+    ],
+    "rotation": 141.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_04",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -16.0,
+     4.85
+    ],
+    "rotation": 188.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_05",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -16.0,
+     -4.85
+    ],
+    "rotation": 235.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_06",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     -16.0
+    ],
+    "rotation": 282.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_07",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     4.85,
+     -16.0
+    ],
+    "rotation": 329.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_00",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     13.27,
+     8.93
+    ],
+    "rotation": 0.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_01",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     8.93,
+     13.27
+    ],
+    "rotation": 61.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_02",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -8.93,
+     13.27
+    ],
+    "rotation": 122.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_03",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -13.27,
+     8.93
+    ],
+    "rotation": 183.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_04",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -13.27,
+     -8.93
+    ],
+    "rotation": 244.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_05",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -8.93,
+     -13.27
+    ],
+    "rotation": 305.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_06",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     8.93,
+     -13.27
+    ],
+    "rotation": 6.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_07",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     13.27,
+     -8.93
+    ],
+    "rotation": 67.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_08",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     21.17,
+     12.32
+    ],
+    "rotation": 128.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_09",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     12.32,
+     21.17
+    ],
+    "rotation": 189.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_10",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -12.32,
+     21.17
+    ],
+    "rotation": 250.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_11",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -21.17,
+     12.32
+    ],
+    "rotation": 311.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_12",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -21.17,
+     -12.32
+    ],
+    "rotation": 12.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_13",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -12.32,
+     -21.17
+    ],
+    "rotation": 73.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_14",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     12.32,
+     -21.17
+    ],
+    "rotation": 134.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_15",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     21.17,
+     -12.32
+    ],
+    "rotation": 195.0,
+    "scale": 1.05,
     "y": 0.0
    }
   ],
@@ -2970,6 +4841,294 @@
     ],
     "rotation": 40.0,
     "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_00",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     17.5,
+     -4.85
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_01",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     17.5,
+     4.85
+    ],
+    "rotation": 47.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_02",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     4.85,
+     17.5
+    ],
+    "rotation": 94.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_03",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     17.5
+    ],
+    "rotation": 141.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_04",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -17.5,
+     4.85
+    ],
+    "rotation": 188.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_05",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -17.5,
+     -4.85
+    ],
+    "rotation": 235.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_06",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     -17.5
+    ],
+    "rotation": 282.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_07",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     4.85,
+     -17.5
+    ],
+    "rotation": 329.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_00",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     14.67,
+     9.54
+    ],
+    "rotation": 0.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_01",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     9.54,
+     14.67
+    ],
+    "rotation": 61.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_02",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -9.54,
+     14.67
+    ],
+    "rotation": 122.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_03",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -14.67,
+     9.54
+    ],
+    "rotation": 183.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_04",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -14.67,
+     -9.54
+    ],
+    "rotation": 244.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_05",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -9.54,
+     -14.67
+    ],
+    "rotation": 305.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_06",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     9.54,
+     -14.67
+    ],
+    "rotation": 6.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_07",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     14.67,
+     -9.54
+    ],
+    "rotation": 67.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_08",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     23.03,
+     13.11
+    ],
+    "rotation": 128.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_09",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     13.11,
+     23.03
+    ],
+    "rotation": 189.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_10",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -13.11,
+     23.03
+    ],
+    "rotation": 250.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_11",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -23.03,
+     13.11
+    ],
+    "rotation": 311.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_12",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -23.03,
+     -13.11
+    ],
+    "rotation": 12.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_13",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -13.11,
+     -23.03
+    ],
+    "rotation": 73.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_14",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     13.11,
+     -23.03
+    ],
+    "rotation": 134.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_15",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     23.03,
+     -13.11
+    ],
+    "rotation": 195.0,
+    "scale": 1.05,
     "y": 0.0
    }
   ],
@@ -3429,6 +5588,294 @@
     "rotation": 0.0,
     "scale": 1.25,
     "y": 0.0
+   },
+   {
+    "id": "arvore_rua_00",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     18.0,
+     -4.85
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_01",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     18.0,
+     4.85
+    ],
+    "rotation": 47.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_02",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     4.85,
+     18.0
+    ],
+    "rotation": 94.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_03",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     18.0
+    ],
+    "rotation": 141.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_04",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -18.0,
+     4.85
+    ],
+    "rotation": 188.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_05",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -18.0,
+     -4.85
+    ],
+    "rotation": 235.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_06",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     -18.0
+    ],
+    "rotation": 282.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_07",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     4.85,
+     -18.0
+    ],
+    "rotation": 329.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_00",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     15.13,
+     9.74
+    ],
+    "rotation": 0.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_01",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     9.74,
+     15.13
+    ],
+    "rotation": 61.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_02",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -9.74,
+     15.13
+    ],
+    "rotation": 122.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_03",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -15.13,
+     9.74
+    ],
+    "rotation": 183.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_04",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -15.13,
+     -9.74
+    ],
+    "rotation": 244.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_05",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -9.74,
+     -15.13
+    ],
+    "rotation": 305.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_06",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     9.74,
+     -15.13
+    ],
+    "rotation": 6.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_07",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     15.13,
+     -9.74
+    ],
+    "rotation": 67.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_08",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     23.96,
+     13.5
+    ],
+    "rotation": 128.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_09",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     13.5,
+     23.96
+    ],
+    "rotation": 189.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_10",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -13.5,
+     23.96
+    ],
+    "rotation": 250.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_11",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -23.96,
+     13.5
+    ],
+    "rotation": 311.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_12",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -23.96,
+     -13.5
+    ],
+    "rotation": 12.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_13",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -13.5,
+     -23.96
+    ],
+    "rotation": 73.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_14",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     13.5,
+     -23.96
+    ],
+    "rotation": 134.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_15",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     23.96,
+     -13.5
+    ],
+    "rotation": 195.0,
+    "scale": 1.05,
+    "y": 0.0
    }
   ],
   "notas_sagradas": [
@@ -3730,6 +6177,390 @@
     ],
     "rotation": 337.5,
     "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_00",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     9.0,
+     -4.85
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_01",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     9.0,
+     4.85
+    ],
+    "rotation": 47.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_02",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     9.79,
+     2.93
+    ],
+    "rotation": 94.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_03",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     2.93,
+     9.79
+    ],
+    "rotation": 141.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_04",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     4.85,
+     9.0
+    ],
+    "rotation": 188.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_05",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -4.85,
+     9.0
+    ],
+    "rotation": 235.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_06",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -2.93,
+     9.79
+    ],
+    "rotation": 282.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_07",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -9.79,
+     2.93
+    ],
+    "rotation": 329.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_08",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -9.0,
+     4.85
+    ],
+    "rotation": 16.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_09",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -9.0,
+     -4.85
+    ],
+    "rotation": 63.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_10",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     -9.79,
+     -2.93
+    ],
+    "rotation": 110.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_11",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     -2.93,
+     -9.79
+    ],
+    "rotation": 157.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_12",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     -4.85,
+     -9.0
+    ],
+    "rotation": 204.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_13",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_carvalho.glb",
+    "position": [
+     4.85,
+     -9.0
+    ],
+    "rotation": 251.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_14",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_pequena.glb",
+    "position": [
+     2.93,
+     -9.79
+    ],
+    "rotation": 298.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "arvore_rua_15",
+    "tag": "arvore_de_rua",
+    "model": "res://models/arvore_frondosa.glb",
+    "position": [
+     9.79,
+     -2.93
+    ],
+    "rotation": 345.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_00",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     18.23,
+     6.92
+    ],
+    "rotation": 0.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_01",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     17.79,
+     7.99
+    ],
+    "rotation": 61.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_02",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     7.99,
+     17.79
+    ],
+    "rotation": 122.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_03",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     6.92,
+     18.23
+    ],
+    "rotation": 183.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_04",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -6.92,
+     18.23
+    ],
+    "rotation": 244.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_05",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -7.99,
+     17.79
+    ],
+    "rotation": 305.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_06",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -17.79,
+     7.99
+    ],
+    "rotation": 6.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_07",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -18.23,
+     6.92
+    ],
+    "rotation": 67.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_08",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -18.23,
+     -6.92
+    ],
+    "rotation": 128.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_09",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -17.79,
+     -7.99
+    ],
+    "rotation": 189.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_10",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -7.99,
+     -17.79
+    ],
+    "rotation": 250.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_11",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     -6.92,
+     -18.23
+    ],
+    "rotation": 311.0,
+    "scale": 1.05,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_12",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     6.92,
+     -18.23
+    ],
+    "rotation": 12.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_13",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     7.99,
+     -17.79
+    ],
+    "rotation": 73.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_14",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     17.79,
+     -7.99
+    ],
+    "rotation": 134.0,
+    "scale": 1.25,
+    "y": 0.0
+   },
+   {
+    "id": "verde_quarteirao_15",
+    "tag": "folhagem",
+    "model": "res://models/grass.glb",
+    "position": [
+     18.23,
+     -6.92
+    ],
+    "rotation": 195.0,
+    "scale": 1.05,
     "y": 0.0
    }
   ]

@@ -16,6 +16,7 @@ Rodar: python3 .tools/planejar_cidades.py
 import json
 import math
 import os
+import random
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 M = "res://models/"
@@ -42,6 +43,23 @@ CHALES_E_CAMPO = [
     "casa_chale", "medieval_house_1", "casa_camponesa",
     "celeiro", "casa_vila"
 ]
+
+# O verde que entra DENTRO da cidade.
+#
+# Sao os modelos mais baratos que temos — de 900 a 2.900 triangulos, e nenhum
+# deles traz textura, a cor vem do vertice. Isso importa porque cidade e onde a
+# contagem de objetos ja e alta: plantar com a arvore texturada de 22 mil
+# triangulos custaria mais que todas as casas do quarteirao juntas.
+ARVORES_DE_RUA = ["arvore_frondosa", "arvore_carvalho", "arvore_pequena"]
+ARVORES_DE_POMAR = ["arvore_pequena", "arvore_frondosa"]
+# Grama de sobra e arbusto contado.
+#
+# O tufo de grama sao 900 triangulos; o arbusto sao 9.434 — dez vezes mais por
+# uma peca que na tela ocupa quase o mesmo espaco. Com um arbusto a cada tres,
+# a folhagem da Capital somava 269 mil triangulos, mais que todas as casas dela
+# juntas. Um a cada seis mantem a variedade e devolve o orcamento.
+MATO_DE_JARDIM = ["grass", "grass", "grass",
+                  "fantasy_bush_1787078968444", "grass", "grass"]
 
 
 def peca(ident, tag, modelo, x, z, giro=0.0, escala=1.0, y=0.0):
@@ -119,6 +137,140 @@ def iluminar(pecas, raio, angulos, marca):
                           math.cos(rad) * raio, math.sin(rad) * raio))
 
 
+def arborizar(pecas, ruas, raios, marca="rua"):
+    """Alinha arvores nas avenidas, uma de cada lado.
+
+    Cidade sem uma arvore nao existe fora de maquete. E a arvore de rua nao vai
+    solta no meio do quarteirao: ela acompanha a via, que e o que da ao olho a
+    linha da avenida mesmo de longe, quando as casas ainda sao vultos.
+    """
+    conta = 0
+    for angulo in ruas:
+        rad = math.radians(angulo)
+        # Perpendicular a avenida: e por onde a arvore se afasta do meio da rua.
+        px, pz = -math.sin(rad), math.cos(rad)
+        for raio in raios:
+            for lado in (-1.0, 1.0):
+                recuo = (LARGURA_DA_AVENIDA * 0.5 + 1.6) * lado
+                x = math.cos(rad) * raio + px * recuo
+                z = math.sin(rad) * raio + pz * recuo
+                modelo = ARVORES_DE_RUA[conta % len(ARVORES_DE_RUA)]
+                pecas.append(peca(
+                    f"arvore_{marca}_{conta:02d}", "arvore_de_rua", modelo,
+                    x, z, giro=(conta * 47) % 360, escala=1.0))
+                conta += 1
+
+
+def ajardinar(pecas, ruas, aneis, marca="quarteirao"):
+    """Poe mato e arbusto nos FUNDOS dos quarteiroes.
+
+    O buraco entre um anel de casas e o seguinte e quintal, nao praca: deixar
+    terra pelada ali e o que faz a cidade parecer cenario montado sobre um campo
+    em vez de construida nele. O mato entra justamente onde a casa nao vai.
+    """
+    conta = 0
+    raios = [r for r, _, _ in aneis]
+    fundos = [round((raios[i] + raios[i + 1]) * 0.5, 2)
+              for i in range(len(raios) - 1)]
+    if raios:
+        fundos.append(round(raios[-1] + 4.5, 2))
+
+    for raio in fundos:
+        # Entre uma avenida e a seguinte, tres tufos — e nao encostados na via,
+        # senao viram obstaculo bem onde o jogador anda.
+        for indice in range(len(ruas)):
+            comeco = ruas[indice]
+            largura = (ruas[(indice + 1) % len(ruas)] - comeco) % 360.0
+            margem = _abertura(raio, LARGURA_DA_AVENIDA + 3.0)
+            util = largura - margem * 2.0
+            if util <= 0.0:
+                continue
+            for k in range(2):
+                angulo = comeco + margem + util * (k + 0.5) / 2.0
+                rad = math.radians(angulo)
+                # So grama nos quintais da cidade, com tamanhos diferentes.
+                #
+                # O arbusto foi tentado aqui e nao se pagou: doze deles sozinhos
+                # somavam 113 mil triangulos, mais que a metade de toda a
+                # folhagem da Capital, para uma peca que na tela ocupa quase o
+                # mesmo lugar que um tufo de 900. A variedade sai da escala.
+                escala = (0.85, 1.0, 1.25, 1.05)[conta % 4]
+                pecas.append(peca(
+                    f"verde_{marca}_{conta:02d}", "folhagem", "grass",
+                    math.cos(rad) * raio, math.sin(rad) * raio,
+                    giro=(conta * 61) % 360, escala=escala))
+                conta += 1
+
+
+def vila_organica(comprimento, casas_por_lado, marcos, semente=7):
+    """A vila que ainda nao virou cidade.
+
+    Cidade cresce em anel: praca no meio, aneis em volta, muralha fechando. Vila
+    nao — vila cresce ao longo da ESTRADA. Alguem parou onde dava para parar,
+    o vizinho construiu ao lado, e cem anos depois ha um povoado com uma rua so.
+    Por isso aqui nao ha anel de casas nem muralha: ha uma via, casas dos dois
+    lados com recuo desigual, e a roca comecando onde a ultima casa acaba.
+
+    O desalinhamento e o ponto. Casa de vila nao respeita alinhamento predial
+    porque nao havia quem fizesse respeitar — e e justamente isso que separa a
+    vila da cidade aos olhos de quem chega.
+    """
+    # Sorteio preso a uma semente: a vila precisa parecer torta, mas a MESMA
+    # vila torta a cada geracao, senao o mapa muda sozinho a cada build.
+    rnd = random.Random(semente)
+    pecas = [peca("poco_da_vila", "poco", "poco", 0, 0, escala=1.1)]
+
+    passo = comprimento / max(casas_por_lado, 1)
+    conta = 0
+    for lado in (-1.0, 1.0):
+        for k in range(casas_por_lado):
+            # Ao longo da rua, com folga irregular.
+            ao_longo = -comprimento * 0.5 + passo * (k + 0.5) + rnd.uniform(-1.8, 1.8)
+            # E o recuo da frente, que e o que mais denuncia vila.
+            recuo = lado * (LARGURA_DA_AVENIDA * 0.5 + rnd.uniform(3.2, 6.4))
+            modelo = CHALES_E_CAMPO[conta % len(CHALES_E_CAMPO)]
+            pecas.append(peca(
+                f"casa_vila_{conta:02d}", "casa", modelo,
+                ao_longo, recuo,
+                # De frente para a rua, torta uns graus.
+                giro=(90.0 if lado < 0 else 270.0) + rnd.uniform(-9.0, 9.0),
+                escala=round(rnd.uniform(0.92, 1.12), 2)))
+            conta += 1
+
+    # O pomar: fileiras atras das casas, do lado de la do quintal.
+    fila = 0
+    for lado in (-1.0, 1.0):
+        for k in range(casas_por_lado + 1):
+            for recuo in (11.5, 15.0):
+                x = -comprimento * 0.5 + passo * k + rnd.uniform(-1.0, 1.0)
+                z = lado * (recuo + rnd.uniform(-0.8, 0.8))
+                pecas.append(peca(
+                    f"pomar_{fila:02d}", "arvore_de_rua",
+                    ARVORES_DE_POMAR[fila % len(ARVORES_DE_POMAR)],
+                    x, z, giro=(fila * 53) % 360, escala=round(rnd.uniform(0.9, 1.15), 2)))
+                fila += 1
+
+    # Mato solto entre a casa e a horta, onde ninguem construiu nada.
+    for i in range(18):
+        x = rnd.uniform(-comprimento * 0.5, comprimento * 0.5)
+        z = rnd.uniform(-9.5, 9.5)
+        if abs(z) < LARGURA_DA_AVENIDA * 0.5 + 1.0:
+            continue  # nao na rua
+        pecas.append(peca(f"mato_vila_{i:02d}", "folhagem",
+                          MATO_DE_JARDIM[i % len(MATO_DE_JARDIM)],
+                          x, z, giro=(i * 67) % 360))
+
+    for marco in marcos:
+        ident, tag, modelo, x, z, escala = marco[:6]
+        pecas.append(peca(ident, tag, modelo, x, z,
+                          giro=marco[6] if len(marco) > 6 else 0.0, escala=escala))
+
+    # Duas vias cruzadas e um anel curto: e o vocabulario que o desenhista de
+    # estradas entende, e o que ele desenha com isso e um entroncamento com um
+    # largo no meio — que e a planta de qualquer povoado de beira de estrada.
+    return pecas, {"avenidas": 2, "aneis": [14.0]}
+
+
 def cidade_radial(avenidas, aneis, raio_da_muralha, portoes, marcos, monumento=("monumento", "fonte", "fonte_musical", 1.6)):
     pecas = []
     if monumento:
@@ -142,6 +294,14 @@ def cidade_radial(avenidas, aneis, raio_da_muralha, portoes, marcos, monumento=(
     if raio_da_muralha > 0.0:
         muralha_circular(pecas, raio_da_muralha,
                          torres=max(8, avenidas * 2), portoes=portoes)
+
+    # O verde entra por ultimo, quando ja se sabe onde as casas ficaram.
+    raios_de_anel = [r for r, _, _ in aneis]
+    if raios_de_anel:
+        meio = [round((raios_de_anel[i] + raios_de_anel[i + 1]) * 0.5, 2)
+                for i in range(len(raios_de_anel) - 1)]
+        arborizar(pecas, ruas, meio or [raios_de_anel[0] * 0.6])
+    ajardinar(pecas, ruas, aneis)
 
     raios = [r for r, _, _ in aneis]
     entre = [round((raios[i] + raios[i + 1]) * 0.5, 1) for i in range(len(raios) - 1)] if len(raios) > 1 else []
@@ -210,27 +370,24 @@ CIDADES = {
 
     # 3. 🏘️ Vila do Caminho & Mercado do Vale (col 0, row 2)
     "custom_1785884200706_430": dict(
-        raio=36.0,
-        planta=cidade_radial(
-            avenidas=4,
-            aneis=[
-                (13.0, 2, CASAS_MEDIEVAIS),
-                (23.0, 3, CHALES_E_CAMPO)
-            ],
-            raio_da_muralha=0.0,
-            portoes=[],
+        # A VILA PRE-CIDADE. Sem anel, sem muralha, sem praca: uma estrada com
+        # casas dos dois lados, pomar atras e a roca no fim. E o assentamento
+        # que ainda nao virou cidade — o degrau que faltava entre o campo aberto
+        # e a Capital.
+        raio=30.0,
+        planta=vila_organica(
+            comprimento=46.0,
+            casas_por_lado=6,
             marcos=[
-                ("moinho_vento", "moinho", "moinho", 135.0, 29.0, 1.15),
-                ("celeiro_vila", "celeiro", "celeiro", 225.0, 28.0, 1.1),
-                ("banca_feira_1", "banca", "banca_verde", 40.0, 8.5, 1.0),
-                ("banca_feira_2", "banca", "banca_vermelha", 60.0, 8.5, 1.0),
-                ("banca_feira_3", "banca", "banca_feira", 300.0, 8.5, 1.0),
-                ("carroca_vila", "mobilia", "carroca", 320.0, 9.0, 1.0),
-                ("barris_taberna", "mobilia", "barris", 160.0, 9.0, 1.0),
-                ("lampiao_praca", "lampiao", "lampiao", 90.0, 6.0, 1.0),
-                ("lampiao_praca_2", "lampiao", "lampiao", 270.0, 6.0, 1.0),
-            ],
-            monumento=("poco_central", "poco", "poco", 1.2)
+                ("moinho_da_vila", "moinho", "moinho", -30.0, 13.0, 1.15, 60.0),
+                ("celeiro_da_vila", "celeiro", "celeiro", 27.0, -12.5, 1.1, 250.0),
+                ("banca_de_beira", "banca", "banca_verde", 5.5, -6.0, 1.0, 180.0),
+                ("banca_de_beira_2", "banca", "banca_vermelha", -6.5, 6.0, 1.0, 0.0),
+                ("carroca_parada", "mobilia", "carroca", 11.0, 5.5, 1.0, 15.0),
+                ("barris_da_taberna", "mobilia", "barris", -11.5, -5.5, 1.0, 0.0),
+                ("lampiao_entrada", "lampiao", "lampiao", -21.0, 0.0, 1.0),
+                ("lampiao_saida", "lampiao", "lampiao", 21.0, 0.0, 1.0),
+            ]
         )
     ),
 
