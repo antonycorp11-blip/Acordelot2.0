@@ -192,55 +192,77 @@ func _construir_agua() -> void:
 # -------------------------------------------------------------
 # 3. Construções 3D da Cidade / Casas Medievais PBR
 # -------------------------------------------------------------
+## Altura de cada tipo de peca em METROS.
+##
+## Os modelos vem normalizados, cada um numa escala propria — o poco chega do
+## mesmo tamanho da torre. Quem da sentido a eles e esta tabela: o construtor
+## mede a caixa do modelo e o estica ate a altura de verdade. Sem ela a cidade
+## sai com casas de trinta metros ao lado de moinhos de dois.
+const ALTURA_POR_TAG := {
+    "casa": 7.5, "casa_enxaimel_1": 8.0, "casa_enxaimel_2": 7.5,
+    "mansao_medieval": 9.5, "sobrado": 9.0,
+    "celeiro": 8.0, "moinho": 12.0, "oficina_ferreiro": 7.0, "loja_toldo": 5.0,
+    "torre": 13.0, "muralha": 6.5, "muro": 4.0,
+    "fonte": 3.0, "poco": 2.4, "lampiao": 4.2,
+    "banca": 2.6, "mobilia": 1.6, "estatua": 2.8, "estandarte": 5.0,
+    "ponte": 2.0, "cristal": 4.5,
+    "arvore_de_rua": 7.0, "folhagem": 0.75,
+}
+const ALTURA_PADRAO := 7.0
+
+
 func _construir_layout_urbano() -> void:
     var layout_id: String = str(_zone_data.get("layout_id", ""))
-    if layout_id == "" or not _city_layouts.has(layout_id):
+    if layout_id == "":
         return
-        
-    var layout: Dictionary = _city_layouts[layout_id]
-    var pecas: Array = layout.get("pecas", [])
-    
+
+    # As plantas moram DENTRO de "layouts", nao na raiz do arquivo.
+    #
+    # Aqui se procurava o id na raiz do JSON, onde so existem "_nota", "pracas"
+    # e "layouts". A busca nunca achava nada e a funcao voltava na primeira
+    # linha: por isso toda cidade e toda vila estavam vazias, com o plano
+    # inteiro gravado no disco e ninguem lendo.
+    var todas: Dictionary = _city_layouts.get("layouts", {})
+    if not todas.has(layout_id):
+        return
+    var pecas: Array = todas[layout_id]
+
     for p in pecas:
         var tag: String = str(p.get("tag", ""))
-        var modelo_info := _obter_modelo_urbano_info(p, tag)
-        var modelo_path: String = modelo_info.get("path", "")
-        if modelo_path == "":
+
+        # O MODELO VEM DA PLANTA, nao de um sorteio aqui dentro.
+        #
+        # Antes esta funcao ignorava p["model"] e devolvia sempre uma das duas
+        # casas de enxaimel. As vinte e tres construcoes distintas que o
+        # planejador escolhe — moinho, celeiro, forja, torre, banca, estatua —
+        # chegavam todas como a mesma casa. Era planejamento urbano jogado fora
+        # na ultima linha.
+        var modelo_path: String = str(p.get("model", ""))
+        if modelo_path == "" or not ResourceLoader.exists(modelo_path):
             continue
-            
-        var altura_alvo: float = float(modelo_info.get("altura", 9.5))
-        var escala_layout: float = float(p.get("escala", 1.0))
-        
+
+        var altura_alvo: float = float(ALTURA_POR_TAG.get(tag, ALTURA_PADRAO))
+        var escala_layout: float = float(p.get("scale", 1.0))
+
         var suporte := _instanciar_prop_3d(modelo_path, tag, altura_alvo, escala_layout)
         if not suporte:
             continue
-            
-        var px: float = float(p.get("x", 0.0))
-        var pz: float = float(p.get("z", 0.0))
-        var py: float = calcular_altura(px, pz) + float(p.get("y", 0.0)) - 0.25 # Assenta a base da casa firme no solo
-        var giro: float = float(p.get("giro", 0.0))
-        
-        suporte.position = Vector3(px, py, pz)
-        suporte.rotation.y = deg_to_rad(giro)
-        
-        _adicionar_colisor_prop(suporte, tag, escala_layout * (altura_alvo / 7.0))
-        _props_node.add_child(suporte)
 
-func _obter_modelo_urbano_info(p: Dictionary, tag: String) -> Dictionary:
-    var houses = [
-        {"path": "res://models/medieval_house_1.glb", "altura": 10.0},
-        {"path": "res://models/medieval_house_3.glb", "altura": 9.5}
-    ]
-    
-    if tag.begins_with("casa") or tag.begins_with("mansao") or tag.begins_with("sobrado") or tag.begins_with("predio"):
-        return houses[hash(str(p.get("x", 0))) % houses.size()]
-        
-    if tag == "muralha" or tag == "muro":
-        return {"path": "res://models/stone_wall_segment_1787079001245.glb", "altura": 3.8}
-        
-    if tag == "cristal":
-        return {"path": "res://models/crystal_cluster_1787078933118.glb", "altura": 4.5}
-        
-    return houses[0]
+        # A planta grava a posicao como [x, z] num par, e o giro em "rotation".
+        var pos: Array = p.get("position", [0.0, 0.0])
+        var px: float = float(pos[0]) if pos.size() > 0 else 0.0
+        var pz: float = float(pos[1]) if pos.size() > 1 else 0.0
+        var py: float = calcular_altura(px, pz) + float(p.get("y", 0.0)) - 0.25
+
+        suporte.position = Vector3(px, py, pz)
+        suporte.rotation.y = deg_to_rad(float(p.get("rotation", 0.0)))
+        _limitar_alcance(suporte)
+
+        # Grama e mato nao ganham colisor: sao dezenas por cidade, e parar o
+        # jogador num tufo de capim e o tipo de tropeco que ninguem entende.
+        if tag != "folhagem":
+            _adicionar_colisor_prop(suporte, tag, 1.0)
+        _props_node.add_child(suporte)
 
 # -------------------------------------------------------------
 # 4. Floresta 100% 3D em Escala Real (Cidades Limpas)
@@ -493,6 +515,34 @@ func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
         atual = atual.get_parent() as Node3D
     return acumulado
 
+## Diz a cada malha ate onde vale a pena desenha-la.
+##
+## A zona tem 160 m e a camera enxerga uns 40: sem isto o outro lado do mapa e
+## desenhado a cada quadro sem ninguem ver. O alcance sai do TAMANHO da peca —
+## arvore de quinze metros aparece de longe, tufo de meio metro nao faz falta a
+## quarenta — porque um numero fixo ou apaga a arvore cedo demais ou carrega o
+## capim longe demais.
+##
+## Isto ja existia e foi perdido numa alteracao posterior. Com a cidade cheia
+## passando a ter 187 pecas, e o que segura o quadro no celular fraco.
+static func _limitar_alcance(no: Node3D) -> void:
+    var caixa := AABB()
+    var achou := false
+    for malha in no.find_children("*", "MeshInstance3D", true, false):
+        var m := malha as MeshInstance3D
+        var local: AABB = m.get_aabb()
+        caixa = local if not achou else caixa.merge(local)
+        achou = true
+    if not achou:
+        return
+    var altura: float = caixa.size.y * no.scale.y
+    var alcance: float = clampf(altura * 6.0, 28.0, 95.0)
+    for malha in no.find_children("*", "MeshInstance3D", true, false):
+        malha.visibility_range_end = alcance
+        malha.visibility_range_end_margin = alcance * 0.14
+        malha.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+
+
 func _adicionar_colisor_prop(node: Node3D, tag: String, escala: float) -> void:
     var body := StaticBody3D.new()
     var col := CollisionShape3D.new()
@@ -503,11 +553,20 @@ func _adicionar_colisor_prop(node: Node3D, tag: String, escala: float) -> void:
         shape.height = 5.0 * clampf(escala, 0.8, 2.0)
         col.shape = shape
         col.position.y = shape.height * 0.5
-    elif tag.begins_with("casa") or tag.begins_with("mansao") or tag.begins_with("sobrado"):
+    elif tag.begins_with("casa") or tag.begins_with("mansao") or tag.begins_with("sobrado") \
+            or tag in ["celeiro", "moinho", "oficina_ferreiro", "loja_toldo", "torre", "muralha"]:
+        # A caixa vem do modelo JA POSICIONADO, nao de um 6,5 x 6 x 6,5 fixo.
+        #
+        # O palpite fixo servia quando toda casa era a mesma casa. Agora que a
+        # planta escolhe entre moinho, celeiro, torre e cinco casas de tamanhos
+        # diferentes, um numero unico ou deixa parede invisivel sobrando ou
+        # deixa o jogador entrar dentro do moinho.
+        var medida := _caixa_do_modelo(node)
         var box := BoxShape3D.new()
-        box.size = Vector3(6.5 * escala, 6.0 * escala, 6.5 * escala)
+        box.size = Vector3(
+            maxf(medida.size.x, 0.8), maxf(medida.size.y, 1.0), maxf(medida.size.z, 0.8))
         col.shape = box
-        col.position.y = box.size.y * 0.5
+        col.position = medida.position + medida.size * 0.5
     else:
         var shape := CylinderShape3D.new()
         shape.radius = 0.7 * escala
