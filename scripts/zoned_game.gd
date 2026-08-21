@@ -25,10 +25,17 @@ func _ready() -> void:
                 _player.alternar_voo()
         )
         
-    var btn_inv := find_child("BtnInventario", true, false)
-    if btn_inv and inv_ui:
-        btn_inv.pressed.connect(func():
+    # A mochila e a engrenagem sao do kit novo e nascem dentro do PlayerHUD, que
+    # e quem sabe onde a arte encaixa. Aqui so se diz o que elas fazem.
+    if hud_vida and inv_ui and hud_vida.has_signal("mochila_pedida"):
+        hud_vida.mochila_pedida.connect(func():
             inv_ui.toggle_inventory()
+        )
+    if hud_vida and hud_vida.has_signal("config_pedida"):
+        hud_vida.config_pedida.connect(func():
+            var mapa := find_child("ZoneMinimap", true, false)
+            if mapa and mapa.has_method("toggle_world_map"):
+                mapa.toggle_world_map()
         )
         
     # Conexão dos 3 Botões de Habilidades (Skills)

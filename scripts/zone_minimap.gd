@@ -17,7 +17,11 @@ var _minimap_frame_tex: Texture2D
 
 func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _minimap_frame_tex = load("res://textures/ui/minimap_frame.png")
+    # A moldura do kit novo, ja vazada: e um anel dourado com o "N" da bussola,
+    # e o radar aparece pelo buraco. A antiga era uma imagem de 1024 com um mapa
+    # inteiro pintado dentro — quatro megabytes de memoria de video para mostrar
+    # um mapa que nao era o do jogador.
+    _minimap_frame_tex = load("res://textures/ui/moldura_mapa.png")
     _criar_minimap_hud()
     _criar_modal_mapa_mundi()
     
@@ -80,7 +84,8 @@ func _criar_minimap_hud() -> void:
     
     # Área de desenho do radar com a moldura artística
     _minimap_draw = Control.new()
-    _minimap_draw.custom_minimum_size = Vector2(170, 150)
+    # Quadrado: a moldura e um circulo, e caixa achatada vira elipse.
+    _minimap_draw.custom_minimum_size = Vector2(170, 170)
     _minimap_draw.mouse_filter = Control.MOUSE_FILTER_PASS
     _minimap_draw.draw.connect(_on_minimap_draw)
     _minimap_draw.gui_input.connect(func(ev: InputEvent):
@@ -90,7 +95,9 @@ func _criar_minimap_hud() -> void:
     vbox.add_child(_minimap_draw)
     
     var btn_mapa := Button.new()
-    btn_mapa.text = "🗺️ Mapa do Reino (M)"
+    # Sem emoji: a fonte do jogo nao tem esses desenhos e o celular mostra
+    # um quadradinho vazio no lugar.
+    btn_mapa.text = "Mapa do Reino  (M)"
     btn_mapa.add_theme_font_size_override("font_size", 11)
     btn_mapa.pressed.connect(func(): toggle_world_map())
     vbox.add_child(btn_mapa)
@@ -188,14 +195,18 @@ func _process(_delta: float) -> void:
 func _on_minimap_draw() -> void:
     var rect := _minimap_draw.get_rect()
     var center := rect.size * 0.5
-    var frame_size := 148.0
+    var frame_size := 162.0
     var frame_rect := Rect2(center - Vector2(frame_size, frame_size) * 0.5, Vector2(frame_size, frame_size))
     
-    # 1. Desenha a moldura de bússola dourada em alta resolução
+    # 1. O disco escuro por baixo. A moldura nova e so um anel — sem este fundo
+    # o radar flutuaria solto sobre o mapa 3D e os pontos sumiriam na grama.
+    _minimap_draw.draw_circle(center, frame_size * 0.5 - 4.0, Color(0.05, 0.07, 0.06, 0.82))
+    
+    # 2. O anel dourado com o "N" da bussola, por cima da borda do disco.
     if _minimap_frame_tex:
         _minimap_draw.draw_texture_rect(_minimap_frame_tex, frame_rect, false)
         
-    var radius := 48.0
+    var radius := 62.0
     
     # 2. Portais de Saída Cardinais com anel pulsante
     var pulse: float = sin(Time.get_ticks_msec() * 0.005) * 1.2

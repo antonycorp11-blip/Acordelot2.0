@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dnokjm3x4qqlp"
+uid="uid://pt3d6v47dxpo"
 path="res://.godot/imported/swamp_monster_1.png-8616c111dae2262eb4c12b88420238de.ctex"
 metadata={
 "vram_texture": false
@@ -18,9 +18,9 @@ dest_files=["res://.godot/imported/swamp_monster_1.png-8616c111dae2262eb4c12b884
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.82
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

@@ -399,7 +399,20 @@ func _obter_nome_zona(zid: String) -> String:
 # -------------------------------------------------------------
 # Instanciação 3D Real com Medição AABB e Assentamento no Chão
 # -------------------------------------------------------------
-static var _material_triposr: Material = preload("res://materials/triposr_props.tres")
+## A cor dos props mora no VERTICE, nao em textura: 37 dos 46 modelos do jogo
+## nao trazem imagem nenhuma dentro do arquivo.
+##
+## Ate aqui isso era lido por um shader proprio (ALBEDO = COLOR.rgb), que
+## funciona no editor e deixava o mapa inteiro BRANCO no navegador do celular.
+## Este material faz a mesma leitura pelo caminho da propria engine —
+## vertex_color_use_as_albedo — que e o unico testado nos tres renderizadores.
+##
+## A prova esta na espada: ela ja usava esse caminho e nunca ficou branca,
+## enquanto tudo que passava pelo shader ficava.
+static var _material_de_cor: Material = preload("res://materials/prop_cor_de_vertice.tres")
+
+const VENTO_LIGADO := true
+
 static var _material_com_vento: ShaderMaterial = null
 
 static func _obter_material_vento() -> ShaderMaterial:
@@ -458,10 +471,10 @@ func _corrigir_materiais_prop(modelo: Node3D, tag: String) -> void:
                 precisa_override = true
                 break
         if precisa_override:
-            if tem_vento:
+            if tem_vento and VENTO_LIGADO:
                 m_inst.material_override = _obter_material_vento()
             else:
-                m_inst.material_override = _material_triposr
+                m_inst.material_override = _material_de_cor
 
 func _caixa_do_modelo(modelo: Node3D) -> AABB:
     var caixa := AABB()

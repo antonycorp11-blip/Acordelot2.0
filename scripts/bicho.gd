@@ -60,7 +60,7 @@ func _construir_modelo(cfg: Dictionary) -> void:
     _modelo = scene.instantiate()
     add_child(_modelo)
 
-    var mat_triposr := preload("res://materials/triposr_props.tres")
+    var mat_triposr := preload("res://materials/prop_cor_de_vertice.tres")
     for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
         var m_inst := malha as MeshInstance3D
         if m_inst and m_inst.mesh:
@@ -187,6 +187,7 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
         _hp_label_3d.text = "❤️ %d / %d" % [int(vida), int(vida_maxima)]
         
     _criar_popup_dano(quantidade)
+    _avisar_a_barra_do_alvo()
     
     var empurrao := direcao
     empurrao.y = 0.0
@@ -197,6 +198,20 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
     
     if vida <= 0.0:
         _morrer()
+
+## Acende a barra do alvo no alto da tela.
+##
+## A barra sobre a cabeca do bicho conta a mesma coisa, mas some no meio da mata
+## e fica pequena demais no celular. Esta e a que o jogador realmente le durante
+## a briga — e ela so aparece quando ha briga, some sozinha depois.
+func _avisar_a_barra_do_alvo() -> void:
+    var hud := get_tree().get_first_node_in_group("player_hud")
+    if hud == null:
+        hud = get_node_or_null("/root/ZonedWorld/HUD/PlayerHUD")
+    if hud and hud.has_method("mostrar_alvo"):
+        var cfg: Dictionary = MONSTROS_CONFIG[monster_type % MONSTROS_CONFIG.size()]
+        hud.mostrar_alvo(str(cfg.get("nome", "Monstro")), vida, vida_maxima)
+
 
 func _piscar_dano() -> void:
     if not _modelo:

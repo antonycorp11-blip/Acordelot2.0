@@ -66,15 +66,23 @@ func _ready() -> void:
     _animador.add_animation_library("heroi", biblioteca)
     _animador.animation_finished.connect(_ao_terminar)
 
-    _equipar_espada(modelo)
-    _montar_audio()
-    _construir_indicador_mira_chao()
-
+    # A ESCALA VEM ANTES DA ESPADA, e a ordem e o bug.
+    #
+    # O encaixe divide o tamanho da lamina pela escala do heroi para cancela-la,
+    # senao a espada encolheria junto com o modelo. Mas o Mixamo devolve o heroi
+    # cem vezes maior que o jogo, e ate aqui a espada era presa ANTES desse
+    # ajuste: ela media a escala 1.0 e nao a ~0.01 real. O resultado era uma
+    # lamina cem vezes fora de tamanho na mao — a "coisa estranha" no lugar da
+    # espada.
     for malha in modelo.find_children("*", "MeshInstance3D", true, false):
         var altura: float = malha.get_aabb().size.y
         if altura > 0.0:
             modelo.scale = Vector3.ONE * (ALTURA_ALVO / altura)
             break
+
+    _equipar_espada(modelo)
+    _montar_audio()
+    _construir_indicador_mira_chao()
 
     if _espada:
         _espada.visible = false
@@ -189,8 +197,15 @@ func _equipar_espada(modelo: Node3D) -> void:
 
     _atualizar_encaixe()
 
+    # Copia propria do material, nao a compartilhada.
+    #
+    # A espada gigante acende emissao no material da lamina. Com o recurso
+    # compartilhado essa emissao vazaria para tudo que usa a mesma cor de
+    # vertice — o mapa inteiro — e nunca mais apagaria.
+    var tinta: StandardMaterial3D = (
+        load("res://materials/prop_cor_de_vertice.tres") as StandardMaterial3D).duplicate()
     for malha in espada.find_children("*", "MeshInstance3D", true, false):
-        malha.material_override = load("res://Material_TripoSR.tres")
+        malha.material_override = tinta
 
 func _atualizar_encaixe() -> void:
     if _lamina == null or _espada == null:
@@ -262,6 +277,11 @@ func _marcar_impacto() -> void:
     _atingir()
 
 func ativar_aura_azul() -> void:
+    # Sem esta guarda, tocar duas vezes cria a segunda aura e deixa DOIS
+    # cronometros correndo: o primeiro a vencer apaga o buff, e o jogador perde
+    # o efeito no meio do tempo que pagou por ele.
+    if _buff_aura_azul:
+        return
     _buff_aura_azul = true
     _criar_aura_azul_visual()
     var tw := create_tween()
@@ -302,9 +322,15 @@ func _criar_aura_azul_visual() -> void:
     _aura_fx_node.add_child(ring)
 
 func ativar_espada_gigante() -> void:
+    if _buff_espada_gigante:
+        return
     _buff_espada_gigante = true
     if _espada:
         _espada.scale = Vector3.ONE * 2.5
+        # A espada fica GUARDADA fora do golpe, e por isso a skill nao aparecia:
+        # o jogador acionava, pagava a mana e nao via nada ate atacar. Enquanto
+        # o buff dura, a lamina fica na mao.
+        _espada.visible = true
         _fazer_espada_brilhar(true)
         
     var tw := create_tween()
@@ -314,6 +340,7 @@ func ativar_espada_gigante() -> void:
         if _espada:
             _espada.scale = Vector3.ONE
             _fazer_espada_brilhar(false)
+            _espada.visible = _atacando
     )
 
 func _fazer_espada_brilhar(brilhar: bool) -> void:
@@ -342,8 +369,11 @@ func _fazer_espada_brilhar(brilhar: bool) -> void:
                 mat.emission_enabled = false
 
 func lancar_raio_kamehameha(direcao_manual := Vector3.ZERO) -> void:
+    if _atacando:
+        return
     esconder_mira_laser()
     _atacando = true
+    _destravar_em(2.2)
     _animador.play("heroi/golpe_pesado", 0.1, 1.2)
     
     var frente: Vector3
@@ -454,9 +484,31 @@ func _disparar_feixe_laser(origem: Vector3, frente: Vector3) -> void:
         _animador.play("heroi/parado", 0.2)
     )
 
+## Solta o heroi se a animacao longa nao se encerrar sozinha.
+##
+## O raio marca _atacando e so desmarca no fim de uma corrente de tweens. Se
+## essa corrente se perder — troca de zona, no liberado no meio, animacao
+## interrompida — a marca fica presa para sempre, e dai em diante atacar() so
+## enfileira um golpe que nunca sai: o ataque basico morre em silencio ate
+## recarregar a pagina. Era o "skill 3 e o basico bugados" juntos.
+func _destravar_em(segundos: float) -> void:
+    await get_tree().create_timer(segundos).timeout
+    if not _atacando:
+        return
+    _atacando = false
+    if _animador and _animador.current_animation != "heroi/parado":
+        _animador.play("heroi/parado", MISTURA)
+
+
 func _atingir() -> void:
     var origem := global_position
-    var frente := -global_transform.basis.z.normalized()
+    # +Z e a frente, como no resto do projeto.
+    #
+    # Aqui estava -Z: o cone do golpe apontava para as COSTAS do heroi. A mira
+    # em player.gd virava o corpo certo para o bicho, o swing saia bonito, e a
+    # conferencia de quem foi atingido olhava para o lado oposto. O ataque
+    # basico literalmente nao acertava nada que estivesse na frente.
+    var frente := global_transform.basis.z.normalized()
     var alcance: float = 5.5 if _buff_espada_gigante else ALCANCE_DO_GOLPE
     var abertura: float = 360.0 if _buff_espada_gigante else ABERTURA_DO_GOLPE
     var dano_base: float = DANO * 1.8 if _buff_aura_azul else DANO
@@ -501,5 +553,7 @@ func _ao_terminar(animacao: StringName) -> void:
         return
 
     if _espada:
-        _espada.visible = false
+        # Guarda a espada — a nao ser que a skill da espada gigante ainda esteja
+        # correndo, que e justamente quando ela tem de ficar a mostra.
+        _espada.visible = _buff_espada_gigante
     _animador.play("heroi/parado", MISTURA)

@@ -12,7 +12,6 @@
 [ext_resource type="Script" path="res://scripts/barra_do_dia.gd" id="10_barra"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_ataque.png" id="11_btn_ataque"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_voo.png" id="12_btn_voo"]
-[ext_resource type="Texture2D" path="res://textures/ui/btn_inventario.png" id="13_btn_inv"]
 [ext_resource type="Script" path="res://scripts/player_hud.gd" id="14_player_hud"]
 [ext_resource type="Script" path="res://scripts/inventory_ui.gd" id="15_inventory_ui"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_skill1.png" id="16_skill1"]
@@ -117,20 +116,6 @@ mouse_filter = 2
 script = ExtResource("8_minimap")
 zone_manager = NodePath("../../ZoneManager")
 player = NodePath("../../Player")
-
-[node name="BtnInventario" type="TextureButton" parent="HUD"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -282.0
-offset_top = 20.0
-offset_right = -222.0
-offset_bottom = 80.0
-grow_horizontal = 0
-texture_normal = ExtResource("13_btn_inv")
-ignore_texture_size = true
-stretch_mode = 5
 
 [node name="VirtualJoystick" type="Control" parent="HUD"]
 layout_mode = 3

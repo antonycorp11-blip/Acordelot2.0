@@ -61,7 +61,7 @@ static var _material_com_vento: ShaderMaterial = null
 ## e uma troca de estado a menos por objeto desenhado.
 static func prop_material() -> Material:
     if _prop_material == null:
-        _prop_material = load("res://materials/triposr_props.tres")
+        _prop_material = load("res://materials/prop_cor_de_vertice.tres")
     return _prop_material
 
 ## O material das coisas que tem folha.
