@@ -1,0 +1,17 @@
+{
+  "_nota": "Uma fala e: quem fala (nome), a folha de retratos (retrato), a cara (expressao) e o texto. As caras validas estao em scripts/dialogo.gd. Para um NPC novo basta uma chave nova aqui e uma folha em textures/dialogo/.",
+  "mirella_boas_vindas": [
+    {"nome": "Mirella", "retrato": "mirella", "expressao": "surpresa",
+     "texto": "Ora essa! Gente nova na Vila do Caminho? Faz semanas que so passa carroça por aqui."},
+    {"nome": "Akles", "retrato": "akles", "expressao": "calmo",
+     "texto": "Vim pela estrada do sul. A floresta ficou barulhenta demais para dormir nela."},
+    {"nome": "Mirella", "retrato": "mirella", "expressao": "preocupado",
+     "texto": "Barulhenta... entao voce tambem ouviu. Nao e bicho comum o que anda ali embaixo."},
+    {"nome": "Akles", "retrato": "akles", "expressao": "serio",
+     "texto": "Ouvi, e vi. Por isso subi ate aqui antes de escurecer de vez."},
+    {"nome": "Mirella", "retrato": "mirella", "expressao": "feliz",
+     "texto": "Pois fez bem. Acenda uma tocha, coma alguma coisa — a vila e pequena, mas ninguem dorme na rua."},
+    {"nome": "Mirella", "retrato": "mirella", "expressao": "rindo",
+     "texto": "E se voce tocar alguma coisa nessa espada aí, eu ate finjo que gostei."}
+  ]
+}

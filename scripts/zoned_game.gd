@@ -3,6 +3,12 @@ extends Node3D
 ## Pelo caminho, nao pelo nome global: o nome so existe depois que o editor
 ## varre o projeto, e isso quebra exportacao limpa.
 const MIRA := preload("res://scripts/botao_de_mira.gd")
+const DialogoScript := preload("res://scripts/dialogo.gd")
+
+## A NPC ao alcance, se houver. E ela que decide o que o botao de ataque faz.
+var _npc_perto: Node = null
+var _btn_ataque: Node = null
+var _dialogo: Node = null
 
 @onready var _player: CharacterBody3D = $Player
 @onready var _zone_manager: ZoneManager = $ZoneManager
@@ -11,12 +17,30 @@ func _ready() -> void:
     var hud_vida: Node = find_child("PlayerHUD", true, false)
     var inv_ui: Node = find_child("InventoryUI", true, false)
     
-    var btn_ataque := find_child("BtnAtaque", true, false)
-    if btn_ataque:
-        btn_ataque.pressed.connect(func():
-            if _player and _player.has_method("atacar"):
+    _btn_ataque = find_child("BtnAtaque", true, false)
+    if _btn_ataque:
+        # UM botao, duas funcoes. Perto de alguem ele conversa; longe, ataca.
+        # Um segundo botao so para falar ficaria apagado 95% do jogo e roubaria
+        # canto de tela num celular que ja tem seis controles.
+        _btn_ataque.pressed.connect(func():
+            if _npc_perto != null:
+                _conversar()
+            elif _player and _player.has_method("atacar"):
                 _player.atacar()
         )
+
+    # Cada zona nova traz os seus moradores: reconecta a cada troca.
+    if _zone_manager:
+        _zone_manager.zone_changed.connect(func(_z): registrar_npcs())
+
+    # A caixa de conversa nasce com o mundo, escondida.
+    _dialogo = DialogoScript.new()
+    _dialogo.name = "Dialogo"
+    add_child(_dialogo)
+    _dialogo.terminou.connect(func():
+        if _player:
+            _player.set_physics_process(true)
+        _pintar_botao())
         
     var btn_voo := find_child("BtnVoo", true, false)
     if btn_voo:
@@ -114,3 +138,68 @@ func _unhandled_input(event: InputEvent) -> void:
             if _player and _player.has_method("atacar"):
                 _player.atacar()
                 get_viewport().set_input_as_handled()
+
+
+# -------------------------------------------------------------
+# Conversa: quem esta perto, e o botao que troca de cara
+# -------------------------------------------------------------
+## Ligado pelo ZoneManager quando a zona termina de nascer, e a cada troca de
+## zona: os NPCs sao criados junto com o cenario, entao nao da para conectar
+## uma vez no _ready e esquecer.
+func registrar_npcs() -> void:
+    _npc_perto = null
+    for npc in get_tree().get_nodes_in_group("npc"):
+        if not npc.jogador_chegou.is_connected(_ao_chegar_perto):
+            npc.jogador_chegou.connect(_ao_chegar_perto)
+            npc.jogador_saiu.connect(_ao_afastar)
+    _pintar_botao()
+
+
+func _ao_chegar_perto(npc: Node) -> void:
+    _npc_perto = npc
+    if npc.has_method("olhar_para") and _player:
+        npc.olhar_para(_player.global_position)
+    _pintar_botao()
+
+
+func _ao_afastar(npc: Node) -> void:
+    if _npc_perto == npc:
+        _npc_perto = null
+    _pintar_botao()
+
+
+func _conversar() -> void:
+    if _npc_perto == null or _dialogo == null or _dialogo.esta_ativo():
+        return
+    if not _dialogo.comecar(str(_npc_perto.dialogo)):
+        return
+    # O heroi para enquanto conversa. Andar com a caixa aberta faria a NPC
+    # ficar para tras falando sozinha.
+    if _player:
+        _player.set_physics_process(false)
+    _pintar_botao()
+
+
+## O botao de ataque vira botao de conversa e volta.
+##
+## Nao ha arte propria para "conversar": a mesma moldura entra esverdeada e com
+## a legenda embaixo, que e o suficiente para o jogador entender que aquele
+## toque mudou de assunto — e nao custa uma textura nova na build.
+func _pintar_botao() -> void:
+    if _btn_ataque == null:
+        return
+    var conversando: bool = _npc_perto != null and (_dialogo == null or not _dialogo.esta_ativo())
+    _btn_ataque.modulate = Color(0.62, 1.0, 0.72) if conversando else Color.WHITE
+
+    var legenda := _btn_ataque.get_node_or_null("Legenda") as Label
+    if legenda == null:
+        legenda = Label.new()
+        legenda.name = "Legenda"
+        legenda.add_theme_font_size_override("font_size", 13)
+        legenda.add_theme_color_override("font_color", Color(0.95, 0.99, 0.9))
+        legenda.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        legenda.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+        legenda.offset_top = -18.0
+        legenda.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        _btn_ataque.add_child(legenda)
+    legenda.text = "Conversar" if conversando else ""

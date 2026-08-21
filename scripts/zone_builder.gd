@@ -76,6 +76,7 @@ func construir_zona(zone_data: Dictionary) -> void:
         
     _construir_layout_urbano()
     _acender_a_povoacao()
+    _plantar_os_npcs()
     _espalhar_os_adornos()
     _construir_floresta_3d_real()
     _construir_barreiras_perimetro_arvores_reais()
@@ -464,6 +465,28 @@ func _halo(tamanho: float, onde: Vector3) -> MeshInstance3D:
     no.visible = ChunkBuilder.luzes_acesas
     no.add_to_group("claro_de_poste")
     return no
+
+
+## Poe de pe quem mora na zona.
+##
+## A planta diz onde e quem; o resto e do proprio npc.gd. Aqui nao entra nada
+## sobre Mirella em particular — no dia em que houver um ferreiro, ele e mais
+## uma linha na lista de npcs da praca.
+const NpcScript = preload("res://scripts/npc.gd")
+
+func _plantar_os_npcs() -> void:
+    for dados in _dados_da_praca().get("npcs", []):
+        if dados.size() < 5:
+            continue
+        var npc := NpcScript.new()
+        npc.name = "Npc_" + str(dados[0])
+        npc.nome = String(dados[0]).capitalize()
+        npc.dialogo = str(dados[4])
+        var px: float = float(dados[1])
+        var pz: float = float(dados[2])
+        npc.position = Vector3(px, calcular_altura(px, pz) - 0.1, pz)
+        npc.rotation.y = deg_to_rad(float(dados[3]))
+        _props_node.add_child(npc)
 
 
 ## Espalha as estampas recortadas que a planta pediu: cerca, placa, flor, pedra.

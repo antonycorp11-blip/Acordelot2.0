@@ -421,6 +421,8 @@ def vila_da_estrada():
             "largo": MEIA_PRACA,
             "travessas": [LANE_Z, MEIA_LANE, LANE_ATE],
         },
+        # Quem mora aqui. Por enquanto uma so: [id, x, z, giro, dialogo].
+        "npcs": [["mirella", 6.2, -8.0, 250.0, "mirella_boas_vindas"]],
         "luzes": _postes_da_vila(),
         "tochas": _tochas_de_parede(),
         "adornos": _adornos_da_vila(),
@@ -851,7 +853,7 @@ def main():
         # As tochas e a decoracao da povoacao. Moram na praca e nao na lista de
         # pecas porque nao sao modelos 3D: sao luz e estampa recortada, e quem
         # os monta no construtor e outro caminho.
-        for chave in ("luzes", "tochas", "adornos"):
+        for chave in ("luzes", "tochas", "adornos", "npcs"):
             if geometria.get(chave):
                 saida["pracas"][ident][chave] = geometria[chave]
         saida["layouts"][ident] = pecas

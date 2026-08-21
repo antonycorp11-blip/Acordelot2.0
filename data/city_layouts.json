@@ -550,6 +550,15 @@
      91.0,
      false
     ]
+   ],
+   "npcs": [
+    [
+     "mirella",
+     6.2,
+     -8.0,
+     250.0,
+     "mirella_boas_vindas"
+    ]
    ]
   },
   "custom_1786501580114_289": {
