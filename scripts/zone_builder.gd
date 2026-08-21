@@ -36,13 +36,16 @@ const ARVORES_FLORESTA_3D := [
 
 const ARVORES_MISTICAS_3D := [
     {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 10.5, "enterrar": 0.65},
-    {"path": "res://models/crystal_cluster_1787078933118.glb", "tag": "cristal_arcano", "altura": 3.6, "enterrar": 0.25},
     {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo", "altura": 2.2, "enterrar": 0.20}
 ]
 
-const ARBUSTOS_3D := [
-    {"path": "res://models/fantasy_bush_1787078968444.glb", "tag": "arbusto_3d", "altura": 2.2, "enterrar": 0.3}
-]
+## Vazio de proposito.
+##
+## O unico arbusto do acervo (fantasy_bush) nao tem textura, e o cristal das
+## zonas misticas tambem nao. Preencher com eles e o que fazia o mapa parecer
+## massinha. Fica sem arbusto ate aparecer um com textura — falta de conteudo e
+## melhor que conteudo errado.
+const ARBUSTOS_3D := []
 
 func carregar_dados() -> void:
     if _city_layouts.is_empty():
@@ -72,6 +75,8 @@ func construir_zona(zone_data: Dictionary) -> void:
         _construir_agua()
         
     _construir_layout_urbano()
+    _acender_a_povoacao()
+    _espalhar_os_adornos()
     _construir_floresta_3d_real()
     _construir_barreiras_perimetro_arvores_reais()
     _construir_monstros()
@@ -158,6 +163,7 @@ func _construir_terreno() -> void:
     mat.set_shader_parameter("stone_texture", load("res://textures/flagstone_seamless.png"))
     mat.set_shader_parameter("rock_texture", load("res://textures/stone_seamless.png"))
     mat.set_shader_parameter("zone_size", Vector2(TAMANHO_ZONA, TAMANHO_ZONA))
+    _pintar_as_vias(mat)
     
     _terrain_mesh.material_override = mat
     add_child(_terrain_mesh)
@@ -200,6 +206,17 @@ func _construir_agua() -> void:
 ## sai com casas de trinta metros ao lado de moinhos de dois.
 const ALTURA_POR_TAG := {
     "casa": 7.5, "casa_enxaimel_1": 8.0, "casa_enxaimel_2": 7.5,
+    # As cinco casas da Vila do Caminho. Os numeros NAO sao livres: a planta
+    # alinha fachada e mede vao entre lotes com a pegada que a casa tem DEPOIS
+    # de normalizada por esta altura. Mexer aqui sem mexer em CASAS, no
+    # planejar_cidades.py, poe casa dentro de casa.
+    "casa_alta": 8.5, "casa_larga": 7.5,
+    "casa_pedra": 7.0, "casarao": 8.5, "solar": 9.5,
+    # Os props da rua. Medidos pelo que a coisa mede no mundo: um barril tem
+    # um metro de altura, um caixote oitenta centimetros, um saco meio metro.
+    # Prop fora de escala e o erro que mais denuncia cenario montado as pressas.
+    "poste": 4.6, "tocha_parede": 1.3, "barris": 1.6, "caixotes": 0.9,
+    "saco": 0.6, "banco": 1.0, "carroca": 1.8,
     "mansao_medieval": 9.5, "sobrado": 9.0,
     "celeiro": 8.0, "moinho": 12.0, "oficina_ferreiro": 7.0, "loja_toldo": 5.0,
     "torre": 13.0, "muralha": 6.5, "muro": 4.0,
@@ -209,6 +226,50 @@ const ALTURA_POR_TAG := {
     "arvore_de_rua": 7.0, "folhagem": 0.75,
 }
 const ALTURA_PADRAO := 7.0
+
+
+## Manda para o chao onde passam as ruas desta zona.
+##
+## O planejador ja calcula a via principal, o largo e as travessas; ate aqui
+## esses numeros morriam no arquivo. E a diferenca entre uma vila e um punhado
+## de casas num gramado: o jogador tem de VER por onde andar.
+func _pintar_as_vias(mat: ShaderMaterial) -> void:
+    var vias: Dictionary = _dados_da_praca().get("vias", {})
+    if vias.is_empty():
+        return
+
+    var principal: Array = vias.get("principal", [0.0, 0.0])
+    var travessas: Array = vias.get("travessas", [0.0, 0.0, 0.0])
+    mat.set_shader_parameter("via_principal", Vector4(
+        float(principal[0]), float(principal[1]),
+        float(vias.get("largo", 0.0)), float(travessas[1])))
+    mat.set_shader_parameter("via_travessa", Vector2(
+        float(travessas[0]), float(travessas[2])))
+
+
+## Os nove modelos do acervo que tem UV e imagem de verdade.
+##
+## Tudo o mais e cor por vertice — uma cor media por regiao, sem sujeira, sem
+## madeira, sem telha. E literalmente o que massinha e, e nenhuma quantidade de
+## planejamento urbano conserta.
+##
+## A regra vale POR PLANTA, nao para o mapa inteiro: so entra em vigor onde o
+## planejador marcou "so_com_textura". A Vila do Caminho foi redesenhada sob
+## ela; as outras seis zonas ainda dependem do acervo antigo, e ligar o corte
+## nelas apagaria de 156 pecas da Capital a totalidade das Notas Sagradas —
+## cidades vazias de novo. Cada uma sai da massinha quando for redesenhada.
+const COM_TEXTURA := [
+    "medieval_house_1", "medieval_house_3",
+    "casa_pedra", "casarao_madeira", "casa_solar",
+    "poste_vila", "tocha_vila", "poco_vila", "barris_vila",
+    "caixotes_vila", "carroca_vila", "saco_vila", "banco_vila",
+    "tree_gn", "pine_tree", "mushroom_tree",
+    "black_dragon", "monster", "monster_orc", "swamp_monster",
+]
+
+
+static func _tem_textura(caminho: String) -> bool:
+    return caminho.get_file().get_basename() in COM_TEXTURA
 
 
 func _construir_layout_urbano() -> void:
@@ -227,6 +288,9 @@ func _construir_layout_urbano() -> void:
         return
     var pecas: Array = todas[layout_id]
 
+    # A planta diz se foi desenhada so com modelos texturizados.
+    var so_com_textura: bool = bool(_dados_da_praca().get("so_com_textura", false))
+
     for p in pecas:
         var tag: String = str(p.get("tag", ""))
 
@@ -239,6 +303,9 @@ func _construir_layout_urbano() -> void:
         # na ultima linha.
         var modelo_path: String = str(p.get("model", ""))
         if modelo_path == "" or not ResourceLoader.exists(modelo_path):
+            continue
+        # Sem textura nao entra — nas plantas que pedem essa regra.
+        if so_com_textura and not _tem_textura(modelo_path):
             continue
 
         var altura_alvo: float = float(ALTURA_POR_TAG.get(tag, ALTURA_PADRAO))
@@ -265,6 +332,242 @@ func _construir_layout_urbano() -> void:
         _props_node.add_child(suporte)
 
 # -------------------------------------------------------------
+# 3b. A noite da povoacao e o que enfeita a rua
+# -------------------------------------------------------------
+## Acende as tochas da povoacao.
+##
+## Reusa a lampada e a mancha de chao do ChunkBuilder de proposito: sao os
+## mesmos dois nos que o ciclo do dia ja liga e desliga pelos grupos "lampada"
+## e "claro_de_poste". Uma luz propria daqui ficaria acesa ao meio-dia e apagada
+## a meia-noite, porque ninguem a estaria escutando.
+##
+## A mancha no chao NAO e decoracao: no renderizador de compatibilidade — o
+## unico que o navegador aceita — a OmniLight3D nao chega ao chao. Quem desenha
+## a poca de luz que o jogador ve da camera de cima e ela.
+func _acender_a_povoacao() -> void:
+    var luzes: Array = _dados_da_praca().get("luzes", [])
+    if luzes.is_empty():
+        return
+    for ponto in luzes:
+        var px: float = float(ponto[0])
+        var pz: float = float(ponto[1])
+        var poste := _poste_de_luz()
+        if poste == null:
+            break
+        poste.position = Vector3(px, calcular_altura(px, pz) - 0.05, pz)
+        # O bracco da luminaria aponta para a rua, nao para a casa.
+        poste.rotation.y = deg_to_rad(90.0 if px < 0.0 else 270.0)
+        _props_node.add_child(poste)
+
+    # As tochas de parede, que iluminam a PORTA e nao a via.
+    for t in _dados_da_praca().get("tochas", []):
+        if t.size() < 4:
+            continue
+        var tx: float = float(t[0])
+        var tz: float = float(t[1])
+        var tocha := _tocha_de_parede(float(t[3]))
+        if tocha == null:
+            break
+        tocha.position = Vector3(tx, calcular_altura(tx, tz) - 0.05, tz)
+        tocha.rotation.y = deg_to_rad(float(t[2]))
+        _props_node.add_child(tocha)
+
+
+## O poste da rua: o modelo, a lampada no alto e a poca de luz no chao.
+const POSTE_ALTURA := 4.6
+
+func _poste_de_luz() -> Node3D:
+    var suporte := _instanciar_prop_3d("res://models/poste_vila.glb", "poste", POSTE_ALTURA)
+    if suporte == null:
+        return null
+
+    var lampada := ChunkBuilder._lampada()
+    # Na luminaria, no alto do poste — nao a 86 cm, que era a altura do poste
+    # velho, tres vezes menor que este.
+    lampada.position = Vector3(0.0, POSTE_ALTURA * 0.92, 0.0)
+    lampada.omni_range = 12.0
+    suporte.add_child(lampada)
+
+    # A poca de luz um terco maior que a do poste de rua padrao. E ela que
+    # decide se a rua da para andar: no tamanho original sobrava escuro demais
+    # entre um poste e outro e o jogador perdia a via. Assim as pocas se
+    # encostam pelas beiradas, e o que esta ATRAS das casas continua escuro —
+    # que e onde a noite tem de continuar existindo.
+    var claro := ChunkBuilder._claro_no_chao()
+    claro.scale = Vector3(1.4, 1.0, 1.4)
+    suporte.add_child(claro)
+    suporte.add_child(_halo(2.6, Vector3(0.0, POSTE_ALTURA * 0.92, 0.0)))
+    return suporte
+
+
+## A tocha presa na fachada, com a luz curta que so lambe a parede.
+##
+## Alcance seis metros e meio contra doze do poste: se a tocha iluminasse tanto
+## quanto ele, as duas somariam na calcada e a rua viraria dia. O trabalho dela
+## e outro — dizer que ali tem porta.
+func _tocha_de_parede(altura_na_parede: float) -> Node3D:
+    var suporte := _instanciar_prop_3d("res://models/tocha_vila.glb", "tocha_parede", 1.3)
+    if suporte == null:
+        return null
+    # Sobe pela fachada: no chao ela viraria fogueira, e fogueira encostada na
+    # parede de madeira e outra historia.
+    for filho in suporte.get_children():
+        (filho as Node3D).position.y += altura_na_parede
+
+    var lampada := ChunkBuilder._lampada()
+    lampada.position = Vector3(0.0, altura_na_parede + 0.9, 0.0)
+    lampada.omni_range = 6.5
+    suporte.add_child(lampada)
+
+    var claro := ChunkBuilder._claro_no_chao()
+    # Poca pequena, aos pes da porta.
+    claro.scale = Vector3(0.7, 1.0, 0.7)
+    suporte.add_child(claro)
+    suporte.add_child(_halo(1.5, Vector3(0.0, altura_na_parede + 0.85, 0.0)))
+    return suporte
+
+
+## O brilho no alto da luminaria.
+##
+## Existe pela mesma razao que a mancha no chao: no renderizador de
+## compatibilidade — o unico que o navegador aceita — a OmniLight3D nao pinta
+## nada em volta. Ela acende o proprio modelo de perto e para por ai. Sem este
+## halo, a noite da vila era um poste escuro com uma poca de luz no chao e nada
+## ligando os dois: a luz nao tinha fonte, e o jogador via a mancha sem ver a
+## lampada.
+##
+## Aditivo e sem escrever profundidade, como a mancha do chao — e luz somada ao
+## que ja esta na tela, nao um disco amarelo colado por cima. Entra no grupo
+## "claro_de_poste" para o ciclo do dia apagar junto com o resto.
+func _halo(tamanho: float, onde: Vector3) -> MeshInstance3D:
+    var quadro := QuadMesh.new()
+    quadro.size = Vector2(tamanho, tamanho)
+
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = load("res://textures/brilho_poste.png")
+    # Mais fraco que a mancha do chao: aqui sao duas ou tres copias na mesma
+    # tela, e no brilho cheio o halo vira uma bola branca chapada.
+    material.albedo_color = Color(0.62, 0.44, 0.20)
+    material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    quadro.material = material
+
+    var no := MeshInstance3D.new()
+    no.name = "Halo"
+    no.mesh = quadro
+    no.position = onde
+    no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    no.visible = ChunkBuilder.luzes_acesas
+    no.add_to_group("claro_de_poste")
+    return no
+
+
+## Espalha as estampas recortadas que a planta pediu: cerca, placa, flor, pedra.
+##
+## Uma malha multipla POR ESTAMPA, nao um no por adorno. Sao cinquenta e quatro
+## cartoes, e cinquenta e quatro nos separados seriam cinquenta e quatro chamadas
+## de desenho — num mapa que custou trabalho para descer de 2213 para 125. Como
+## todos os cartoes de uma mesma estampa dividem o mesmo material, o motor
+## desenha cada grupo de uma vez so: doze chamadas no lugar de cinquenta e
+## quatro. O giro de cada um vai na transformacao da copia.
+##
+## Sem colisor, todas. Sao cartoes de dois triangulos na beira da rua e no vao
+## entre casas; parar o jogador num tufo de flor e o tipo de tropeco invisivel
+## que ninguem entende de onde veio.
+func _espalhar_os_adornos() -> void:
+    var adornos: Array = _dados_da_praca().get("adornos", [])
+    if adornos.is_empty():
+        return
+
+    # Junta por estampa: a chave carrega o "fixo" junto porque cerca e flor
+    # querem materiais diferentes — uma para de frente para a rua, a outra gira
+    # com a camera.
+    var grupos: Dictionary = {}
+    for a in adornos:
+        if a.size() < 6:
+            continue
+        var caminho: String = "res://textures/" + str(a[0]) + ".png"
+        if not ResourceLoader.exists(caminho):
+            continue
+        var chave: String = caminho + ("|fixo" if bool(a[5]) else "|gira")
+        if not grupos.has(chave):
+            grupos[chave] = []
+        grupos[chave].append(a)
+
+    for chave in grupos:
+        var partes: PackedStringArray = String(chave).split("|")
+        var textura := load(partes[0]) as Texture2D
+        if textura == null:
+            continue
+        var fixo: bool = partes[1] == "fixo"
+        var lista: Array = grupos[chave]
+
+        # A altura da primeira copia manda no tamanho do cartao; as outras
+        # entram por escala na propria copia. Guardar uma malha por altura
+        # devolveria as chamadas de desenho que a malha multipla economizou.
+        var base_altura: float = float(lista[0][3])
+        var proporcao: float = float(textura.get_width()) / maxf(float(textura.get_height()), 1.0)
+
+        var quadro := QuadMesh.new()
+        quadro.size = Vector2(base_altura * proporcao, base_altura)
+        quadro.center_offset = Vector3(0.0, base_altura * 0.5, 0.0)
+        quadro.material = _estampa_parada(textura) if fixo else ChunkBuilder._material_de_planta(textura)
+
+        var multi := MultiMesh.new()
+        multi.transform_format = MultiMesh.TRANSFORM_3D
+        multi.mesh = quadro
+        multi.instance_count = lista.size()
+        for i in lista.size():
+            var a: Array = lista[i]
+            var px: float = float(a[1])
+            var pz: float = float(a[2])
+            var fator: float = float(a[3]) / maxf(base_altura, 0.001)
+            var base := Basis(Vector3.UP, deg_to_rad(float(a[4]))).scaled(Vector3.ONE * fator)
+            multi.set_instance_transform(i, Transform3D(
+                base, Vector3(px, calcular_altura(px, pz) - 0.05, pz)))
+
+        var no := MultiMeshInstance3D.new()
+        no.name = "Adornos"
+        no.multimesh = multi
+        no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        _props_node.add_child(no)
+
+
+## Material de estampa que NAO gira com a camera.
+##
+## Cerca que mira o jogador deixa de ser cerca: o vao que ela fechava abre
+## quando ele anda de lado. O que tem alinhamento na planta — cerca, placa —
+## precisa ficar parado onde foi posto.
+var _estampas_paradas: Dictionary = {}
+
+func _estampa_parada(textura: Texture2D) -> StandardMaterial3D:
+    if _estampas_paradas.has(textura):
+        return _estampas_paradas[textura]
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = textura
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+    material.alpha_scissor_threshold = 0.5
+    # Visivel dos dois lados: o jogador passa pelos dois lados da cerca.
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+    _estampas_paradas[textura] = material
+    return material
+
+
+## Os dados da praca desta zona — vias, luzes e adornos moram todos ali.
+func _dados_da_praca() -> Dictionary:
+    var layout_id: String = str(_zone_data.get("layout_id", ""))
+    if layout_id == "":
+        return {}
+    var pracas: Dictionary = _city_layouts.get("pracas", {})
+    return pracas.get(layout_id, {})
+
+
+# -------------------------------------------------------------
 # 4. Floresta 100% 3D em Escala Real (Cidades Limpas)
 # -------------------------------------------------------------
 func _construir_floresta_3d_real() -> void:
@@ -285,6 +588,10 @@ func _construir_floresta_3d_real() -> void:
     _espalhar_props_3d(rng, n_arbustos, ARBUSTOS_3D, 65.0, false, 0.9, 1.3, raio_min)
 
 func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio_max: float, solido: bool, sc_min: float, sc_max: float, dist_min: float) -> void:
+    # Lista vazia e uma resposta valida agora: quando todos os modelos de um
+    # tipo sao descartados por nao terem textura, o certo e nao espalhar nada.
+    if lista.is_empty():
+        return
     var water_y: float = float(_zone_data.get("water_level", -2.0))
     var tem_agua: bool = bool(_zone_data.get("water", false))
     

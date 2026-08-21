@@ -202,73 +202,424 @@ def ajardinar(pecas, ruas, aneis, marca="quarteirao"):
                 conta += 1
 
 
-def vila_organica(comprimento, casas_por_lado, marcos, semente=7):
-    """A vila que ainda nao virou cidade.
+# ------------------------------------------------------------------ A VILA
+#
+# So entram modelos COM TEXTURA. O resto do acervo e cor por vertice, que e
+# literalmente o que massinha e: uma cor media por regiao, sem sujeira, sem
+# madeira, sem telha. Nao ha planejamento urbano que salve isso.
+#
+# Com as tres casas novas o vocabulario passou de duas para cinco construcoes,
+# todas texturizadas — o bastante para uma rua parecer rua sem repetir a mesma
+# fachada de tres em tres metros.
+#
+# A MEDIDA MORA AQUI. O construtor normaliza cada modelo pela ALTURA (tabela
+# ALTURA_POR_TAG do zone_builder.gd), e a planta so pode alinhar fachada e
+# medir vao se souber quanto cada casa ocupa DEPOIS dessa conta. Por isso a
+# frente e o fundo abaixo ja estao na escala final, em metros.
+#
+#            etiqueta          modelo              altura  frente  fundo
+CASAS = {
+    "casa_alta":   ("medieval_house_1",  8.5,  2.85,  4.17),
+    "casa_larga":  ("medieval_house_3",  7.5,  8.31,  3.64),
+    "casa_pedra":  ("casa_pedra",        7.0,  7.04,  5.16),
+    "casarao":     ("casarao_madeira",   8.5,  6.08, 11.01),
+    "solar":       ("casa_solar",        9.5, 10.73, 10.52),
+}
 
-    Cidade cresce em anel: praca no meio, aneis em volta, muralha fechando. Vila
-    nao — vila cresce ao longo da ESTRADA. Alguem parou onde dava para parar,
-    o vizinho construiu ao lado, e cem anos depois ha um povoado com uma rua so.
-    Por isso aqui nao ha anel de casas nem muralha: ha uma via, casas dos dois
-    lados com recuo desigual, e a roca comecando onde a ultima casa acaba.
+# Para que lado o modelo olha, em graus, quando chega do disco.
+#
+# Nenhum GLB combinou com o vizinho: cada um foi modelado com a fachada virada
+# para um lado, e o construtor nao tem como adivinhar onde esta a porta. Se ao
+# abrir a vila uma casa estiver de costas para a rua, o conserto e UM numero
+# aqui — 180 vira ela, 90 e 270 poem de lado — e nao mexer em lote nenhum.
+GIRO_DA_FACHADA = {
+    "casa_alta": 0.0, "casa_larga": 0.0,   # ja conferidas em tela
+    "casa_pedra": 0.0, "casarao": 0.0, "solar": 0.0,
+}
 
-    O desalinhamento e o ponto. Casa de vila nao respeita alinhamento predial
-    porque nao havia quem fizesse respeitar — e e justamente isso que separa a
-    vila da cidade aos olhos de quem chega.
+# Os props da vila. Mesma regra das casas: so entra o que tem textura, e a
+# altura aqui e a MESMA da tabela ALTURA_POR_TAG do zone_builder.gd — e ela que
+# leva o modelo do tamanho em que veio para o tamanho de verdade.
+#
+#         etiqueta        modelo
+POCO = ("poco", "poco_vila")            # 2,4 m — o marco do largo
+BANCO = ("banco", "banco_vila")         # 1,0 m
+CARROCA = ("carroca", "carroca_vila")   # 1,8 m — 596 triangulos, a mais barata
+BARRIS = ("barris", "barris_vila")      # 1,6 m
+CAIXOTES = ("caixotes", "caixotes_vila")
+SACO = ("saco", "saco_vila")
+POSTE = ("poste", "poste_vila")         # 4,6 m — a luz da rua
+TOCHA_PAREDE = ("tocha_parede", "tocha_vila")   # 1,3 m, pendurada na fachada
+
+ARVORE_GRANDE = "tree_gn"         # 12 m, copa de 11 m — marco, nao enfeite
+PINHEIRO = "pine_tree"            # 9,5 m, barata: 2,1 mil triangulos
+COGUMELO = "mushroom_tree"        # 2,4 m, sub-bosque
+
+# O plato da zona e plano ate 45 m do centro e desce dai para fora. Tudo o que
+# for construcao mora dentro desse raio — casa em ladeira e o que fazia a vila
+# parecer torta.
+RAIO_PLANO = 44.0
+
+# A rua principal corre no eixo Z porque e o eixo dos portais desta zona: o
+# jogador entra pelo sul (z positivo) vindo da floresta e sai pelo norte para
+# os Portoes Reais. A vila e uma PASSAGEM, e a rua dela e a estrada que a criou.
+MEIA_RUA = 4.0          # a rua tem 8 m
+FACHADA_X = 7.0         # a linha das fachadas: 3 m de calcada ate a rua
+MEIA_PRACA = 12.0       # o largo no meio, onde a rua se abre
+LANE_Z = 0.0            # as travessas saem do largo
+LANE_ATE = 28.0
+MEIA_LANE = 3.0
+CALCADA_X = 5.6         # onde as tochas ficam: fora da rua, antes da fachada
+
+
+def vila_da_estrada():
+    """A Vila do Caminho: uma rua, duas fileiras, um largo no meio.
+
+    E o desenho de povoado de beira de estrada — o tipo que existe porque
+    alguem parou onde dava para parar. Nao tem praca central com aneis em volta
+    como cidade tem; tem UMA via, e tudo se organiza em relacao a ela.
+
+    Tres regras seguram a leitura, e sao elas que separam "vila construida" de
+    "objetos espalhados":
+
+    1. LINHA DE FACHADA, nao linha de centro. O que o olho alinha e a PAREDE da
+       frente, nao o meio da casa. Enquanto o recuo era medido pelo centro, o
+       casarao de onze metros de fundo enfiava a fachada dentro da rua e as
+       casas rasas ficavam recuadas demais. Agora cada casa entra o proprio
+       fundo para tras a partir de x = 7 m, e as cinco fachadas caem na mesma
+       linha por mais diferentes que sejam por dentro.
+
+    2. TODA CASA OLHA PARA A RUA. Nao ha casa de lado, nao ha casa de costas.
+       Quem entra pelo portal ve uma rua ladeada de portas, e sabe para onde ir
+       sem que ninguem precise dizer.
+
+    3. O VERDE NUNCA ENTRA NA FRENTE DA CASA. Pinheiro so atras da linha de
+       fachada, formando fundo; arvore grande so nas pontas e no largo. Arvore
+       entre a casa e a rua e o que apaga o desenho da via.
     """
-    # Sorteio preso a uma semente: a vila precisa parecer torta, mas a MESMA
-    # vila torta a cada geracao, senao o mapa muda sozinho a cada build.
-    rnd = random.Random(semente)
-    pecas = [peca("poco_da_vila", "poco", "poco", 0, 0, escala=1.1)]
+    pecas = []
 
-    passo = comprimento / max(casas_por_lado, 1)
-    conta = 0
-    for lado in (-1.0, 1.0):
-        for k in range(casas_por_lado):
-            # Ao longo da rua, com folga irregular.
-            ao_longo = -comprimento * 0.5 + passo * (k + 0.5) + rnd.uniform(-1.8, 1.8)
-            # E o recuo da frente, que e o que mais denuncia vila.
-            recuo = lado * (LARGURA_DA_AVENIDA * 0.5 + rnd.uniform(3.2, 6.4))
-            modelo = CHALES_E_CAMPO[conta % len(CHALES_E_CAMPO)]
-            pecas.append(peca(
-                f"casa_vila_{conta:02d}", "casa", modelo,
-                ao_longo, recuo,
-                # De frente para a rua, torta uns graus.
-                giro=(90.0 if lado < 0 else 270.0) + rnd.uniform(-9.0, 9.0),
-                escala=round(rnd.uniform(0.92, 1.12), 2)))
-            conta += 1
+    # --- os lotes da rua, de sul (entrada) para norte (saida)
+    #
+    # Tres vazios de proposito. Sao TERRENOS RESERVADOS, nao esquecimento: a
+    # vila precisa ter para onde crescer, e um vao na fileira e o que faz um
+    # povoado parecer vivo em vez de encomendado pronto. Nos vaos vai cerca,
+    # nao mato: terreno cercado le como lote de alguem.
+    #
+    # A ordem das casas nao e sorteio. A vila conta uma historia de sul para
+    # norte: chega-se pelas casas simples, passa-se pelo largo com o solar de
+    # telhado vermelho — a construcao mais rica, a que marca o centro — e sai-se
+    # pelo casarao de madeira, que ja e quase celeiro, quase roca.
+    LOTES = {
+        ("oeste",  36.0): "casa_pedra",
+        ("oeste",  14.0): "casa_larga",
+        ("oeste", -14.0): "casa_alta",
+        ("oeste", -25.0): "casa_pedra",
+        ("oeste", -36.0): "casarao",
+        ("leste",  36.0): "casa_alta",
+        ("leste",  25.0): "casa_larga",
+        ("leste", -14.0): "solar",
+        ("leste", -36.0): "casa_pedra",
+    }
 
-    # O pomar: fileiras atras das casas, do lado de la do quintal.
-    fila = 0
-    for lado in (-1.0, 1.0):
-        for k in range(casas_por_lado + 1):
-            for recuo in (11.5, 15.0):
-                x = -comprimento * 0.5 + passo * k + rnd.uniform(-1.0, 1.0)
-                z = lado * (recuo + rnd.uniform(-0.8, 0.8))
-                pecas.append(peca(
-                    f"pomar_{fila:02d}", "arvore_de_rua",
-                    ARVORES_DE_POMAR[fila % len(ARVORES_DE_POMAR)],
-                    x, z, giro=(fila * 53) % 360, escala=round(rnd.uniform(0.9, 1.15), 2)))
-                fila += 1
+    for (lado, z), etiqueta in LOTES.items():
+        modelo, _altura, _frente, fundo = CASAS[etiqueta]
+        sinal = -1.0 if lado == "oeste" else 1.0
+        # A fachada na linha; o corpo da casa cresce para tras dela.
+        x = sinal * (FACHADA_X + fundo * 0.5)
+        mao = "s" if z > 0 else "n"
+        giro = (90.0 if sinal < 0 else 270.0) + GIRO_DA_FACHADA[etiqueta]
+        pecas.append(peca(f"casa_{lado}_{mao}{abs(int(z)):02d}", etiqueta, modelo,
+                          x, z, giro=giro))
 
-    # Mato solto entre a casa e a horta, onde ninguem construiu nada.
-    for i in range(18):
-        x = rnd.uniform(-comprimento * 0.5, comprimento * 0.5)
-        z = rnd.uniform(-9.5, 9.5)
-        if abs(z) < LARGURA_DA_AVENIDA * 0.5 + 1.0:
-            continue  # nao na rua
-        pecas.append(peca(f"mato_vila_{i:02d}", "folhagem",
-                          MATO_DE_JARDIM[i % len(MATO_DE_JARDIM)],
-                          x, z, giro=(i * 67) % 360))
+    # --- as travessas: duas ruas curtas saindo do largo, com duas casas cada
+    #
+    # Sem elas a vila e uma fita e o jogador so anda para frente. Uma travessa
+    # da profundidade: existe um "dentro" da vila, e nao so uma passagem.
+    TRAVESSAS = {
+        ("oeste",  1.0): "casa_pedra",
+        ("oeste", -1.0): "casa_alta",
+        ("leste",  1.0): "casa_alta",
+        ("leste", -1.0): "casa_larga",
+    }
+    for (lado, mao), etiqueta in TRAVESSAS.items():
+        modelo, _altura, _frente, fundo = CASAS[etiqueta]
+        sinal = -1.0 if lado == "oeste" else 1.0
+        z = mao * (MEIA_LANE + 2.0 + fundo * 0.5)
+        giro = (180.0 if mao > 0 else 0.0) + GIRO_DA_FACHADA[etiqueta]
+        pecas.append(peca(
+            f"travessa_{lado}_{'s' if mao > 0 else 'n'}", etiqueta, modelo,
+            sinal * 23.0, z, giro=giro))
 
-    for marco in marcos:
-        ident, tag, modelo, x, z, escala = marco[:6]
-        pecas.append(peca(ident, tag, modelo, x, z,
-                          giro=marco[6] if len(marco) > 6 else 0.0, escala=escala))
+    # --- o portal do sul: duas arvores grandes fazendo porta
+    #
+    # A vila nao tem muralha nem arco, e nao vai ter — nenhum dos dois existe
+    # com textura no acervo. Mas duas copas de doze metros ladeando a estrada
+    # fazem o mesmo trabalho: estreitam a vista e dizem "aqui comeca".
+    for sinal in (-1.0, 1.0):
+        pecas.append(peca(f"portao_verde_{'o' if sinal < 0 else 'l'}",
+                          "arvore_marco", ARVORE_GRANDE,
+                          sinal * 12.0, 44.5, giro=(0.0 if sinal < 0 else 180.0)))
 
-    # Duas vias cruzadas e um anel curto: e o vocabulario que o desenhista de
-    # estradas entende, e o que ele desenha com isso e um entroncamento com um
-    # largo no meio — que e a planta de qualquer povoado de beira de estrada.
-    return pecas, {"avenidas": 2, "aneis": [14.0]}
+    # --- o largo: uma arvore fora do meio
+    #
+    # O centro fica VAZIO. Largo com coisa no meio nao e largo, e rotatoria — e
+    # aqui e onde as travessas cruzam a rua principal.
+    pecas.append(peca("arvore_do_largo", "arvore_marco", ARVORE_GRANDE,
+                      -15.0, 9.5, giro=35.0))
+
+    # --- o fundo da rua: pinheiros atras da linha de fachada
+    #
+    # Foram de 13,5 para 21 m quando as casas novas entraram: o casarao tem onze
+    # metros de fundo e o solar dez, e no lugar antigo o pinheiro nascia dentro
+    # do telhado.
+    for i, z in enumerate((33.0, 22.0, -22.0, -33.0)):
+        for sinal in (-1.0, 1.0):
+            pecas.append(peca(f"pinheiro_fundo_{i}_{'o' if sinal < 0 else 'l'}",
+                              "pinheiro", PINHEIRO, sinal * 21.0, z,
+                              giro=(i * 71 + (0 if sinal < 0 else 37)) % 360))
+
+    # --- as pontas das travessas
+    #
+    # Duas arvores fechando o fim de cada travessa. Sem elas a rua curta some no
+    # gramado e parece inacabada; com elas o jogador ve onde a travessa termina
+    # e nao vai procurar caminho que nao existe.
+    for sinal in (-1.0, 1.0):
+        pecas.append(peca(f"pinheiro_travessa_{'o' if sinal < 0 else 'l'}",
+                          "pinheiro", PINHEIRO, sinal * 29.0, 2.0,
+                          giro=(i * 37 + 120) % 360))
+
+    # --- a saida norte, mais discreta que a entrada
+    for sinal in (-1.0, 1.0):
+        pecas.append(peca(f"pinheiro_saida_{'o' if sinal < 0 else 'l'}",
+                          "pinheiro", PINHEIRO, sinal * 9.5, -42.5,
+                          giro=(0.0 if sinal < 0 else 180.0)))
+
+    # --- a orla: sub-bosque marcando onde a vila acaba e a mata comeca
+    borda = [(26.0, 30.0), (-26.0, 32.0), (30.0, 12.0), (-31.0, 14.0),
+             (28.0, -16.0), (-27.0, -18.0), (24.0, -33.0), (-25.0, -31.0),
+             (34.0, 0.0), (-34.0, -4.0)]
+    for i, (x, z) in enumerate(borda):
+        pecas.append(peca(f"cogumelo_{i:02d}", "cogumelo", COGUMELO,
+                          x, z, giro=(i * 83) % 360,
+                          escala=round(0.85 + (i % 4) * 0.14, 2)))
+
+    # --- a vida da rua: poco, carroca, barris, caixotes, sacos, banco
+    pecas += _props_da_vila()
+
+    # O desenho viario vai para o shader do chao: rua no eixo Z, largo no meio,
+    # duas travessas. Sem isto a rua e so a ausencia de casa, e o jogador nao
+    # ve caminho nenhum.
+    return pecas, {
+        "avenidas": 2, "aneis": [MEIA_PRACA],
+        # Esta planta foi desenhada SO com os modelos que tem textura, e conta
+        # com isso. A marca vale para esta zona, nao para o mapa inteiro — as
+        # outras cidades ainda dependem do acervo antigo e ficariam vazias.
+        "so_com_textura": True,
+        "vias": {
+            "principal": [MEIA_RUA, 44.0],
+            "largo": MEIA_PRACA,
+            "travessas": [LANE_Z, MEIA_LANE, LANE_ATE],
+        },
+        "luzes": _postes_da_vila(),
+        "tochas": _tochas_de_parede(),
+        "adornos": _adornos_da_vila(),
+    }
+
+
+def _postes_da_vila():
+    """Onde a vila acende de noite.
+
+    Dez postes, nao trinta. A conta nao e de gosto: cada poste e uma luz pontual
+    mais uma mancha aditiva no chao, e mancha aditiva SOMA — quatro perto viram
+    uma chapa branca e a noite acaba. Dez, espacados de doze a quinze metros,
+    deixam a rua legivel com escuro entre um poste e outro, que e o que faz a
+    vila continuar parecendo noite.
+
+    A regra de posicao e uma so: poste mora na calcada, entre a rua e a fachada,
+    e sempre AOS PARES nos dois lados da via. Luz de um lado so faz a rua parecer
+    torta, e o jogador anda para o lado iluminado sem saber por que.
+    """
+    postes = []
+    # A rua: dois pares ao norte do largo, dois ao sul. E o corredor de luz que
+    # leva o jogador de um portal ao outro.
+    for z in (31.0, 19.0, -19.0, -31.0):
+        for sinal in (-1.0, 1.0):
+            postes.append([round(sinal * CALCADA_X, 2), z])
+    # O largo, onde as travessas cruzam: um par, marcando o cruzamento sem
+    # fechar o vazio do meio.
+    for sinal in (-1.0, 1.0):
+        postes.append([round(sinal * CALCADA_X, 2), 0.0])
+    return postes
+
+
+def _tochas_de_parede():
+    """As tochas presas nas fachadas.
+
+    O poste ilumina a VIA; a tocha ilumina a PORTA. Sao trabalhos diferentes e e
+    por isso que existem as duas: sem a tocha, a casa a noite e um bloco escuro
+    atras de uma rua acesa, e o jogador nao sabe onde ha porta para bater.
+
+    Uma por casa, e so em seis das treze. Uma tocha em cada fachada daria uma
+    parede de fogo — e chama nao e enfeite, e sinal: quem tem tocha acesa esta
+    aberto. A taberna, a oficina, a casa do velho que nao dorme.
+
+    Cada tocha e [x, z, giro, altura_na_parede].
+    """
+    return [
+        [-7.05,  33.0,  90.0, 2.1],   # oeste 36
+        [-7.05,  11.0,  90.0, 2.1],   # oeste 14
+        [-7.05, -23.0,  90.0, 2.1],   # oeste -25
+        [ 7.05,  22.0, 270.0, 2.1],   # leste 25
+        [ 7.05,  -9.5, 270.0, 2.3],   # leste -14, o solar
+        [ 7.05, -33.5, 270.0, 2.1],   # leste -36
+    ]
+
+
+def _props_da_vila():
+    """O que faz a rua parecer habitada.
+
+    A regra que decide cada posicao e uma so: TODO PROP TEM DONO. Barril nao
+    nasce no meio do campo — encosta na parede de quem o usa. Caixote fica na
+    porta de quem recebeu a carga, saco ao lado do caixote, carroca parada onde
+    daria para descarregar. Objeto solto no gramado le como coisa esquecida pelo
+    programador, e e exatamente o que ele e.
+
+    Por isso quase tudo mora na faixa entre a linha da fachada (7 m) e um metro
+    atras dela, nos VAOS entre as casas — nunca na frente de uma porta, nunca na
+    calcada onde o jogador anda, nunca no meio da rua.
+
+    O poco e a excecao e o unico marco: fica na beira do largo, nao no centro,
+    porque largo com coisa no meio vira rotatoria.
+    """
+    lista = []
+
+    def por(nome, alvo, x, z, giro=0.0, escala=1.0):
+        tag, modelo = alvo
+        lista.append(peca(nome, tag, modelo, x, z, giro=giro, escala=escala))
+
+    # --- o largo: o poco de um lado, o banco do outro, olhando para ele
+    por("poco_da_vila", POCO, 8.6, -6.0, giro=200.0)
+    por("banco_do_largo", BANCO, -7.6, -5.0, giro=90.0)
+    por("carroca_do_largo", CARROCA, -9.6, 2.0, giro=115.0)
+
+    # --- os vaos da fileira oeste
+    por("barris_oeste", BARRIS, -8.2, 20.0, giro=25.0)
+    por("caixotes_oeste", CAIXOTES, -8.4, 31.0, giro=70.0)
+    por("saco_oeste", SACO, -7.4, 29.0, giro=15.0)
+    por("caixotes_oeste_2", CAIXOTES, -8.0, -19.0, giro=200.0)
+    por("saco_oeste_2", SACO, -7.6, -30.5, giro=340.0)
+
+    # --- os vaos da fileira leste
+    por("caixotes_leste", CAIXOTES, 8.3, 32.5, giro=250.0)
+    por("barris_leste", BARRIS, 8.1, 18.5, giro=310.0)
+    por("saco_leste", SACO, 7.7, 19.8, giro=120.0)
+    por("barris_leste_2", BARRIS, 8.4, -30.5, giro=40.0, escala=0.9)
+
+    # --- as travessas, onde as casas viram fundo de quintal
+    por("carroca_travessa", CARROCA, -16.0, 3.0, giro=285.0)
+    por("caixotes_travessa", CAIXOTES, 19.0, 7.6, giro=95.0)
+    por("barris_travessa", BARRIS, 20.5, -11.8, giro=160.0, escala=0.85)
+    por("saco_travessa", SACO, -19.0, -7.8, giro=60.0)
+
+    return lista
+
+
+# As estampas recortadas do acervo. Sao pintadas a mao, com alfa — a mesma
+# familia de arte das casas, e nada aqui e cor-por-vertice.
+CERCA = "cidade/cerca_tabua"
+PLACA = "props/placa_madeira"
+FLORES = ["props/flores_1", "props/flores_2", "props/flores_3"]
+PEDRAS = ["props/pedra_1", "props/pedra_2", "props/pedra_3"]
+CAPIM = ["props/tufo_grama_1", "props/tufo_grama_2",
+         "props/tufo_grama_3", "props/tufo_grama_4"]
+
+
+def _adornos_da_vila():
+    """A decoracao, e o pouco que ela tem de ser.
+
+    Duas coisas guiam o que entra: a decoracao explica o lugar, ou nao entra.
+    Cerca fecha o terreno reservado e diz "isto aqui tem dono"; a placa no
+    portal sul diz "chegou"; flor e capim so nascem onde ninguem pisa — na
+    beira da mata, no vao entre casas, nunca no meio da rua nem na calcada.
+
+    O que NAO entra: enfeite de meio de rua, mato na frente de porta, pedra na
+    calcada. Tudo isso polui a leitura da via, que e a coisa que a vila tem.
+
+    Cada adorno e: [estampa, x, z, altura_em_metros, giro, fixo].
+    "fixo" e para o que tem lado — cerca e placa se alinham com a rua; flor,
+    pedra e capim giram com a camera, senao somem de perfil.
+    """
+    adornos = []
+
+    # --- os tres lotes reservados, cercados
+    #
+    # A cerca fica NA LINHA DA FACHADA, continuando a parede das casas vizinhas.
+    # E o que transforma um buraco na fileira em terreno: a rua segue fechada,
+    # so que por cerca em vez de casa.
+    for lado, z_centro in (("oeste", 25.0), ("leste", 14.0), ("leste", -25.0)):
+        sinal = -1.0 if lado == "oeste" else 1.0
+        for k in range(-2, 3):
+            adornos.append([CERCA, round(sinal * FACHADA_X, 2),
+                            round(z_centro + k * 2.1, 2), 1.5, 90.0, True])
+
+    # --- a placa do portal sul, virada para quem chega
+    adornos.append([PLACA, 6.0, 40.0, 2.6, 270.0, True])
+
+    # --- flores e capim nos vaos, atras da linha da fachada
+    #
+    # Posicoes escolhidas a mao, nao sorteadas: sorteio poe flor no meio da
+    # porta uma hora, e ninguem revisa cem numeros aleatorios.
+    verdes = [
+        (FLORES[0], -19.5, 30.0), (CAPIM[0], -20.5, 27.0),
+        (FLORES[1], 19.0, 31.5), (CAPIM[1], 20.0, 8.5),
+        (FLORES[2], -20.0, -6.0), (CAPIM[2], -21.0, -30.0),
+        (FLORES[0], 21.0, -30.0), (CAPIM[3], 19.5, -22.0),
+        (FLORES[1], -13.0, 43.0), (CAPIM[0], 13.5, 43.5),
+        (FLORES[2], -12.0, -44.0), (CAPIM[1], 12.5, -43.5),
+    ]
+    for i, (tex, x, z) in enumerate(verdes):
+        alt = 0.85 if "flores" in tex else 1.0
+        adornos.append([tex, x, z, alt, float((i * 47) % 360), False])
+
+    # --- as pedras
+    #
+    # Pedra e o que da idade ao chao. Espalhei em TRES anEis, nao a esmo: as
+    # grandes na borda da mata, onde o terreno comeca a descer e a pedra
+    # aflorando explica por que ninguem construiu ali; as medias nos cantos
+    # entre as casas e a orla; e nenhuma na calcada nem na rua, porque pedra no
+    # caminho de quem anda e tropeco, nao paisagem.
+    pedras = [
+        # a orla, onde a vila acaba
+        (PEDRAS[0], -28.0, 20.0, 1.25), (PEDRAS[1], 29.0, -24.0, 1.15),
+        (PEDRAS[2], -30.0, -12.0, 1.3), (PEDRAS[0], 27.5, 4.0, 1.1),
+        (PEDRAS[1], -31.5, 34.0, 1.2), (PEDRAS[2], 32.0, 26.0, 1.0),
+        (PEDRAS[0], -29.0, -34.0, 1.35), (PEDRAS[1], 30.5, -37.0, 1.1),
+        # os cantos, entre o fundo das casas e a mata
+        (PEDRAS[2], -24.5, 13.5, 0.85), (PEDRAS[0], 25.0, 12.0, 0.8),
+        (PEDRAS[1], -25.5, -16.0, 0.9), (PEDRAS[2], 24.5, -18.5, 0.75),
+        # duas na beira do largo, marcando onde o gramado comeca
+        (PEDRAS[0], 13.0, -2.0, 0.7), (PEDRAS[1], -12.5, -1.0, 0.65),
+    ]
+    for i, (tex, x, z, alt) in enumerate(pedras):
+        adornos.append([tex, x, z, alt, float((i * 63) % 360), False])
+
+    # --- os arbustos e o mato dos cantos
+    #
+    # O verde vai onde o pe nao passa: encostado no fundo das casas, no vao das
+    # cercas, na dobra entre a travessa e a mata. E o que tira o ar de maquete
+    # do gramado limpo, sem nunca entrar na frente de uma porta.
+    moitas = [
+        (-24.5, 24.0), (25.5, 22.0), (-26.0, -8.0), (29.0, -11.0),
+        (-23.0, 36.0), (23.5, 38.0), (-24.0, -26.0), (25.0, -28.5),
+        (-17.5, 15.5), (18.0, -16.5), (-18.5, -37.0), (17.5, 34.0),
+    ]
+    for i, (x, z) in enumerate(moitas):
+        tex = CAPIM[i % len(CAPIM)] if i % 3 else FLORES[i % len(FLORES)]
+        adornos.append([tex, x, z, 1.05 if i % 3 else 0.9,
+                        float((i * 41) % 360), False])
+
+    return adornos
 
 
 def cidade_radial(avenidas, aneis, raio_da_muralha, portoes, marcos, monumento=("monumento", "fonte", "fonte_musical", 1.6)):
@@ -370,25 +721,13 @@ CIDADES = {
 
     # 3. 🏘️ Vila do Caminho & Mercado do Vale (col 0, row 2)
     "custom_1785884200706_430": dict(
-        # A VILA PRE-CIDADE. Sem anel, sem muralha, sem praca: uma estrada com
-        # casas dos dois lados, pomar atras e a roca no fim. E o assentamento
-        # que ainda nao virou cidade — o degrau que faltava entre o campo aberto
-        # e a Capital.
-        raio=30.0,
-        planta=vila_organica(
-            comprimento=46.0,
-            casas_por_lado=6,
-            marcos=[
-                ("moinho_da_vila", "moinho", "moinho", -30.0, 13.0, 1.15, 60.0),
-                ("celeiro_da_vila", "celeiro", "celeiro", 27.0, -12.5, 1.1, 250.0),
-                ("banca_de_beira", "banca", "banca_verde", 5.5, -6.0, 1.0, 180.0),
-                ("banca_de_beira_2", "banca", "banca_vermelha", -6.5, 6.0, 1.0, 0.0),
-                ("carroca_parada", "mobilia", "carroca", 11.0, 5.5, 1.0, 15.0),
-                ("barris_da_taberna", "mobilia", "barris", -11.5, -5.5, 1.0, 0.0),
-                ("lampiao_entrada", "lampiao", "lampiao", -21.0, 0.0, 1.0),
-                ("lampiao_saida", "lampiao", "lampiao", 21.0, 0.0, 1.0),
-            ]
-        )
+        # A VILA DO CAMINHO. Nao e cidade pequena — e outro desenho.
+        #
+        # Cidade cresce em anel em volta de uma praca. Vila de estrada cresce ao
+        # longo da VIA, porque foi a via que a criou. O raio aqui e o do plato
+        # plano da zona, para nenhuma casa cair em ladeira.
+        raio=44.0,
+        planta=vila_da_estrada()
     ),
 
     # 4. 🎼 Salão do Forjador — Altar das Escalas (col -1, row 1)
@@ -503,6 +842,18 @@ def main():
             "avenidas": geometria["avenidas"],
             "aneis": geometria["aneis"]
         }
+        # O desenho viario explicito, quando a planta tem um. E o que o shader
+        # do chao usa para pintar a rua; sem ele a via e so a ausencia de casa.
+        if "vias" in geometria:
+            saida["pracas"][ident]["vias"] = geometria["vias"]
+        if geometria.get("so_com_textura"):
+            saida["pracas"][ident]["so_com_textura"] = True
+        # As tochas e a decoracao da povoacao. Moram na praca e nao na lista de
+        # pecas porque nao sao modelos 3D: sao luz e estampa recortada, e quem
+        # os monta no construtor e outro caminho.
+        for chave in ("luzes", "tochas", "adornos"):
+            if geometria.get(chave):
+                saida["pracas"][ident][chave] = geometria[chave]
         saida["layouts"][ident] = pecas
         alcance = max(math.hypot(*p["position"]) for p in pecas)
         print(f'{ident:26s}  {len(pecas):3d} pecas  alcance {alcance:4.1f}m  '
