@@ -205,7 +205,13 @@ func _montar_barra_do_alvo() -> void:
     var t := Vector2(300.0, 300.0 * 61.0 / 441.0)
     _alvo_caixa = Control.new()
     _alvo_caixa.set_anchors_preset(Control.PRESET_CENTER_TOP)
-    _alvo_caixa.position = Vector2(-t.x * 0.5, 16.0)
+    # ABAIXO do bloco do jogador, nao na mesma linha.
+    #
+    # Centralizada no alto ela cruzava por cima do retrato e das barras de vida
+    # e mana: o bloco da esquerda tem uns 310 pixels, e numa tela de celular o
+    # centro comeca antes disso. O bloco do jogador acaba perto dos 93 pixels de
+    # altura, entao a barra do alvo comeca depois disso.
+    _alvo_caixa.position = Vector2(-t.x * 0.5, 104.0)
     _alvo_caixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _alvo_caixa.visible = false
     add_child(_alvo_caixa)
