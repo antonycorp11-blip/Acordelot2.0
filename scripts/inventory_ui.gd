@@ -108,6 +108,7 @@ var _det_raridade: Label
 var _det_posse: Label
 var _det_desc: Label
 var _rotulo_bolsa: Label
+var _recado: Label
 
 
 func _ready() -> void:
@@ -341,6 +342,11 @@ func _slot(item: Dictionary) -> Control:
     for estado in ["normal", "hover", "pressed", "focus"]:
         botao.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
     botao.pressed.connect(_selecionar.bind(item))
+    # Arrastar e soltar: o slot entrega o proprio item ao ser arrastado e
+    # aceita o de outro, trocando os dois de lugar. E o minimo que um
+    # inventario precisa fazer para o jogador sentir que a bolsa e dele.
+    botao.set_drag_forwarding(
+        _pegar_arrastado.bind(item), _aceita_soltar, _soltar_em.bind(item))
 
     var moldura := _arte(MOLDURA_DA_RARIDADE.get(item.get("rarity", "Comum"), "slot_verde"), BORDA_SLOT)
     moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -373,6 +379,37 @@ func _slot(item: Dictionary) -> Control:
     qtd.mouse_filter = Control.MOUSE_FILTER_IGNORE
     botao.add_child(qtd)
     return botao
+
+
+## O que sai do slot quando o dedo arrasta: o item, e uma copia do icone
+## acompanhando o dedo para o jogador ver o que esta carregando.
+func _pegar_arrastado(_pos: Vector2, item: Dictionary) -> Variant:
+    var pre := TextureRect.new()
+    pre.texture = load(KIT + str(item.get("arte", "item/moeda")) + ".png")
+    pre.custom_minimum_size = Vector2(64, 64)
+    pre.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    pre.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    pre.modulate.a = 0.85
+    set_drag_preview(pre)
+    _selecionar(item)
+    return item
+
+
+func _aceita_soltar(_pos: Vector2, dados: Variant) -> bool:
+    return dados is Dictionary and dados.has("id")
+
+
+## Troca os dois de lugar na bolsa. Trocar e nao inserir: inserir empurraria a
+## fila inteira, e o jogador que arrastou UM item veria a bolsa toda se mexer.
+func _soltar_em(_pos: Vector2, dados: Variant, destino: Dictionary) -> void:
+    var origem: int = bag_items.find(dados)
+    var alvo: int = bag_items.find(destino)
+    if origem < 0 or alvo < 0 or origem == alvo:
+        return
+    bag_items[origem] = destino
+    bag_items[alvo] = dados
+    _preencher_grade()
+    _selecionar(dados)
 
 
 func _cartao_de_detalhe() -> Control:
@@ -460,11 +497,25 @@ func _barra_de_navegacao() -> Control:
     var linha := HBoxContainer.new()
     linha.custom_minimum_size.y = 78
     linha.alignment = BoxContainer.ALIGNMENT_CENTER
-    linha.add_theme_constant_override("separation", 26)
+    linha.add_theme_constant_override("separation", 10)
 
     for aba in ABAS:
-        var caixa := VBoxContainer.new()
-        caixa.add_theme_constant_override("separation", 0)
+        # Botao, nao enfeite. Elas nao faziam NADA — nem o toque registravam —
+        # e tela que nao responde ao dedo le como jogo travado, mesmo quando a
+        # tela de destino ainda nao existe.
+        var caixa := Button.new()
+        # Largura que cabe "Inventario" sem encostar em "Missoes".
+        caixa.custom_minimum_size = Vector2(96, 74)
+        caixa.tooltip_text = str(aba[1])
+        for estado in ["normal", "hover", "pressed", "focus"]:
+            caixa.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+        caixa.pressed.connect(_abrir_aba.bind(String(aba[0]), String(aba[1])))
+
+        var pilha := VBoxContainer.new()
+        pilha.set_anchors_preset(Control.PRESET_FULL_RECT)
+        pilha.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        pilha.add_theme_constant_override("separation", 0)
+        caixa.add_child(pilha)
 
         var icone := TextureRect.new()
         icone.texture = load(KIT + "nav/" + aba[0] + ".png")
@@ -474,14 +525,40 @@ func _barra_de_navegacao() -> Control:
         # A aba aberta fica acesa; as outras, apagadas. E o unico jeito de
         # mostrar onde se esta sem ter as outras telas prontas.
         icone.modulate = Color(1, 1, 1) if aba[0] == "inventario" else Color(0.55, 0.55, 0.62)
-        caixa.add_child(icone)
+        icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        pilha.add_child(icone)
 
-        var nome := _texto(aba[1], 13, Color(0.94, 0.86, 0.62) if aba[0] == "inventario" else Color(0.62, 0.62, 0.68))
+        var nome := _texto(aba[1], 12, Color(0.94, 0.86, 0.62) if aba[0] == "inventario" else Color(0.62, 0.62, 0.68))
         nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-        caixa.add_child(nome)
+        nome.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        pilha.add_child(nome)
 
         linha.add_child(caixa)
+
+    _recado = _texto("", 17, Color(0.95, 0.86, 0.55))
+    _recado.set_anchors_preset(Control.PRESET_CENTER_TOP)
+    _recado.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _recado.modulate.a = 0.0
+    _recado.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    linha.add_child(_recado)
     return linha
+
+
+## O toque nas abas que ainda nao tem tela.
+##
+## Avisar que a tela nao existe e MELHOR que nao responder: o jogador para de
+## insistir no botao e sabe que o toque foi registrado. Quando a tela nascer, e
+## so trocar este aviso pela abertura dela.
+func _abrir_aba(ident: String, rotulo: String) -> void:
+    if ident == "inventario":
+        return
+    if _recado == null:
+        return
+    _recado.text = "%s — em breve" % rotulo
+    _recado.modulate.a = 1.0
+    var tw := create_tween()
+    tw.tween_interval(1.1)
+    tw.tween_property(_recado, "modulate:a", 0.0, 0.5)
 
 
 # -------------------------------------------------------------

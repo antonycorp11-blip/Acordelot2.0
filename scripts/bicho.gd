@@ -432,8 +432,25 @@ func _criar_popup_dano(qtd: float) -> void:
     tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.6)
     tw.tween_callback(lbl.queue_free)
 
+## Quanto vale cada forma, em claves. O anciao larga UMA que vale cinco, e nao
+## cinco moedas: o modelo tem cinquenta mil triangulos e um punhado delas no
+## chao custa mais que o bicho que as largou.
+const CLAVES_POR_FORMA := [1, 2, 5]
+const MoedaScript := preload("res://scripts/moeda_pve.gd")
+
+func _largar_clave() -> void:
+    var moeda: Node3D = MoedaScript.new()
+    moeda.valor = CLAVES_POR_FORMA[monster_type % CLAVES_POR_FORMA.size()]
+    moeda.position = global_position
+    # No pai, nao em si: o bicho vai sumir em seguida e levaria a moeda junto.
+    var pai := get_parent()
+    if pai:
+        pai.add_child(moeda)
+
+
 func _morrer() -> void:
     remove_from_group("bicho")
+    _largar_clave()
     _morrendo = true
     if _hp_label_3d: _hp_label_3d.visible = false
     if _name_label_3d: _name_label_3d.visible = false
