@@ -148,6 +148,13 @@ func _tirar_print() -> void:
     await get_tree().process_frame
     await get_tree().process_frame
     await get_tree().create_timer(1.5).timeout
+    # `-- --shot --inv` abre o inventario antes do clique: conferir tela de menu
+    # sem isso exigiria alguem segurando o celular.
+    if OS.get_cmdline_user_args().has("--inv"):
+        var inv := find_child("InventoryUI", true, false)
+        if inv:
+            inv.toggle_inventory(true)
+        await get_tree().create_timer(0.4).timeout
     var imagem := get_viewport().get_texture().get_image()
     imagem.save_png("user://shot.png")
     print("SHOT ", ProjectSettings.globalize_path("user://shot.png"))

@@ -20,10 +20,19 @@ const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
 
 ## As bordas de cada arte, em pixels, medidas no arquivo.
-const BORDA_PAINEL := [36, 114, 37, 107]   # esquerda, cima, direita, baixo
-const BORDA_CARTAO := [4, 38, 10, 32]
-const BORDA_SLOT := [37, 98, 40, 87]
-const BORDA_BOTAO := [119, 93, 119, 46]
+##
+## AS MARGENS PRECISAM CABER NO TAMANHO DESENHADO, e era ai que estava o
+## estrago: a arte do botao tem 183 pixels de altura com 139 de moldura fixa, e
+## o botao aparece na tela com 52. Nao havendo miolo para esticar, o nine-patch
+## empilha as bordas umas sobre as outras — foi o que virou aquele borrao
+## dourado na tela do celular, e as "correntes" penduradas nos slots.
+##
+## A arte foi reduzida para o tamanho em que ela realmente aparece (botao a 30%,
+## slot a 30%, moldura a 60%) e estas margens acompanharam na mesma proporcao.
+const BORDA_PAINEL := [22, 68, 22, 64]   # esquerda, cima, direita, baixo
+const BORDA_CARTAO := [3, 23, 6, 19]
+const BORDA_SLOT := [11, 29, 12, 26]
+const BORDA_BOTAO := [36, 28, 36, 14]
 
 ## O conceito e desenhado em 16:9. Fora dessa proporcao a tela ganha margem —
 ## nunca estica a arte, porque moldura esticada denuncia na hora.
@@ -142,7 +151,7 @@ func _texto(txt: String, corpo: int, cor: Color, titulo := false) -> Label:
 
 
 ## Um botao que E a arte do botao: a textura no fundo, o texto por cima.
-func _botao(rotulo: String, arte: String, largura: float, altura := 46.0) -> Button:
+func _botao(rotulo: String, arte: String, largura: float, altura := 54.0) -> Button:
     var b := Button.new()
     b.custom_minimum_size = Vector2(largura, altura)
     b.text = rotulo
@@ -167,12 +176,23 @@ func _botao(rotulo: String, arte: String, largura: float, altura := 46.0) -> But
 # A montagem da tela
 # -------------------------------------------------------------
 func _montar() -> void:
+    # CAMADA PROPRIA, acima do jogo.
+    #
+    # O inventario nascia dentro do mesmo CanvasLayer da HUD e no meio da lista
+    # de filhos: o nome da zona, as barras de vida e as fichas de recurso do
+    # jogo desenhavam POR CIMA da tela aberta. Numa camada de numero maior a
+    # tela cobre tudo, como a caixa de conversa ja fazia.
+    var camada := CanvasLayer.new()
+    camada.name = "CamadaInventario"
+    camada.layer = 15
+    add_child(camada)
+
     _fundo = ColorRect.new()
     # Escurece o jogo sem apagar: a vila continua atras, como na conversa.
     _fundo.color = Color(0.02, 0.02, 0.05, 0.72)
     _fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
     _fundo.mouse_filter = Control.MOUSE_FILTER_STOP
-    add_child(_fundo)
+    camada.add_child(_fundo)
 
     var proporcao := AspectRatioContainer.new()
     proporcao.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -238,8 +258,10 @@ func _cabecalho() -> Control:
     _ficha(linha, "barra_ficha_moeda", _milhar(gold_amount))
     _ficha(linha, "barra_ficha_gema", _milhar(gemas))
 
-    var fechar := _botao("✕", "botao_vermelho", 58.0, 52.0)
+    var fechar := _botao("✕", "botao_vermelho", 62.0, 54.0)
     fechar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    # Um respiro da cantoneira dourada, senao o botao briga com o ornamento.
+    fechar.custom_minimum_size.x = 62.0
     fechar.pressed.connect(func(): toggle_inventory(false))
     linha.add_child(fechar)
     return linha
@@ -273,7 +295,7 @@ func _coluna_de_filtros() -> Control:
 
     for nome in FILTROS:
         var arte: String = "botao_roxo" if nome == _filtro else "botao_azul"
-        var b := _botao(nome, arte, 180.0, 52.0)
+        var b := _botao(nome, arte, 180.0, 54.0)
         b.set_meta("filtro", nome)
         b.pressed.connect(_trocar_filtro.bind(nome))
         coluna.add_child(b)
@@ -340,11 +362,13 @@ func _slot(item: Dictionary) -> Control:
     botao.add_child(icone)
 
     var qtd := _texto(str(item.get("qtd", 1)), 17, Color(0.99, 0.95, 0.80))
+    # Para DENTRO da moldura: encostado na borda, o numero caia em cima do
+    # ornamento de baixo do slot e ficava pela metade.
     qtd.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-    qtd.offset_left = -34
-    qtd.offset_top = -30
-    qtd.offset_right = -12
-    qtd.offset_bottom = -8
+    qtd.offset_left = -38
+    qtd.offset_top = -34
+    qtd.offset_right = -14
+    qtd.offset_bottom = -14
     qtd.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     qtd.mouse_filter = Control.MOUSE_FILTER_IGNORE
     botao.add_child(qtd)
@@ -417,7 +441,7 @@ func _cartao_de_detalhe() -> Control:
     coluna.add_child(_det_desc)
 
     for par in [["Usar", "botao_roxo"], ["Dividir", "botao_azul"], ["Descartar", "botao_vermelho"]]:
-        var b := _botao(par[0], par[1], 240.0, 48.0)
+        var b := _botao(par[0], par[1], 240.0, 54.0)
         b.pressed.connect(_acao.bind(par[0]))
         coluna.add_child(b)
     return area
