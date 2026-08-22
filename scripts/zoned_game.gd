@@ -35,6 +35,9 @@ func _ready() -> void:
     # Assa os shaders enquanto o mapa ainda esta nascendo. Sem isto, a primeira
     # aparicao de cada coisa — Shiker, Mirella, skill — para o jogo por um
     # instante para compilar o shader dela.
+    if OS.get_cmdline_user_args().has("--shot"):
+        _tirar_print()
+
     var forno: Node3D = AquecimentoScript.new()
     forno.name = "Aquecimento"
     add_child(forno)
@@ -137,6 +140,19 @@ func _ready() -> void:
     var joystick := find_child("VirtualJoystick", true, false)
     if joystick:
         joystick.add_to_group("virtual_joystick")
+
+## Gancho de teste, irmao do que ja existe no game.gd: rodar com `-- --shot`
+## salva um quadro em user://shot.png e sai. E assim que se confere a HUD sem
+## depender de alguem olhar a tela e descrever.
+func _tirar_print() -> void:
+    await get_tree().process_frame
+    await get_tree().process_frame
+    await get_tree().create_timer(1.5).timeout
+    var imagem := get_viewport().get_texture().get_image()
+    imagem.save_png("user://shot.png")
+    print("SHOT ", ProjectSettings.globalize_path("user://shot.png"))
+    get_tree().quit()
+
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey and event.pressed and not event.echo:
