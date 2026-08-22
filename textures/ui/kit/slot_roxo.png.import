@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bk0dbaodi760i"
-path="res://.godot/imported/slot_slot_roxo.png-5751995b0b3aaa6bcb3c162873b1e371.ctex"
+path="res://.godot/imported/slot_roxo.png-096e863b7f941e2867abc5e3aaffcd60.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/ui/kit/slot_slot_roxo.png"
-dest_files=["res://.godot/imported/slot_slot_roxo.png-5751995b0b3aaa6bcb3c162873b1e371.ctex"]
+source_file="res://textures/ui/kit/slot_roxo.png"
+dest_files=["res://.godot/imported/slot_roxo.png-096e863b7f941e2867abc5e3aaffcd60.ctex"]
 
 [params]
 

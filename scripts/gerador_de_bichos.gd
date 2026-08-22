@@ -27,6 +27,14 @@ class_name GeradorDeBichos
 const BICHO := preload("res://scripts/bicho.gd")
 const RELEVO := preload("res://scripts/relevo.gd")
 
+## Quantos de cada forma nascem, em cem.
+##
+## O comum tem de ser MESMO comum: e ele que ensina o jogador quanto vale um
+## golpe, e so contra esse pano de fundo o forte parece forte. Elite raro o
+## bastante para virar acontecimento — encontrar um tem de dar aquele frio na
+## barriga de "esse aqui eu aguento?".
+const RARIDADE := [78, 18, 4]   # comum, forte, elite
+
 var _vivos: Array[Node3D] = []
 var _proximo := 0.0
 
@@ -47,6 +55,17 @@ func _process(delta: float) -> void:
     _proximo = intervalo
     _nascer()
 
+## Sorteia a forma pelo peso, sem depender de o gerador saber quais existem.
+func _sortear_forma() -> int:
+    var dado := randi() % 100
+    var acumulado := 0
+    for i in RARIDADE.size():
+        acumulado += RARIDADE[i]
+        if dado < acumulado:
+            return i
+    return 0
+
+
 func _nascer() -> void:
     var angulo := randf() * TAU
     var ponto := jogador.global_position + Vector3(
@@ -66,6 +85,7 @@ func _nascer() -> void:
         ponto.y = RELEVO.altura(ponto.x, ponto.z) + 1.5
 
     var bicho: Node3D = BICHO.new()
+    bicho.monster_type = _sortear_forma()
     bicho.position = ponto
     add_child(bicho)
     _vivos.append(bicho)

@@ -19,18 +19,45 @@ const ALTURA_ALVO := 1.68
 ## claro de quem se trata e longe o bastante para nao precisar encostar nela.
 const RAIO_DE_CONVERSA := 3.2
 
-## A cerca invisivel da rotina, em metros a partir de onde ela nasceu. Doze
-## metros a mantem no largo e nas duas esquinas dele — perto o bastante para o
-## jogador que a viu de longe ainda a encontrar quando chegar.
-const RAIO_DE_PASSEIO := 12.0
-const VELOCIDADE := 1.15
+## A CALCADA E A RUA, nao um circulo qualquer.
+##
+## Antes o destino era sorteado num raio de doze metros, e doze metros a partir
+## do largo cobrem parede de casa, poste, poco e cerca — ela atravessava tudo,
+## porque NPC nao tem corpo de fisica aqui. A area agora e o corredor da via,
+## que o planejador deixa vazio de proposito: nao ha o que atravessar dentro
+## dele, e nao e preciso navegacao nenhuma para garantir isso.
+##
+## E em metros do mundo, medido do centro da zona.
+@export var area_x := Vector2(-3.4, 3.4)
+@export var area_z := Vector2(-13.0, 13.0)
+
+## Passo de quem mora ali, nao de quem esta com pressa.
+const VELOCIDADE := 0.85
+## A que velocidade a animacao de caminhada avanca no chao, no tamanho dela.
+## E daqui que sai o ritmo do passo: com a animacao correndo no tempo original e
+## o corpo a 0,85 m/s, os pes patinavam no chao a cada passada.
+const PASSO_DA_ANIMACAO := 1.45
 ## Quanto tempo ela fica parada entre uma caminhada e outra. Faixa larga de
 ## proposito: pausa fixa vira metronomo e o olho percebe o padrao.
-const PAUSA := Vector2(2.5, 7.0)
-const GIRO_POR_SEGUNDO := 4.0
+const PAUSA := Vector2(3.0, 8.0)
+## Giro suave. A quatro radianos por segundo ela pivotava no lugar como torre de
+## tanque; a dois e meio o corpo acompanha a curva.
+const GIRO_POR_SEGUNDO := 2.5
+## Ela so anda depois de estar mais ou menos virada para onde vai — senao anda
+## de lado nos primeiros passos, que e a parte que mais parecia quebrada.
+const ANGULO_PARA_ANDAR := 0.55
 
 signal jogador_chegou(npc: Npc)
 signal jogador_saiu(npc: Npc)
+
+## PRELOAD, nao load: a Mirella nasce junto com a zona, e ler malha, animacao e
+## textura do disco no meio do quadro era um engasgo na cara do jogador.
+const CENA := preload("res://personagem/mirella_idle.fbx")
+const BIBLIOTECA := preload("res://personagem/mirella_anims.res")
+const PELE := preload("res://personagem/mirella_cor.png")
+
+## Um material so para todas as Mirellas que existirem.
+static var _pele_compartilhada: StandardMaterial3D = null
 
 @export var nome := "Mirella"
 @export var modelo_path := "res://personagem/mirella_idle.fbx"
@@ -53,6 +80,7 @@ var _alvo := Vector3.ZERO
 var _andando := false
 var _espera := 0.0
 var _conversando := false
+var _animacao_atual := ""
 var _terreno: Node = null
 
 
@@ -63,20 +91,16 @@ func _ready() -> void:
     _casa = position
     _espera = randf_range(PAUSA.x, PAUSA.y)
 
-    var cena := load(modelo_path) as PackedScene
-    if cena == null:
-        return
-    var modelo := cena.instantiate()
+    var modelo := CENA.instantiate()
     add_child(modelo)
     _vestir(modelo)
     _assentar(modelo)
 
     _animador = modelo.find_child("AnimationPlayer", true, false)
     if _animador:
-        var biblioteca := load(animacoes_path) as AnimationLibrary
-        if biblioteca:
-            _animador.add_animation_library("mirella", biblioteca)
-            _animador.play("mirella/parado")
+        if BIBLIOTECA:
+            _animador.add_animation_library("mirella", BIBLIOTECA)
+            _tocar("parado")
         else:
             var lista := _animador.get_animation_list()
             if lista.size() > 0:
@@ -88,16 +112,16 @@ func _ready() -> void:
 
 ## Troca a imagem do Mixamo pela original, mantendo o resto do material.
 func _vestir(modelo: Node3D) -> void:
-    var textura := load(textura_path) as Texture2D
-    if textura == null:
-        return
-    var pele := StandardMaterial3D.new()
-    pele.albedo_texture = textura
-    # Sem metal: o FBX chega com o fator do exportador, e metal puro sem reflexo
-    # do ambiente aparece preto no renderizador de compatibilidade — foi o que
-    # aconteceu com as casas de enxaimel.
-    pele.metallic = 0.0
-    pele.roughness = 0.9
+    # Um material so, guardado: cada Mirella nova reaproveita o mesmo em vez de
+    # montar outro — material novo e variante de shader nova para o motor.
+    if _pele_compartilhada == null:
+        _pele_compartilhada = StandardMaterial3D.new()
+        _pele_compartilhada.albedo_texture = PELE
+        # Sem metal: o FBX chega com o fator do exportador, e metal puro sem
+        # reflexo do ambiente aparece preto no renderizador de compatibilidade.
+        _pele_compartilhada.metallic = 0.0
+        _pele_compartilhada.roughness = 0.9
+    var pele := _pele_compartilhada
     for malha in modelo.find_children("*", "MeshInstance3D", true, false):
         (malha as MeshInstance3D).material_override = pele
 
@@ -170,33 +194,61 @@ func _physics_process(delta: float) -> void:
 
     var passo := _alvo - position
     passo.y = 0.0
-    if passo.length() < 0.35:
+    if passo.length() < 0.45:
         _parar()
         return
 
     var direcao := passo.normalized()
+    var desejado := atan2(direcao.x, direcao.z)
+    rotation.y = rotate_toward(rotation.y, desejado, GIRO_POR_SEGUNDO * delta)
+
+    # Anda so quando ja esta olhando para la. Enquanto vira, fica no lugar
+    # girando — e o que uma pessoa faz antes de sair andando.
+    var diferenca: float = absf(angle_difference(rotation.y, desejado))
+    if diferenca > ANGULO_PARA_ANDAR:
+        _tocar("parado")
+        return
+
     position += direcao * VELOCIDADE * delta
     _colar_no_chao()
-    _virar_para(direcao, delta)
+    _tocar("andar")
 
 
-## Um ponto qualquer dentro da cerca invisivel, longe o bastante para valer a
+## Um ponto qualquer DENTRO do corredor da via, longe o bastante para valer a
 ## caminhada — destino a meio metro daria um passo e uma parada.
 func _escolher_destino() -> void:
-    var angulo := randf() * TAU
-    var distancia := randf_range(3.0, RAIO_DE_PASSEIO)
-    var candidato := _casa + Vector3(cos(angulo) * distancia, 0.0, sin(angulo) * distancia)
-    _alvo = candidato
-    _andando = true
-    if _animador and _animador.has_animation("mirella/andar"):
-        _animador.play("mirella/andar", 0.25)
+    for tentativa in 8:
+        var candidato := Vector3(
+            randf_range(area_x.x, area_x.y), 0.0,
+            randf_range(area_z.x, area_z.y))
+        if candidato.distance_to(position) >= 3.0:
+            _alvo = candidato
+            _andando = true
+            return
+    # Sem candidato bom (ela esta no meio de uma area pequena): espera mais um
+    # pouco em vez de sair andando meio metro.
+    _espera = randf_range(PAUSA.x, PAUSA.y)
 
 
 func _parar() -> void:
     _andando = false
     _espera = randf_range(PAUSA.x, PAUSA.y)
-    if _animador and _animador.has_animation("mirella/parado"):
-        _animador.play("mirella/parado", 0.3)
+    _tocar("parado")
+
+
+## Troca de animacao so quando MUDA, e com o passo no ritmo do corpo.
+##
+## Tocar de novo a mesma animacao a cada quadro reinicia o passo e o corpo anda
+## tremendo. E a velocidade da caminhada e ajustada para os pes acompanharem o
+## chao: animacao no tempo original com corpo devagar e o classico "patinando".
+func _tocar(nome: String) -> void:
+    if _animador == null or _animacao_atual == nome:
+        return
+    if not _animador.has_animation("mirella/" + nome):
+        return
+    _animacao_atual = nome
+    _animador.speed_scale = (VELOCIDADE / PASSO_DA_ANIMACAO) if nome == "andar" else 1.0
+    _animador.play("mirella/" + nome, 0.35)
 
 
 ## Mantem a sola no relevo enquanto ela anda.
@@ -235,8 +287,7 @@ func olhar_para(alvo: Vector3) -> void:
 func parar_para_conversar() -> void:
     _conversando = true
     _andando = false
-    if _animador and _animador.has_animation("mirella/parado"):
-        _animador.play("mirella/parado", 0.2)
+    _tocar("parado")
 
 
 func voltar_a_rotina() -> void:

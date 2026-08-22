@@ -4,6 +4,9 @@ extends Node3D
 ## varre o projeto, e isso quebra exportacao limpa.
 const MIRA := preload("res://scripts/botao_de_mira.gd")
 const DialogoScript := preload("res://scripts/dialogo.gd")
+## Pelo caminho, nao pelo nome global: o nome so existe depois que o editor
+## varre o projeto, e isso quebra exportacao limpa.
+const AquecimentoScript := preload("res://scripts/aquecimento.gd")
 
 ## A NPC ao alcance, se houver. E ela que decide o que o botao de ataque faz.
 var _npc_perto: Node = null
@@ -29,6 +32,13 @@ func _ready() -> void:
                 _player.atacar()
         )
 
+    # Assa os shaders enquanto o mapa ainda esta nascendo. Sem isto, a primeira
+    # aparicao de cada coisa — Shiker, Mirella, skill — para o jogo por um
+    # instante para compilar o shader dela.
+    var forno: Node3D = AquecimentoScript.new()
+    forno.name = "Aquecimento"
+    add_child(forno)
+
     # Cada zona nova traz os seus moradores: reconecta a cada troca.
     if _zone_manager:
         _zone_manager.zone_changed.connect(func(_z): registrar_npcs())
@@ -44,6 +54,12 @@ func _ready() -> void:
             _npc_perto.voltar_a_rotina()
         _pintar_botao())
         
+    # A mochila do PlayerHUD fica no canto de cima, atras do minimapa no
+    # celular — na pratica ninguem achava. Este e o botao que se ve.
+    var btn_inventario := find_child("BtnInventario", true, false)
+    if btn_inventario and inv_ui:
+        btn_inventario.pressed.connect(func(): inv_ui.toggle_inventory())
+
     var btn_voo := find_child("BtnVoo", true, false)
     if btn_voo:
         btn_voo.pressed.connect(func():

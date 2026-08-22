@@ -514,6 +514,17 @@ def _quintais_da_vila():
     lista.append(peca("arvore_do_solar", "arvore_marco", ARVORE_GRANDE,
                       22.0, -21.5, giro=65.0))
 
+    # --- os vaos largos perto do largo e das pontas
+    por("vao_o_caixotes", CAIXOTES, -12.0, 20.5, giro=130.0, escala=0.9)
+    por("vao_l_barris", BARRIS, 13.5, -32.0, giro=25.0, escala=0.85)
+    por("vao_o_saco", SACO, -12.5, -9.0, giro=300.0)
+    por("vao_l_caixotes", CAIXOTES, 11.4, 8.5, giro=245.0, escala=0.9)
+
+    # Duas copas fechando a vista onde o gramado corria solto ate a mata.
+    for ident, x, z, giro in (("pinheiro_vao_o", -14.0, -4.0, 25.0),
+                              ("pinheiro_vao_l", 12.8, -6.5, 200.0)):
+        lista.append(peca(ident, "pinheiro", PINHEIRO, x, z, giro=giro))
+
     return lista
 
 
@@ -716,6 +727,33 @@ def _adornos_da_vila():
         tex = CAPIM[i % len(CAPIM)] if i % 3 else FLORES[i % len(FLORES)]
         adornos.append([tex, x, z, 1.05 if i % 3 else 0.9,
                         float((i * 41) % 360), False])
+
+    # --- a segunda passada: o gramado que sobrou
+    #
+    # A primeira rodada tratou fundo de casa e orla da mata e deixou de fora o
+    # que o jogador mais ve: a faixa de grama ENTRE a calcada e o quintal. Vista
+    # da camera de cima, era um tapete verde liso do tamanho de duas casas.
+    #
+    # O remedio nao e espalhar mais coisa por igual — e AGRUPAR. Mato nasce em
+    # touceira e pedra vem acompanhada de pedrinha: tres coisas juntas leem como
+    # canto de terreno, e as mesmas tres espalhadas leem como enfeite jogado.
+    touceiras = [
+        (-10.5, 30.0), (10.8, 29.0), (-11.0, 6.5), (11.2, 4.0),
+        (-10.6, -19.5), (10.9, -24.0), (-12.0, 43.0), (12.2, 44.0),
+        (-9.8, -43.0), (10.2, -44.5), (-13.8, 24.5), (13.6, 33.0),
+    ]
+    for i, (x, z) in enumerate(touceiras):
+        adornos.append([CAPIM[i % len(CAPIM)], x, z, 1.05, float((i * 37) % 360), False])
+        adornos.append([CAPIM[(i + 2) % len(CAPIM)], round(x + 1.1, 2),
+                        round(z - 0.9, 2), 0.72, float((i * 91) % 360), False])
+        adornos.append([FLORES[i % len(FLORES)], round(x - 0.9, 2),
+                        round(z + 1.2, 2), 0.68, float((i * 53) % 360), False])
+
+    for i, (x, z) in enumerate([(-15.6, 33.5), (12.6, 12.5), (-12.8, -10.0),
+                                (14.6, -37.0), (-10.9, -30.0), (13.2, 21.0)]):
+        adornos.append([PEDRAS[i % len(PEDRAS)], x, z, 0.78, float((i * 61) % 360), False])
+        adornos.append([PEDRAS[(i + 1) % len(PEDRAS)], round(x + 0.85, 2),
+                        round(z + 0.7, 2), 0.42, float((i * 113) % 360), False])
 
     return adornos
 

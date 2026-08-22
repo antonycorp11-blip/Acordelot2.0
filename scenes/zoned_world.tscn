@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/barra_do_dia.gd" id="10_barra"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_ataque.png" id="11_btn_ataque"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_voo.png" id="12_btn_voo"]
+[ext_resource type="Texture2D" path="res://textures/ui/btn_inventario.png" id="13_btn_inventario"]
 [ext_resource type="Script" path="res://scripts/player_hud.gd" id="14_player_hud"]
 [ext_resource type="Script" path="res://scripts/inventory_ui.gd" id="15_inventory_ui"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_skill1.png" id="16_skill1"]
@@ -143,6 +144,20 @@ texture_normal = ExtResource("12_btn_voo")
 ignore_texture_size = true
 stretch_mode = 5
 
+[node name="BtnInventario" type="TextureButton" parent="HUD"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 36.0
+offset_top = -382.0
+offset_right = 100.0
+offset_bottom = -318.0
+grow_vertical = 0
+texture_normal = ExtResource("13_btn_inventario")
+ignore_texture_size = true
+stretch_mode = 5
+
 [node name="BarraDoDia" type="Control" parent="HUD" node_paths=PackedStringArray("ciclo")]
 layout_mode = 1
 anchors_preset = 1
@@ -174,10 +189,10 @@ mouse_filter = 2
 [node name="BtnSkill3" type="TextureButton" parent="HUD/BotoesCombate"]
 layout_mode = 1
 anchors_preset = 0
-offset_left = 12.0
-offset_top = 160.0
-offset_right = 78.0
-offset_bottom = 226.0
+offset_left = 174.0
+offset_top = 56.0
+offset_right = 238.0
+offset_bottom = 120.0
 texture_normal = ExtResource("18_skill3")
 ignore_texture_size = true
 stretch_mode = 5
@@ -185,10 +200,10 @@ stretch_mode = 5
 [node name="BtnSkill1" type="TextureButton" parent="HUD/BotoesCombate"]
 layout_mode = 1
 anchors_preset = 0
-offset_left = 38.0
-offset_top = 78.0
-offset_right = 98.0
-offset_bottom = 138.0
+offset_left = 56.0
+offset_top = 174.0
+offset_right = 120.0
+offset_bottom = 238.0
 texture_normal = ExtResource("16_skill1")
 ignore_texture_size = true
 stretch_mode = 5
@@ -196,10 +211,10 @@ stretch_mode = 5
 [node name="BtnSkill2" type="TextureButton" parent="HUD/BotoesCombate"]
 layout_mode = 1
 anchors_preset = 0
-offset_left = 126.0
-offset_top = 36.0
-offset_right = 188.0
-offset_bottom = 98.0
+offset_left = 90.0
+offset_top = 90.0
+offset_right = 154.0
+offset_bottom = 154.0
 texture_normal = ExtResource("17_skill2")
 ignore_texture_size = true
 stretch_mode = 5

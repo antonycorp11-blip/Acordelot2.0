@@ -1,12 +1,37 @@
 extends CharacterBody3D
 class_name Bicho
 
+## As tres formas do Shiker.
+##
+## Um modelo so, tres bichos. O que muda e escala, atributos e aura — e e de
+## proposito: variacao de inimigo comum nao se faz com malha nova, se faz com
+## leitura. O jogador precisa saber, a dez metros e sem ler nome nenhum, se
+## aquele ali da para enfrentar.
+##
+## A raridade mora no gerador, nao aqui: quem decide quantos de cada nascem e
+## quem os cria.
 const MONSTROS_CONFIG := [
-    {"nome": "Dragão Negro", "path": "res://models/black_dragon.glb", "altura": 3.2, "hp": 350.0, "cor": Color(0.85, 0.25, 0.25)},
-    {"nome": "Golem Demoníaco", "path": "res://models/monster.glb", "altura": 2.2, "hp": 220.0, "cor": Color(0.9, 0.45, 0.15)},
-    {"nome": "Monstro do Pântano", "path": "res://models/swamp_monster.glb", "altura": 2.4, "hp": 240.0, "cor": Color(0.3, 0.85, 0.4)},
-    {"nome": "Orc Guerreiro", "path": "res://models/monster_orc.glb", "altura": 2.0, "hp": 180.0, "cor": Color(0.4, 0.65, 0.95)}
+    {"nome": "Shiker", "path": "res://personagem/shiker_base.fbx",
+     "altura": 1.9, "hp": 120.0, "dano": 12.0, "aura": Color(0, 0, 0, 0), "velocidade": 3.0},
+    {"nome": "Shiker Voraz", "path": "res://personagem/shiker_base.fbx",
+     "altura": 2.3, "hp": 260.0, "dano": 22.0, "aura": Color(0.95, 0.45, 0.12), "velocidade": 3.4},
+    {"nome": "Shiker Ancião", "path": "res://personagem/shiker_base.fbx",
+     "altura": 2.9, "hp": 520.0, "dano": 38.0, "aura": Color(0.75, 0.32, 0.98), "velocidade": 3.8},
 ]
+
+## A textura do gerador do modelo, nao a que o Mixamo devolveu — o auto-rigger
+## recomprime a imagem e entrega a pele lavada.
+## PRELOAD, nao load.
+##
+## Era load() na hora em que o bicho nascia, e o primeiro Shiker da partida
+## engasgava o jogo: vinte e sete megabytes de malha com esqueleto, a biblioteca
+## de animacao e a textura de mil pixels, tudo lido do disco no meio de um
+## quadro. Com preload o custo vai para o carregamento do mapa, que e onde o
+## jogador ja espera esperar.
+const CENA := preload("res://personagem/shiker_base.fbx")
+const BIBLIOTECA := preload("res://personagem/shiker_anims.res")
+const PELE := preload("res://personagem/shiker_cor.png")
+const BRILHO := preload("res://textures/brilho_poste.png")
 
 @export var monster_type: int = 0
 
@@ -28,6 +53,16 @@ var _jogador: Node3D
 var _hp_label_3d: Label3D
 var _name_label_3d: Label3D
 var _anim_player: AnimationPlayer
+var _animacao_atual := ""
+var _aura: MeshInstance3D = null
+## O dano de cada forma fica GUARDADO na tabela e ainda nao e aplicado: neste
+## sistema o bicho persegue e nao golpeia — quem tira vida do jogador ainda nao
+## existe. O numero mora la para o dia em que o golpe entrar, e para a variante
+## forte ja nascer forte.
+var _velocidade := VELOCIDADE
+var _morrendo := false
+var _colado_no_jogador := false
+var _ataque_ate := -1.0
 
 func _ready() -> void:
     add_to_group("bicho")
@@ -36,6 +71,7 @@ func _ready() -> void:
     var cfg: Dictionary = MONSTROS_CONFIG[monster_type % MONSTROS_CONFIG.size()]
     vida_maxima = float(cfg.get("hp", 200.0))
     vida = vida_maxima
+    _velocidade = float(cfg.get("velocidade", VELOCIDADE))
     
     var forma := CollisionShape3D.new()
     var capsula := CapsuleShape3D.new()
@@ -49,60 +85,145 @@ func _ready() -> void:
     _construir_barra_vida_3d(cfg)
 
 func _construir_modelo(cfg: Dictionary) -> void:
-    var path: String = str(cfg["path"])
-    if not ResourceLoader.exists(path):
-        return
-        
-    var scene := load(path) as PackedScene
-    if not scene:
-        return
-        
-    _modelo = scene.instantiate()
+    _modelo = CENA.instantiate()
     add_child(_modelo)
+    _vestir()
+    _preparar_animacoes()
+    _assentar(cfg)
+    _acender_aura(cfg)
 
-    var mat_triposr := preload("res://materials/prop_cor_de_vertice.tres")
-    for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
-        var m_inst := malha as MeshInstance3D
-        if m_inst and m_inst.mesh:
-            var precisa_override := false
-            for s in range(m_inst.mesh.get_surface_count()):
-                var mat: Material = m_inst.get_active_material(s)
-                var fmt: int = m_inst.mesh.surface_get_format(s)
-                var has_vc: bool = (fmt & Mesh.ARRAY_FORMAT_COLOR) != 0
-                var has_tex: bool = false
-                if mat is StandardMaterial3D:
-                    var sm := mat as StandardMaterial3D
-                    has_tex = (sm.albedo_texture != null)
-                if has_vc and not has_tex:
-                    precisa_override = true
-                    break
-            if precisa_override:
-                m_inst.material_override = mat_triposr
-    
-    # Toca animação de idle se existir no modelo (ex: black dragon)
-    _anim_player = _modelo.find_child("AnimationPlayer", true, false) as AnimationPlayer
-    if _anim_player:
-        var anim_list := _anim_player.get_animation_list()
-        if not anim_list.is_empty():
-            _anim_player.play(anim_list[0])
-    
-    # Mede AABB no espaço do modelo e assenta no chão
+
+## Leva o bicho a altura que a tabela pede e apoia o pe no chao.
+##
+## O Mixamo devolve o modelo numa escala propria, e e daqui que sai a diferenca
+## entre as tres formas: comum com 1,9 m, voraz com 2,3 e anciao com 2,9. Medir
+## a caixa e obrigatorio — altura fixa contra escala desconhecida da bicho
+## enterrado ou flutuando, que foi o que aconteceu com a Mirella.
+func _assentar(cfg: Dictionary) -> void:
     var caixa := AABB()
     var achou := false
     for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
         var local: AABB = _ate_a_raiz(malha as Node3D, _modelo) * (malha as MeshInstance3D).get_aabb()
         caixa = local if not achou else caixa.merge(local)
         achou = true
-        
-    var altura_alvo: float = float(cfg.get("altura", 2.2))
-    var fator := 1.0
-    if altura_alvo > 0.0 and caixa.size.y > 0.05:
-        fator = clampf(altura_alvo / caixa.size.y, 0.05, 3.5)
-    else:
-        fator = 1.0
-        
+    if not achou or caixa.size.y <= 0.05:
+        return
+    var fator: float = clampf(float(cfg.get("altura", 2.0)) / caixa.size.y, 0.05, 6.0)
     _modelo.scale = Vector3.ONE * fator
     _modelo.position.y = -caixa.position.y * fator
+    # A pose gravada no arquivo e a T do Mixamo: pes no chao, corpo em pe. E a
+    # unica medida confiavel — a caixa da malha com esqueleto NAO acompanha a
+    # animacao, entao medir depois, com o bicho ja andando, devolve numero
+    # errado. Foi o que fez o Shiker nascer flutuando um metro.
+
+
+## Poe a pele boa por cima da que veio no FBX.
+##
+## Sem metal: o exportador grava o fator cheio, e metal puro sem reflexo do
+## ambiente aparece PRETO no renderizador de compatibilidade — foi o que
+## aconteceu com as casas de enxaimel da vila.
+##
+## O material FICA GUARDADO: e o mesmo para as tres formas, criado uma vez e
+## reaproveitado, para nao remontar material a cada bicho que nasce.
+static var _pele_compartilhada: StandardMaterial3D = null
+
+func _vestir() -> void:
+    if _pele_compartilhada == null:
+        _pele_compartilhada = StandardMaterial3D.new()
+        _pele_compartilhada.albedo_texture = PELE
+        _pele_compartilhada.metallic = 0.0
+        _pele_compartilhada.roughness = 0.9
+    # A forma com aura precisa do proprio material, porque a emissao dela e sua;
+    # a comum usa o compartilhado e nao gasta nada.
+    var pele: StandardMaterial3D = _pele_compartilhada
+    if monster_type > 0:
+        pele = _pele_compartilhada.duplicate()
+    _materials = [pele]
+    for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
+        (malha as MeshInstance3D).material_override = pele
+
+
+func _preparar_animacoes() -> void:
+    _anim_player = _modelo.find_child("AnimationPlayer", true, false) as AnimationPlayer
+    if _anim_player == null:
+        return
+    if BIBLIOTECA:
+        _anim_player.add_animation_library("shiker", BIBLIOTECA)
+        _tocar("parado", 0.0)
+    elif not _anim_player.get_animation_list().is_empty():
+        _anim_player.play(_anim_player.get_animation_list()[0])
+
+
+## Troca de animacao so quando MUDA de animacao.
+##
+## Chamar play() com a mesma de novo reinicia o passo a cada quadro, e o bicho
+## anda tremendo no lugar — o tipo de bug que se ve e nao se explica.
+func _tocar(nome: String, mistura := 0.2) -> void:
+    if _anim_player == null or _animacao_atual == nome:
+        return
+    if not _anim_player.has_animation("shiker/" + nome):
+        return
+    _animacao_atual = nome
+    _anim_player.play("shiker/" + nome, mistura)
+
+
+## A aura dos fortes: um disco aceso no chao, aos pes do bicho.
+##
+## Nao e particula e nao e luz. Particula custa por quadro e por bicho, e luz
+## pontual nao pinta o entorno no renderizador de compatibilidade — o mesmo
+## motivo pelo qual os postes da vila precisaram de mancha no chao. Um quadrado
+## de dois triangulos com mistura aditiva le de longe e nao custa nada.
+##
+## O comum NAO tem aura, e e isso que faz a aura significar alguma coisa.
+func _acender_aura(cfg: Dictionary) -> void:
+    var cor: Color = cfg.get("aura", Color(0, 0, 0, 0))
+    if cor.a <= 0.01:
+        return
+
+    var quadro := QuadMesh.new()
+    quadro.size = Vector2(2.6, 2.6) * (1.0 + 0.35 * float(monster_type))
+    quadro.orientation = PlaneMesh.FACE_Y
+    quadro.center_offset = Vector3(0.0, 0.06, 0.0)
+
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = BRILHO
+    material.albedo_color = cor
+    material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    quadro.material = material
+
+    _aura = MeshInstance3D.new()
+    _aura.name = "Aura"
+    _aura.mesh = quadro
+    _aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    add_child(_aura)
+
+    # O bicho tambem acende por dentro: a mancha no chao sozinha some quando ele
+    # pisa em pedra clara ou entra na poca de luz de um poste.
+    for m in _materials:
+        m.emission_enabled = true
+        m.emission = cor
+        m.emission_energy_multiplier = 0.35 + 0.25 * float(monster_type)
+
+
+## O golpe: por enquanto so a animacao, com pausa entre um e outro.
+##
+## Encostado no jogador o bicho ficava parado respirando, o que le como bicho
+## quebrado. A investida da ritmo a briga — quando o dano do inimigo entrar no
+## jogo, e aqui que ele encaixa.
+const PAUSA_DO_GOLPE := 1.1
+
+func _golpear() -> void:
+    if _anim_player == null or not _anim_player.has_animation("shiker/atacar"):
+        _tocar("parado")
+        return
+    _animacao_atual = "atacar"
+    _anim_player.play("shiker/atacar", 0.15)
+    _ataque_ate = Time.get_ticks_msec() / 1000.0 \
+        + _anim_player.get_animation("shiker/atacar").length + PAUSA_DO_GOLPE
+
 
 func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
     var acumulado := Transform3D.IDENTITY
@@ -136,6 +257,8 @@ func _construir_barra_vida_3d(cfg: Dictionary) -> void:
     add_child(_hp_label_3d)
 
 func _physics_process(delta: float) -> void:
+    if _morrendo:
+        return
     _fase += delta
     
     if not is_on_floor():
@@ -152,6 +275,7 @@ func _physics_process(delta: float) -> void:
         
     var alvo := _achar_jogador()
     var desejada := Vector3.ZERO
+    _colado_no_jogador = false
     
     if alvo and is_instance_valid(alvo):
         var ate := alvo.global_position - global_position
@@ -160,16 +284,37 @@ func _physics_process(delta: float) -> void:
         
         # Persegue o jogador sem causar dano
         if dist < RAIO_DE_ATENCAO and dist > DISTANCIA_DE_PARADA:
-            desejada = ate.normalized() * VELOCIDADE
+            desejada = ate.normalized() * _velocidade
             var target_angle := atan2(ate.x, ate.z)
             rotation.y = lerp_angle(rotation.y, target_angle, 8.0 * delta)
         elif dist <= DISTANCIA_DE_PARADA:
             var target_angle := atan2(ate.x, ate.z)
             rotation.y = lerp_angle(rotation.y, target_angle, 10.0 * delta)
+            _colado_no_jogador = true
             
     velocity.x = move_toward(velocity.x, desejada.x, 14.0 * delta)
     velocity.z = move_toward(velocity.z, desejada.z, 14.0 * delta)
     move_and_slide()
+
+    # A animacao sai do que o CORPO esta fazendo, nao de um estado guardado a
+    # parte. Estado separado sempre acaba discordando do movimento — o bicho
+    # deslizando parado e o classico.
+    var agora_anim := Time.get_ticks_msec() / 1000.0
+    if agora_anim < _ataque_ate:
+        return  # deixa o golpe terminar antes de voltar a andar
+
+    var passo := Vector2(velocity.x, velocity.z).length()
+    if _colado_no_jogador:
+        _golpear()
+    elif passo > 1.6:
+        _tocar("correr")
+    elif passo > 0.25:
+        _tocar("andar")
+    else:
+        _tocar("parado")
+
+## O golpe: por enquanto so a animacao, com pausa entre um e outro.
+
 
 func _achar_jogador() -> Node3D:
     if _jogador == null or not is_instance_valid(_jogador):
@@ -238,10 +383,21 @@ func _criar_popup_dano(qtd: float) -> void:
 
 func _morrer() -> void:
     remove_from_group("bicho")
+    _morrendo = true
     if _hp_label_3d: _hp_label_3d.visible = false
     if _name_label_3d: _name_label_3d.visible = false
-    
+    if _aura: _aura.visible = false
+
+    # Cai antes de sumir. O encolhimento sozinho — o que havia aqui — lia como
+    # o bicho sendo sugado para dentro do chao; agora ele tomba, fica um
+    # instante no chao e so entao desaparece.
+    var queda := 0.0
+    if _anim_player and _anim_player.has_animation("shiker/morrer"):
+        _animacao_atual = "morrer"
+        _anim_player.play("shiker/morrer", 0.1)
+        queda = _anim_player.get_animation("shiker/morrer").length
+
     var tw := create_tween()
-    tw.tween_property(_modelo, "scale", Vector3.ZERO, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-    tw.parallel().tween_property(_modelo, "position:y", _modelo.position.y + 0.8, 0.45)
+    tw.tween_interval(queda + 0.35)
+    tw.tween_property(_modelo, "scale", Vector3.ZERO, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
     tw.tween_callback(queue_free)

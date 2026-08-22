@@ -989,6 +989,390 @@
      1.05,
      91.0,
      false
+    ],
+    [
+     "props/tufo_grama_1",
+     -10.5,
+     30.0,
+     1.05,
+     0.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     -9.4,
+     29.1,
+     0.72,
+     0.0,
+     false
+    ],
+    [
+     "props/flores_1",
+     -11.4,
+     31.2,
+     0.68,
+     0.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     10.8,
+     29.0,
+     1.05,
+     37.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     11.9,
+     28.1,
+     0.72,
+     91.0,
+     false
+    ],
+    [
+     "props/flores_2",
+     9.9,
+     30.2,
+     0.68,
+     53.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     -11.0,
+     6.5,
+     1.05,
+     74.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     -9.9,
+     5.6,
+     0.72,
+     182.0,
+     false
+    ],
+    [
+     "props/flores_3",
+     -11.9,
+     7.7,
+     0.68,
+     106.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     11.2,
+     4.0,
+     1.05,
+     111.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     12.3,
+     3.1,
+     0.72,
+     273.0,
+     false
+    ],
+    [
+     "props/flores_1",
+     10.3,
+     5.2,
+     0.68,
+     159.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     -10.6,
+     -19.5,
+     1.05,
+     148.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     -9.5,
+     -20.4,
+     0.72,
+     4.0,
+     false
+    ],
+    [
+     "props/flores_2",
+     -11.5,
+     -18.3,
+     0.68,
+     212.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     10.9,
+     -24.0,
+     1.05,
+     185.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     12.0,
+     -24.9,
+     0.72,
+     95.0,
+     false
+    ],
+    [
+     "props/flores_3",
+     10.0,
+     -22.8,
+     0.68,
+     265.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     -12.0,
+     43.0,
+     1.05,
+     222.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     -10.9,
+     42.1,
+     0.72,
+     186.0,
+     false
+    ],
+    [
+     "props/flores_1",
+     -12.9,
+     44.2,
+     0.68,
+     318.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     12.2,
+     44.0,
+     1.05,
+     259.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     13.3,
+     43.1,
+     0.72,
+     277.0,
+     false
+    ],
+    [
+     "props/flores_2",
+     11.3,
+     45.2,
+     0.68,
+     11.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     -9.8,
+     -43.0,
+     1.05,
+     296.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     -8.7,
+     -43.9,
+     0.72,
+     8.0,
+     false
+    ],
+    [
+     "props/flores_3",
+     -10.7,
+     -41.8,
+     0.68,
+     64.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     10.2,
+     -44.5,
+     1.05,
+     333.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     11.3,
+     -45.4,
+     0.72,
+     99.0,
+     false
+    ],
+    [
+     "props/flores_1",
+     9.3,
+     -43.3,
+     0.68,
+     117.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     -13.8,
+     24.5,
+     1.05,
+     10.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     -12.7,
+     23.6,
+     0.72,
+     190.0,
+     false
+    ],
+    [
+     "props/flores_2",
+     -14.7,
+     25.7,
+     0.68,
+     170.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     13.6,
+     33.0,
+     1.05,
+     47.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     14.7,
+     32.1,
+     0.72,
+     281.0,
+     false
+    ],
+    [
+     "props/flores_3",
+     12.7,
+     34.2,
+     0.68,
+     223.0,
+     false
+    ],
+    [
+     "props/pedra_1",
+     -15.6,
+     33.5,
+     0.78,
+     0.0,
+     false
+    ],
+    [
+     "props/pedra_2",
+     -14.75,
+     34.2,
+     0.42,
+     0.0,
+     false
+    ],
+    [
+     "props/pedra_2",
+     12.6,
+     12.5,
+     0.78,
+     61.0,
+     false
+    ],
+    [
+     "props/pedra_3",
+     13.45,
+     13.2,
+     0.42,
+     113.0,
+     false
+    ],
+    [
+     "props/pedra_3",
+     -12.8,
+     -10.0,
+     0.78,
+     122.0,
+     false
+    ],
+    [
+     "props/pedra_1",
+     -11.95,
+     -9.3,
+     0.42,
+     226.0,
+     false
+    ],
+    [
+     "props/pedra_1",
+     14.6,
+     -37.0,
+     0.78,
+     183.0,
+     false
+    ],
+    [
+     "props/pedra_2",
+     15.45,
+     -36.3,
+     0.42,
+     339.0,
+     false
+    ],
+    [
+     "props/pedra_2",
+     -10.9,
+     -30.0,
+     0.78,
+     244.0,
+     false
+    ],
+    [
+     "props/pedra_3",
+     -10.05,
+     -29.3,
+     0.42,
+     92.0,
+     false
+    ],
+    [
+     "props/pedra_3",
+     13.2,
+     21.0,
+     0.78,
+     305.0,
+     false
+    ],
+    [
+     "props/pedra_1",
+     14.05,
+     21.7,
+     0.42,
+     205.0,
+     false
     ]
    ],
    "npcs": [
@@ -4900,6 +5284,78 @@
      -21.5
     ],
     "rotation": 65.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "vao_o_caixotes",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     -12.0,
+     20.5
+    ],
+    "rotation": 130.0,
+    "scale": 0.9,
+    "y": 0.0
+   },
+   {
+    "id": "vao_l_barris",
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
+    "position": [
+     13.5,
+     -32.0
+    ],
+    "rotation": 25.0,
+    "scale": 0.85,
+    "y": 0.0
+   },
+   {
+    "id": "vao_o_saco",
+    "tag": "saco",
+    "model": "res://models/saco_vila.glb",
+    "position": [
+     -12.5,
+     -9.0
+    ],
+    "rotation": 300.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "vao_l_caixotes",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     11.4,
+     8.5
+    ],
+    "rotation": 245.0,
+    "scale": 0.9,
+    "y": 0.0
+   },
+   {
+    "id": "pinheiro_vao_o",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     -14.0,
+     -4.0
+    ],
+    "rotation": 25.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "pinheiro_vao_l",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     12.8,
+     -6.5
+    ],
+    "rotation": 200.0,
     "scale": 1.0,
     "y": 0.0
    }
