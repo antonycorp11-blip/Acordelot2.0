@@ -27,6 +27,7 @@ var _jogador: Node3D
 var _fase := 0.0
 var _base_y := 0.0
 var _coletada := false
+var _halo: MeshInstance3D = null
 
 
 func _ready() -> void:
@@ -46,6 +47,21 @@ func _ready() -> void:
         # Cinquenta mil triangulos nao precisam ser desenhados de longe.
         mi.visibility_range_end = 42.0
         mi.visibility_range_end_margin = 6.0
+        # A clave ACENDE por dentro.
+        #
+        # O modelo veio com a cor de metal escurecido e, no chao de dia, sumia
+        # na grama. Emissao dourada na propria pele resolve sem depender de luz
+        # nenhuma: ela passa a ser a coisa mais clara do gramado, que e o que
+        # uma moeda largada no chao precisa ser.
+        for si in range(mi.mesh.get_surface_count() if mi.mesh else 0):
+            var base := mi.get_active_material(si)
+            var aceso: StandardMaterial3D = (base as StandardMaterial3D).duplicate() if base is StandardMaterial3D else StandardMaterial3D.new()
+            aceso.emission_enabled = true
+            aceso.emission = Color(1.0, 0.82, 0.35)
+            aceso.emission_energy_multiplier = 0.9
+            aceso.metallic = 0.2
+            aceso.roughness = 0.35
+            mi.set_surface_override_material(si, aceso)
     if achou and caixa.size.y > 0.01:
         var fator: float = 0.55 / caixa.size.y
         modelo.scale = Vector3.ONE * fator
@@ -54,6 +70,27 @@ func _ready() -> void:
 
     _base_y = position.y + ALTURA
     position.y = _base_y
+
+    # E o halo em volta: um cartao aditivo que a camera sempre ve de frente. E
+    # ele que faz a clave ser notada de longe, quando o modelo em si e so um
+    # risco dourado de meio metro no meio do mato.
+    var halo := MeshInstance3D.new()
+    halo.name = "Halo"
+    var quadro := QuadMesh.new()
+    quadro.size = Vector2(1.5, 1.5)
+    var brilho_mat := StandardMaterial3D.new()
+    brilho_mat.albedo_texture = preload("res://textures/brilho_poste.png")
+    brilho_mat.albedo_color = Color(0.85, 0.62, 0.22)
+    brilho_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    brilho_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    brilho_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    brilho_mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    brilho_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+    quadro.material = brilho_mat
+    halo.mesh = quadro
+    halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    add_child(halo)
+    _halo = halo
 
     # Uma luz por MORTE, nao por moeda: tres claves juntas acendiam tres luzes
     # pontuais no mesmo metro quadrado, e a terceira nao acrescenta nada que a
@@ -77,6 +114,13 @@ func _process(delta: float) -> void:
     _fase += delta
     rotate_y(delta * 2.2)
     position.y = _base_y + sin(_fase * 2.0) * 0.12
+    # O halo pulsa devagar: brilho parado vira mancha, brilho que respira vira
+    # coisa que pede para ser pega.
+    if _halo:
+        var pulso: float = 0.85 + sin(_fase * 3.0) * 0.15
+        _halo.scale = Vector3.ONE * pulso
+        # Contragira, para o cartao nao rodar junto com a moeda.
+        _halo.rotation.y = -rotation.y
 
     if _jogador == null or not is_instance_valid(_jogador):
         _jogador = get_tree().get_first_node_in_group("jogador") as Node3D

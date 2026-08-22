@@ -602,7 +602,11 @@ def _props_da_vila():
 
 # As estampas recortadas do acervo. Sao pintadas a mao, com alfa — a mesma
 # familia de arte das casas, e nada aqui e cor-por-vertice.
-CERCA = "cidade/cerca_tabua"
+# Mora em props/, e nao em cidade/, por causa da EXPORTACAO: a pasta cidade
+# inteira esta na lista de exclusao do build web — sao as texturas do acervo
+# velho. A cerca e a unica de la que o jogo usa hoje, entao mudou de casa em vez
+# de trazer as trinta e oito irmas junto.
+CERCA = "props/cerca_tabua"
 PLACA = "props/placa_madeira"
 FLORES = ["props/flores_1", "props/flores_2", "props/flores_3"]
 PEDRAS = ["props/pedra_1", "props/pedra_2", "props/pedra_3"]
