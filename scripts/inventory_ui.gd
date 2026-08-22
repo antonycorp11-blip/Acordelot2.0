@@ -109,6 +109,7 @@ var _det_posse: Label
 var _det_desc: Label
 var _rotulo_bolsa: Label
 var _recado: Label
+var _camada: CanvasLayer
 
 
 func _ready() -> void:
@@ -183,17 +184,29 @@ func _montar() -> void:
     # de filhos: o nome da zona, as barras de vida e as fichas de recurso do
     # jogo desenhavam POR CIMA da tela aberta. Numa camada de numero maior a
     # tela cobre tudo, como a caixa de conversa ja fazia.
-    var camada := CanvasLayer.new()
-    camada.name = "CamadaInventario"
-    camada.layer = 15
-    add_child(camada)
+    _camada = CanvasLayer.new()
+    _camada.name = "CamadaInventario"
+    _camada.layer = 15
+    # NASCE ESCONDIDA, e escondida NELA, nao no Control de fora.
+    #
+    # CanvasLayer nao e CanvasItem: ele ignora o visible do pai. Enquanto quem
+    # escondia era o Control, a camada continuava desenhando — e o jogo abria
+    # com o inventario na tela, sem jeito de fechar.
+    _camada.visible = false
+    add_child(_camada)
 
     _fundo = ColorRect.new()
     # Escurece o jogo sem apagar: a vila continua atras, como na conversa.
     _fundo.color = Color(0.02, 0.02, 0.05, 0.72)
     _fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
     _fundo.mouse_filter = Control.MOUSE_FILTER_STOP
-    camada.add_child(_fundo)
+    _camada.add_child(_fundo)
+
+    # Tocar fora da janela tambem fecha, como em qualquer aplicativo. E a saida
+    # que o dedo tenta antes de procurar botao.
+    _fundo.gui_input.connect(func(evento: InputEvent):
+        if evento is InputEventMouseButton and (evento as InputEventMouseButton).pressed:
+            toggle_inventory(false))
 
     var proporcao := AspectRatioContainer.new()
     proporcao.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -259,10 +272,12 @@ func _cabecalho() -> Control:
     _ficha(linha, "barra_ficha_moeda", _milhar(gold_amount))
     _ficha(linha, "barra_ficha_gema", _milhar(gemas))
 
-    var fechar := _botao("✕", "botao_vermelho", 62.0, 54.0)
+    # FECHAR, escrito. O "X" sozinho, pequeno e em cima da cantoneira dourada,
+    # nao se lia no celular — e sair de uma tela cheia e a acao que mais precisa
+    # ser obvia, porque quem nao acha a saida acha que o jogo travou.
+    var fechar := _botao("✕  Fechar", "botao_vermelho", 158.0, 58.0)
     fechar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    # Um respiro da cantoneira dourada, senao o botao briga com o ornamento.
-    fechar.custom_minimum_size.x = 62.0
+    fechar.add_theme_font_size_override("font_size", 20)
     fechar.pressed.connect(func(): toggle_inventory(false))
     linha.add_child(fechar)
     return linha
@@ -654,7 +669,10 @@ func _milhar(valor: int) -> String:
 
 
 func toggle_inventory(force_state = null) -> void:
-    var novo: bool = (not visible) if force_state == null else bool(force_state)
+    var aberto: bool = _camada != null and _camada.visible
+    var novo: bool = (not aberto) if force_state == null else bool(force_state)
+    if _camada:
+        _camada.visible = novo
     visible = novo
     mouse_filter = Control.MOUSE_FILTER_STOP if novo else Control.MOUSE_FILTER_IGNORE
     # A grade so existe depois do _ready. Quem chamar antes disso — e o jogo
