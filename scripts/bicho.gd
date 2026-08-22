@@ -55,6 +55,7 @@ var _name_label_3d: Label3D
 var _anim_player: AnimationPlayer
 var _animacao_atual := ""
 var _aura: MeshInstance3D = null
+var _fagulhas: CPUParticles3D = null
 ## O dano de cada forma fica GUARDADO na tabela e ainda nao e aplicado: neste
 ## sistema o bicho persegue e nao golpeia — quem tira vida do jogador ainda nao
 ## existe. O numero mora la para o dia em que o golpe entrar, e para a variante
@@ -84,8 +85,25 @@ func _ready() -> void:
     _construir_modelo(cfg)
     _construir_barra_vida_3d(cfg)
 
+## Modelos ja instanciados, esperando bicho.
+##
+## Preload resolveu a LEITURA do disco, mas sobrou o custo de montar a cena:
+## malha com esqueleto, AnimationPlayer e a arvore de ossos, tudo criado no
+## quadro em que o bicho nasce. Com quatro prontos na prateleira desde o
+## carregamento, o nascimento vira um add_child.
+static var _estoque: Array = []
+
+static func encher_estoque(quantos: int) -> void:
+    while _estoque.size() < quantos:
+        _estoque.append(CENA.instantiate())
+
+
 func _construir_modelo(cfg: Dictionary) -> void:
-    _modelo = CENA.instantiate()
+    _modelo = _estoque.pop_back() if not _estoque.is_empty() else CENA.instantiate()
+    # Repoe a prateleira DEPOIS do quadro: assim o proximo bicho tambem acha
+    # modelo pronto, e a montagem acontece num quadro em que nao nasce ninguem.
+    if _estoque.size() < 3:
+        (func(): encher_estoque(4)).call_deferred()
     add_child(_modelo)
     _vestir()
     _preparar_animacoes()
@@ -200,12 +218,45 @@ func _acender_aura(cfg: Dictionary) -> void:
     _aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     add_child(_aura)
 
-    # O bicho tambem acende por dentro: a mancha no chao sozinha some quando ele
-    # pisa em pedra clara ou entra na poca de luz de um poste.
-    for m in _materials:
-        m.emission_enabled = true
-        m.emission = cor
-        m.emission_energy_multiplier = 0.35 + 0.25 * float(monster_type)
+    # As fagulhas em volta do corpo.
+    #
+    # A pele NAO e tingida: aura e o que esta em volta da criatura, nao a cor
+    # dela. Pintar o bicho de laranja fazia o forte parecer outro bicho, e nao o
+    # mesmo bicho com poder — que e justamente o que se quer ler.
+    #
+    # CPUParticles3D e nao GPU: no renderizador de compatibilidade o calculo em
+    # GPU nao esta disponivel, e vinte particulas por bicho custam menos que a
+    # troca de material que estava aqui antes.
+    var fagulhas := CPUParticles3D.new()
+    fagulhas.name = "Fagulhas"
+    fagulhas.amount = 14 + 6 * monster_type
+    fagulhas.lifetime = 1.4
+    fagulhas.local_coords = true
+    # Nascem num anel na altura do peito e sobem devagar, como brasa de fogueira.
+    fagulhas.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE_SURFACE
+    fagulhas.emission_sphere_radius = 0.55 * (1.0 + 0.25 * monster_type)
+    fagulhas.position.y = float(cfg.get("altura", 2.0)) * 0.45
+    fagulhas.direction = Vector3.UP
+    fagulhas.spread = 25.0
+    fagulhas.initial_velocity_min = 0.25
+    fagulhas.initial_velocity_max = 0.8
+    fagulhas.gravity = Vector3(0.0, 0.35, 0.0)
+    fagulhas.scale_amount_min = 0.05
+    fagulhas.scale_amount_max = 0.12
+    fagulhas.color = cor
+
+    var brasa := StandardMaterial3D.new()
+    brasa.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    brasa.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    brasa.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    brasa.vertex_color_use_as_albedo = true
+    brasa.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+    brasa.albedo_texture = BRILHO
+    fagulhas.material_override = brasa
+    fagulhas.mesh = QuadMesh.new()
+    fagulhas.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    add_child(fagulhas)
+    _fagulhas = fagulhas
 
 
 ## O golpe: por enquanto so a animacao, com pausa entre um e outro.
@@ -387,6 +438,7 @@ func _morrer() -> void:
     if _hp_label_3d: _hp_label_3d.visible = false
     if _name_label_3d: _name_label_3d.visible = false
     if _aura: _aura.visible = false
+    if _fagulhas: _fagulhas.emitting = false
 
     # Cai antes de sumir. O encolhimento sozinho — o que havia aqui — lia como
     # o bicho sendo sugado para dentro do chao; agora ele tomba, fica um

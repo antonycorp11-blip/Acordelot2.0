@@ -19,10 +19,14 @@ class_name Aquecimento
 
 ## Quantos quadros as pecas ficam desenhadas. Um so nao basta: o motor enfileira
 ## a compilacao e ela acontece no desenho seguinte.
-const QUADROS := 4
+const QUADROS := 6
 ## Tamanho das pecas de teste. Pequenas o bastante para ninguem ver, grandes o
 ## bastante para nao serem descartadas antes de desenhar.
 const TAMANHO := 0.04
+
+## Pelo caminho, nao pelo nome global: o nome so existe depois que o editor
+## varre o projeto, e isso quebra exportacao limpa.
+const BichoScript := preload("res://scripts/bicho.gd")
 
 var _restam := QUADROS
 
@@ -38,6 +42,10 @@ func _ready() -> void:
     _assar_personagem(preload("res://personagem/mirella_idle.fbx"),
                       preload("res://personagem/mirella_cor.png"))
     _assar_materiais()
+
+    # E deixa modelos de bicho prontos na prateleira, para o primeiro Shiker da
+    # partida nao pagar a montagem da malha com esqueleto no meio de uma briga.
+    BichoScript.encher_estoque(4)
 
 
 ## Uma malha com esqueleto e textura: e o shader mais caro do jogo e o que o
@@ -64,8 +72,10 @@ func _assar_materiais() -> void:
         {"add": false, "unshaded": true, "alpha": true, "emissao": false},
         # emissivo iluminado: aura azul do heroi e a espada gigante
         {"add": false, "unshaded": false, "alpha": true, "emissao": true},
-        # opaco iluminado com emissao: o raio e os props acesos
+        # opaco iluminado com emissao: os props acesos
         {"add": false, "unshaded": false, "alpha": false, "emissao": true},
+        # sem sombreamento e OPACO: o orbe que carrega antes do raio sair
+        {"add": false, "unshaded": true, "alpha": false, "emissao": false},
     ]
     for receita in receitas:
         var material := StandardMaterial3D.new()
@@ -82,7 +92,9 @@ func _assar_materiais() -> void:
 
         # Duas formas por receita: o motor compila por tipo de malha, e o jogo
         # usa esfera (aura, raio) e quadro (mira, mancha de luz).
-        for malha in [SphereMesh.new(), QuadMesh.new()]:
+        # As quatro formas que o jogo usa: o raio e cilindro, a aura do heroi e
+        # anel, o orbe e esfera, e mancha e mira sao quadros.
+        for malha in [SphereMesh.new(), QuadMesh.new(), CylinderMesh.new(), TorusMesh.new()]:
             var mi := MeshInstance3D.new()
             mi.mesh = malha
             mi.material_override = material

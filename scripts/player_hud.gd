@@ -211,7 +211,12 @@ func _montar_barra_do_alvo() -> void:
     # medir a tela pela largura de um celular. A base do jogo e 1280 de largura
     # e o esticamento so alarga: o bloco da esquerda acaba nos 318 pixels e a
     # barra do alvo comeca nos 490. Nao ha encontro entre os dois.
-    _alvo_caixa.position = Vector2(-t.x * 0.5, 18.0)
+    # DESCEU de vez. A conta de largura estava certa na base 1280, mas o celular
+    # do dono e ultralargo: com a tela esticada, o bloco do jogador cresce para
+    # a direita e alcanca o centro, onde esta esta barra. Em vez de calcular o
+    # encontro, ela sai da faixa: cento e vinte pixels ja e abaixo do bloco
+    # inteiro, e nao ha largura de tela em que os dois se cruzem.
+    _alvo_caixa.position = Vector2(-t.x * 0.5, 120.0)
     _alvo_caixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _alvo_caixa.visible = false
     add_child(_alvo_caixa)

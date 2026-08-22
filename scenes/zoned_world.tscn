@@ -144,20 +144,6 @@ texture_normal = ExtResource("12_btn_voo")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="BtnInventario" type="TextureButton" parent="HUD"]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 36.0
-offset_top = -382.0
-offset_right = 100.0
-offset_bottom = -318.0
-grow_vertical = 0
-texture_normal = ExtResource("13_btn_inventario")
-ignore_texture_size = true
-stretch_mode = 5
-
 [node name="BarraDoDia" type="Control" parent="HUD" node_paths=PackedStringArray("ciclo")]
 layout_mode = 1
 anchors_preset = 1
@@ -216,6 +202,17 @@ offset_top = 90.0
 offset_right = 154.0
 offset_bottom = 154.0
 texture_normal = ExtResource("17_skill2")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BtnInventario" type="TextureButton" parent="HUD/BotoesCombate"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 66.0
+offset_bottom = 66.0
+texture_normal = ExtResource("13_btn_inventario")
 ignore_texture_size = true
 stretch_mode = 5
 
