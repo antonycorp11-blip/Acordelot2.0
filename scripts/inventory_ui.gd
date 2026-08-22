@@ -1,582 +1,563 @@
 extends Control
-class_name InventoryUI
+## A tela de Inventario, montada SOBRE a arte do conceito.
+##
+## A regra que decide tudo aqui: quem desenha e a textura, quem organiza e o
+## Control. Moldura, slot, botao e ficha de recurso sao PNG recortado da arte;
+## o codigo so os estica pelos cantos certos e poe texto e numero por cima.
+## Tentar refazer a filigrana dourada com StyleBoxFlat daria um retangulo com
+## borda — e a diferenca entre "a interface do conceito rodando" e "uma
+## interpretacao do programador", que e exatamente o que nao se quer.
+##
+## As margens de NinePatch nao sao chute: foram medidas na imagem, procurando
+## onde o ornamento acaba e o azul do miolo comeca. Errar nelas estica a
+## cantoneira, e cantoneira esticada e a marca de interface remendada.
 
 signal item_used(item_id: String)
 signal item_equipped(item_id: String, slot: String)
 
-var _modal_backdrop: ColorRect
-var _inventory_modal: PanelContainer
-var _equipment_grid: GridContainer
-var _inventory_grid: GridContainer
-var _gold_label: Label
-var _details_card: PanelContainer
-var _details_icon: Control
-var _details_moldura: PanelContainer
-var _details_title: Label
-var _details_tier: Label
-var _details_stats: Label
-var _details_desc: Label
-var _btn_action: Button
-var _selected_item: Dictionary = {}
+const KIT := "res://textures/ui/kit/"
+const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
+const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
 
-var gold_amount: int = 1450
+## As bordas de cada arte, em pixels, medidas no arquivo.
+const BORDA_PAINEL := [36, 114, 37, 107]   # esquerda, cima, direita, baixo
+const BORDA_CARTAO := [4, 38, 10, 32]
+const BORDA_SLOT := [37, 98, 40, 87]
+const BORDA_BOTAO := [119, 93, 119, 46]
+
+## O conceito e desenhado em 16:9. Fora dessa proporcao a tela ganha margem —
+## nunca estica a arte, porque moldura esticada denuncia na hora.
+const PROPORCAO := 16.0 / 9.0
+const COLUNAS := 6
+
+var gold_amount: int = 78542
+var gemas: int = 1250
 
 var equipped_slots := {
-    "Elmo": {"id": "elmo_ferro", "name": "Elmo de Aço T4", "icon": "🪖", "tier": "Tier IV", "rarity": "Raro", "stats": "+35 Defesa  •  +120 Vida", "desc": "Forjado com aço puro das montanhas de Acordelot."},
-    "Peitoral": {"id": "peitoral_guardiao", "name": "Armadura do Guardião", "icon": "🛡️", "tier": "Tier V", "rarity": "Épico", "stats": "+85 Defesa  •  +350 Vida", "desc": "Placas de mitral reforçadas com encantamento de proteção."},
-    "Botas": {"id": "botas_couro", "name": "Botas de Andarilho", "icon": "👢", "tier": "Tier IV", "rarity": "Raro", "stats": "+22 Defesa  •  +14% Velocidade", "desc": "Couro resistente que garante agilidade em terrenos acidentados."},
-    "Arma": {"id": "espada_akles", "name": "Espada de Akles", "icon": "⚔️", "tier": "Tier V", "rarity": "Lendário", "stats": "+125 Dano Físico  •  +18% Crítico", "desc": "Lâmina ancestral imbuída com o poder dos mestres da música."},
-    "Escudo": {"id": "escudo_nobre", "name": "Escudo Imperial", "icon": "🔰", "tier": "Tier IV", "rarity": "Raro", "stats": "+45 Bloqueio  •  +90 Vida", "desc": "Escudo brasonado com a insígnia da Cidade Nobre."},
-    "Anel": {"id": "anel_arcano", "name": "Anel da Floresta", "icon": "💍", "tier": "Tier IV", "rarity": "Raro", "stats": "+60 Mana  •  +10% Regen", "desc": "Gema de safira sintonizada com os fluxos de mana."}
+    "Arma": {"id": "espada_akles", "name": "Lâmina Harmônica", "arte": "equip/espada", "tier": "Nível do Item: 18", "rarity": "Épico", "stats": "+78 Força  •  +52 Vitalidade", "desc": "Lâmina ancestral imbuída com o poder dos mestres da música."},
+    "Cabeça": {"id": "chapeu_bardo", "name": "Chapéu do Trovador", "arte": "equip/chapeu", "tier": "Nível do Item: 16", "rarity": "Raro", "stats": "+24 Inteligência  •  +12 Fé", "desc": "A pluma foi presente de um corvo que gostava de música."},
+    "Amuleto": {"id": "amuleto_safira", "name": "Amuleto de Safira", "arte": "equip/amuleto", "tier": "Nível do Item: 17", "rarity": "Épico", "stats": "+60 Mana  •  +10% Regeneração", "desc": "Gema sintonizada com os fluxos de mana."},
+    "Acessório": {"id": "anel_arcano", "name": "Anel da Floresta", "arte": "equip/anel", "tier": "Nível do Item: 15", "rarity": "Raro", "stats": "+38 Ressonância", "desc": "Safira lapidada pelos ourives da Capital."},
+    "Peitoral": {"id": "peitoral_guardiao", "name": "Armadura do Guardião", "arte": "equip/peitoral", "tier": "Nível do Item: 18", "rarity": "Épico", "stats": "+85 Defesa  •  +350 Vida", "desc": "Placas reforçadas com encantamento de proteção."},
+    "Luvas": {"id": "luvas_aco", "name": "Manoplas de Aço", "arte": "equip/luvas", "tier": "Nível do Item: 16", "rarity": "Raro", "stats": "+28 Defesa  •  +9 Destreza", "desc": "Articulações finas o bastante para dedilhar."},
+    "Calças": {"id": "calcas_couro", "name": "Calças de Viajante", "arte": "equip/calcas", "tier": "Nível do Item: 14", "rarity": "Incomum", "stats": "+31 Defesa", "desc": "Couro curtido, remendado mais de uma vez."},
+    "Botas": {"id": "botas_couro", "name": "Botas de Andarilho", "arte": "equip/botas", "tier": "Nível do Item: 15", "rarity": "Raro", "stats": "+22 Defesa  •  +14% Velocidade", "desc": "Couro resistente para terrenos acidentados."},
 }
 
 var bag_items: Array = [
-    {"id": "pocao_cura_g", "name": "Poção de Vida Maior", "icon": "🧪", "qtd": 5, "tier": "Tier IV", "rarity": "Incomum", "desc": "Restaura 450 pontos de vida instantaneamente.", "tipo": "consumivel"},
-    {"id": "pocao_mana_g", "name": "Poção de Mana Maior", "icon": "✨", "qtd": 8, "tier": "Tier IV", "rarity": "Incomum", "desc": "Restaura 300 pontos de mana arcana.", "tipo": "consumivel"},
-    {"id": "madeira_carvalho", "name": "Madeira de Carvalho", "icon": "🪵", "qtd": 32, "tier": "Tier IV", "rarity": "Comum", "desc": "Material nobre para forjas e construções.", "tipo": "material"},
-    {"id": "minerio_ferro", "name": "Minério de Ferro", "icon": "⛏️", "qtd": 24, "tier": "Tier IV", "rarity": "Comum", "desc": "Minério bruto para barras de aço.", "tipo": "material"},
-    {"id": "cristal_arcano", "name": "Cristal de Mana", "icon": "💎", "qtd": 7, "tier": "Tier V", "rarity": "Raro", "desc": "Gema pulsante usada em encantamentos.", "tipo": "material"},
-    {"id": "carne_assada", "name": "Carne Assada", "icon": "🍖", "qtd": 12, "tier": "Tier III", "rarity": "Comum", "desc": "Alimento suculento que recupera 200 de vida.", "tipo": "consumivel"},
-    {"id": "pergaminho_teleporte", "name": "Pergaminho de Retorno", "icon": "📜", "qtd": 3, "tier": "Tier IV", "rarity": "Raro", "desc": "Teleporta o herói para os portões da Capital.", "tipo": "consumivel"}
+    {"id": "pocao_cura_g", "name": "Poção de Vitalidade", "arte": "item/pocao_vida", "qtd": 24, "tier": "Épico", "rarity": "Épico", "tipo": "consumivel", "desc": "Restaura 60% da Vida máxima. Uma mistura vibrante que ressoa com a essência da vida."},
+    {"id": "pocao_mana_g", "name": "Poção de Mana", "arte": "item/pocao_mana", "qtd": 15, "tier": "Raro", "rarity": "Raro", "tipo": "consumivel", "desc": "Restaura 300 pontos de mana arcana."},
+    {"id": "pocao_roxa", "name": "Elixir de Harmonia", "arte": "item/pocao_roxa", "qtd": 12, "tier": "Épico", "rarity": "Épico", "tipo": "consumivel", "desc": "Aumenta a ressonância por dois minutos."},
+    {"id": "pocao_dourada", "name": "Néctar do Bardo", "arte": "item/pocao_dourada", "qtd": 8, "tier": "Lendário", "rarity": "Lendário", "tipo": "consumivel", "desc": "Dizem que foi engarrafado durante um eclipse."},
+    {"id": "cristal_azul", "name": "Cristal de Mana", "arte": "item/cristal_azul", "qtd": 32, "tier": "Raro", "rarity": "Raro", "tipo": "material", "desc": "Gema pulsante usada em encantamentos."},
+    {"id": "gema_roxa", "name": "Ametista Ressonante", "arte": "item/gema_roxa", "qtd": 18, "tier": "Épico", "rarity": "Épico", "tipo": "material", "desc": "Vibra sozinha quando há música por perto."},
+    {"id": "gema_verde", "name": "Esmeralda Bruta", "arte": "item/gema_verde", "qtd": 9, "tier": "Raro", "rarity": "Raro", "tipo": "material", "desc": "Verde profundo, ainda por lapidar."},
+    {"id": "gema_ambar", "name": "Âmbar Antigo", "arte": "item/gema_ambar", "qtd": 6, "tier": "Incomum", "rarity": "Incomum", "tipo": "material", "desc": "Guarda dentro de si uma nota presa há mil anos."},
+    {"id": "partitura", "name": "Partitura Rara", "arte": "item/partitura", "qtd": 42, "tier": "Raro", "rarity": "Raro", "tipo": "missao", "desc": "Um trecho de melodia que ninguém sabe terminar."},
+    {"id": "moeda_antiga", "name": "Moeda da Coroa", "arte": "item/moeda", "qtd": 65, "tier": "Comum", "rarity": "Comum", "tipo": "valioso", "desc": "Cunhada no reinado anterior. Ainda vale."},
+    {"id": "corneta", "name": "Corneta de Bronze", "arte": "item/corneta", "qtd": 3, "tier": "Incomum", "rarity": "Incomum", "tipo": "valioso", "desc": "Rouca, mas ouve-se do outro lado do vale."},
+    {"id": "pena", "name": "Pena de Escriba", "arte": "item/pena", "qtd": 31, "tier": "Comum", "rarity": "Comum", "tipo": "material", "desc": "Para copiar partituras sem borrar."},
+    {"id": "bolsa_couro", "name": "Bolsa de Couro", "arte": "item/bolsa", "qtd": 19, "tier": "Comum", "rarity": "Comum", "tipo": "material", "desc": "Vazia. Serve para carregar o resto."},
+    {"id": "flor_arcana", "name": "Flor de Lua", "arte": "item/flor", "qtd": 22, "tier": "Incomum", "rarity": "Incomum", "tipo": "material", "desc": "Só abre quando alguém canta perto dela."},
+    {"id": "minerio_ferro", "name": "Minério de Ferro", "arte": "item/minerio", "qtd": 13, "tier": "Comum", "rarity": "Comum", "tipo": "material", "desc": "Minério bruto para barras de aço."},
+    {"id": "chave_antiga", "name": "Chave Enferrujada", "arte": "item/chave", "qtd": 3, "tier": "Raro", "rarity": "Raro", "tipo": "missao", "desc": "Abre alguma coisa. Ninguém lembra o quê."},
+    {"id": "fita_vermelha", "name": "Fita Carmesim", "arte": "item/fita", "qtd": 9, "tier": "Incomum", "rarity": "Incomum", "tipo": "valioso", "desc": "Marca a página de uma partitura importante."},
+    {"id": "mapa_velho", "name": "Mapa do Vale", "arte": "item/mapa", "qtd": 1, "tier": "Raro", "rarity": "Raro", "tipo": "missao", "desc": "Um X no meio da floresta, sem legenda."},
+    {"id": "runa_antiga", "name": "Runa Silente", "arte": "item/runa", "qtd": 17, "tier": "Épico", "rarity": "Épico", "tipo": "material", "desc": "A pedra é fria mesmo ao sol."},
+    {"id": "nota_arcana", "name": "Essência Melódica", "arte": "item/nota", "qtd": 30, "tier": "Épico", "rarity": "Épico", "tipo": "material", "desc": "Fragmento concentrado de harmonia pura."},
 ]
 
-## A cor da raridade, que e o que se le primeiro num inventario.
-##
-## Todo slot tinha a MESMA borda dourada, entao lendario e comum pareciam a
-## mesma coisa e a grade virava uma parede de quadrados iguais. Cor por
-## raridade e a convencao do genero justamente porque funciona antes da leitura:
-## o jogador acha o item bom sem ler nome nenhum.
-const CORES_DE_RARIDADE := {
-    "Comum": Color(0.62, 0.66, 0.72),
-    "Incomum": Color(0.38, 0.78, 0.44),
-    "Raro": Color(0.34, 0.62, 0.95),
-    "Épico": Color(0.68, 0.42, 0.92),
-    "Lendário": Color(0.96, 0.68, 0.22),
+## Cada raridade tem a sua moldura, e e por isso que existem quatro molduras na
+## arte. Cor de borda diz o valor do item antes de qualquer leitura de texto.
+const MOLDURA_DA_RARIDADE := {
+    "Comum": "slot_verde", "Incomum": "slot_verde",
+    "Raro": "slot_azul", "Épico": "slot_roxo", "Lendário": "slot_dourado",
+}
+const COR_DA_RARIDADE := {
+    "Comum": Color(0.72, 0.76, 0.80), "Incomum": Color(0.45, 0.85, 0.52),
+    "Raro": Color(0.40, 0.68, 0.98), "Épico": Color(0.76, 0.48, 0.98),
+    "Lendário": Color(0.98, 0.74, 0.28),
 }
 
-static func _cor_da_raridade(raridade: String) -> Color:
-    return CORES_DE_RARIDADE.get(raridade, CORES_DE_RARIDADE["Comum"])
-
-## Sigla de tres letras a partir do nome do item.
-##
-## Substitui o emoji. Os icones eram todos emoji, e a fonte do jogo nao tem
-## esses simbolos: no celular apareciam como quadradinhos vazios, um atras do
-## outro. Tres letras sempre desenham, em qualquer aparelho.
-static func _sigla(nome: String) -> String:
-    var limpo := nome.strip_edges()
-    var partes := limpo.split(" ", false)
-    if partes.size() >= 2 and String(partes[0]).length() > 2:
-        return (String(partes[0]).substr(0, 2) + String(partes[1]).substr(0, 1)).to_upper()
-    return limpo.substr(0, 3).to_upper()
-
-## Moldura de um slot, na cor da raridade.
-static func _moldura(raridade: String, preenchido: bool) -> StyleBoxFlat:
-    var cor := _cor_da_raridade(raridade)
-    var estilo := StyleBoxFlat.new()
-    estilo.bg_color = (Color(cor.r, cor.g, cor.b, 0.16) if preenchido
-        else Color(0.10, 0.13, 0.18, 0.7))
-    var espessura := 2 if preenchido else 1
-    estilo.border_width_left = espessura
-    estilo.border_width_right = espessura
-    estilo.border_width_top = espessura
-    estilo.border_width_bottom = espessura
-    estilo.border_color = (cor if preenchido else Color(0.28, 0.34, 0.44, 0.55))
-    for canto in ["corner_radius_top_left", "corner_radius_top_right",
-                  "corner_radius_bottom_left", "corner_radius_bottom_right"]:
-        estilo.set(canto, 7)
-    estilo.content_margin_left = 4
-    estilo.content_margin_right = 4
-    return estilo
-
-
-## Icone desenhado, no lugar do emoji.
-##
-## Os icones eram todos emoji e a fonte do jogo nao tem esses simbolos: no
-## celular saiam como quadradinhos vazios. Desenhar em vetor resolve de vez —
-## nao depende de fonte, escala sem borrar em qualquer tela e permite tingir a
-## peca pela raridade.
-class Icone extends Control:
-    var tipo := "caixa"
-    var cor := Color(0.8, 0.84, 0.9)
-
-    func _init(qual: String, tinta: Color) -> void:
-        tipo = qual
-        cor = tinta
-        custom_minimum_size = Vector2(30, 30)
-        mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-    func _draw() -> void:
-        var l := minf(size.x, size.y)
-        var o := (size - Vector2(l, l)) * 0.5
-        var escuro := cor.darkened(0.45)
-        var claro := cor.lightened(0.35)
-
-        match tipo:
-            "espada":
-                # Lamina em losango alongado, guarda e cabo: tres formas simples
-                # que juntas ja se leem como espada em trinta pixels.
-                draw_colored_polygon(PackedVector2Array([
-                    o + Vector2(l * 0.5, l * 0.06), o + Vector2(l * 0.62, l * 0.30),
-                    o + Vector2(l * 0.5, l * 0.66), o + Vector2(l * 0.38, l * 0.30)]), claro)
-                draw_rect(Rect2(o + Vector2(l * 0.26, l * 0.62), Vector2(l * 0.48, l * 0.08)), escuro)
-                draw_rect(Rect2(o + Vector2(l * 0.45, l * 0.70), Vector2(l * 0.10, l * 0.22)), escuro)
-            "escudo":
-                draw_colored_polygon(PackedVector2Array([
-                    o + Vector2(l * 0.5, l * 0.08), o + Vector2(l * 0.86, l * 0.24),
-                    o + Vector2(l * 0.72, l * 0.80), o + Vector2(l * 0.5, l * 0.94),
-                    o + Vector2(l * 0.28, l * 0.80), o + Vector2(l * 0.14, l * 0.24)]), cor)
-                draw_line(o + Vector2(l * 0.5, l * 0.18), o + Vector2(l * 0.5, l * 0.84), escuro, 2.0)
-            "elmo":
-                draw_circle(o + Vector2(l * 0.5, l * 0.46), l * 0.34, cor)
-                draw_rect(Rect2(o + Vector2(l * 0.16, l * 0.46), Vector2(l * 0.68, l * 0.30)), cor)
-                draw_rect(Rect2(o + Vector2(l * 0.44, l * 0.30), Vector2(l * 0.12, l * 0.46)), escuro)
-            "peitoral":
-                draw_colored_polygon(PackedVector2Array([
-                    o + Vector2(l * 0.22, l * 0.16), o + Vector2(l * 0.78, l * 0.16),
-                    o + Vector2(l * 0.70, l * 0.86), o + Vector2(l * 0.30, l * 0.86)]), cor)
-                draw_line(o + Vector2(l * 0.5, l * 0.20), o + Vector2(l * 0.5, l * 0.82), escuro, 2.0)
-            "botas":
-                draw_rect(Rect2(o + Vector2(l * 0.30, l * 0.12), Vector2(l * 0.24, l * 0.52)), cor)
-                draw_rect(Rect2(o + Vector2(l * 0.30, l * 0.62), Vector2(l * 0.48, l * 0.22)), escuro)
-            "anel":
-                draw_arc(o + Vector2(l * 0.5, l * 0.58), l * 0.28, 0.0, TAU, 22, cor, 3.5)
-                draw_circle(o + Vector2(l * 0.5, l * 0.24), l * 0.11, claro)
-            "pocao":
-                draw_rect(Rect2(o + Vector2(l * 0.42, l * 0.10), Vector2(l * 0.16, l * 0.16)), escuro)
-                draw_colored_polygon(PackedVector2Array([
-                    o + Vector2(l * 0.38, l * 0.26), o + Vector2(l * 0.62, l * 0.26),
-                    o + Vector2(l * 0.78, l * 0.62), o + Vector2(l * 0.70, l * 0.90),
-                    o + Vector2(l * 0.30, l * 0.90), o + Vector2(l * 0.22, l * 0.62)]), cor)
-                draw_circle(o + Vector2(l * 0.40, l * 0.68), l * 0.07, claro)
-            "madeira":
-                draw_rect(Rect2(o + Vector2(l * 0.12, l * 0.34), Vector2(l * 0.76, l * 0.32)), cor)
-                draw_arc(o + Vector2(l * 0.16, l * 0.50), l * 0.12, 0.0, TAU, 16, escuro, 2.0)
-            "minerio":
-                draw_colored_polygon(PackedVector2Array([
-                    o + Vector2(l * 0.5, l * 0.14), o + Vector2(l * 0.84, l * 0.44),
-                    o + Vector2(l * 0.70, l * 0.86), o + Vector2(l * 0.30, l * 0.86),
-                    o + Vector2(l * 0.16, l * 0.44)]), cor)
-                draw_line(o + Vector2(l * 0.34, l * 0.44), o + Vector2(l * 0.62, l * 0.70), claro, 2.0)
-            "cristal":
-                draw_colored_polygon(PackedVector2Array([
-                    o + Vector2(l * 0.5, l * 0.06), o + Vector2(l * 0.80, l * 0.42),
-                    o + Vector2(l * 0.5, l * 0.94), o + Vector2(l * 0.20, l * 0.42)]), cor)
-                draw_line(o + Vector2(l * 0.5, l * 0.06), o + Vector2(l * 0.5, l * 0.94), claro, 1.5)
-            "carne":
-                draw_circle(o + Vector2(l * 0.56, l * 0.46), l * 0.28, cor)
-                draw_rect(Rect2(o + Vector2(l * 0.14, l * 0.62), Vector2(l * 0.44, l * 0.10)), claro)
-            "pergaminho":
-                draw_rect(Rect2(o + Vector2(l * 0.20, l * 0.14), Vector2(l * 0.60, l * 0.72)), cor)
-                for i in 3:
-                    var y := l * (0.30 + i * 0.16)
-                    draw_line(o + Vector2(l * 0.30, y), o + Vector2(l * 0.70, y), escuro, 1.5)
-            _:
-                draw_rect(Rect2(o + Vector2(l * 0.18, l * 0.18), Vector2(l * 0.64, l * 0.64)), cor)
-
-## A cor natural de cada coisa.
-##
-## O icone e tingido pelo QUE O ITEM E, e nao pela raridade — a raridade ja esta
-## na moldura em volta. Com tudo tingido por raridade, pocao de vida e pocao de
-## mana saiam identicas, e o jogador tinha de ler o nome para distinguir duas
-## coisas que ele usa em combate, sem tempo de ler.
-const CORES_NATURAIS := {
-    "espada": Color(0.72, 0.78, 0.88), "escudo": Color(0.55, 0.68, 0.88),
-    "elmo": Color(0.66, 0.71, 0.78), "peitoral": Color(0.60, 0.66, 0.76),
-    "botas": Color(0.58, 0.42, 0.28), "anel": Color(0.92, 0.78, 0.34),
-    "madeira": Color(0.58, 0.40, 0.24), "minerio": Color(0.60, 0.62, 0.66),
-    "cristal": Color(0.42, 0.82, 0.92), "carne": Color(0.78, 0.36, 0.28),
-    "pergaminho": Color(0.90, 0.86, 0.70),
+const FILTROS := ["Todos", "Materiais", "Consumíveis", "Missões", "Valiosos"]
+const TIPO_DO_FILTRO := {
+    "Materiais": "material", "Consumíveis": "consumivel",
+    "Missões": "missao", "Valiosos": "valioso",
 }
 
-## Cor de uma pocao pelo que ela restaura, nao pela raridade.
-static func _cor_da_pocao(item: Dictionary) -> Color:
-    var texto := (String(item.get("id", "")) + String(item.get("name", ""))
-        + String(item.get("desc", ""))).to_lower()
-    if "mana" in texto:
-        return Color(0.36, 0.56, 0.95)
-    return Color(0.88, 0.28, 0.32)
+var _fundo: ColorRect
+var _janela: Control
+var _grade: GridContainer
+var _selecionado: Dictionary = {}
+var _filtro := "Todos"
+var _botoes_de_filtro: Array = []
 
-## A cor com que o icone e desenhado.
-static func _cor_do_icone(item: Dictionary, figura: String) -> Color:
-    if figura == "pocao":
-        return _cor_da_pocao(item)
-    return CORES_NATURAIS.get(figura, Color(0.72, 0.76, 0.82))
+var _det_icone: TextureRect
+var _det_moldura: NinePatchRect
+var _det_nome: Label
+var _det_raridade: Label
+var _det_posse: Label
+var _det_desc: Label
+var _rotulo_bolsa: Label
 
-## Que desenho serve para cada item. Sai do proprio identificador, entao item
-## novo so precisa de um nome coerente para ganhar icone.
-static func _figura_do_item(item: Dictionary) -> String:
-    var chave := String(item.get("id", "")) + " " + String(item.get("name", "")).to_lower()
-    for palavra in ["espada", "escudo", "elmo", "peitoral", "botas", "anel",
-                    "pocao", "poção", "madeira", "minerio", "minério",
-                    "cristal", "carne", "pergaminho"]:
-        if palavra in chave:
-            match palavra:
-                "poção": return "pocao"
-                "minério": return "minerio"
-                _: return palavra
-    if "armadura" in chave: return "peitoral"
-    return "caixa"
 
 func _ready() -> void:
+    set_anchors_preset(Control.PRESET_FULL_RECT)
     mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _construir_interface_inventario()
+    _montar()
+    visible = false
 
-func _unhandled_input(event: InputEvent) -> void:
-    if event is InputEventKey and event.pressed and not event.echo:
-        if event.keycode in [KEY_I, KEY_B]:
-            toggle_inventory()
-            get_viewport().set_input_as_handled()
-        elif event.keycode == KEY_ESCAPE and _inventory_modal.visible:
-            toggle_inventory(false)
-            get_viewport().set_input_as_handled()
 
-func toggle_inventory(force_state = null) -> void:
-    var next_state: bool = (not _inventory_modal.visible) if force_state == null else force_state
-    _inventory_modal.visible = next_state
-    _modal_backdrop.visible = next_state
-    if next_state:
-        _atualizar_ui_inventario()
-
-func _construir_interface_inventario() -> void:
-    # 1. Fundo Escurecido com Blur
-    _modal_backdrop = ColorRect.new()
-    _modal_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
-    _modal_backdrop.color = Color(0.02, 0.03, 0.06, 0.78)
-    _modal_backdrop.visible = false
-    _modal_backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
-    _modal_backdrop.gui_input.connect(func(ev: InputEvent):
-        if ev is InputEventMouseButton and ev.pressed:
-            toggle_inventory(false)
-    )
-    add_child(_modal_backdrop)
-    
-    # 2. Painel Central Glassmorphism com Borda Dourada Nobre
-    _inventory_modal = PanelContainer.new()
-    _inventory_modal.set_anchors_preset(Control.PRESET_CENTER)
-    _inventory_modal.anchor_left = 0.5
-    _inventory_modal.anchor_right = 0.5
-    _inventory_modal.anchor_top = 0.5
-    _inventory_modal.anchor_bottom = 0.5
-    # Largura pela TELA, nao fixa em 680 px.
-    #
-    # O painel media 680 px de largura fixa; num celular em pe isso e mais que a
-    # tela inteira, e metade do inventario ficava para fora sem jeito de
-    # alcancar. Aqui ele ocupa no maximo 92% do que existe.
-    var meia: float = minf(340.0, get_viewport_rect().size.x * 0.46)
-    _inventory_modal.offset_left = -meia
-    _inventory_modal.offset_top = -230.0
-    _inventory_modal.offset_right = meia
-    _inventory_modal.offset_bottom = 230.0
-    _inventory_modal.visible = false
-    _inventory_modal.mouse_filter = Control.MOUSE_FILTER_STOP
-    
-    var panel_box := StyleBoxFlat.new()
-    panel_box.bg_color = Color(0.08, 0.10, 0.14, 0.96)
-    panel_box.border_width_left = 2
-    panel_box.border_width_right = 2
-    panel_box.border_width_top = 2
-    panel_box.border_width_bottom = 2
-    panel_box.border_color = Color(0.85, 0.72, 0.35, 0.9)
-    panel_box.corner_radius_top_left = 14
-    panel_box.corner_radius_top_right = 14
-    panel_box.corner_radius_bottom_left = 14
-    panel_box.corner_radius_bottom_right = 14
-    panel_box.shadow_color = Color(0.0, 0.0, 0.0, 0.6)
-    panel_box.shadow_size = 18
-    _inventory_modal.add_theme_stylebox_override("panel", panel_box)
-    add_child(_inventory_modal)
-    
-    var pad := MarginContainer.new()
-    pad.add_theme_constant_override("margin_left", 18)
-    pad.add_theme_constant_override("margin_right", 18)
-    pad.add_theme_constant_override("margin_top", 16)
-    pad.add_theme_constant_override("margin_bottom", 16)
-    _inventory_modal.add_child(pad)
-    
-    var root_vbox := VBoxContainer.new()
-    root_vbox.add_theme_constant_override("separation", 14)
-    pad.add_child(root_vbox)
-    
-    # 3. Cabeçalho Nobre
-    var header := HBoxContainer.new()
-    root_vbox.add_child(header)
-    
-    var title := Label.new()
-    title.text = "🎒  INVENTÁRIO DO HERÓI"
-    title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    title.add_theme_font_size_override("font_size", 16)
-    title.add_theme_color_override("font_color", Color(1.0, 0.92, 0.65))
-    header.add_child(title)
-    
-    _gold_label = Label.new()
-    _gold_label.text = "🪙 1.450 Ouro"
-    _gold_label.add_theme_font_size_override("font_size", 14)
-    _gold_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-    header.add_child(_gold_label)
-    
-    var btn_close := Button.new()
-    btn_close.text = "  ✕  "
-    btn_close.add_theme_font_size_override("font_size", 13)
-    btn_close.pressed.connect(func(): toggle_inventory(false))
-    header.add_child(btn_close)
-    
-    # Linha divisória
-    var div := HSeparator.new()
-    root_vbox.add_child(div)
-    
-    # 4. Três Colunas: [Equipamentos] | [Mochila 4x5] | [Detalhes do Item]
-    var content := HBoxContainer.new()
-    content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    content.add_theme_constant_override("separation", 16)
-    root_vbox.add_child(content)
-    
-    # Coluna 1: Equipados
-    var eq_col := VBoxContainer.new()
-    eq_col.custom_minimum_size = Vector2(0, 0)
-    eq_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    eq_col.add_theme_constant_override("separation", 8)
-    content.add_child(eq_col)
-    
-    var eq_title := Label.new()
-    eq_title.text = "🛡️  Equipamentos"
-    eq_title.add_theme_font_size_override("font_size", 13)
-    eq_title.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0))
-    eq_col.add_child(eq_title)
-    
-    _equipment_grid = GridContainer.new()
-    _equipment_grid.columns = 2
-    _equipment_grid.add_theme_constant_override("h_separation", 8)
-    _equipment_grid.add_theme_constant_override("v_separation", 8)
-    eq_col.add_child(_equipment_grid)
-    
-    # Coluna 2: Mochila
-    var bag_col := VBoxContainer.new()
-    bag_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    bag_col.add_theme_constant_override("separation", 8)
-    content.add_child(bag_col)
-    
-    var bag_title := Label.new()
-    bag_title.text = "📦  Mochila (20 Slots)"
-    bag_title.add_theme_font_size_override("font_size", 13)
-    bag_title.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0))
-    bag_col.add_child(bag_title)
-    
-    _inventory_grid = GridContainer.new()
-    _inventory_grid.columns = 4
-    _inventory_grid.add_theme_constant_override("h_separation", 8)
-    _inventory_grid.add_theme_constant_override("v_separation", 8)
-    bag_col.add_child(_inventory_grid)
-    
-    # Coluna 3: Card de Detalhes
-    _details_card = PanelContainer.new()
-    _details_card.custom_minimum_size = Vector2(0, 0)
-    _details_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    
-    var card_box := StyleBoxFlat.new()
-    card_box.bg_color = Color(0.12, 0.15, 0.20, 0.9)
-    card_box.border_width_left = 1
-    card_box.border_width_right = 1
-    card_box.border_width_top = 1
-    card_box.border_width_bottom = 1
-    card_box.border_color = Color(0.35, 0.45, 0.58, 0.7)
-    card_box.corner_radius_top_left = 8
-    card_box.corner_radius_top_right = 8
-    card_box.corner_radius_bottom_left = 8
-    card_box.corner_radius_bottom_right = 8
-    _details_card.add_theme_stylebox_override("panel", card_box)
-    content.add_child(_details_card)
-    
-    var card_margin := MarginContainer.new()
-    card_margin.add_theme_constant_override("margin_left", 12)
-    card_margin.add_theme_constant_override("margin_right", 12)
-    card_margin.add_theme_constant_override("margin_top", 12)
-    card_margin.add_theme_constant_override("margin_bottom", 12)
-    _details_card.add_child(card_margin)
-    
-    var det_vbox := VBoxContainer.new()
-    det_vbox.add_theme_constant_override("separation", 8)
-    card_margin.add_child(det_vbox)
-    
-    # Moldura do retrato, na cor da raridade do item selecionado.
-    _details_moldura = PanelContainer.new()
-    _details_moldura.custom_minimum_size = Vector2(0, 88)
-    _details_moldura.add_theme_stylebox_override("panel", _moldura("Comum", true))
-    det_vbox.add_child(_details_moldura)
-
-    _details_icon = Icone.new("caixa", Color(0.6, 0.66, 0.74))
-    _details_icon.custom_minimum_size = Vector2(0, 80)
-    _details_moldura.add_child(_details_icon)
-    
-    _details_title = Label.new()
-    _details_title.text = "Selecione um item"
-    _details_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _details_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    _details_title.add_theme_font_size_override("font_size", 13)
-    _details_title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
-    det_vbox.add_child(_details_title)
-    
-    _details_tier = Label.new()
-    _details_tier.text = ""
-    _details_tier.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _details_tier.add_theme_font_size_override("font_size", 11)
-    _details_tier.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
-    det_vbox.add_child(_details_tier)
-    
-    _details_stats = Label.new()
-    _details_stats.text = ""
-    _details_stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    _details_stats.add_theme_font_size_override("font_size", 11)
-    _details_stats.add_theme_color_override("font_color", Color(0.4, 0.95, 0.6))
-    det_vbox.add_child(_details_stats)
-    
-    _details_desc = Label.new()
-    _details_desc.text = "Clique em qualquer item equipado ou na mochila para inspecionar seus atributos."
-    _details_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    _details_desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    _details_desc.add_theme_font_size_override("font_size", 10)
-    _details_desc.add_theme_color_override("font_color", Color(0.75, 0.80, 0.85))
-    det_vbox.add_child(_details_desc)
-    
-    _btn_action = Button.new()
-    _btn_action.text = "Usar Item"
-    _btn_action.visible = false
-    _btn_action.custom_minimum_size = Vector2(0, 34)
-    _btn_action.pressed.connect(_on_action_button_pressed)
-    det_vbox.add_child(_btn_action)
-
-func _atualizar_ui_inventario() -> void:
-    _gold_label.text = "%s de ouro" % str(gold_amount)
-    
-    for c in _equipment_grid.get_children():
-        c.queue_free()
-        
-    for slot_name in equipped_slots.keys():
-        var eq_data: Dictionary = equipped_slots[slot_name]
-        var raridade := String(eq_data.get("rarity", "Comum"))
-        var btn := Button.new()
-        btn.custom_minimum_size = Vector2(78, 56)
-        btn.add_theme_font_size_override("font_size", 10)
-        btn.add_theme_color_override("font_color", _cor_da_raridade(raridade).lightened(0.3))
-        btn.tooltip_text = String(eq_data.get("name", ""))
-        var moldura := _moldura(raridade, true)
-        btn.add_theme_stylebox_override("normal", moldura)
-        btn.add_theme_stylebox_override("hover", moldura)
-        btn.add_theme_stylebox_override("pressed", moldura)
-        
-        var captured_item: Dictionary = eq_data
-        btn.pressed.connect(func(): _exibir_detalhes_item(captured_item, true))
-        _equipment_grid.add_child(btn)
-        _vestir_slot(btn, eq_data, slot_name, raridade)
-        
-    for c in _inventory_grid.get_children():
-        c.queue_free()
-        
-    for i in range(20):
-        var vazio := i >= bag_items.size()
-        var item: Dictionary = {} if vazio else bag_items[i]
-        var raridade := String(item.get("rarity", "Comum"))
-
-        var btn := Button.new()
-        btn.custom_minimum_size = Vector2(60, 60)
-        var moldura := _moldura(raridade, not vazio)
-        btn.add_theme_stylebox_override("normal", moldura)
-        btn.add_theme_stylebox_override("hover", moldura)
-        btn.add_theme_stylebox_override("pressed", moldura)
-        _inventory_grid.add_child(btn)
-
-        if vazio:
-            btn.disabled = true
-            # Vazio precisa APARECER. Invisivel, a mochila parecia ter sete
-            # lugares em vez de vinte, e nao se ve quanto espaco ainda ha.
-            var oco := _moldura("Comum", false)
-            oco.bg_color = Color(0.09, 0.11, 0.15, 0.55)
-            oco.border_color = Color(0.26, 0.32, 0.42, 0.75)
-            btn.add_theme_stylebox_override("normal", oco)
-            btn.add_theme_stylebox_override("disabled", oco)
-            continue
-
-        _vestir_slot(btn, item, "", raridade)
-        var guardado: Dictionary = item
-        btn.pressed.connect(func(): _exibir_detalhes_item(guardado, false))
-
-## Poe dentro do botao o icone desenhado, o rotulo e a quantidade.
+# -------------------------------------------------------------
+# Peças de arte
+# -------------------------------------------------------------
+## Uma textura do kit esticada pelos cantos.
 ##
-## Tudo entra como filho que IGNORA o mouse: se qualquer um deles capturasse o
-## clique, o botao embaixo pararia de responder e o slot ficaria morto.
-func _vestir_slot(botao: Button, item: Dictionary, rotulo: String, raridade: String) -> void:
-    var cor := _cor_da_raridade(raridade)
+## NinePatchRect e nao TextureRect: a moldura precisa mudar de tamanho conforme
+## a tela, e so o nine-patch estica o MIOLO deixando cantoneira e ornamento no
+## tamanho em que foram desenhados.
+func _arte(nome: String, borda: Array) -> NinePatchRect:
+    var np := NinePatchRect.new()
+    np.texture = load(KIT + nome + ".png")
+    np.patch_margin_left = borda[0]
+    np.patch_margin_top = borda[1]
+    np.patch_margin_right = borda[2]
+    np.patch_margin_bottom = borda[3]
+    np.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    return np
 
-    var figura := _figura_do_item(item)
-    var icone := Icone.new(figura, _cor_do_icone(item, figura))
+
+func _texto(txt: String, corpo: int, cor: Color, titulo := false) -> Label:
+    var l := Label.new()
+    l.text = txt
+    l.add_theme_font_override("font", load(FONTE_TITULO if titulo else FONTE_TEXTO))
+    l.add_theme_font_size_override("font_size", corpo)
+    l.add_theme_color_override("font_color", cor)
+    # Sombra dura atras do texto: a arte por baixo tem dourado claro e azul
+    # escuro na mesma regiao, e sem ela a legenda some em cima do ornamento.
+    l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.75))
+    l.add_theme_constant_override("shadow_offset_x", 1)
+    l.add_theme_constant_override("shadow_offset_y", 2)
+    return l
+
+
+## Um botao que E a arte do botao: a textura no fundo, o texto por cima.
+func _botao(rotulo: String, arte: String, largura: float, altura := 46.0) -> Button:
+    var b := Button.new()
+    b.custom_minimum_size = Vector2(largura, altura)
+    b.text = rotulo
+    b.add_theme_font_override("font", load(FONTE_TEXTO))
+    b.add_theme_font_size_override("font_size", 17)
+    b.add_theme_color_override("font_color", Color(0.98, 0.94, 0.82))
+    b.add_theme_color_override("font_hover_color", Color(1, 1, 0.92))
+    b.add_theme_color_override("font_pressed_color", Color(0.86, 0.82, 0.70))
+    # O fundo do botao e a arte, entao os estilos do tema tem de sumir — senao
+    # o cinza padrao do Godot aparece por tras da filigrana.
+    for estado in ["normal", "hover", "pressed", "focus", "disabled"]:
+        b.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+
+    var fundo := _arte(arte, BORDA_BOTAO)
+    fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    fundo.show_behind_parent = true
+    b.add_child(fundo)
+    return b
+
+
+# -------------------------------------------------------------
+# A montagem da tela
+# -------------------------------------------------------------
+func _montar() -> void:
+    _fundo = ColorRect.new()
+    # Escurece o jogo sem apagar: a vila continua atras, como na conversa.
+    _fundo.color = Color(0.02, 0.02, 0.05, 0.72)
+    _fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _fundo.mouse_filter = Control.MOUSE_FILTER_STOP
+    add_child(_fundo)
+
+    var proporcao := AspectRatioContainer.new()
+    proporcao.set_anchors_preset(Control.PRESET_FULL_RECT)
+    proporcao.ratio = PROPORCAO
+    proporcao.stretch_mode = AspectRatioContainer.STRETCH_FIT
+    proporcao.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _fundo.add_child(proporcao)
+
+    _janela = Control.new()
+    _janela.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    proporcao.add_child(_janela)
+
+    var moldura := _arte("moldura_painel_grande", BORDA_PAINEL)
+    moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _janela.add_child(moldura)
+
+    # Tudo o que e conteudo mora DENTRO da margem da moldura, senao passa por
+    # cima do ouro.
+    var miolo := MarginContainer.new()
+    miolo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    miolo.add_theme_constant_override("margin_left", 46)
+    miolo.add_theme_constant_override("margin_right", 46)
+    miolo.add_theme_constant_override("margin_top", 26)
+    miolo.add_theme_constant_override("margin_bottom", 30)
+    miolo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _janela.add_child(miolo)
+
+    var coluna := VBoxContainer.new()
+    coluna.add_theme_constant_override("separation", 10)
+    miolo.add_child(coluna)
+
+    coluna.add_child(_cabecalho())
+
+    var corpo := HBoxContainer.new()
+    corpo.add_theme_constant_override("separation", 14)
+    corpo.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    coluna.add_child(corpo)
+
+    corpo.add_child(_coluna_de_filtros())
+    corpo.add_child(_area_da_grade())
+    corpo.add_child(_cartao_de_detalhe())
+
+    coluna.add_child(_barra_de_navegacao())
+
+    _preencher_grade()
+
+
+## O topo: titulo a esquerda, recursos no meio, fechar a direita.
+func _cabecalho() -> Control:
+    var linha := HBoxContainer.new()
+    linha.custom_minimum_size.y = 62
+    linha.add_theme_constant_override("separation", 16)
+
+    var titulo := _texto("Inventário", 40, Color(0.97, 0.84, 0.47), true)
+    titulo.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    linha.add_child(titulo)
+
+    var vao := Control.new()
+    vao.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    linha.add_child(vao)
+
+    _rotulo_bolsa = _ficha(linha, "barra_ficha_bolsa", "%d / 150" % bag_items.size())
+    _ficha(linha, "barra_ficha_moeda", _milhar(gold_amount))
+    _ficha(linha, "barra_ficha_gema", _milhar(gemas))
+
+    var fechar := _botao("✕", "botao_vermelho", 58.0, 52.0)
+    fechar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    fechar.pressed.connect(func(): toggle_inventory(false))
+    linha.add_child(fechar)
+    return linha
+
+
+## Uma ficha de recurso: a arte da moldurinha com o numero ao lado.
+func _ficha(pai: Control, arte: String, valor: String) -> Label:
+    var caixa := HBoxContainer.new()
+    caixa.add_theme_constant_override("separation", 6)
+    caixa.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+    var icone := TextureRect.new()
+    icone.texture = load(KIT + arte + ".png")
+    icone.custom_minimum_size = Vector2(46, 46)
+    icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    caixa.add_child(icone)
+
+    var rotulo := _texto(valor, 20, Color(0.96, 0.90, 0.72))
+    rotulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    caixa.add_child(rotulo)
+
+    pai.add_child(caixa)
+    return rotulo
+
+
+func _coluna_de_filtros() -> Control:
+    var coluna := VBoxContainer.new()
+    coluna.custom_minimum_size.x = 190
+    coluna.add_theme_constant_override("separation", 10)
+
+    for nome in FILTROS:
+        var arte: String = "botao_roxo" if nome == _filtro else "botao_azul"
+        var b := _botao(nome, arte, 180.0, 52.0)
+        b.set_meta("filtro", nome)
+        b.pressed.connect(_trocar_filtro.bind(nome))
+        coluna.add_child(b)
+        _botoes_de_filtro.append(b)
+
+    var vao := Control.new()
+    vao.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    coluna.add_child(vao)
+    return coluna
+
+
+func _area_da_grade() -> Control:
+    var area := Control.new()
+    area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+    var fundo := _arte("moldura_painel_simples", BORDA_CARTAO)
+    fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    area.add_child(fundo)
+
+    var rolagem := ScrollContainer.new()
+    rolagem.set_anchors_preset(Control.PRESET_FULL_RECT)
+    rolagem.offset_left = 18
+    rolagem.offset_top = 22
+    rolagem.offset_right = -18
+    rolagem.offset_bottom = -18
+    rolagem.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    area.add_child(rolagem)
+
+    _grade = GridContainer.new()
+    _grade.columns = COLUNAS
+    _grade.add_theme_constant_override("h_separation", 8)
+    _grade.add_theme_constant_override("v_separation", 8)
+    _grade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    rolagem.add_child(_grade)
+    return area
+
+
+## Um slot: moldura da raridade, arte do item, quantidade no canto.
+func _slot(item: Dictionary) -> Control:
+    var botao := Button.new()
+    botao.custom_minimum_size = Vector2(92, 106)
+    for estado in ["normal", "hover", "pressed", "focus"]:
+        botao.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+    botao.pressed.connect(_selecionar.bind(item))
+
+    var moldura := _arte(MOLDURA_DA_RARIDADE.get(item.get("rarity", "Comum"), "slot_verde"), BORDA_SLOT)
+    moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
+    moldura.show_behind_parent = true
+    botao.add_child(moldura)
+
+    var icone := TextureRect.new()
+    icone.texture = load(KIT + str(item.get("arte", "item/moeda")) + ".png")
     icone.set_anchors_preset(Control.PRESET_FULL_RECT)
-    icone.offset_left = 8
-    icone.offset_right = -8
-    icone.offset_top = 5
-    icone.offset_bottom = -16 if rotulo != "" else -12
+    # Recuo grande: a moldura tem bico em cima e embaixo, e o icone encostado
+    # nele fica com a cabeca cortada pelo ornamento.
+    icone.offset_left = 16
+    icone.offset_right = -16
+    icone.offset_top = 22
+    icone.offset_bottom = -20
+    icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
     botao.add_child(icone)
 
-    if rotulo != "":
-        var nome := Label.new()
-        nome.text = rotulo
+    var qtd := _texto(str(item.get("qtd", 1)), 17, Color(0.99, 0.95, 0.80))
+    qtd.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+    qtd.offset_left = -34
+    qtd.offset_top = -30
+    qtd.offset_right = -12
+    qtd.offset_bottom = -8
+    qtd.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    qtd.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    botao.add_child(qtd)
+    return botao
+
+
+func _cartao_de_detalhe() -> Control:
+    var area := Control.new()
+    area.custom_minimum_size.x = 300
+    area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+    var fundo := _arte("moldura_painel_simples", BORDA_CARTAO)
+    fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    area.add_child(fundo)
+
+    var coluna := VBoxContainer.new()
+    coluna.set_anchors_preset(Control.PRESET_FULL_RECT)
+    coluna.offset_left = 20
+    coluna.offset_top = 26
+    coluna.offset_right = -20
+    coluna.offset_bottom = -20
+    coluna.add_theme_constant_override("separation", 8)
+    area.add_child(coluna)
+
+    var topo := HBoxContainer.new()
+    topo.add_theme_constant_override("separation", 12)
+    coluna.add_child(topo)
+
+    var caixa_icone := Control.new()
+    caixa_icone.custom_minimum_size = Vector2(96, 112)
+    topo.add_child(caixa_icone)
+
+    _det_moldura = _arte("slot_dourado", BORDA_SLOT)
+    _det_moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
+    caixa_icone.add_child(_det_moldura)
+
+    _det_icone = TextureRect.new()
+    _det_icone.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _det_icone.offset_left = 16
+    _det_icone.offset_right = -16
+    _det_icone.offset_top = 24
+    _det_icone.offset_bottom = -20
+    _det_icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    _det_icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    caixa_icone.add_child(_det_icone)
+
+    var textos := VBoxContainer.new()
+    textos.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    textos.add_theme_constant_override("separation", 2)
+    topo.add_child(textos)
+
+    _det_nome = _texto("", 21, Color(0.98, 0.86, 0.52), true)
+    _det_nome.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    textos.add_child(_det_nome)
+    _det_raridade = _texto("", 16, Color(0.76, 0.48, 0.98))
+    textos.add_child(_det_raridade)
+    _det_posse = _texto("", 15, Color(0.80, 0.82, 0.88))
+    textos.add_child(_det_posse)
+
+    var risco := TextureRect.new()
+    risco.texture = load(KIT + "moldura_divisoria_03.png")
+    risco.custom_minimum_size.y = 16
+    risco.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    risco.stretch_mode = TextureRect.STRETCH_SCALE
+    coluna.add_child(risco)
+
+    _det_desc = _texto("", 16, Color(0.84, 0.86, 0.92))
+    _det_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    _det_desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    coluna.add_child(_det_desc)
+
+    for par in [["Usar", "botao_roxo"], ["Dividir", "botao_azul"], ["Descartar", "botao_vermelho"]]:
+        var b := _botao(par[0], par[1], 240.0, 48.0)
+        b.pressed.connect(_acao.bind(par[0]))
+        coluna.add_child(b)
+    return area
+
+
+## A barra de baixo: as oito telas do jogo, cada uma com o seu icone da arte.
+##
+## So o Inventario faz alguma coisa por enquanto — as outras sete telas ainda
+## nao existem. Ficam na barra assim mesmo porque a barra E o conceito: escondê
+## las mudaria o desenho da tela por um motivo temporario.
+const ABAS := [["personagem", "Personagem"], ["talentos", "Talentos"],
+    ["melodia", "Melodia"], ["inventario", "Inventário"], ["missoes", "Missões"],
+    ["mapa", "Mapa"], ["loja", "Loja"], ["lira", "Coleção"]]
+
+func _barra_de_navegacao() -> Control:
+    var linha := HBoxContainer.new()
+    linha.custom_minimum_size.y = 78
+    linha.alignment = BoxContainer.ALIGNMENT_CENTER
+    linha.add_theme_constant_override("separation", 26)
+
+    for aba in ABAS:
+        var caixa := VBoxContainer.new()
+        caixa.add_theme_constant_override("separation", 0)
+
+        var icone := TextureRect.new()
+        icone.texture = load(KIT + "nav/" + aba[0] + ".png")
+        icone.custom_minimum_size = Vector2(48, 48)
+        icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        # A aba aberta fica acesa; as outras, apagadas. E o unico jeito de
+        # mostrar onde se esta sem ter as outras telas prontas.
+        icone.modulate = Color(1, 1, 1) if aba[0] == "inventario" else Color(0.55, 0.55, 0.62)
+        caixa.add_child(icone)
+
+        var nome := _texto(aba[1], 13, Color(0.94, 0.86, 0.62) if aba[0] == "inventario" else Color(0.62, 0.62, 0.68))
         nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-        nome.add_theme_font_size_override("font_size", 9)
-        nome.add_theme_color_override("font_color", cor.lightened(0.35))
-        nome.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-        nome.offset_top = -14
-        nome.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        botao.add_child(nome)
+        caixa.add_child(nome)
 
-    var quantos := int(item.get("qtd", 1))
-    if quantos > 1:
-        var conta := Label.new()
-        conta.text = str(quantos)
-        conta.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-        conta.add_theme_font_size_override("font_size", 11)
-        conta.add_theme_color_override("font_color", Color(0.97, 0.95, 0.88))
-        conta.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-        conta.add_theme_constant_override("outline_size", 4)
-        conta.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-        conta.offset_top = -16
-        conta.offset_right = -5
-        conta.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        botao.add_child(conta)
+        linha.add_child(caixa)
+    return linha
 
-    botao.tooltip_text = String(item.get("name", ""))
 
-func _exibir_detalhes_item(item: Dictionary, is_equipped: bool) -> void:
-    var cor_item := _cor_da_raridade(String(item.get("rarity", "Comum")))
-    if _details_icon:
-        var figura_det := _figura_do_item(item)
-        _details_icon.tipo = figura_det
-        _details_icon.cor = _cor_do_icone(item, figura_det)
-        _details_icon.queue_redraw()
-    if _details_moldura:
-        _details_moldura.add_theme_stylebox_override(
-            "panel", _moldura(String(item.get("rarity", "Comum")), true))
-    _selected_item = item
-    _details_icon.text = str(item.get("icon", "📦"))
-    _details_title.text = str(item.get("name", "Item"))
-    _details_tier.text = "%s  •  %s" % [str(item.get("tier", "T IV")), str(item.get("rarity", "Comum"))]
-    _details_stats.text = str(item.get("stats", ""))
-    _details_desc.text = str(item.get("desc", "Item nobre das terras de Acordelot."))
-    
-    if item.get("tipo", "") == "consumivel":
-        _btn_action.visible = true
-        _btn_action.text = "🧪 Consumir"
-    elif is_equipped:
-        _btn_action.visible = true
-        _btn_action.text = "Desequipar"
-    else:
-        _btn_action.visible = false
+# -------------------------------------------------------------
+# Comportamento
+# -------------------------------------------------------------
+func _preencher_grade() -> void:
+    for filho in _grade.get_children():
+        filho.queue_free()
 
-func _on_action_button_pressed() -> void:
-    if _selected_item.is_empty():
+    var visiveis := _itens_do_filtro()
+    for item in visiveis:
+        _grade.add_child(_slot(item))
+
+    # A grade nunca fica com buraco no fim da fileira: slots vazios completam a
+    # ultima linha, que e o que faz a grade parecer grade e nao lista.
+    var faltam: int = (COLUNAS - visiveis.size() % COLUNAS) % COLUNAS
+    for i in faltam + COLUNAS:
+        var vazio := _arte("slot_verde", BORDA_SLOT)
+        vazio.custom_minimum_size = Vector2(92, 106)
+        vazio.modulate = Color(1, 1, 1, 0.35)
+        _grade.add_child(vazio)
+
+    if visiveis.size() > 0:
+        _selecionar(visiveis[0])
+    if _rotulo_bolsa:
+        _rotulo_bolsa.text = "%d / 150" % bag_items.size()
+
+
+func _itens_do_filtro() -> Array:
+    if _filtro == "Todos":
+        return bag_items
+    var tipo: String = str(TIPO_DO_FILTRO.get(_filtro, ""))
+    return bag_items.filter(func(i): return str(i.get("tipo", "")) == tipo)
+
+
+func _trocar_filtro(nome: String) -> void:
+    _filtro = nome
+    for b in _botoes_de_filtro:
+        var arte: String = "botao_roxo" if str(b.get_meta("filtro")) == nome else "botao_azul"
+        for filho in b.get_children():
+            if filho is NinePatchRect:
+                (filho as NinePatchRect).texture = load(KIT + arte + ".png")
+    _preencher_grade()
+
+
+func _selecionar(item: Dictionary) -> void:
+    _selecionado = item
+    var raridade: String = str(item.get("rarity", "Comum"))
+    _det_icone.texture = load(KIT + str(item.get("arte", "item/moeda")) + ".png")
+    _det_moldura.texture = load(KIT + str(MOLDURA_DA_RARIDADE.get(raridade, "slot_verde")) + ".png")
+    _det_nome.text = str(item.get("name", ""))
+    _det_raridade.text = raridade
+    _det_raridade.add_theme_color_override("font_color", COR_DA_RARIDADE.get(raridade, Color.WHITE))
+    _det_posse.text = "Possui: %d" % int(item.get("qtd", 1))
+    _det_desc.text = str(item.get("desc", ""))
+
+
+func _acao(qual: String) -> void:
+    if _selecionado.is_empty():
         return
-    if _selected_item.get("tipo", "") == "consumivel":
-        var qtd: int = int(_selected_item.get("qtd", 1))
-        if qtd > 1:
-            _selected_item["qtd"] = qtd - 1
-        else:
-            bag_items.erase(_selected_item)
-        item_used.emit(str(_selected_item.get("id", "")))
-        _atualizar_ui_inventario()
+    var ident: String = str(_selecionado.get("id", ""))
+    match qual:
+        "Usar":
+            item_used.emit(ident)
+            _gastar(1)
+        "Descartar":
+            _gastar(int(_selecionado.get("qtd", 1)))
+        _:
+            pass
+
+
+## Tira do saco, e some com o item quando acaba.
+func _gastar(quanto: int) -> void:
+    var restante: int = int(_selecionado.get("qtd", 1)) - quanto
+    if restante > 0:
+        _selecionado["qtd"] = restante
+    else:
+        bag_items.erase(_selecionado)
+        _selecionado = {}
+    _preencher_grade()
+
+
+func _milhar(valor: int) -> String:
+    var texto := str(valor)
+    var saida := ""
+    var conta := 0
+    for i in range(texto.length() - 1, -1, -1):
+        saida = texto[i] + saida
+        conta += 1
+        if conta % 3 == 0 and i > 0:
+            saida = "." + saida
+    return saida
+
+
+func toggle_inventory(force_state = null) -> void:
+    var novo: bool = (not visible) if force_state == null else bool(force_state)
+    visible = novo
+    mouse_filter = Control.MOUSE_FILTER_STOP if novo else Control.MOUSE_FILTER_IGNORE
+    # A grade so existe depois do _ready. Quem chamar antes disso — e o jogo
+    # chama, ligando o botao da mochila na abertura — recebe a tela vazia em vez
+    # de um erro; ela se preenche sozinha ao nascer.
+    if novo and _grade != null:
+        _preencher_grade()

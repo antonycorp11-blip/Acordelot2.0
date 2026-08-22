@@ -95,63 +95,123 @@ func _construir_indicador_mira_chao() -> void:
     _indicador_mira_chao.visible = false
     add_child(_indicador_mira_chao)
 
-    var st := SurfaceTool.new()
-    st.begin(Mesh.PRIMITIVE_TRIANGLES)
-
-    var y_chao := 0.04 # 4 cm acima do solo global
-
-    # 1. Haste principal (retângulo de 0.8m a 20m de alcance)
-    var w := 0.45
-    var z_ini := 0.8
-    var z_fim := 20.0
-
-    st.set_color(Color(0.2, 0.85, 1.0, 0.55))
-    st.add_vertex(Vector3(-w, y_chao, z_ini))
-    st.add_vertex(Vector3(w, y_chao, z_ini))
-    st.add_vertex(Vector3(w, y_chao, z_fim))
-
-    st.add_vertex(Vector3(-w, y_chao, z_ini))
-    st.add_vertex(Vector3(w, y_chao, z_fim))
-    st.add_vertex(Vector3(-w, y_chao, z_fim))
-
-    # 2. Ponta de flecha (de 20m a 24.5m)
-    var w_ponta := 1.7
-    var z_bico := 24.5
-    st.set_color(Color(0.3, 0.95, 1.0, 0.8))
-    st.add_vertex(Vector3(-w_ponta, y_chao, z_fim))
-    st.add_vertex(Vector3(w_ponta, y_chao, z_fim))
-    st.add_vertex(Vector3(0.0, y_chao, z_bico))
-
-    # 3. Linha central brilhante
-    var w_linha := 0.08
-    st.set_color(Color(1.0, 1.0, 1.0, 0.9))
-    st.add_vertex(Vector3(-w_linha, y_chao + 0.01, z_ini))
-    st.add_vertex(Vector3(w_linha, y_chao + 0.01, z_ini))
-    st.add_vertex(Vector3(w_linha, y_chao + 0.01, z_bico - 0.5))
-
-    st.add_vertex(Vector3(-w_linha, y_chao + 0.01, z_ini))
-    st.add_vertex(Vector3(w_linha, y_chao + 0.01, z_bico - 0.5))
-    st.add_vertex(Vector3(-w_linha, y_chao + 0.01, z_bico - 0.5))
-
-    var mesh := st.commit()
+    _malha_da_mira = ImmediateMesh.new()
     var mi := MeshInstance3D.new()
-    mi.mesh = mesh
+    mi.mesh = _malha_da_mira
+    mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    # A caixa e declarada na mao porque a malha muda toda vez: sem isto o motor
+    # calcula os limites a partir do primeiro desenho e some com a seta quando
+    # ela passa a subir a ladeira.
+    mi.custom_aabb = AABB(Vector3(-6.0, -20.0, -2.0), Vector3(12.0, 40.0, 30.0))
 
     var mat := StandardMaterial3D.new()
     mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     mat.vertex_color_use_as_albedo = true
     mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
     mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+    # Nao escreve profundidade: a faixa se sobrepoe a si mesma nas dobras do
+    # relevo, e escrevendo uma fatia recortaria a outra em degrau.
+    mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
     mi.material_override = mat
 
     _indicador_mira_chao.add_child(mi)
 
+
+## A mira DESENHADA SOBRE O RELEVO, fatia por fatia.
+##
+## Antes era uma faixa plana, rigida, na altura dos pes do heroi: bastava a
+## menor ladeira para a metade da frente entrar no barranco, e o jogador mirava
+## no escuro. Agora a faixa e cortada em fatias e cada emenda pergunta ao chao
+## em que altura ela cai — o raio vai de cinco metros acima do ponto ate cinco
+## abaixo, que cobre qualquer degrau que a vila e a floresta tenham.
+##
+## Vinte raios por quadro, e so enquanto o dedo esta arrastando a mira. E o
+## mesmo preco de um tiro de arma qualquer, pago apenas nos segundos em que a
+## habilidade esta sendo apontada.
+const FATIAS := 20
+const ALCANCE_DA_MIRA := 24.5
+## Onde a faixa comeca: colada no heroi ela desenha por cima dos proprios pes.
+const INICIO_DA_MIRA := 0.8
+## Um palmo acima do chao. Menos que isso e a faixa briga com o terreno pelo
+## mesmo pixel e pisca; mais, e ela descola visivelmente na descida.
+const ALTURA_SOBRE_O_CHAO := 0.12
+
+var _malha_da_mira: ImmediateMesh = null
+
+
+func _desenhar_mira(direcao: Vector3) -> void:
+    if _malha_da_mira == null:
+        return
+    _malha_da_mira.clear_surfaces()
+    _malha_da_mira.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+
+    var frente := direcao.normalized()
+    var lado := Vector3(frente.z, 0.0, -frente.x)
+    var origem := global_position
+
+    var passo: float = (ALCANCE_DA_MIRA - INICIO_DA_MIRA) / float(FATIAS)
+    var anterior_esq := Vector3.ZERO
+    var anterior_dir := Vector3.ZERO
+
+    for i in range(FATIAS + 1):
+        var distancia: float = INICIO_DA_MIRA + passo * i
+        var fracao: float = distancia / ALCANCE_DA_MIRA
+        # A faixa afina ate o fim da haste e abre na ponta de flecha.
+        var meia_largura: float = 0.45 if fracao < 0.82 else lerpf(1.7, 0.05, (fracao - 0.82) / 0.18)
+
+        var centro := origem + frente * distancia
+        centro.y = _altura_do_chao(centro) + ALTURA_SOBRE_O_CHAO
+
+        var esq := centro - lado * meia_largura
+        var dir := centro + lado * meia_largura
+
+        if i > 0:
+            var cor := Color(0.2, 0.85, 1.0, lerpf(0.55, 0.85, fracao))
+            _malha_da_mira.surface_set_color(cor)
+            _malha_da_mira.surface_add_vertex(anterior_esq)
+            _malha_da_mira.surface_add_vertex(anterior_dir)
+            _malha_da_mira.surface_add_vertex(dir)
+
+            _malha_da_mira.surface_add_vertex(anterior_esq)
+            _malha_da_mira.surface_add_vertex(dir)
+            _malha_da_mira.surface_add_vertex(esq)
+
+        anterior_esq = esq
+        anterior_dir = dir
+
+    _malha_da_mira.surface_end()
+
+
+## Em que altura esta o chao sob um ponto.
+##
+## Raio de fisica e nao a formula do terreno: a mira tambem serve dentro das
+## cidades e em cima das pontes, onde o chao que vale nao e a malha do relevo.
+func _altura_do_chao(ponto: Vector3) -> float:
+    var espaco := get_world_3d().direct_space_state
+    var consulta := PhysicsRayQueryParameters3D.create(
+        ponto + Vector3.UP * 5.0, ponto + Vector3.DOWN * 5.0)
+    consulta.collide_with_areas = false
+    var achado := espaco.intersect_ray(consulta)
+    # Sem chao embaixo (beira de penhasco, agua): mantem a altura do heroi, que
+    # e melhor do que a faixa despencar para o infinito.
+    return float(achado.position.y) if achado.has("position") else global_position.y
+
+
 func mostrar_mira_laser(direcao_mundo: Vector3) -> void:
-    if _indicador_mira_chao:
-        _indicador_mira_chao.visible = true
-        _indicador_mira_chao.global_position = global_position
-        if direcao_mundo.length_squared() > 0.01:
-            _indicador_mira_chao.global_rotation.y = atan2(direcao_mundo.x, direcao_mundo.z)
+    if _indicador_mira_chao == null:
+        return
+    _indicador_mira_chao.visible = true
+    # A faixa e desenhada em coordenadas do mundo: o no fica na origem para o
+    # desenho nao ser deslocado duas vezes.
+    _indicador_mira_chao.global_position = Vector3.ZERO
+    _indicador_mira_chao.global_rotation = Vector3.ZERO
+    if direcao_mundo.length_squared() > 0.01:
+        _direcao_da_mira = direcao_mundo.normalized()
+    _desenhar_mira(_direcao_da_mira)
+
+
+var _direcao_da_mira := Vector3.FORWARD
+
 
 func esconder_mira_laser() -> void:
     if _indicador_mira_chao:
@@ -222,8 +282,10 @@ func _atualizar_encaixe() -> void:
 func _process(_delta: float) -> void:
     if OS.is_debug_build():
         _atualizar_encaixe()
+    # A mira acompanha o heroi enquanto ele anda: a faixa nasce nos pes dele e
+    # segue o relevo a frente, e as duas coisas mudam quando ele se move.
     if _indicador_mira_chao and _indicador_mira_chao.visible:
-        _indicador_mira_chao.global_position = global_position
+        _desenhar_mira(_direcao_da_mira)
 
 func _fixar_no_lugar(animacao: Animation) -> void:
     if animacao == null:

@@ -407,6 +407,9 @@ def vila_da_estrada():
     # --- a vida da rua: poco, carroca, barris, caixotes, sacos, banco
     pecas += _props_da_vila()
 
+    # --- os quintais: o que enche o fundo e as laterais das casas
+    pecas += _quintais_da_vila()
+
     # O desenho viario vai para o shader do chao: rua no eixo Z, largo no meio,
     # duas travessas. Sem isto a rua e so a ausencia de casa, e o jogador nao
     # ve caminho nenhum.
@@ -453,6 +456,65 @@ def _postes_da_vila():
     for sinal in (-1.0, 1.0):
         postes.append([round(sinal * CALCADA_X, 2), 0.0])
     return postes
+
+
+def _quintais_da_vila():
+    """O fundo e a lateral das casas — o que faltava para a vila parecer morada.
+
+    A rua estava resolvida e o resto era gramado liso: passava-se por tras da
+    fileira e nao havia nada, o que denuncia cenario de fachada, feito so para
+    ser visto de frente.
+
+    Quintal nao e deposito de enfeite. O que entra aqui e o que uma casa produz
+    por existir: lenha empilhada, barril de agua encostado na parede dos fundos,
+    caixote vazio que ninguem levou embora, e a arvore que ja estava no terreno
+    quando a casa foi levantada. Por isso quase tudo fica ATRAS de uma casa
+    especifica, a poucos metros da parede dela — coisa de quintal esta perto da
+    porta dos fundos, nao no meio do campo.
+
+    A faixa util e estreita: entre o fundo da casa (que vai ate uns doze metros
+    do eixo) e os pinheiros de fundo, aos vinte e um. Sobra pouco mais de oito
+    metros de cada lado, e e onde tudo isto mora.
+    """
+    lista = []
+
+    def por(nome, alvo, x, z, giro=0.0, escala=1.0):
+        tag, modelo = alvo
+        lista.append(peca(nome, tag, modelo, x, z, giro=giro, escala=escala))
+
+    # --- quintais da fileira oeste
+    por("quintal_o_caixotes", CAIXOTES, -13.8, 37.6, giro=100.0)
+    por("quintal_o_saco", SACO, -14.9, 35.4, giro=20.0)
+    por("quintal_o_barris", BARRIS, -13.4, 16.8, giro=300.0, escala=0.9)
+    por("quintal_o_caixotes2", CAIXOTES, -13.6, -22.4, giro=215.0)
+    por("quintal_o_saco2", SACO, -14.2, -30.8, giro=75.0)
+    por("quintal_o_barris2", BARRIS, -14.8, 27.5, giro=140.0, escala=0.85)
+
+    # --- quintais da fileira leste
+    por("quintal_l_caixotes", CAIXOTES, 13.6, 37.2, giro=280.0)
+    por("quintal_l_barris", BARRIS, 13.2, 26.4, giro=55.0, escala=0.9)
+    por("quintal_l_saco", SACO, 14.6, -36.2, giro=250.0)
+    por("quintal_l_caixotes2", CAIXOTES, 20.4, -14.5, giro=15.0)
+    por("quintal_l_barris3", BARRIS, 14.2, 15.0, giro=190.0, escala=0.8)
+
+    # --- as arvores que ja estavam no terreno
+    #
+    # Nos quintais, nao na rua: arvore atras da casa da fundo verde a fileira
+    # inteira quando o jogador olha a vila de lado, e e o que separa "casas num
+    # gramado" de "casas com quintal".
+    for ident, x, z, giro in (
+            ("arvore_quintal_o1", -15.6, 24.5, 40.0),
+            ("arvore_quintal_o2", -16.8, -2.0, 200.0),
+            ("arvore_quintal_l1", 16.0, 30.0, 120.0),
+            ("arvore_quintal_l2", 15.8, -27.5, 310.0)):
+        lista.append(peca(ident, "pinheiro", PINHEIRO, x, z, giro=giro))
+
+    # Uma copa grande no fundo do quintal do solar: a casa mais rica da vila e a
+    # unica com sombra propria.
+    lista.append(peca("arvore_do_solar", "arvore_marco", ARVORE_GRANDE,
+                      22.0, -21.5, giro=65.0))
+
+    return lista
 
 
 def _tochas_de_parede():
@@ -574,7 +636,7 @@ def _adornos_da_vila():
     # porta uma hora, e ninguem revisa cem numeros aleatorios.
     verdes = [
         (FLORES[0], -19.5, 30.0), (CAPIM[0], -20.5, 27.0),
-        (FLORES[1], 19.0, 31.5), (CAPIM[1], 20.0, 8.5),
+        (FLORES[1], 19.0, 31.5), (CAPIM[1], 17.0, 11.5),
         (FLORES[2], -20.0, -6.0), (CAPIM[2], -21.0, -30.0),
         (FLORES[0], 21.0, -30.0), (CAPIM[3], 19.5, -22.0),
         (FLORES[1], -13.0, 43.0), (CAPIM[0], 13.5, 43.5),
@@ -583,6 +645,40 @@ def _adornos_da_vila():
     for i, (tex, x, z) in enumerate(verdes):
         alt = 0.85 if "flores" in tex else 1.0
         adornos.append([tex, x, z, alt, float((i * 47) % 360), False])
+
+    # --- as cercas de quintal e o mato dos fundos
+    #
+    # A cerca dos fundos fecha o lote por tras, na mesma linha em toda a
+    # fileira: e ela que diz onde a casa acaba e a mata comeca, e sem esse
+    # limite o quintal se dissolve no gramado. Fica aos dezessete metros e meio,
+    # atras da casa mais funda e na frente dos pinheiros.
+    # Cada lado tem a sua linha e os seus lotes: a leste o solar avanca dez
+    # metros para dentro do quintal e a cerca teve de recuar um metro; a oeste o
+    # casarao de madeira OCUPA o fundo do lote do norte, e ali nao ha quintal
+    # para cercar — cerca dentro de celeiro e o tipo de coisa que so aparece
+    # depois, na tela.
+    for sinal, x_cerca, lotes in ((-1.0, 17.5, (35.0, 25.5, -23.0)),
+                                  (1.0, 18.5, (35.0, 25.5, -23.0, -35.0))):
+        for z_centro in lotes:
+            for k in range(-2, 3):
+                adornos.append([CERCA, round(sinal * x_cerca, 2),
+                                round(z_centro + k * 2.1, 2), 1.4, 90.0, True])
+
+    # O mato encostado na cerca e no fundo das paredes, onde ninguem varre.
+    fundos = [(-13.0, 33.0), (-14.0, 20.0), (-13.5, -18.0), (-14.5, -27.0),
+              (13.5, 33.5), (14.0, 21.5), (13.0, -20.0), (14.5, -32.0),
+              (-19.5, 30.0), (19.5, 27.0), (-19.5, -20.0), (19.5, -33.0),
+              (-16.0, -8.0), (16.5, 12.5)]
+    for i, (x, z) in enumerate(fundos):
+        tex = CAPIM[i % len(CAPIM)] if i % 2 else FLORES[i % len(FLORES)]
+        adornos.append([tex, x, z, 1.0 if i % 2 else 0.85,
+                        float((i * 53) % 360), False])
+
+    # Pedras miudas nos cantos de quintal, onde a enxada nunca chegou.
+    for i, (x, z) in enumerate([(-15.0, 39.5), (15.5, 17.5), (-19.8, -28.0),
+                                (19.0, -3.5), (-19.0, 8.0), (16.5, 40.0)]):
+        adornos.append([PEDRAS[i % len(PEDRAS)], x, z,
+                        0.6 + 0.12 * (i % 3), float((i * 71) % 360), False])
 
     # --- as pedras
     #

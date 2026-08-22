@@ -482,9 +482,14 @@ func _plantar_os_npcs() -> void:
         npc.name = "Npc_" + str(dados[0])
         npc.nome = String(dados[0]).capitalize()
         npc.dialogo = str(dados[4])
+        # Sexto campo, opcional: NPC de missao nao passeia.
+        npc.fixa = bool(dados[5]) if dados.size() > 5 else false
         var px: float = float(dados[1])
         var pz: float = float(dados[2])
-        npc.position = Vector3(px, calcular_altura(px, pz) - 0.1, pz)
+        # Sem enterrar: o proprio npc.gd ja assenta a sola na origem dele, e o
+        # desconto de dez centimetros que os props usam para nao flutuar punha
+        # a Mirella com o pe dentro do chao.
+        npc.position = Vector3(px, calcular_altura(px, pz), pz)
         npc.rotation.y = deg_to_rad(float(dados[3]))
         _props_node.add_child(npc)
 
@@ -801,8 +806,52 @@ func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, escala_m
     modelo.scale = Vector3.ONE * fator
     # Assenta a base exatamente no chão (y = 0 local)
     modelo.position.y = -caixa.position.y * fator
-    
+
+    _regular_custo(modelo, tag)
     return suporte
+
+
+## Quem projeta sombra e ate onde cada coisa e desenhada.
+##
+## A vila cheia media 327 malhas, 789 mil triangulos e 295 delas projetando
+## sombra. O numero que doi e o ultimo: a luz direcional redesenha TODO objeto
+## que projeta sombra, entao 295 sombreadores custam um segundo desenho da cena
+## quase inteira a cada quadro, so para a sombra. Em GPU integrada e no
+## navegador e a diferenca entre correr e engasgar.
+##
+## A regra e de leitura, nao de economia cega: sombra que o jogador percebe e a
+## da CASA e a da ARVORE — massas grandes cujo escuro no chao ancora o objeto no
+## terreno. Ninguem olha para a sombra de um saco de estopa; ela some e a cena
+## continua igual, com um desenho a menos.
+const PROJETA_SOMBRA := [
+    "casa_alta", "casa_larga", "casa_pedra", "casarao", "solar",
+    "arvore_marco", "arvore_gigante",
+    "torre", "moinho", "celeiro", "muralha",
+]
+
+## Ate que distancia cada tamanho de coisa continua sendo desenhado, em metros.
+##
+## Prop pequeno visto de trinta metros na camera de cima ocupa uns poucos
+## pixels: o motor paga o desenho inteiro para pintar quase nada. A margem de
+## cinco metros faz o sumico ser um esmaecer, nao um estalo.
+const ALCANCE_POR_TAG := {
+    "saco": 32.0, "caixotes": 38.0, "barris": 42.0, "banco": 38.0,
+    "tocha_parede": 45.0, "carroca": 55.0, "cogumelo": 45.0, "folhagem": 30.0,
+    "poste": 75.0, "poco": 75.0, "pinheiro": 90.0, "pinheiro_real": 90.0,
+}
+
+
+func _regular_custo(modelo: Node3D, tag: String) -> void:
+    var projeta: bool = tag in PROJETA_SOMBRA
+    var alcance: float = float(ALCANCE_POR_TAG.get(tag, 0.0))
+    for malha in modelo.find_children("*", "MeshInstance3D", true, false):
+        var mi := malha as MeshInstance3D
+        if not projeta:
+            mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        if alcance > 0.0:
+            mi.visibility_range_end = alcance
+            mi.visibility_range_end_margin = 5.0
+            mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 
 func _corrigir_materiais_prop(modelo: Node3D, tag: String) -> void:
     var tem_vento: bool = tag.begins_with("arbusto") or tag.begins_with("folhagem") or tag.begins_with("grama")

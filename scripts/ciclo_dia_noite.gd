@@ -75,8 +75,23 @@ const FORCAS := [
     [21.5, 0.86, 0.56, 0.13],
 ]
 
+## Onde a hora do mundo fica guardada entre uma sessao e outra.
+##
+## Sem isto o jogo abria SEMPRE as 15h30 — a hora escrita na cena. Quem fechava
+## o jogo ao anoitecer voltava no meio da tarde, e o ciclo, que da a volta em
+## oito minutos, parecia nao existir. Um arquivo de uma linha resolve; nao ha
+## save de progresso no projeto e nao e este o momento de inventar um.
+const RELOGIO := "user://relogio.cfg"
+## De quanto em quanto tempo a hora vai para o disco. Gravar todo quadro seria
+## escrever sessenta vezes por segundo para guardar um numero.
+const INTERVALO_DE_GRAVACAO := 15.0
+
+var _ate_gravar := INTERVALO_DE_GRAVACAO
+
+
 func _ready() -> void:
     hora = hora_inicial
+    _carregar_hora()
     # Gancho de teste, no mesmo estilo do --shot do game.gd: `-- --hora=18.5`
     # congela o mundo naquele horario. Sem isso, conferir o entardecer exigiria
     # rodar o jogo e esperar o ciclo chegar la.
@@ -97,6 +112,37 @@ func _process(delta: float) -> void:
         return
     hora = fposmod(hora + delta * (24.0 / (minutos_por_dia * 60.0)), 24.0)
     _aplicar()
+
+    _ate_gravar -= delta
+    if _ate_gravar <= 0.0:
+        _ate_gravar = INTERVALO_DE_GRAVACAO
+        _gravar_hora()
+
+
+## O navegador nem sempre avisa que vai fechar; por isso a gravacao periodica
+## acima e a rede de seguranca, e esta aqui e so o caso educado.
+func _notification(o_que: int) -> void:
+    if o_que == NOTIFICATION_WM_CLOSE_REQUEST or o_que == NOTIFICATION_APPLICATION_PAUSED:
+        _gravar_hora()
+
+
+func _carregar_hora() -> void:
+    # O gancho de linha de comando manda mais que o disco: quem pediu --hora=18.5
+    # quer aquele horario, nao o que ficou da ultima sessao.
+    for argumento in OS.get_cmdline_user_args():
+        if argumento.begins_with("--hora="):
+            return
+    var arquivo := ConfigFile.new()
+    if arquivo.load(RELOGIO) != OK:
+        return
+    var guardada: float = float(arquivo.get_value("mundo", "hora", hora_inicial))
+    hora = fposmod(guardada, 24.0)
+
+
+func _gravar_hora() -> void:
+    var arquivo := ConfigFile.new()
+    arquivo.set_value("mundo", "hora", hora)
+    arquivo.save(RELOGIO)
 
 func _aplicar() -> void:
     var cor := _interpolar(CORES)

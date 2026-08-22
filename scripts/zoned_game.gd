@@ -40,6 +40,8 @@ func _ready() -> void:
     _dialogo.terminou.connect(func():
         if _player:
             _player.set_physics_process(true)
+        if _npc_perto and _npc_perto.has_method("voltar_a_rotina"):
+            _npc_perto.voltar_a_rotina()
         _pintar_botao())
         
     var btn_voo := find_child("BtnVoo", true, false)
@@ -173,6 +175,8 @@ func _conversar() -> void:
         return
     if not _dialogo.comecar(str(_npc_perto.dialogo)):
         return
+    if _npc_perto.has_method("parar_para_conversar"):
+        _npc_perto.parar_para_conversar()
     # O heroi para enquanto conversa. Andar com a caixa aberta faria a NPC
     # ficar para tras falando sozinha.
     if _player:
