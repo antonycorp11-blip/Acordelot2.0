@@ -55,12 +55,16 @@ func _ready() -> void:
     _base_y = position.y + ALTURA
     position.y = _base_y
 
-    var brilho := OmniLight3D.new()
-    brilho.light_color = Color(1.0, 0.86, 0.42)
-    brilho.omni_range = 3.0
-    brilho.light_energy = 1.6
-    brilho.shadow_enabled = false
-    add_child(brilho)
+    # Uma luz por MORTE, nao por moeda: tres claves juntas acendiam tres luzes
+    # pontuais no mesmo metro quadrado, e a terceira nao acrescenta nada que a
+    # primeira ja nao mostre.
+    if get_tree().get_nodes_in_group("moeda_pve").size() <= 1:
+        var brilho := OmniLight3D.new()
+        brilho.light_color = Color(1.0, 0.86, 0.42)
+        brilho.omni_range = 3.2
+        brilho.light_energy = 1.7
+        brilho.shadow_enabled = false
+        add_child(brilho)
 
     get_tree().create_timer(TEMPO_DE_VIDA).timeout.connect(func():
         if is_instance_valid(self) and not _coletada:

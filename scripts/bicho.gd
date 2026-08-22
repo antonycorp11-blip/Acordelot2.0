@@ -432,19 +432,30 @@ func _criar_popup_dano(qtd: float) -> void:
     tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.6)
     tw.tween_callback(lbl.queue_free)
 
-## Quanto vale cada forma, em claves. O anciao larga UMA que vale cinco, e nao
-## cinco moedas: o modelo tem cinquenta mil triangulos e um punhado delas no
-## chao custa mais que o bicho que as largou.
-const CLAVES_POR_FORMA := [1, 2, 5]
+## O que cada forma larga: quantas claves e quanto vale cada uma.
+##
+## Duas ou tres no chao e melhor que uma so — recompensa que se espalha rende
+## aquele instante de catar, e o ima recolhe todas de uma vez quando o jogador
+## passa. Mais que tres nao entra: o modelo tem cinquenta mil triangulos, e um
+## punhado delas custa mais caro que o bicho que as largou.
+##
+##                     quantas, quanto vale cada
+const CLAVES_POR_FORMA := [[1, 50], [2, 100], [3, 200]]
 const MoedaScript := preload("res://scripts/moeda_pve.gd")
 
 func _largar_clave() -> void:
-    var moeda: Node3D = MoedaScript.new()
-    moeda.valor = CLAVES_POR_FORMA[monster_type % CLAVES_POR_FORMA.size()]
-    moeda.position = global_position
-    # No pai, nao em si: o bicho vai sumir em seguida e levaria a moeda junto.
+    var receita: Array = CLAVES_POR_FORMA[monster_type % CLAVES_POR_FORMA.size()]
     var pai := get_parent()
-    if pai:
+    if pai == null:
+        return
+    for i in int(receita[0]):
+        var moeda: Node3D = MoedaScript.new()
+        moeda.valor = int(receita[1])
+        # Espalhadas em volta de onde o bicho caiu, nunca uma dentro da outra.
+        var angulo: float = TAU * (float(i) / maxf(float(receita[0]), 1.0)) + randf() * 0.8
+        var raio: float = 0.0 if receita[0] == 1 else randf_range(0.55, 1.1)
+        moeda.position = global_position + Vector3(cos(angulo) * raio, 0.0, sin(angulo) * raio)
+        # No pai, nao em si: o bicho vai sumir em seguida e levaria a moeda junto.
         pai.add_child(moeda)
 
 
