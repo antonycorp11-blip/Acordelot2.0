@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d3i2ihy7sw3ui"
-path="res://.godot/imported/casa_pedra_4.jpg-66f054cfe553f9d146543e4df1b73846.ctex"
+path.s3tc="res://.godot/imported/casa_pedra_4.jpg-66f054cfe553f9d146543e4df1b73846.s3tc.ctex"
+path.etc2="res://.godot/imported/casa_pedra_4.jpg-66f054cfe553f9d146543e4df1b73846.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e215913d3985cc6d4cbcb36484e3a03e"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://models/casa_pedra_4.jpg"
-dest_files=["res://.godot/imported/casa_pedra_4.jpg-66f054cfe553f9d146543e4df1b73846.ctex"]
+dest_files=["res://.godot/imported/casa_pedra_4.jpg-66f054cfe553f9d146543e4df1b73846.s3tc.ctex", "res://.godot/imported/casa_pedra_4.jpg-66f054cfe553f9d146543e4df1b73846.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=2

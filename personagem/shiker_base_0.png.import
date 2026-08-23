@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cdcdk007eqxs2"
-path="res://.godot/imported/shiker_base_0.png-2365b459e9b56b995948017f64ebf77a.ctex"
+path.s3tc="res://.godot/imported/shiker_base_0.png-2365b459e9b56b995948017f64ebf77a.s3tc.ctex"
+path.etc2="res://.godot/imported/shiker_base_0.png-2365b459e9b56b995948017f64ebf77a.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f5896c83385f82470c0791656fab9744"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://personagem/shiker_base_0.png"
-dest_files=["res://.godot/imported/shiker_base_0.png-2365b459e9b56b995948017f64ebf77a.ctex"]
+dest_files=["res://.godot/imported/shiker_base_0.png-2365b459e9b56b995948017f64ebf77a.s3tc.ctex", "res://.godot/imported/shiker_base_0.png-2365b459e9b56b995948017f64ebf77a.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=2

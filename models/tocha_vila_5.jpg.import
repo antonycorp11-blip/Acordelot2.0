@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://coef11mdbuel4"
-path="res://.godot/imported/tocha_vila_5.jpg-6f3d244f5146a9f65fe1b58cc39bf457.ctex"
+path.s3tc="res://.godot/imported/tocha_vila_5.jpg-6f3d244f5146a9f65fe1b58cc39bf457.s3tc.ctex"
+path.etc2="res://.godot/imported/tocha_vila_5.jpg-6f3d244f5146a9f65fe1b58cc39bf457.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "51233becc8a9c982a4251ec32d015ac2"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://models/tocha_vila_5.jpg"
-dest_files=["res://.godot/imported/tocha_vila_5.jpg-6f3d244f5146a9f65fe1b58cc39bf457.ctex"]
+dest_files=["res://.godot/imported/tocha_vila_5.jpg-6f3d244f5146a9f65fe1b58cc39bf457.s3tc.ctex", "res://.godot/imported/tocha_vila_5.jpg-6f3d244f5146a9f65fe1b58cc39bf457.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=2

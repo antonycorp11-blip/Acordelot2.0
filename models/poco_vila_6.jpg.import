@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dgqo53wmjopwu"
-path="res://.godot/imported/poco_vila_6.jpg-c10943a99c4941a8bc309b1195848093.ctex"
+path.s3tc="res://.godot/imported/poco_vila_6.jpg-c10943a99c4941a8bc309b1195848093.s3tc.ctex"
+path.etc2="res://.godot/imported/poco_vila_6.jpg-c10943a99c4941a8bc309b1195848093.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "cc9df0ef24b1db263faa4e94cf3c5fa8"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://models/poco_vila_6.jpg"
-dest_files=["res://.godot/imported/poco_vila_6.jpg-c10943a99c4941a8bc309b1195848093.ctex"]
+dest_files=["res://.godot/imported/poco_vila_6.jpg-c10943a99c4941a8bc309b1195848093.s3tc.ctex", "res://.godot/imported/poco_vila_6.jpg-c10943a99c4941a8bc309b1195848093.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=2
