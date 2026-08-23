@@ -41,8 +41,8 @@ enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 [importer_defaults]
 
 texture={
-"compress/mode": 2,
-"detect_3d/compress_to": 2,
+"compress/mode": 0,
+"detect_3d/compress_to": 0,
 "mipmaps/generate": true
 }
 
@@ -59,7 +59,6 @@ pointing/emulate_touch_from_mouse=true
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-textures/vram_compression/import_etc2_astc=true
-lights_and_shadows/directional_shadow/size=2048
 lights_and_shadows/directional_shadow/size.mobile=1024
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=1
+"#Omapadesombradaluzdirecional.Opadraoe4096,quenumjogodecamera#altacomsombrasuavenaosedistinguede2048âecustaquatrovezesmais#memoriadevideo,queeorecursoescassonaGPUintegradaenonavegador.lights_and_shadows/directional_shadow/size"=2048

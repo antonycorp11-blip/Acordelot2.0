@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://di1xk4hilop7q"
-path.s3tc="res://.godot/imported/clave_moeda_tripo_node_0c3f3eeb-8f37-4cbe-a21d-d930eba72e4b_Normal_Bake.png-6d678472bc9ce5f624d9299280ff0dec.s3tc.ctex"
-path.etc2="res://.godot/imported/clave_moeda_tripo_node_0c3f3eeb-8f37-4cbe-a21d-d930eba72e4b_Normal_Bake.png-6d678472bc9ce5f624d9299280ff0dec.etc2.ctex"
+path="res://.godot/imported/clave_moeda_tripo_node_0c3f3eeb-8f37-4cbe-a21d-d930eba72e4b_Normal_Bake.png-6d678472bc9ce5f624d9299280ff0dec.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "c4b7ebaca52b0a86144e28ad8cd58cef"
@@ -16,11 +14,11 @@ generator_parameters={
 [deps]
 
 source_file="res://models/clave_moeda_tripo_node_0c3f3eeb-8f37-4cbe-a21d-d930eba72e4b_Normal_Bake.png"
-dest_files=["res://.godot/imported/clave_moeda_tripo_node_0c3f3eeb-8f37-4cbe-a21d-d930eba72e4b_Normal_Bake.png-6d678472bc9ce5f624d9299280ff0dec.s3tc.ctex", "res://.godot/imported/clave_moeda_tripo_node_0c3f3eeb-8f37-4cbe-a21d-d930eba72e4b_Normal_Bake.png-6d678472bc9ce5f624d9299280ff0dec.etc2.ctex"]
+dest_files=["res://.godot/imported/clave_moeda_tripo_node_0c3f3eeb-8f37-4cbe-a21d-d930eba72e4b_Normal_Bake.png-6d678472bc9ce5f624d9299280ff0dec.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -42,4 +40,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=2
+detect_3d/compress_to=0

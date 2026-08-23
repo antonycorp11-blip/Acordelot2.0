@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c64a3s46a1d2r"
-path.s3tc="res://.godot/imported/casarao_madeira_3.jpg-5e8829edf08fe9669d116e7b0d1d8f9a.s3tc.ctex"
-path.etc2="res://.godot/imported/casarao_madeira_3.jpg-5e8829edf08fe9669d116e7b0d1d8f9a.etc2.ctex"
+path="res://.godot/imported/casarao_madeira_3.jpg-5e8829edf08fe9669d116e7b0d1d8f9a.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "6b14535b754613d6624186fbe1c83359"
@@ -16,11 +14,11 @@ generator_parameters={
 [deps]
 
 source_file="res://models/casarao_madeira_3.jpg"
-dest_files=["res://.godot/imported/casarao_madeira_3.jpg-5e8829edf08fe9669d116e7b0d1d8f9a.s3tc.ctex", "res://.godot/imported/casarao_madeira_3.jpg-5e8829edf08fe9669d116e7b0d1d8f9a.etc2.ctex"]
+dest_files=["res://.godot/imported/casarao_madeira_3.jpg-5e8829edf08fe9669d116e7b0d1d8f9a.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -42,4 +40,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=2
+detect_3d/compress_to=0

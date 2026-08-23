@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://s155t5xjarkd"
-path.s3tc="res://.godot/imported/arco_portao.png-144fb55f4725e43e2e89f7a3af3de00c.s3tc.ctex"
-path.etc2="res://.godot/imported/arco_portao.png-144fb55f4725e43e2e89f7a3af3de00c.etc2.ctex"
+path="res://.godot/imported/arco_portao.png-144fb55f4725e43e2e89f7a3af3de00c.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://textures/cidade/arco_portao.png"
-dest_files=["res://.godot/imported/arco_portao.png-144fb55f4725e43e2e89f7a3af3de00c.s3tc.ctex", "res://.godot/imported/arco_portao.png-144fb55f4725e43e2e89f7a3af3de00c.etc2.ctex"]
+dest_files=["res://.godot/imported/arco_portao.png-144fb55f4725e43e2e89f7a3af3de00c.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=2
+detect_3d/compress_to=0

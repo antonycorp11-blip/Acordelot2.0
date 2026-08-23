@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://488plywreoyx"
-path.s3tc="res://.godot/imported/muralha_portao.png-3ff9e7e78f4010257e99e3e1955142e2.s3tc.ctex"
-path.etc2="res://.godot/imported/muralha_portao.png-3ff9e7e78f4010257e99e3e1955142e2.etc2.ctex"
+path="res://.godot/imported/muralha_portao.png-3ff9e7e78f4010257e99e3e1955142e2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://textures/cidade/muralha_portao.png"
-dest_files=["res://.godot/imported/muralha_portao.png-3ff9e7e78f4010257e99e3e1955142e2.s3tc.ctex", "res://.godot/imported/muralha_portao.png-3ff9e7e78f4010257e99e3e1955142e2.etc2.ctex"]
+dest_files=["res://.godot/imported/muralha_portao.png-3ff9e7e78f4010257e99e3e1955142e2.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=2
+detect_3d/compress_to=0
