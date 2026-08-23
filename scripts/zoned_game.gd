@@ -7,6 +7,7 @@ const DialogoScript := preload("res://scripts/dialogo.gd")
 ## Pelo caminho, nao pelo nome global: o nome so existe depois que o editor
 ## varre o projeto, e isso quebra exportacao limpa.
 const AquecimentoScript := preload("res://scripts/aquecimento.gd")
+const AjustesScript := preload("res://scripts/ajustes.gd")
 
 ## A NPC ao alcance, se houver. E ela que decide o que o botao de ataque faz.
 var _npc_perto: Node = null
@@ -59,9 +60,8 @@ func _ready() -> void:
         
     # A mochila do PlayerHUD fica no canto de cima, atras do minimapa no
     # celular — na pratica ninguem achava. Este e o botao que se ve.
-    var btn_inventario := find_child("BtnInventario", true, false)
-    if btn_inventario and inv_ui:
-        btn_inventario.pressed.connect(func(): inv_ui.toggle_inventory())
+    if inv_ui:
+        _criar_botao_inventario(inv_ui)
 
     var btn_voo := find_child("BtnVoo", true, false)
     if btn_voo:
@@ -76,12 +76,17 @@ func _ready() -> void:
         hud_vida.mochila_pedida.connect(func():
             inv_ui.toggle_inventory()
         )
+    # A ESCALA DO MUNDO, escolhida pelo jogador. Aplicada antes de qualquer
+    # tela existir, para o primeiro quadro ja sair no tamanho certo.
+    AjustesScript.aplicar_guardado(get_tree())
+    var ajustes: CanvasLayer = AjustesScript.new()
+    ajustes.name = "Ajustes"
+    add_child(ajustes)
+
+    # A engrenagem passa a abrir os ajustes. O mapa continua a um toque de
+    # distancia pelo proprio botao "Mapa do Reino", embaixo do minimapa.
     if hud_vida and hud_vida.has_signal("config_pedida"):
-        hud_vida.config_pedida.connect(func():
-            var mapa := find_child("ZoneMinimap", true, false)
-            if mapa and mapa.has_method("toggle_world_map"):
-                mapa.toggle_world_map()
-        )
+        hud_vida.config_pedida.connect(func(): ajustes.mostrar(true))
         
     # Conexão dos 3 Botões de Habilidades (Skills)
     var btn_skill1 := find_child("BtnSkill1", true, false)
@@ -150,6 +155,11 @@ func _tirar_print() -> void:
     await get_tree().create_timer(1.5).timeout
     # `-- --shot --inv` abre o inventario antes do clique: conferir tela de menu
     # sem isso exigiria alguem segurando o celular.
+    if OS.get_cmdline_user_args().has("--ajustes"):
+        var aj := find_child("Ajustes", true, false)
+        if aj:
+            aj.mostrar(true)
+        await get_tree().create_timer(0.4).timeout
     if OS.get_cmdline_user_args().has("--inv"):
         var inv := find_child("InventoryUI", true, false)
         if inv:
@@ -179,6 +189,32 @@ func _unhandled_input(event: InputEvent) -> void:
             if _player and _player.has_method("atacar"):
                 _player.atacar()
                 get_viewport().set_input_as_handled()
+
+
+## O botao do inventario, feito em codigo.
+##
+## Ele sumiu da tela do dono quatro vezes, cada uma por um motivo diferente: a
+## textura excluida da exportacao, a borda esquerda cortada pelo aparelho, o pai
+## com ancoragem errada. Nascendo aqui, ancorado ao canto de baixo a direita com
+## medidas proprias, ele nao depende de no de cena nem de retangulo de ninguem.
+func _criar_botao_inventario(inv_ui: Node) -> void:
+    var camada := find_child("HUD", true, false)
+    if camada == null:
+        return
+    var botao := TextureButton.new()
+    botao.name = "BtnInventarioVivo"
+    botao.texture_normal = load("res://textures/ui/btn_inventario.png")
+    botao.ignore_texture_size = true
+    botao.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+    botao.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+    # Acima do arco das skills, longe da borda: o aparelho do dono corta os
+    # primeiros pixels de cada lado.
+    botao.offset_left = -286.0
+    botao.offset_top = -286.0
+    botao.offset_right = -206.0
+    botao.offset_bottom = -206.0
+    botao.pressed.connect(func(): inv_ui.toggle_inventory())
+    camada.add_child(botao)
 
 
 # -------------------------------------------------------------

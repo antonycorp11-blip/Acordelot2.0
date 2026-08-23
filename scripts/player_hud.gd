@@ -45,6 +45,14 @@ signal mochila_pedida
 
 
 func _ready() -> void:
+    # TELA CHEIA, e a primeira coisa.
+    #
+    # O no vinha da cena com ancoragem zero — um retangulo de largura zero no
+    # canto de cima a esquerda. Tudo aqui dentro que se ancora a DIREITA
+    # resolvia contra essa largura zero e ia parar do lado errado da tela: era
+    # por isso que a mochila e a engrenagem apareciam no meio do celular do
+    # dono, e no computador nem apareciam.
+    set_anchors_preset(Control.PRESET_FULL_RECT)
     # O painel em si nao come toque — senao ele engoliria o dedo em toda a
     # metade de cima da tela. Os botoes dentro dele pedem o toque por conta.
     mouse_filter = Control.MOUSE_FILTER_IGNORE
