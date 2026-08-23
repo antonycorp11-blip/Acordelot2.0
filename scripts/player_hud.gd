@@ -60,7 +60,12 @@ func _ready() -> void:
     add_to_group("player_hud")
 
     _montar_retrato_e_barras()
-    _montar_barra_do_alvo()
+    # A BARRA DO ALVO FOI EMBORA.
+    #
+    # Com a barra sobre a cabeca do bicho, esta virou a terceira barra de vida
+    # do mesmo inimigo na tela ao mesmo tempo — uma no alto, uma na cabeca e o
+    # numero. Tres formas de dizer a mesma coisa e ruido, e a da cabeca e a que
+    # o olho ja procura, porque esta onde a briga acontece.
 
 
 func _process(delta: float) -> void:
@@ -131,19 +136,78 @@ func _montar_retrato_e_barras() -> void:
     add_child(canto)
 
     # --- retrato, com o nivel na medalha que ja vem desenhada na arte
-    var retrato := _moldura("res://textures/ui/retrato.png",
+    # O ROSTO E O DO AKLES, recortado da folha de retratos do dialogo.
+    #
+    # A miniatura antiga era um rosto generico que veio junto da moldura: nao
+    # era o personagem, e o jogador percebe. A folha do dialogo ja tem o Akles
+    # em dez expressoes; a neutra e a primeira da grade de cinco por dois.
+    var moldura_retrato := _moldura("res://textures/ui/retrato.png",
         Vector2(LADO_DO_RETRATO, LADO_DO_RETRATO * 265.0 / 254.0), canto)
-    retrato.position = Vector2.ZERO
+    moldura_retrato.position = Vector2.ZERO
+
+    var folha := load("res://textures/dialogo/akles.png") as Texture2D
+    if folha:
+        var corte := AtlasTexture.new()
+        corte.atlas = folha
+        # So a cabeca e os ombros: a celula inteira e rosto e tronco, e o tronco
+        # nao cabe numa miniatura redonda.
+        var celula := Vector2(folha.get_width() / 5.0, folha.get_height() / 2.0)
+        # Recorte QUADRADO em volta da cabeca. A faixa alta e estreita que
+        # estava aqui, esticada num quadro quadrado, cortava o queixo e deixava
+        # so os olhos: a celula da folha e rosto E tronco, e o tronco nao cabe
+        # numa miniatura redonda.
+        corte.region = Rect2(celula.x * 0.22, celula.y * 0.03,
+                             celula.x * 0.56, celula.y * 0.30)
+
+        var rosto := TextureRect.new()
+        rosto.texture = corte
+        rosto.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        rosto.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+        # Dentro do buraco da moldura, que nao ocupa a arte inteira.
+        # Dentro do circulo da moldura, medido na propria arte: o buraco fica
+        # centrado a 45% da largura e 42% da altura, com raio de um terco.
+        rosto.position = Vector2(LADO_DO_RETRATO * 0.16, LADO_DO_RETRATO * 0.11)
+        rosto.size = Vector2(LADO_DO_RETRATO * 0.60, LADO_DO_RETRATO * 0.60)
+        rosto.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        canto.add_child(rosto)
+        # POR CIMA da moldura, e nao atras: a arte traz um rosto generico
+        # pintado e opaco, e por baixo o Akles nunca apareceria. Como o recorte
+        # tem fundo transparente — o magenta ja saiu dele — nao ha canto
+        # quadrado para a moldura precisar esconder.
+
+    # O NUMERO VAI EM CIMA DA MEDALHA QUE A ARTE JA TEM.
+    #
+    # A tentativa de desenhar um disco proprio ao lado dela deixou DOIS numeros
+    # de nivel na tela — o da arte e o meu. A moldura ja traz a medalha
+    # desenhada no pe do retrato; o que faltava era acertar onde ela cai, e a
+    # medida saiu do proprio quadro: quarenta e quatro por cento da largura,
+    # oitenta e dois por cento da altura.
+    # O NUMERO 18 ESTA PINTADO NA ARTE.
+    #
+    # A medalha no pe do retrato nao e um espaco vazio esperando texto: ela vem
+    # com um dezoito desenhado dentro, e nenhuma linha de codigo apaga tinta.
+    # Por isso vai um disco escuro EM CIMA dela, do tamanho dela, e o nivel de
+    # verdade por cima do disco. As medidas saem da imagem: a medalha esta
+    # centrada a 84,5% da largura e 87% da altura.
+    var medalha := Panel.new()
+    var disco := StyleBoxFlat.new()
+    disco.bg_color = Color(0.08, 0.07, 0.05, 1.0)
+    disco.border_color = Color(0.80, 0.64, 0.30)
+    disco.set_border_width_all(2)
+    disco.set_corner_radius_all(int(LADO_DO_RETRATO * 0.15))
+    medalha.add_theme_stylebox_override("panel", disco)
+    medalha.size = Vector2(LADO_DO_RETRATO * 0.30, LADO_DO_RETRATO * 0.30)
+    medalha.position = Vector2(LADO_DO_RETRATO * 0.845, LADO_DO_RETRATO * 0.87) - medalha.size * 0.5
+    medalha.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    canto.add_child(medalha)
 
     var nivel := Label.new()
-    # A medalha esta no canto inferior direito do desenho, a uns 78% da largura
-    # e 82% da altura.
-    nivel.position = Vector2(LADO_DO_RETRATO * 0.62, LADO_DO_RETRATO * 0.70)
-    nivel.size = Vector2(LADO_DO_RETRATO * 0.34, LADO_DO_RETRATO * 0.22)
+    nivel.position = medalha.position
+    nivel.size = medalha.size
     nivel.text = str(player_level)
     nivel.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     nivel.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    nivel.add_theme_font_size_override("font_size", 15)
+    nivel.add_theme_font_size_override("font_size", 16)
     nivel.add_theme_color_override("font_color", Color(1, 1, 1))
     nivel.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.0, 0.95))
     nivel.add_theme_constant_override("outline_size", 4)
@@ -181,20 +245,33 @@ func _montar_retrato_e_barras() -> void:
     _pintar_mana()
 
     # --- engrenagem e mochila, no canto de cima a direita
-    # Abaixo do minimapa, nao ao lado dele: o canto de cima a direita ja e do
-    # radar, e os dois ali por cima cobririam a bussola.
-    var lado := 50.0
-    var topo := 250.0
+    # AO LADO DO MAPA, no alto — o lugar padrao deste tipo de botao em jogo de
+    # celular, e agora ele esta livre: o relogio do dia virou anel em volta do
+    # minimapa e desocupou a faixa de cima.
+    #
+    # Por OFFSET e nao por position: com ancora num canto, "position" continua
+    # medida a partir do canto de cima a esquerda do pai, e era isso que jogava
+    # os dois para fora da tela.
+    var lado := 62.0
+    var topo := 20.0
 
-    var mochila := _botao("res://textures/ui/btn_mochila.png", lado)
-    mochila.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-    mochila.position = Vector2(-lado - 16.0, topo)
-    mochila.pressed.connect(func(): mochila_pedida.emit())
-    add_child(mochila)
+    var inventario := _botao("res://textures/ui/btn_inventario.png", lado)
+    inventario.set_anchors_preset(Control.PRESET_TOP_RIGHT, true)
+    inventario.offset_left = -246.0 - lado
+    inventario.offset_right = -246.0
+    inventario.offset_top = topo
+    inventario.offset_bottom = topo + lado
+    inventario.pressed.connect(func(): mochila_pedida.emit())
+    add_child(inventario)
 
     var config := _botao("res://textures/ui/btn_config.png", lado)
-    config.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-    config.position = Vector2(-lado - 16.0, topo + lado + 10.0)
+    config.set_anchors_preset(Control.PRESET_TOP_RIGHT, true)
+    # AO LADO, na mesma fileira: empilhada embaixo ela descia para a altura do
+    # anel do relogio e disputava espaco com ele.
+    config.offset_left = -246.0 - lado * 2.0 - 10.0
+    config.offset_right = -246.0 - lado - 10.0
+    config.offset_top = topo
+    config.offset_bottom = topo + lado
     config.pressed.connect(func(): config_pedida.emit())
     add_child(config)
 
@@ -277,7 +354,13 @@ func tomar_dano(qtd: float) -> void:
 
 
 ## Mostra a barra do alvo por alguns segundos. Chamada por quem leva o dano.
-func mostrar_alvo(nome: String, vida: float, vida_maxima: float) -> void:
+## Mantida so para nao quebrar quem chama: quem mostra a vida do inimigo agora
+## e a barra sobre a cabeca dele, no proprio mundo.
+func mostrar_alvo(_nome: String, _vida: float, _vida_maxima: float) -> void:
+    return
+
+
+func _mostrar_alvo_antigo(nome: String, vida: float, vida_maxima: float) -> void:
     if _alvo_caixa == null:
         return
     _alvo_caixa.visible = true

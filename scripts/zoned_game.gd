@@ -60,8 +60,10 @@ func _ready() -> void:
         
     # A mochila do PlayerHUD fica no canto de cima, atras do minimapa no
     # celular — na pratica ninguem achava. Este e o botao que se ve.
-    if inv_ui:
-        _criar_botao_inventario(inv_ui)
+    # NAO ha botao proprio de inventario: quem abre e a mochila do PlayerHUD, na
+    # coluna de utilitarios do canto de cima. Ter dois botoes para a mesma tela
+    # so aumentava a HUD — e o que faltava era a mochila aparecer no lugar
+    # certo, coisa que a ancoragem corrigida resolveu.
 
     var btn_voo := find_child("BtnVoo", true, false)
     if btn_voo:
@@ -189,32 +191,6 @@ func _unhandled_input(event: InputEvent) -> void:
             if _player and _player.has_method("atacar"):
                 _player.atacar()
                 get_viewport().set_input_as_handled()
-
-
-## O botao do inventario, feito em codigo.
-##
-## Ele sumiu da tela do dono quatro vezes, cada uma por um motivo diferente: a
-## textura excluida da exportacao, a borda esquerda cortada pelo aparelho, o pai
-## com ancoragem errada. Nascendo aqui, ancorado ao canto de baixo a direita com
-## medidas proprias, ele nao depende de no de cena nem de retangulo de ninguem.
-func _criar_botao_inventario(inv_ui: Node) -> void:
-    var camada := find_child("HUD", true, false)
-    if camada == null:
-        return
-    var botao := TextureButton.new()
-    botao.name = "BtnInventarioVivo"
-    botao.texture_normal = load("res://textures/ui/btn_inventario.png")
-    botao.ignore_texture_size = true
-    botao.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-    botao.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-    # Acima do arco das skills, longe da borda: o aparelho do dono corta os
-    # primeiros pixels de cada lado.
-    botao.offset_left = -286.0
-    botao.offset_top = -286.0
-    botao.offset_right = -206.0
-    botao.offset_bottom = -206.0
-    botao.pressed.connect(func(): inv_ui.toggle_inventory())
-    camada.add_child(botao)
 
 
 # -------------------------------------------------------------

@@ -284,28 +284,97 @@ func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
         atual = atual.get_parent() as Node3D
     return acumulado
 
+## A barra de vida sobre a cabeca, e o nome acima dela.
+##
+## O numero sozinho — que era o que havia — obriga a LER para saber se o bicho
+## esta perto de cair. Barra se entende de relance, no meio da briga, que e
+## quando a informacao serve. O numero continua, menor, embaixo dela.
+##
+## Tudo em quadros deitados com material sem sombreamento e virados para a
+## camera: e o mesmo custo de duas moitas, e nao depende de luz nenhuma para ser
+## lido de noite.
+const LARGURA_DA_BARRA := 0.95
+const ALTURA_DA_BARRA := 0.10
+
+var _barra_cheia: MeshInstance3D = null
+
 func _construir_barra_vida_3d(cfg: Dictionary) -> void:
-    var h: float = float(cfg.get("altura", 2.2)) + 0.6
-    
+    # A ALTURA VEM DO BICHO, nao de um numero fixo: o anciao tem quase tres
+    # metros e o comum menos de dois, e barra em altura fixa fica dentro da
+    # cabeca de um e flutuando sobre o outro.
+    var h: float = float(cfg.get("altura", 2.2)) + 0.22
+
+    var fundo := _quadro(Color(0.06, 0.03, 0.04, 0.85), LARGURA_DA_BARRA, ALTURA_DA_BARRA)
+    fundo.position = Vector3(0.0, h, 0.0)
+    add_child(fundo)
+
+    _barra_cheia = _quadro(Color(0.85, 0.16, 0.16, 0.95), LARGURA_DA_BARRA - 0.04, ALTURA_DA_BARRA - 0.04)
+    _barra_cheia.position = Vector3(0.0, h, 0.01)
+    add_child(_barra_cheia)
+
     _name_label_3d = Label3D.new()
     _name_label_3d.text = str(cfg.get("nome", "Monstro"))
-    _name_label_3d.font_size = 22
+    _name_label_3d.font_size = 17
     _name_label_3d.outline_size = 5
-    _name_label_3d.modulate = Color(1.0, 0.9, 0.5)
+    _name_label_3d.modulate = Color(1.0, 0.9, 0.55)
     _name_label_3d.outline_modulate = Color(0.1, 0.05, 0.02, 0.95)
     _name_label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    _name_label_3d.position = Vector3(0.0, h + 0.45, 0.0)
+    _name_label_3d.position = Vector3(0.0, h + 0.24, 0.0)
     add_child(_name_label_3d)
-    
+
     _hp_label_3d = Label3D.new()
-    _hp_label_3d.text = "❤️ %d / %d" % [int(vida), int(vida_maxima)]
-    _hp_label_3d.font_size = 19
+    _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+    _hp_label_3d.font_size = 13
     _hp_label_3d.outline_size = 4
-    _hp_label_3d.modulate = Color(0.95, 0.3, 0.3)
+    _hp_label_3d.modulate = Color(0.95, 0.75, 0.75)
     _hp_label_3d.outline_modulate = Color(0.15, 0.0, 0.0, 0.95)
     _hp_label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    _hp_label_3d.position = Vector3(0.0, h, 0.0)
+    _hp_label_3d.position = Vector3(0.0, h - 0.15, 0.0)
     add_child(_hp_label_3d)
+
+
+## Um retangulo chapado que sempre encara a camera.
+func _quadro(cor: Color, largura: float, altura: float) -> MeshInstance3D:
+    var quadro := QuadMesh.new()
+    quadro.size = Vector2(largura, altura)
+
+    var material := StandardMaterial3D.new()
+    material.albedo_color = cor
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    material.no_depth_test = false
+    quadro.material = material
+
+    var no := MeshInstance3D.new()
+    no.mesh = quadro
+    no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    return no
+
+
+## Encolhe a barra pela esquerda — e faz isso DENTRO DA MALHA.
+##
+## Aqui estava o defeito que sobrava: o quadro e billboard, ou seja, gira
+## sozinho para encarar a camera, mas a POSICAO do no continua presa ao corpo do
+## bicho, que tambem gira. Deslocar o no meio metro para a esquerda mandava a
+## barra para um lado do MUNDO, nao da tela — e ela aparecia solta, ao lado da
+## criatura, virando conforme o bicho se virava.
+##
+## Mexendo no tamanho e no deslocamento da propria malha, tudo acontece no
+## espaco ja girado pelo billboard: a barra encolhe para a esquerda de quem
+## olha, sempre, esteja o bicho de frente ou de costas.
+func _pintar_barra() -> void:
+    if _barra_cheia == null:
+        return
+    var fracao: float = 0.0 if vida_maxima <= 0.0 else clampf(vida / vida_maxima, 0.0, 1.0)
+    var util: float = LARGURA_DA_BARRA - 0.03
+    var quadro := _barra_cheia.mesh as QuadMesh
+    if quadro == null:
+        return
+    quadro.size = Vector2(maxf(util * fracao, 0.001), ALTURA_DA_BARRA - 0.03)
+    quadro.center_offset = Vector3(-util * (1.0 - fracao) * 0.5, 0.0, 0.0)
+
 
 func _physics_process(delta: float) -> void:
     if _morrendo:
@@ -380,7 +449,8 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
         
     vida = maxf(0.0, vida - quantidade)
     if _hp_label_3d:
-        _hp_label_3d.text = "❤️ %d / %d" % [int(vida), int(vida_maxima)]
+        _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+    _pintar_barra()
         
     _criar_popup_dano(quantidade)
     _avisar_a_barra_do_alvo()
@@ -419,18 +489,32 @@ func _piscar_dano() -> void:
 func _criar_popup_dano(qtd: float) -> void:
     var lbl := Label3D.new()
     lbl.text = "-%d" % int(qtd)
-    lbl.font_size = 28
-    lbl.outline_size = 6
-    lbl.modulate = Color(1.0, 0.85, 0.2)
-    lbl.outline_modulate = Color(0.8, 0.1, 0.1, 1.0)
+    # Mais que o dobro do que era. Numero de dano nao e informacao de leitura
+    # cuidadosa: e um golpe de vista no meio da briga, e a vinte e oito ele
+    # sumia contra o mato.
+    lbl.font_size = 64
+    lbl.outline_size = 12
+    lbl.modulate = Color(1.0, 0.88, 0.25)
+    lbl.outline_modulate = Color(0.35, 0.05, 0.0, 1.0)
     lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    lbl.position = Vector3(randf_range(-0.3, 0.3), 3.2, randf_range(-0.3, 0.3))
+    # Do LADO da cabeca, nao em cima dela: centrado, o numero grande cobria o
+    # bicho justamente no momento em que se quer ver o que ele esta fazendo.
+    var lado: float = 0.7 if randf() > 0.5 else -0.7
+    lbl.position = Vector3(lado, float(_altura_do_corpo()) * 0.75, 0.0)
     add_child(lbl)
-    
+
+    # Sobe pouco e sai rapido: meio segundo basta para ler, e mais que isso
+    # deixa tres numeros empilhados quando o golpe e em sequencia.
     var tw := create_tween()
-    tw.tween_property(lbl, "position:y", lbl.position.y + 1.3, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-    tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.6)
+    tw.tween_property(lbl, "position:y", lbl.position.y + 0.9, 0.55).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+    tw.parallel().tween_property(lbl, "scale", Vector3.ONE * 0.75, 0.55)
+    tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.55).set_delay(0.15)
     tw.tween_callback(lbl.queue_free)
+
+
+func _altura_do_corpo() -> float:
+    var cfg: Dictionary = MONSTROS_CONFIG[monster_type % MONSTROS_CONFIG.size()]
+    return float(cfg.get("altura", 2.2))
 
 ## O que cada forma larga: quantas claves e quanto vale cada uma.
 ##

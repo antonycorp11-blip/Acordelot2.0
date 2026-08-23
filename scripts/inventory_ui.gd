@@ -102,7 +102,7 @@ var _filtro := "Todos"
 var _botoes_de_filtro: Array = []
 
 var _det_icone: TextureRect
-var _det_moldura: NinePatchRect
+var _det_moldura: PanelContainer
 var _det_nome: Label
 var _det_raridade: Label
 var _det_posse: Label
@@ -138,6 +138,20 @@ func _arte(nome: String, borda: Array) -> NinePatchRect:
     return np
 
 
+## Uma caixa de fundo simples: cor, borda fina e canto arredondado.
+##
+## Tres linhas que substituem tres texturas. Nao e economia de arquivo — e de
+## RUIDO: superficie lisa atras do item faz o item aparecer, e superficie
+## trabalhada disputa com ele.
+func _caixa(fundo: Color, borda: Color, espessura := 1, raio := 8) -> StyleBoxFlat:
+    var caixa := StyleBoxFlat.new()
+    caixa.bg_color = fundo
+    caixa.border_color = borda
+    caixa.set_border_width_all(espessura)
+    caixa.set_corner_radius_all(raio)
+    return caixa
+
+
 func _texto(txt: String, corpo: int, cor: Color, titulo := false) -> Label:
     var l := Label.new()
     l.text = txt
@@ -167,11 +181,24 @@ func _botao(rotulo: String, arte: String, largura: float, altura := 54.0) -> But
     for estado in ["normal", "hover", "pressed", "focus", "disabled"]:
         b.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
 
-    var fundo := _arte(arte, BORDA_BOTAO)
-    fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-    fundo.show_behind_parent = true
-    b.add_child(fundo)
+    # O fundo do botao deixou de ser a barra dourada do kit: seis daquelas na
+    # mesma tela eram seis molduras competindo com os itens. Agora e chapa lisa,
+    # e a COR diz a funcao — vermelho descarta, dourado e a acao principal, azul
+    # e o resto.
+    var cor: Color = CORES_DE_BOTAO.get(arte, Color(0.13, 0.17, 0.28))
+    b.add_theme_stylebox_override("normal", _caixa(cor, cor.lightened(0.28)))
+    b.add_theme_stylebox_override("hover", _caixa(cor.lightened(0.12), cor.lightened(0.45)))
+    b.add_theme_stylebox_override("pressed", _caixa(cor.darkened(0.18), cor.lightened(0.2)))
     return b
+
+
+## Quatro cores no jogo inteiro, e cada uma quer dizer uma coisa.
+const CORES_DE_BOTAO := {
+    "botao_roxo": Color(0.20, 0.17, 0.34),
+    "botao_azul": Color(0.11, 0.16, 0.27),
+    "botao_vermelho": Color(0.32, 0.13, 0.15),
+    "botao_dourado": Color(0.34, 0.26, 0.11),
+}
 
 
 # -------------------------------------------------------------
@@ -219,18 +246,27 @@ func _montar() -> void:
     _janela.mouse_filter = Control.MOUSE_FILTER_IGNORE
     proporcao.add_child(_janela)
 
-    var moldura := _arte("moldura_painel_grande", BORDA_PAINEL)
+    # MOLDURA DISCRETA, e nao a filigrana inteira.
+    #
+    # A arte do conceito e desenhada para ser OLHADA; um inventario e usado. Com
+    # a moldura cheia de ouro em volta, mais quatro cores de slot dentro, o olho
+    # nao achava o item — que e a unica coisa que importa nesta tela. Aqui fica
+    # um painel escuro com uma linha de ouro fina: a identidade continua, o
+    # ruido sai, e o que brilha passa a ser o item.
+    var moldura := PanelContainer.new()
     moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
+    moldura.add_theme_stylebox_override("panel", _caixa(Color(0.055, 0.07, 0.13, 0.97), Color(0.62, 0.50, 0.26), 2, 12))
+    moldura.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _janela.add_child(moldura)
 
     # Tudo o que e conteudo mora DENTRO da margem da moldura, senao passa por
     # cima do ouro.
     var miolo := MarginContainer.new()
     miolo.set_anchors_preset(Control.PRESET_FULL_RECT)
-    miolo.add_theme_constant_override("margin_left", 46)
-    miolo.add_theme_constant_override("margin_right", 46)
-    miolo.add_theme_constant_override("margin_top", 26)
-    miolo.add_theme_constant_override("margin_bottom", 30)
+    miolo.add_theme_constant_override("margin_left", 26)
+    miolo.add_theme_constant_override("margin_right", 26)
+    miolo.add_theme_constant_override("margin_top", 20)
+    miolo.add_theme_constant_override("margin_bottom", 18)
     miolo.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _janela.add_child(miolo)
 
@@ -328,8 +364,10 @@ func _area_da_grade() -> Control:
     area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
-    var fundo := _arte("moldura_painel_simples", BORDA_CARTAO)
+    var fundo := PanelContainer.new()
     fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    fundo.add_theme_stylebox_override("panel", _caixa(Color(0.04, 0.055, 0.10, 0.85), Color(0.30, 0.26, 0.18), 1, 10))
+    fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
     area.add_child(fundo)
 
     var rolagem := ScrollContainer.new()
@@ -363,20 +401,23 @@ func _slot(item: Dictionary) -> Control:
     botao.set_drag_forwarding(
         _pegar_arrastado.bind(item), _aceita_soltar, _soltar_em.bind(item))
 
-    var moldura := _arte(MOLDURA_DA_RARIDADE.get(item.get("rarity", "Comum"), "slot_verde"), BORDA_SLOT)
-    moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
-    moldura.show_behind_parent = true
-    botao.add_child(moldura)
+    # A raridade vira UM FIO de cor na borda, nao uma moldura inteira colorida.
+    # Vinte molduras acesas em quatro cores era a tela de carnaval; o fio diz a
+    # mesma coisa e deixa o item ser a parte colorida do slot.
+    var cor: Color = COR_DA_RARIDADE.get(item.get("rarity", "Comum"), Color(0.6, 0.6, 0.6))
+    botao.add_theme_stylebox_override("normal", _caixa(Color(0.09, 0.11, 0.18, 0.9), cor.darkened(0.25), 2))
+    botao.add_theme_stylebox_override("hover", _caixa(Color(0.13, 0.16, 0.24, 0.95), cor, 2))
+    botao.add_theme_stylebox_override("pressed", _caixa(Color(0.16, 0.19, 0.28, 0.95), cor, 2))
 
     var icone := TextureRect.new()
     icone.texture = load(KIT + str(item.get("arte", "item/moeda")) + ".png")
     icone.set_anchors_preset(Control.PRESET_FULL_RECT)
     # Recuo grande: a moldura tem bico em cima e embaixo, e o icone encostado
     # nele fica com a cabeca cortada pelo ornamento.
-    icone.offset_left = 16
-    icone.offset_right = -16
-    icone.offset_top = 22
-    icone.offset_bottom = -20
+    icone.offset_left = 9
+    icone.offset_right = -9
+    icone.offset_top = 8
+    icone.offset_bottom = -14
     icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -432,8 +473,10 @@ func _cartao_de_detalhe() -> Control:
     area.custom_minimum_size.x = 300
     area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
-    var fundo := _arte("moldura_painel_simples", BORDA_CARTAO)
+    var fundo := PanelContainer.new()
     fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    fundo.add_theme_stylebox_override("panel", _caixa(Color(0.04, 0.055, 0.10, 0.85), Color(0.30, 0.26, 0.18), 1, 10))
+    fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
     area.add_child(fundo)
 
     var coluna := VBoxContainer.new()
@@ -453,8 +496,9 @@ func _cartao_de_detalhe() -> Control:
     caixa_icone.custom_minimum_size = Vector2(96, 112)
     topo.add_child(caixa_icone)
 
-    _det_moldura = _arte("slot_dourado", BORDA_SLOT)
+    _det_moldura = PanelContainer.new()
     _det_moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _det_moldura.mouse_filter = Control.MOUSE_FILTER_IGNORE
     caixa_icone.add_child(_det_moldura)
 
     _det_icone = TextureRect.new()
@@ -480,11 +524,13 @@ func _cartao_de_detalhe() -> Control:
     _det_posse = _texto("", 15, Color(0.80, 0.82, 0.88))
     textos.add_child(_det_posse)
 
-    var risco := TextureRect.new()
-    risco.texture = load(KIT + "moldura_divisoria_03.png")
-    risco.custom_minimum_size.y = 16
-    risco.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    risco.stretch_mode = TextureRect.STRETCH_SCALE
+    # Um fio, nao um ornamento: a divisoria dourada do kit tinha mais peso
+    # visual que o nome do item logo acima dela.
+    var risco := Panel.new()
+    risco.custom_minimum_size.y = 1
+    var linha := StyleBoxFlat.new()
+    linha.bg_color = Color(0.45, 0.38, 0.24, 0.8)
+    risco.add_theme_stylebox_override("panel", linha)
     coluna.add_child(risco)
 
     _det_desc = _texto("", 16, Color(0.84, 0.86, 0.92))
@@ -591,9 +637,10 @@ func _preencher_grade() -> void:
     # ultima linha, que e o que faz a grade parecer grade e nao lista.
     var faltam: int = (COLUNAS - visiveis.size() % COLUNAS) % COLUNAS
     for i in faltam + COLUNAS:
-        var vazio := _arte("slot_verde", BORDA_SLOT)
+        var vazio := PanelContainer.new()
         vazio.custom_minimum_size = Vector2(92, 106)
-        vazio.modulate = Color(1, 1, 1, 0.35)
+        vazio.add_theme_stylebox_override("panel", _caixa(Color(0.06, 0.075, 0.13, 0.55), Color(0.22, 0.24, 0.32), 1))
+        vazio.mouse_filter = Control.MOUSE_FILTER_IGNORE
         _grade.add_child(vazio)
 
     if visiveis.size() > 0:
@@ -623,7 +670,8 @@ func _selecionar(item: Dictionary) -> void:
     _selecionado = item
     var raridade: String = str(item.get("rarity", "Comum"))
     _det_icone.texture = load(KIT + str(item.get("arte", "item/moeda")) + ".png")
-    _det_moldura.texture = load(KIT + str(MOLDURA_DA_RARIDADE.get(raridade, "slot_verde")) + ".png")
+    var cor_r: Color = COR_DA_RARIDADE.get(raridade, Color(0.6, 0.6, 0.6))
+    _det_moldura.add_theme_stylebox_override("panel", _caixa(Color(0.09, 0.11, 0.18, 0.9), cor_r, 2))
     _det_nome.text = str(item.get("name", ""))
     _det_raridade.text = raridade
     _det_raridade.add_theme_color_override("font_color", COR_DA_RARIDADE.get(raridade, Color.WHITE))
