@@ -7,6 +7,7 @@ const ITENS := "res://textures/items/notas/"
 const KIT := "res://textures/ui/kit/"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
+const TAMANHO_LAYOUT := Vector2(1600.0, 900.0)
 const NOTAS := [
     ["do", "Dó"], ["do_sustenido", "Dó#"], ["re", "Ré"],
     ["re_sustenido", "Ré#"], ["mi", "Mi"], ["fa", "Fá"],
@@ -40,6 +41,7 @@ var _partituras_criar := {}
 var _partituras_usar := {}
 var _ascensao: Label
 var _botao_ascensao: Button
+var _base_layout: Control
 
 
 func _ready() -> void:
@@ -47,6 +49,8 @@ func _ready() -> void:
     visible = false
     _progresso = get_node_or_null("/root/Progresso")
     _montar()
+    get_viewport().size_changed.connect(_ajustar_ao_celular)
+    _ajustar_ao_celular()
     if _progresso and not _progresso.alterado.is_connected(_atualizar):
         _progresso.alterado.connect(_atualizar)
     _selecionar_nota("do")
@@ -102,14 +106,12 @@ func _montar() -> void:
     sombra.mouse_filter = Control.MOUSE_FILTER_STOP
     add_child(sombra)
 
-    var proporcao := AspectRatioContainer.new()
-    proporcao.set_anchors_preset(Control.PRESET_FULL_RECT)
-    proporcao.ratio = 16.0 / 9.0
-    proporcao.stretch_mode = AspectRatioContainer.STRETCH_FIT
-    sombra.add_child(proporcao)
     var base := Control.new()
-    base.custom_minimum_size = Vector2(1600, 900)
-    proporcao.add_child(base)
+    base.custom_minimum_size = TAMANHO_LAYOUT
+    base.size = TAMANHO_LAYOUT
+    base.pivot_offset = Vector2.ZERO
+    sombra.add_child(base)
+    _base_layout = base
     var arte := TextureRect.new()
     arte.texture = load(FUNDO)
     arte.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -140,6 +142,17 @@ func _montar() -> void:
     _recado.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     _recado.custom_minimum_size.y = 26
     coluna.add_child(_recado)
+
+
+func _ajustar_ao_celular() -> void:
+    if _base_layout == null:
+        return
+    var viewport := get_viewport().get_visible_rect().size
+    if viewport.x <= 0.0 or viewport.y <= 0.0:
+        return
+    var fator := minf(viewport.x / TAMANHO_LAYOUT.x, viewport.y / TAMANHO_LAYOUT.y)
+    _base_layout.scale = Vector2.ONE * fator
+    _base_layout.position = (viewport - TAMANHO_LAYOUT * fator) * 0.5
 
 
 func _cabecalho() -> Control:
@@ -368,7 +381,7 @@ func _criar_partitura(tipo: String) -> void:
 func _usar_partitura(tipo: String) -> void:
     var ok: bool = _progresso != null and _progresso.usar_partitura(tipo)
     if ok:
-        _recado.text = "A experiência da Partitura foi absorvida."
+        _recado.text = "XP adicionada. Abra Personagem e toque em Subir nível quando completar a barra."
     elif _progresso and _progresso.nivel >= _progresso.NIVEL_MAXIMO:
         _recado.text = "Akles já alcançou o nível máximo atual."
     else:

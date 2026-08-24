@@ -25,6 +25,7 @@ var _pontos: Label
 var _poder_total: Label
 var _poder_conta: Label
 var _ascensao: Label
+var _botao_subir_nivel: Button
 var _arma: Label
 var _eco: Label
 var _composicao: Label
@@ -250,9 +251,18 @@ func _painel_akles() -> Control:
     faixa.offset_bottom = -12
     faixa.add_theme_constant_override("separation", 5)
     base.add_child(faixa)
+    var linha_nivel := HBoxContainer.new()
+    linha_nivel.alignment = BoxContainer.ALIGNMENT_CENTER
+    linha_nivel.add_theme_constant_override("separation", 12)
+    faixa.add_child(linha_nivel)
     _nivel = _texto("", 22, Color(0.94, 0.83, 0.52), true)
+    _nivel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _nivel.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    faixa.add_child(_nivel)
+    linha_nivel.add_child(_nivel)
+    _botao_subir_nivel = _botao("Subir nível", 170)
+    _botao_subir_nivel.custom_minimum_size.y = 38
+    _botao_subir_nivel.pressed.connect(_subir_nivel)
+    linha_nivel.add_child(_botao_subir_nivel)
     _xp_barra = ProgressBar.new()
     _xp_barra.custom_minimum_size.y = 20
     _xp_barra.show_percentage = false
@@ -366,6 +376,11 @@ func _investir(id: String) -> void:
         _progresso.investir_atributo(id)
 
 
+func _subir_nivel() -> void:
+    if _progresso:
+        _progresso.subir_nivel()
+
+
 func _atualizar() -> void:
     if _progresso == null or _nivel == null:
         return
@@ -373,6 +388,19 @@ func _atualizar() -> void:
     _xp_barra.max_value = _progresso.xp_para_nivel()
     _xp_barra.value = min(_progresso.experiencia, _progresso.xp_para_nivel())
     _xp_texto.text = "%s / %s XP  •  obtida usando Partituras" % [_milhar(_progresso.experiencia), _milhar(_progresso.xp_para_nivel())]
+    if _progresso.nivel >= _progresso.NIVEL_MAXIMO:
+        _botao_subir_nivel.text = "Nível máximo"
+        _botao_subir_nivel.disabled = true
+    elif _progresso.esta_em_trava_de_ascensao():
+        _botao_subir_nivel.text = "Ascensão necessária"
+        _botao_subir_nivel.disabled = true
+    elif _progresso.pode_subir_nivel():
+        _botao_subir_nivel.text = "Subir nível"
+        _botao_subir_nivel.disabled = false
+    else:
+        var faltam: int = maxi(0, _progresso.xp_para_nivel() - _progresso.experiencia)
+        _botao_subir_nivel.text = "Faltam %s XP" % _milhar(faltam)
+        _botao_subir_nivel.disabled = true
     _pontos.text = "Pontos: %d" % _progresso.pontos_de_atributo
     if _progresso.esta_em_trava_de_ascensao():
         _ascensao.text = "Ascensão do nível %d pendente — conclua na Síntese" % _progresso.nivel

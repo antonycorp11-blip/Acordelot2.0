@@ -119,22 +119,27 @@ func ganhar_experiencia(quantidade: int) -> void:
     if quantidade <= 0 or nivel >= NIVEL_MAXIMO:
         return
     experiencia += quantidade
-    _processar_niveis()
     salvar()
     alterado.emit()
 
 
-func _processar_niveis() -> void:
-    while nivel < NIVEL_MAXIMO and experiencia >= xp_para_nivel():
-        if esta_em_trava_de_ascensao():
-            return
-        experiencia -= xp_para_nivel()
-        nivel += 1
-        pontos_de_atributo += 3
-        nivel_subiu.emit(nivel)
+func pode_subir_nivel() -> bool:
+    return nivel < NIVEL_MAXIMO and not esta_em_trava_de_ascensao() and experiencia >= xp_para_nivel()
+
+
+func subir_nivel() -> bool:
+    if not pode_subir_nivel():
+        return false
+    experiencia -= xp_para_nivel()
+    nivel += 1
+    pontos_de_atributo += 3
+    nivel_subiu.emit(nivel)
     if nivel >= NIVEL_MAXIMO:
         nivel = NIVEL_MAXIMO
         experiencia = 0
+    salvar()
+    alterado.emit()
+    return true
 
 
 ## Batalha nao concede mais XP direto. Shikers deixam Claves; o jogador decide
@@ -174,7 +179,6 @@ func usar_partitura(tipo: String) -> bool:
     recursos[recurso] = quantidade(recurso) - 1
     recurso_alterado.emit(recurso, int(recursos[recurso]))
     experiencia += int(receita.get("xp", 0))
-    _processar_niveis()
     salvar()
     alterado.emit()
     return true
@@ -198,7 +202,6 @@ func tentar_ascensao() -> bool:
         recursos[id] = quantidade(str(id)) - int(custos[id])
         recurso_alterado.emit(str(id), int(recursos[id]))
     ascensoes[nivel] = true
-    _processar_niveis()
     salvar()
     alterado.emit()
     return true
