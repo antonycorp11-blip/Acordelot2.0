@@ -170,6 +170,29 @@ func _tirar_print() -> void:
     # sem isso exigiria alguem segurando o celular.
     # `-- --shot --bicho` planta um Shiker na frente do jogador antes do clique:
     # conferir barra de vida sem isso exige esperar um nascer sozinho.
+    # `-- --norte` sobe o mapa de zona em zona, contando o que acontece em cada
+    # borda: e a unica forma de conferir portal sem alguem andando ate la.
+    if OS.get_cmdline_user_args().has("--norte"):
+        var zm := find_child("ZoneManager", true, false)
+        for salto in 2:
+            await get_tree().create_timer(1.2).timeout
+            var construtor := find_child("ZoneBuilder", true, false)
+            var alvo := Vector3(0.0, 2.0, -68.0)
+            if construtor and construtor.has_method("calcular_altura"):
+                alvo.y = construtor.calcular_altura(alvo.x, alvo.z) + 1.5
+            _player.global_position = alvo
+            var portais := get_tree().root.find_children("Portal_*", "", true, false)
+            var estado := []
+            for pt in portais:
+                estado.append("%s(ativo=%s, z=%.0f, dest=%s)" % [pt.name, str(pt._active), pt.global_position.z, pt.dest_zone_id])
+            print("TESTE salto %d: saindo de %s em %s | portais: %s" % [salto,
+                zm._current_zone_id if zm else "?", str(alvo), ", ".join(estado)])
+            for i in 90:
+                await get_tree().physics_frame
+                _player.global_position.z -= 0.1
+            print("TESTE salto %d: chegou em %s, heroi em %s" % [salto,
+                zm._current_zone_id if zm else "?", str(_player.global_position)])
+
     if OS.get_cmdline_user_args().has("--bicho"):
         var Bicho := load("res://scripts/bicho.gd")
         for i in 2:

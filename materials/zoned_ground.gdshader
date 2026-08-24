@@ -30,6 +30,13 @@ uniform float shore_blend = 0.8;
 uniform vec4 via_principal = vec4(0.0);
 // x = em que Z as travessas cruzam, y = ate que |X| elas vao
 uniform vec2 via_travessa = vec2(0.0);
+// 0 = terra batida, 1 = calcamento de pedra.
+//
+// Vila e cidade tem o mesmo desenho de via e chao diferente, e a diferenca
+// conta a historia: na vila a rua e o chao pisado por quem passa, em Acordelot
+// e chao construido por quem manda. Uma variavel decide qual, e o mesmo shader
+// serve as duas.
+uniform float via_de_pedra = 0.0;
 
 varying vec3 world_pos;
 varying vec3 world_normal;
@@ -100,7 +107,9 @@ void fragment() {
 
         float via = clamp(max(max(rua, largo), travessa), 0.0, 1.0);
         // Terra batida, um tom mais escura que a de fora: chao pisado escurece.
-        base_color = mix(base_color, col_dirt * 0.82, via * 0.92);
+        // Ou pedra, quando a zona pede calcamento.
+        vec3 cor_da_via = mix(col_dirt * 0.82, col_stone * 0.92, via_de_pedra);
+        base_color = mix(base_color, cor_da_via, via * 0.92);
     }
     
     // Encostas rochosas naturais

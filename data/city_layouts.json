@@ -26,7 +26,8 @@
      -16.0,
      3.5,
      30.0
-    ]
+    ],
+    "pedra": true
    },
    "npcs": [
     [
@@ -4502,6 +4503,126 @@
      34.0
     ],
     "rotation": 180.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_sul_o",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     -25.0,
+     41.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_norte_o",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     -25.0,
+     -59.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_sul_l",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     25.0,
+     41.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_norte_l",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     25.0,
+     -59.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_oeste_0",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     -43.0,
+     25.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_oeste_1",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     -43.0,
+     -9.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_oeste_2",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     -43.0,
+     -43.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_leste_0",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     43.0,
+     25.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_leste_1",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     43.0,
+     -9.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "muralha_leste_2",
+    "tag": "muralha",
+    "model": "res://models/muralha_texturizada.glb",
+    "position": [
+     43.0,
+     -43.0
+    ],
+    "rotation": 90.0,
     "scale": 1.0,
     "y": 0.0
    },

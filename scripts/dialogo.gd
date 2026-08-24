@@ -190,6 +190,7 @@ func _pintar() -> void:
     _nome.text = str(fala.get("nome", ""))
     _texto.text = str(fala.get("texto", ""))
     _retrato.texture = _cara(str(fala.get("retrato", "")), str(fala.get("expressao", "neutro")))
+    _assentar_retrato()
     _dica.text = "toque para continuar" if _indice < _falas.size() - 1 else "toque para encerrar"
 
 
@@ -227,6 +228,25 @@ func _cara(quem: String, expressao: String) -> Texture2D:
         largura, altura)
     _atlas[chave] = recorte
     return recorte
+
+
+## Poe o retrato de PE sobre a caixa, seja qual for o formato da folha.
+##
+## O quadro tinha altura fixa e a figura era centrada nele: com a folha da
+## Mirella, alta e estreita, isso funcionava por acidente; com a do Renaldo, que
+## e mais larga que alta, a figura encolhia ate caber na largura e sobrava vao
+## embaixo — o retrato flutuando. Aqui a altura do quadro passa a sair da
+## PROPORCAO da imagem, e o pe fica sempre na mesma linha.
+const LARGURA_DO_RETRATO := 210.0
+
+func _assentar_retrato() -> void:
+    if _retrato == null or _retrato.texture == null:
+        return
+    var t := _retrato.texture
+    var proporcao: float = float(t.get_width()) / maxf(float(t.get_height()), 1.0)
+    var altura: float = LARGURA_DO_RETRATO / maxf(proporcao, 0.05)
+    _retrato.offset_top = -altura + 16.0
+    _retrato.offset_bottom = 16.0
 
 
 func _mostrar(visivel: bool) -> void:

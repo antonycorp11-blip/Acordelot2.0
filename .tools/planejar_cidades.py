@@ -790,6 +790,7 @@ FACHADA_CIDADE = 9.0
 PRACA_Z = -16.0
 PRACA_RAIO = 14.0
 LANE_CIDADE = 3.5
+MURALHA_ACORDELOT = "muralha_texturizada"
 
 
 def cidade_de_acordelot():
@@ -798,10 +799,9 @@ def cidade_de_acordelot():
 
     Quatro decisoes seguram a leitura:
 
-    1. O PORTAO E FEITO DE CASA, nao de muralha. Nenhum modelo de muralha do
-       acervo tem textura, e massinha na porta de entrada e a pior primeira
-       impressao possivel. Duas torres de doze metros ladeando a estrada fazem o
-       mesmo trabalho: estreitam a vista e dizem "aqui comeca a cidade".
+    1. O PORTAO E MARCADO POR DUAS TORRES e pela abertura da muralha. A muralha
+       nova tem textura de pedra de verdade; os modelos antigos sem textura
+       continuam proibidos.
 
     2. A RUA E MAIS LARGA QUE A DA VILA. Dez metros contra oito, com as fachadas
        recuadas a nove. E a mesma gramatica, um degrau acima — e o jogador que
@@ -837,6 +837,22 @@ def cidade_de_acordelot():
         # terminar em telhado seco.
         pecas.append(peca(f"copa_portao_{lado}", "arvore_marco", ARVORE_GRANDE,
                           sinal * 24.0, 34.0, giro=(0.0 if sinal < 0 else 180.0)))
+
+    # --- 1b. A MURALHA
+    #
+    # O segmento novo mede aproximadamente 35 m depois de normalizado para
+    # 6,5 m de altura. Dez copias fecham o retangulo urbano sem picotar a
+    # silhueta e deixam duas aberturas de 13 m, exatamente no eixo dos portais.
+    # Sul: entrada da Vila do Caminho. Norte: continuacao para a Capital.
+    for lado, x in (("o", -25.0), ("l", 25.0)):
+        pecas.append(peca(f"muralha_sul_{lado}", "muralha", MURALHA_ACORDELOT,
+                          x, 41.0, giro=0.0))
+        pecas.append(peca(f"muralha_norte_{lado}", "muralha", MURALHA_ACORDELOT,
+                          x, -59.0, giro=0.0))
+    for lado, x in (("oeste", -43.0), ("leste", 43.0)):
+        for i, z in enumerate((25.0, -9.0, -43.0)):
+            pecas.append(peca(f"muralha_{lado}_{i}", "muralha", MURALHA_ACORDELOT,
+                              x, z, giro=90.0))
 
     # --- 2. A RUA PRINCIPAL: tres lotes de cada lado, entre o portao e a praca
     #
@@ -918,6 +934,9 @@ def cidade_de_acordelot():
             "principal": [MEIA_RUA_CIDADE, 46.0],
             "largo": PRACA_RAIO,
             "travessas": [PRACA_Z, LANE_CIDADE, 30.0],
+            # Rua de PEDRA. Na vila o chao e terra pisada; aqui e calcamento, e
+            # e essa diferenca que diz ao jogador que ele mudou de lugar.
+            "pedra": True,
         },
         "luzes": _postes_de_acordelot(),
         "tochas": _tochas_de_acordelot(),

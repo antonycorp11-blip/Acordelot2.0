@@ -56,6 +56,12 @@ func carregar_dados() -> void:
 func construir_zona(zone_data: Dictionary) -> void:
     _zone_data = zone_data
     carregar_dados()
+
+    # Os ninhos pertencem a zona que esta saindo. Sem limpar esta lista, os
+    # Shikers removidos junto com o mapa antigo voltavam trinta segundos depois
+    # dentro da nova zona — inclusive dentro de Acordelot.
+    _ninhos.clear()
+    _ate_conferir = RITMO_DA_CONFERENCIA
     
     # Limpa nós anteriores
     for c in get_children():
@@ -249,6 +255,7 @@ func _pintar_as_vias(mat: ShaderMaterial) -> void:
         float(vias.get("largo", 0.0)), float(travessas[1])))
     mat.set_shader_parameter("via_travessa", Vector2(
         float(travessas[0]), float(travessas[2])))
+    mat.set_shader_parameter("via_de_pedra", 1.0 if bool(vias.get("pedra", false)) else 0.0)
 
 
 ## Os nove modelos do acervo que tem UV e imagem de verdade.
@@ -266,6 +273,7 @@ const COM_TEXTURA := [
     "medieval_house_1", "medieval_house_3",
     "casa_pedra", "casarao_madeira", "casa_solar",
     "casa_taipa", "casa_torre", "taverna",
+    "muralha_texturizada",
     "poste_vila", "tocha_vila", "poco_vila", "barris_vila",
     "caixotes_vila", "carroca_vila", "saco_vila", "banco_vila",
     "tree_gn", "pine_tree", "mushroom_tree",
@@ -1046,4 +1054,3 @@ func _construir_monstros() -> void:
         # uma vez, na construcao, e nunca mais.
         _ninhos.append({"onde": bicho.position, "tipo": bicho.monster_type,
                         "bicho": bicho, "volta_em": 0.0})
-

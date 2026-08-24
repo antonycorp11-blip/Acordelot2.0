@@ -12,9 +12,24 @@ var _label_3d: Label3D
 var _light: OmniLight3D
 var _active := true
 
+## Quanto tempo o portal fica cego depois de nascer.
+##
+## SEM ISSO O PORTAL NASCE JA GASTO. A zona e construida ANTES de o heroi ser
+## levado para a borda de entrada, e nesse instante ele ainda esta parado nas
+## coordenadas em que estava na zona anterior — que, vindo de um portal, sao as
+## do portal. O novo portal nascia em cima dele, disparava no mesmo quadro e se
+## desligava para sempre; quem tentasse sair por ali depois atravessava e caia
+## fora do mapa. Era o portal da vila para Acordelot.
+##
+## Meio segundo cobre a construcao da zona e o reposicionamento, e e curto
+## demais para o jogador chegar andando.
+const TEMPO_PARA_ARMAR := 0.6
+
 func _ready() -> void:
     collision_layer = 0
     collision_mask = 1 # detecta player
+    _active = false
+    _armar_depois()
     
     var col := CollisionShape3D.new()
     var shape := BoxShape3D.new()
@@ -84,6 +99,11 @@ func _on_body_entered(body: Node3D) -> void:
     if body.is_in_group("player") or body.name == "Player":
         _active = false
         player_entered_portal.emit(dest_zone_id, direction)
+
+func _armar_depois() -> void:
+    await get_tree().create_timer(TEMPO_PARA_ARMAR).timeout
+    _active = true
+
 
 func desativar_temporario(tempo: float = 2.0) -> void:
     _active = false
