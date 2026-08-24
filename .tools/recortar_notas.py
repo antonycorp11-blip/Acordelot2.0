@@ -94,48 +94,43 @@ def separar(prancha: Path, prefixo: str, colunas: int, linhas: int,
 
 
 def criar_corrompidos(destino: Path) -> None:
-    """Cria a leitura roxa dos Shikers sem substituir a arte dos Ecos."""
+    """Preserva a cor natural e sinaliza corrupcao so com particulas roxas."""
     for nome in ALTURAS:
         base = Image.open(destino / f"fragmento_{nome}.png").convert("RGBA")
         alfa = base.getchannel("A")
 
         largura, altura = base.size
-        brilho = alfa.filter(ImageFilter.GaussianBlur(max(4, largura // 40)))
-        brilho = brilho.point(lambda valor: round(valor * 0.68))
-        halo = Image.new("RGBA", base.size, (122, 32, 220, 0))
-        halo.putalpha(brilho)
-
-        violeta = Image.new("RGBA", base.size, (164, 70, 238, 255))
-        tingido = Image.blend(base, violeta, 0.38)
-        tingido.putalpha(alfa)
-
-        fissuras = Image.new("RGBA", base.size, (0, 0, 0, 0))
-        desenho = ImageDraw.Draw(fissuras)
+        particulas = Image.new("RGBA", base.size, (0, 0, 0, 0))
+        nucleos = Image.new("RGBA", base.size, (0, 0, 0, 0))
+        desenho = ImageDraw.Draw(particulas)
+        desenho_nucleos = ImageDraw.Draw(nucleos)
         rng = random.Random(nome)
-        for _ in range(4):
-            x = rng.randint(round(largura * 0.33), round(largura * 0.67))
-            y = rng.randint(round(altura * 0.23), round(altura * 0.75))
-            pontos = [(x, y)]
-            for passo in range(rng.randint(2, 4)):
-                x += rng.randint(round(-largura * 0.08), round(largura * 0.08))
-                y += rng.randint(round(altura * 0.05), round(altura * 0.11))
-                pontos.append((x, y))
-            desenho.line(pontos, fill=(34, 4, 54, 245), width=max(4, largura // 64))
-            desenho.line(pontos, fill=(218, 118, 255, 235), width=max(1, largura // 256))
-        fissuras.putalpha(ImageChops.multiply(fissuras.getchannel("A"), alfa))
+        for _ in range(11):
+            x = rng.randint(round(largura * 0.18), round(largura * 0.82))
+            y = rng.randint(round(altura * 0.12), round(altura * 0.88))
+            raio = rng.randint(2, 5)
+            desenho.ellipse((x - raio * 3, y - raio * 3, x + raio * 3, y + raio * 3),
+                            fill=(122, 36, 232, 150))
+            desenho_nucleos.ellipse((x - raio, y - raio, x + raio, y + raio),
+                                    fill=(224, 156, 255, 230))
+        particulas = particulas.filter(ImageFilter.GaussianBlur(4))
 
         saida = Image.new("RGBA", base.size, (0, 0, 0, 0))
-        saida.alpha_composite(halo)
-        saida.alpha_composite(tingido)
-        saida.alpha_composite(fissuras)
+        saida.alpha_composite(base)
+        saida.alpha_composite(particulas)
+        saida.alpha_composite(nucleos)
         arquivo = destino / f"fragmento_corrompido_{nome}.png"
         saida.save(arquivo, optimize=True)
         print(arquivo.name)
 
 
 def main() -> None:
+    if len(sys.argv) == 3 and sys.argv[1] == "--somente-corrompidos":
+        criar_corrompidos(Path(sys.argv[2]))
+        return
     if len(sys.argv) != 5:
-        raise SystemExit("uso: recortar_notas.py FRAGMENTOS.png NOTAS.png DESTINO INPUT_TRIPO")
+        raise SystemExit("uso: recortar_notas.py FRAGMENTOS.png NOTAS.png DESTINO INPUT_TRIPO\n"
+                         "  ou: recortar_notas.py --somente-corrompidos DESTINO")
     fragmentos, notas, destino, entrada_tripo = map(Path, sys.argv[1:])
     destino.mkdir(parents=True, exist_ok=True)
     entrada_tripo.mkdir(parents=True, exist_ok=True)

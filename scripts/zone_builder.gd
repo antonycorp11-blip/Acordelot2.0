@@ -123,7 +123,7 @@ func _plantar_eco_do_de_teste() -> void:
         return
     var eco := EcoDoNascenteCena.instantiate()
     eco.name = "EcoDoNascente_Teste"
-    eco.modo_demonstracao = true
+    eco.passeio_natural = true
     var x := 4.5
     var z := 4.0
     eco.position = Vector3(x, calcular_altura(x, z) + 0.03, z)

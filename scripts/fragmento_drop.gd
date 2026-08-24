@@ -41,9 +41,7 @@ var _coletado := false
 var _base_y := 0.18
 
 static var _material_limpo: StandardMaterial3D
-static var _material_corrompido: StandardMaterial3D
 static var _malha_aura_limpa: QuadMesh
-static var _malha_aura_corrompida: QuadMesh
 
 
 func _ready() -> void:
@@ -84,9 +82,9 @@ func _montar_modelo() -> void:
         _material_limpo.vertex_color_use_as_albedo = true
         _material_limpo.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
         _material_limpo.roughness = 0.7
-        _material_corrompido = _material_limpo.duplicate()
-        _material_corrompido.albedo_color = Color(0.78, 0.56, 1.0)
-    var material := _material_corrompido if corrompido else _material_limpo
+    # A corrupcao nao recolore a nota: sua identidade cromatica continua
+    # reconhecivel. O roxo pertence apenas a aura e as particulas externas.
+    var material := _material_limpo
     for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
         (malha as MeshInstance3D).material_override = material
         (malha as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -119,14 +117,48 @@ func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
 
 
 func _montar_aura() -> void:
-    if _malha_aura_corrompida == null:
-        _malha_aura_corrompida = _criar_aura(Color(0.68, 0.20, 1.0, 0.72), Color(0.48, 0.10, 0.95))
+    if corrompido:
+        _montar_particulas_roxas()
+        return
+    if _malha_aura_limpa == null:
         _malha_aura_limpa = _criar_aura(Color(0.30, 0.76, 1.0, 0.58), Color(0.15, 0.55, 0.90))
     var aura := MeshInstance3D.new()
-    aura.name = "AuraRoxa" if corrompido else "AuraHarmonica"
-    aura.mesh = _malha_aura_corrompida if corrompido else _malha_aura_limpa
+    aura.name = "AuraHarmonica"
+    aura.mesh = _malha_aura_limpa
     aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     add_child(aura)
+
+
+func _montar_particulas_roxas() -> void:
+    var particulas := GPUParticles3D.new()
+    particulas.name = "ParticulasDeCorrupcao"
+    particulas.amount = 7
+    particulas.lifetime = 1.8
+    particulas.randomness = 0.75
+    particulas.visibility_aabb = AABB(Vector3(-0.8, -0.2, -0.8), Vector3(1.6, 1.8, 1.6))
+    particulas.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    var processo := ParticleProcessMaterial.new()
+    processo.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+    processo.emission_sphere_radius = 0.38
+    processo.direction = Vector3.UP
+    processo.spread = 45.0
+    processo.initial_velocity_min = 0.08
+    processo.initial_velocity_max = 0.22
+    processo.gravity = Vector3.ZERO
+    processo.color = Color(0.70, 0.28, 1.0, 0.78)
+    particulas.process_material = processo
+    var ponto := QuadMesh.new()
+    ponto.size = Vector2(0.045, 0.045)
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = BRILHO
+    material.albedo_color = Color(0.72, 0.34, 1.0, 0.78)
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+    ponto.material = material
+    particulas.draw_pass_1 = ponto
+    add_child(particulas)
 
 
 func _criar_aura(cor: Color, emissao: Color) -> QuadMesh:

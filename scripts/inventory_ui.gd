@@ -51,6 +51,11 @@ const ITENS_DE_RECURSO := [
     ["claves", "Claves", "item/moeda", "Valioso", "valioso", "Moeda PVE deixada pelos Shikers."],
     ["madeira", "Madeira", "item/bolsa", "Comum", "material", "Material coletado de árvores e galhos aproveitáveis."],
     ["pedra", "Pedra", "item/minerio", "Comum", "material", "Material bruto obtido em veios e rochas."],
+    ["partitura_menor", "Partitura Menor", "item/partitura", "Incomum", "consumivel", "Concede 100 XP ao Akles."],
+    ["partitura_harmonica", "Partitura Harmônica", "item/partitura", "Raro", "consumivel", "Concede 500 XP ao Akles ou participa da ascensão do nível 20."],
+    ["partitura_magistral", "Partitura Magistral", "item/partitura", "Épico", "consumivel", "Concede 1.500 XP ao Akles ou participa da ascensão do nível 40."],
+    ["selo_regente", "Selo do Regente", "item/runa", "Épico", "material", "Item de chefe necessário para superar a ascensão do nível 20."],
+    ["nucleo_maestro", "Núcleo do Maestro", "item/gema_roxa", "Lendário", "material", "Item de chefe necessário para superar a ascensão do nível 40."],
     ["fragmento_do", "Fragmento de Dó", "res://textures/items/notas/fragmento_do.png", "Incomum", "material", "Fragmento harmônico de Dó obtido de um Eco Musical."],
     ["fragmento_do_sustenido", "Fragmento de Dó#", "res://textures/items/notas/fragmento_do_sustenido.png", "Incomum", "material", "Fragmento harmônico de Dó sustenido obtido de um Eco Musical."],
     ["fragmento_re", "Fragmento de Ré", "res://textures/items/notas/fragmento_re.png", "Incomum", "material", "Fragmento harmônico de Ré obtido de um Eco Musical."],
@@ -726,6 +731,13 @@ func _acao(qual: String) -> void:
     var ident: String = str(_selecionado.get("id", ""))
     match qual:
         "Usar":
+            if ident.begins_with("partitura_"):
+                var progresso := get_node_or_null("/root/Progresso")
+                var tipo := ident.trim_prefix("partitura_")
+                if progresso and progresso.usar_partitura(tipo):
+                    _sincronizar_recursos()
+                    _preencher_grade()
+                return
             item_used.emit(ident)
             _gastar(1)
         "Descartar":
@@ -761,17 +773,27 @@ func _sincronizar_recursos() -> void:
     var progresso := get_node_or_null("/root/Progresso")
     if progresso == null:
         return
-    if bag_items.is_empty():
-        for dados in ITENS_DE_RECURSO:
-            bag_items.append({
+    var existentes := {}
+    for item in bag_items:
+        existentes[str(item.get("id", ""))] = item
+    for dados in ITENS_DE_RECURSO:
+        var id := str(dados[0])
+        var total: int = progresso.quantidade(id)
+        var item: Dictionary = existentes.get(id, {})
+        if total <= 0:
+            if not item.is_empty():
+                bag_items.erase(item)
+            continue
+        if item.is_empty():
+            item = {
                 "id": dados[0], "name": dados[1], "arte": dados[2],
-                "qtd": progresso.quantidade(str(dados[0])),
                 "tier": dados[3], "rarity": dados[3], "tipo": dados[4],
                 "desc": dados[5],
-            })
-    else:
-        for item in bag_items:
-            item["qtd"] = progresso.quantidade(str(item.get("id", "")))
+            }
+            bag_items.append(item)
+        item["qtd"] = total
+    if not _selecionado.is_empty() and not bag_items.has(_selecionado):
+        _selecionado = {}
     gold_amount = progresso.quantidade("claves")
 
 

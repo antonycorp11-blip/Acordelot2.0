@@ -648,7 +648,6 @@ func _largar_fragmento() -> void:
 
 func _morrer() -> void:
     remove_from_group("bicho")
-    _recompensar_progresso()
     _largar_clave()
     _largar_fragmento()
     _morrendo = true
@@ -671,15 +670,3 @@ func _morrer() -> void:
     tw.tween_interval(queda + 0.35)
     tw.tween_property(_modelo, "scale", Vector3.ZERO, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
     tw.tween_callback(queue_free)
-
-
-## Experiencia entra direto. Claves e fragmentos ficam visiveis no chao e so
-## entram no inventario quando o jogador realmente os coleta.
-const XP_POR_FORMA := [30, 70, 180]
-
-func _recompensar_progresso() -> void:
-    var progresso := get_node_or_null("/root/Progresso")
-    if progresso == null:
-        return
-    var forma := monster_type % XP_POR_FORMA.size()
-    progresso.recompensar_batalha(int(XP_POR_FORMA[forma]), {})

@@ -8,6 +8,17 @@ signal nivel_subiu(novo_nivel: int)
 signal recurso_alterado(id: String, total: int)
 
 const ARQUIVO := "user://progresso.cfg"
+const NIVEL_MAXIMO := 60
+const TRAVAS_DE_ASCENSAO := [20, 40]
+const PARTITURAS := {
+    "menor": {"nome": "Partitura Menor", "custo": 500, "xp": 100, "recurso": "partitura_menor"},
+    "harmonica": {"nome": "Partitura Harmônica", "custo": 2000, "xp": 500, "recurso": "partitura_harmonica"},
+    "magistral": {"nome": "Partitura Magistral", "custo": 5000, "xp": 1500, "recurso": "partitura_magistral"},
+}
+const REQUISITOS_ASCENSAO := {
+    20: {"partitura_harmonica": 3, "selo_regente": 1},
+    40: {"partitura_magistral": 5, "nucleo_maestro": 1},
+}
 const ATRIBUTOS_INICIAIS := {
     "forca": 8,
     "destreza": 7,
@@ -19,6 +30,11 @@ const RECURSOS_INICIAIS := {
     "claves": 0,
     "madeira": 0,
     "pedra": 0,
+    "partitura_menor": 0,
+    "partitura_harmonica": 0,
+    "partitura_magistral": 0,
+    "selo_regente": 0,
+    "nucleo_maestro": 0,
     "fragmento_do": 0,
     "fragmento_corrompido_do": 0,
     "fragmento_do_sustenido": 0,
@@ -77,6 +93,17 @@ var acessorios_equipados := {
     "Amuleto": "amuleto_acorde",
     "Anel I": "anel_ouvido",
 }
+## Fontes reais do Poder de Luta. Ainda nao existem armaduras: o equipamento
+## visivel e a arma; o restante sao acessorios, Eco e composicao harmonica.
+var arma_equipada := "Espada do Despertar"
+var nivel_da_arma := 1
+var niveis_skills := {"ataque_basico": 1, "skill_1": 1, "skill_2": 1, "skill_3": 1}
+var eco_equipado: Dictionary = {}
+var acordes_equipados: Array = []
+## Quando novos personagens jogaveis entrarem, cada ficha registra aqui seu
+## Poder de Luta consolidado. Hoje a conta tem apenas Akles.
+var poder_outros_personagens: Dictionary = {}
+var ascensoes := {20: false, 40: false}
 
 
 func _ready() -> void:
@@ -89,32 +116,92 @@ func xp_para_nivel(qual: int = nivel) -> int:
 
 
 func ganhar_experiencia(quantidade: int) -> void:
-    if quantidade <= 0:
+    if quantidade <= 0 or nivel >= NIVEL_MAXIMO:
         return
     experiencia += quantidade
-    while experiencia >= xp_para_nivel():
-        experiencia -= xp_para_nivel()
-        nivel += 1
-        pontos_de_atributo += 3
-        nivel_subiu.emit(nivel)
+    _processar_niveis()
     salvar()
     alterado.emit()
 
 
-## Uma morte grava uma vez so. Salvar XP, eco e fragmento separadamente causaria
-## exatamente o pequeno engasgo que o projeto ja sofreu na primeira recompensa.
-func recompensar_batalha(xp: int, ganhos: Dictionary) -> void:
-    experiencia += maxi(xp, 0)
-    while experiencia >= xp_para_nivel():
+func _processar_niveis() -> void:
+    while nivel < NIVEL_MAXIMO and experiencia >= xp_para_nivel():
+        if esta_em_trava_de_ascensao():
+            return
         experiencia -= xp_para_nivel()
         nivel += 1
         pontos_de_atributo += 3
         nivel_subiu.emit(nivel)
+    if nivel >= NIVEL_MAXIMO:
+        nivel = NIVEL_MAXIMO
+        experiencia = 0
+
+
+## Batalha nao concede mais XP direto. Shikers deixam Claves; o jogador decide
+## quando transforma-las em Partituras e quando usa essas Partituras.
+func recompensar_batalha(_xp: int, ganhos: Dictionary) -> void:
     for id in ganhos:
         recursos[id] = maxi(0, int(recursos.get(id, 0)) + int(ganhos[id]))
         recurso_alterado.emit(str(id), int(recursos[id]))
     salvar()
     alterado.emit()
+
+
+func criar_partitura(tipo: String) -> bool:
+    var receita: Dictionary = PARTITURAS.get(tipo, {})
+    if receita.is_empty():
+        return false
+    var custo := int(receita.get("custo", 0))
+    if quantidade("claves") < custo:
+        return false
+    recursos["claves"] = quantidade("claves") - custo
+    var recurso := str(receita.get("recurso", ""))
+    recursos[recurso] = quantidade(recurso) + 1
+    recurso_alterado.emit("claves", int(recursos["claves"]))
+    recurso_alterado.emit(recurso, int(recursos[recurso]))
+    salvar()
+    alterado.emit()
+    return true
+
+
+func usar_partitura(tipo: String) -> bool:
+    var receita: Dictionary = PARTITURAS.get(tipo, {})
+    if receita.is_empty() or nivel >= NIVEL_MAXIMO:
+        return false
+    var recurso := str(receita.get("recurso", ""))
+    if quantidade(recurso) <= 0:
+        return false
+    recursos[recurso] = quantidade(recurso) - 1
+    recurso_alterado.emit(recurso, int(recursos[recurso]))
+    experiencia += int(receita.get("xp", 0))
+    _processar_niveis()
+    salvar()
+    alterado.emit()
+    return true
+
+
+func esta_em_trava_de_ascensao() -> bool:
+    return nivel in TRAVAS_DE_ASCENSAO and not bool(ascensoes.get(nivel, false))
+
+
+func requisitos_da_ascensao() -> Dictionary:
+    return (REQUISITOS_ASCENSAO.get(nivel, {}) as Dictionary).duplicate(true)
+
+
+func tentar_ascensao() -> bool:
+    if not esta_em_trava_de_ascensao():
+        return false
+    var custos := requisitos_da_ascensao()
+    if not pode_pagar(custos):
+        return false
+    for id in custos:
+        recursos[id] = quantidade(str(id)) - int(custos[id])
+        recurso_alterado.emit(str(id), int(recursos[id]))
+    ascensoes[nivel] = true
+    _processar_niveis()
+    salvar()
+    alterado.emit()
+    return true
 
 
 func investir_atributo(id: String) -> bool:
@@ -213,6 +300,56 @@ func estatisticas() -> Dictionary:
     }
 
 
+func poder_de_luta_detalhado() -> Dictionary:
+    var soma_atributos := 0
+    for id in ATRIBUTOS_INICIAIS:
+        soma_atributos += valor_atributo(str(id))
+    var poder_nivel := nivel * 100
+    var poder_atributos := soma_atributos * 12
+    var poder_arma := nivel_da_arma * 75 + 125
+    var poder_acessorios := 0
+    var raridades := {"Comum": 0, "Incomum": 20, "Raro": 50, "Épico": 90, "Lendário": 150}
+    for slot in acessorios_equipados:
+        var acessorio: Dictionary = ACESSORIOS.get(str(acessorios_equipados[slot]), {})
+        if acessorio.is_empty():
+            continue
+        var bonus_total := 0
+        for valor in (acessorio.get("bonus", {}) as Dictionary).values():
+            bonus_total += int(valor)
+        poder_acessorios += 55 + bonus_total * 20 + int(raridades.get(str(acessorio.get("raridade", "Comum")), 0))
+    var poder_eco := int(eco_equipado.get("poder", 0))
+    var poder_composicao := 0
+    for acorde in acordes_equipados:
+        if acorde is Dictionary:
+            poder_composicao += int(acorde.get("poder", 0))
+    var soma_skills := 0
+    for valor in niveis_skills.values():
+        soma_skills += int(valor)
+    var poder_skills := soma_skills * 35
+    return {
+        "total": poder_nivel + poder_atributos + poder_arma + poder_acessorios + poder_eco + poder_composicao + poder_skills,
+        "nivel": poder_nivel,
+        "atributos": poder_atributos,
+        "arma": poder_arma,
+        "acessorios": poder_acessorios,
+        "eco": poder_eco,
+        "composicao": poder_composicao,
+        "skills": poder_skills,
+        "soma_atributos": soma_atributos,
+        "soma_skills": soma_skills,
+    }
+
+
+func poder_de_luta_da_conta() -> int:
+    var total := int(poder_de_luta_detalhado()["total"])
+    for valor in poder_outros_personagens.values():
+        if valor is Dictionary:
+            total += int(valor.get("poder", 0))
+        else:
+            total += int(valor)
+    return total
+
+
 func acessorio_no_slot(slot: String) -> Dictionary:
     var id := str(acessorios_equipados.get(slot, ""))
     var item: Dictionary = ACESSORIOS.get(id, {}).duplicate(true)
@@ -227,6 +364,13 @@ func salvar() -> void:
     cfg.set_value("personagem", "experiencia", experiencia)
     cfg.set_value("personagem", "pontos", pontos_de_atributo)
     cfg.set_value("personagem", "atributos", atributos)
+    cfg.set_value("personagem", "ascensoes", ascensoes)
+    cfg.set_value("poder", "arma", arma_equipada)
+    cfg.set_value("poder", "nivel_arma", nivel_da_arma)
+    cfg.set_value("poder", "skills", niveis_skills)
+    cfg.set_value("poder", "eco", eco_equipado)
+    cfg.set_value("poder", "acordes", acordes_equipados)
+    cfg.set_value("poder", "outros_personagens", poder_outros_personagens)
     cfg.set_value("inventario", "recursos", recursos)
     cfg.set_value("inventario", "acessorios", acessorios_equipados)
     cfg.save(ARQUIVO)
@@ -236,7 +380,7 @@ func carregar() -> void:
     var cfg := ConfigFile.new()
     if cfg.load(ARQUIVO) != OK:
         return
-    nivel = maxi(1, int(cfg.get_value("personagem", "nivel", nivel)))
+    nivel = clampi(int(cfg.get_value("personagem", "nivel", nivel)), 1, NIVEL_MAXIMO)
     experiencia = maxi(0, int(cfg.get_value("personagem", "experiencia", experiencia)))
     pontos_de_atributo = maxi(0, int(cfg.get_value("personagem", "pontos", pontos_de_atributo)))
     var attrs = cfg.get_value("personagem", "atributos", {})
@@ -250,3 +394,25 @@ func carregar() -> void:
     var equipados = cfg.get_value("inventario", "acessorios", {})
     if equipados is Dictionary:
         acessorios_equipados = equipados.duplicate(true)
+    var asc_salvas = cfg.get_value("personagem", "ascensoes", {})
+    if asc_salvas is Dictionary:
+        for trava in TRAVAS_DE_ASCENSAO:
+            ascensoes[trava] = bool(asc_salvas.get(trava, asc_salvas.get(str(trava), nivel > trava)))
+    else:
+        ascensoes[20] = nivel > 20
+        ascensoes[40] = nivel > 40
+    arma_equipada = str(cfg.get_value("poder", "arma", arma_equipada))
+    nivel_da_arma = maxi(1, int(cfg.get_value("poder", "nivel_arma", nivel_da_arma)))
+    var skills_salvas = cfg.get_value("poder", "skills", {})
+    if skills_salvas is Dictionary:
+        for id in niveis_skills:
+            niveis_skills[id] = maxi(1, int(skills_salvas.get(id, niveis_skills[id])))
+    var eco_salvo = cfg.get_value("poder", "eco", {})
+    if eco_salvo is Dictionary:
+        eco_equipado = eco_salvo.duplicate(true)
+    var acordes_salvos = cfg.get_value("poder", "acordes", [])
+    if acordes_salvos is Array:
+        acordes_equipados = acordes_salvos.duplicate(true)
+    var outros_salvos = cfg.get_value("poder", "outros_personagens", {})
+    if outros_salvos is Dictionary:
+        poder_outros_personagens = outros_salvos.duplicate(true)

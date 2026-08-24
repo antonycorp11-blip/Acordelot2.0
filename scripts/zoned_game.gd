@@ -231,6 +231,11 @@ func _tirar_print() -> void:
         if f:
             f.mostrar(true)
         await get_tree().create_timer(0.4).timeout
+    if OS.get_cmdline_user_args().has("--sintese"):
+        var s := find_child("TelaSintese", true, false)
+        if s:
+            s.mostrar(true)
+        await get_tree().create_timer(0.4).timeout
     if OS.get_cmdline_user_args().has("--fala"):
         if _dialogo:
             _dialogo.comecar("renaldo_portao" if OS.get_cmdline_user_args().has("--renaldo") else "mirella_boas_vindas")

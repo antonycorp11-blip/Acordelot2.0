@@ -6,7 +6,8 @@ class_name EcoDoNascente
 @export_range(1.0, 4.0, 0.1) var periodo_flutuacao: float = 2.1
 @export var velocidade_normal: float = 1.15
 @export var velocidade_corrida: float = 2.25
-@export var modo_demonstracao: bool = false
+@export var passeio_natural: bool = false
+@export_range(1.0, 8.0, 0.25) var raio_do_passeio: float = 3.5
 
 @onready var visual: Node3D = $Visual
 @onready var sprite: AnimatedSprite3D = $Visual/AnimatedSprite3D
@@ -19,8 +20,11 @@ var _acao_uma_vez := false
 var _desaparecido := false
 var _altura_visual_inicial := 0.46
 var _tempo_flutuacao := 0.0
-var _fase_demo := 0
-var _tempo_demo := 2.0
+var _origem_do_passeio := Vector3.ZERO
+var _destino_do_passeio := Vector3.ZERO
+var _espera_do_passeio := 1.4
+var _sorte := RandomNumberGenerator.new()
+var _ate_assentar := 0.0
 
 
 func _ready() -> void:
@@ -30,6 +34,9 @@ func _ready() -> void:
     sprite.pixel_size = altura_aparente_m / 150.0
     sprite.animation_finished.connect(_ao_terminar_animacao)
     sprite.play(&"idle")
+    _origem_do_passeio = global_position
+    _destino_do_passeio = global_position
+    _sorte.seed = hash(name + str(get_instance_id()))
 
 
 func _process(delta: float) -> void:
@@ -38,12 +45,17 @@ func _process(delta: float) -> void:
     _tempo_flutuacao += delta
     visual.position.y = _altura_visual_inicial + sin(_tempo_flutuacao * TAU / periodo_flutuacao) * amplitude_flutuacao
 
+    if passeio_natural and not _acao_uma_vez:
+        _processar_passeio(delta)
+
     if not _acao_uma_vez and _direcao.length_squared() > 0.001:
         var velocidade := velocidade_corrida if _rapido else velocidade_normal
         position += _direcao * velocidade * delta
-
-    if modo_demonstracao:
-        _processar_demonstracao(delta)
+        _virar_para_o_movimento()
+        _ate_assentar -= delta
+        if _ate_assentar <= 0.0:
+            _ate_assentar = 0.12
+            _assentar_no_terreno()
 
 
 ## Move a raiz fisica no plano X/Z. O sprite jamais simula deslocamento.
@@ -120,35 +132,41 @@ func _atualizar_animacao_de_movimento() -> void:
         sprite.play(&"walk")
 
 
-## Exercita, em um quadrado pequeno, idle/walk/run/attack/hurt no unico Eco
-## de validacao. As idas e voltas se anulam para ele nao abandonar o jogador.
-func _processar_demonstracao(delta: float) -> void:
-    if _acao_uma_vez:
-        return
-    _tempo_demo -= delta
-    if _tempo_demo > 0.0:
-        return
-    match _fase_demo:
-        0:
-            definir_movimento(Vector3.RIGHT)
-            _tempo_demo = 0.9
-        1:
-            definir_movimento(Vector3.LEFT)
-            _tempo_demo = 0.9
-        2:
-            definir_movimento(Vector3.FORWARD, true)
-            _tempo_demo = 0.45
-        3:
-            definir_movimento(Vector3.BACK, true)
-            _tempo_demo = 0.45
-        4:
+## O Eco e pacifico com humanos: esta rotina apenas escolhe pequenos destinos,
+## caminha, muda de direcao e descansa. Nenhum ataque e disparado por ela.
+func _processar_passeio(delta: float) -> void:
+    if _direcao.length_squared() > 0.001:
+        var restante := Vector2(_destino_do_passeio.x - global_position.x,
+            _destino_do_passeio.z - global_position.z)
+        if restante.length() <= 0.18:
             parar()
-            play_attack()
-            _tempo_demo = 0.85
-        5:
-            play_hurt()
-            _tempo_demo = 0.70
-        _:
-            parar()
-            _tempo_demo = 2.0
-    _fase_demo = (_fase_demo + 1) % 7
+            _espera_do_passeio = _sorte.randf_range(1.2, 3.2)
+        return
+    _espera_do_passeio -= delta
+    if _espera_do_passeio > 0.0:
+        return
+    var angulo := _sorte.randf_range(0.0, TAU)
+    var distancia := _sorte.randf_range(1.4, raio_do_passeio)
+    _destino_do_passeio = _origem_do_passeio + Vector3(cos(angulo), 0.0, sin(angulo)) * distancia
+    definir_movimento(_destino_do_passeio - global_position)
+
+
+func _virar_para_o_movimento() -> void:
+    var camera := get_viewport().get_camera_3d()
+    if camera:
+        sprite.flip_h = _direcao.dot(camera.global_basis.x) < 0.0
+    else:
+        sprite.flip_h = _direcao.x < 0.0
+
+
+func _assentar_no_terreno() -> void:
+    var mundo := get_world_3d()
+    if mundo == null:
+        return
+    var inicio := global_position + Vector3.UP * 4.0
+    var fim := global_position + Vector3.DOWN * 8.0
+    var consulta := PhysicsRayQueryParameters3D.create(inicio, fim, 1)
+    consulta.collide_with_areas = false
+    var impacto := mundo.direct_space_state.intersect_ray(consulta)
+    if not impacto.is_empty():
+        global_position.y = (impacto.position as Vector3).y + 0.03
