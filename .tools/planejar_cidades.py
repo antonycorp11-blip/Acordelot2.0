@@ -765,7 +765,7 @@ CASAS_DA_CIDADE = {
 MEIA_RUA_CIDADE = 5.0
 FACHADA_CIDADE = 9.0
 PRACA_Z = 0.0
-PRACA_RAIO = 14.0
+PRACA_RAIO = 17.0
 LANE_CIDADE = 3.5
 MURALHA_ACORDELOT = "muralha_texturizada"
 
@@ -840,14 +840,28 @@ def cidade_de_acordelot():
                 giro = 180.0 if casa_z > rua_z else 0.0
                 por(f"bairro_{faixa}_{linha_i}_{i}", etiqueta, x, casa_z, giro=giro)
 
-    # 5. Praca central: livre para gente, mobiliario nas bordas.
-    prop("poco_da_praca", POCO, 7.5, 3.0, giro=200.0)
-    prop("banco_praca_o", BANCO, -8.0, 4.5, giro=80.0)
-    prop("banco_praca_l", BANCO, 8.0, -5.0, giro=250.0)
-    prop("carroca_praca", CARROCA, -8.5, -5.5, giro=110.0)
-    prop("barris_feira", BARRIS, -5.5, 8.0, giro=30.0)
-    prop("caixotes_feira", CAIXOTES, -2.8, 9.2, giro=300.0)
-    prop("saco_feira", SACO, 0.0, 8.0, giro=15.0)
+    # 5. PRACA IMPERIAL. Ela e o coracao da MESMA Acordelot, nao outra zona.
+    # O eixo x=0 continua livre de sul a norte: quem entra pelo portao enxerga
+    # a praca e consegue atravessa-la sem desviar de banco, poco ou carroca.
+    # O poco texturizado ocupa um dos quadrantes como marco temporario; a futura
+    # fonte imperial pode substitui-lo sem mudar a planta.
+    prop("marco_praca_imperial", POCO, 8.5, 0.0, giro=200.0, escala=1.08)
+    for nome, x, z, giro in (
+            ("banco_imperial_so", -10.8, 8.0, 70.0),
+            ("banco_imperial_se", 10.8, 8.0, 290.0),
+            ("banco_imperial_no", -10.8, -8.0, 110.0),
+            ("banco_imperial_ne", 10.8, -8.0, 250.0)):
+        prop(nome, BANCO, x, z, giro=giro, escala=0.92)
+
+    # Feira na borda oeste e abastecimento na borda leste. Sao grupos, nao
+    # enfeites soltos: carroca + carga leem como comercio em funcionamento.
+    for nome, alvo, x, z, giro, escala in (
+            ("feira_carroca", CARROCA, -14.2, -4.5, 105.0, 0.9),
+            ("feira_caixotes", CAIXOTES, -15.2, -1.8, 25.0, 0.85),
+            ("feira_sacos", SACO, -13.8, -0.2, 330.0, 0.82),
+            ("abastecimento_barris", BARRIS, 14.8, 6.0, 210.0, 0.82),
+            ("abastecimento_caixas", CAIXOTES, 15.2, 8.2, 115.0, 0.78)):
+        prop(nome, alvo, x, z, giro=giro, escala=escala)
 
     # Props de trabalho agrupados por bairro, nao espalhados no gramado.
     for nome, alvo, x, z, giro in (
@@ -858,6 +872,27 @@ def cidade_de_acordelot():
             ("residencia_barris", BARRIS, -48.0, 25.0, 260.0),
             ("mercado_caixotes", CAIXOTES, 35.0, 5.5, 40.0)):
         prop(nome, alvo, x, z, giro=giro)
+
+    # Fundos e laterais ocupados. Cada conjunto encosta numa construcao e conta
+    # uma historia curta (estoque, entrega, quintal), em vez de tentar esconder
+    # o vazio com dezenas de objetos aleatorios.
+    for nome, alvo, x, z, giro, escala in (
+            ("quintal_so_barris", BARRIS, -39.5, 47.5, 35.0, 0.88),
+            ("quintal_so_caixas", CAIXOTES, -36.8, 48.0, 120.0, 0.82),
+            ("quintal_se_carroca", CARROCA, 38.5, 48.5, 190.0, 0.9),
+            ("quintal_se_sacos", SACO, 35.8, 47.5, 15.0, 0.8),
+            ("quintal_no_caixas", CAIXOTES, -38.0, -48.5, 55.0, 0.85),
+            ("quintal_no_barris", BARRIS, -35.5, -48.0, 280.0, 0.85),
+            ("quintal_ne_carroca", CARROCA, 39.0, -48.0, 350.0, 0.9),
+            ("quintal_ne_saco", SACO, 36.0, -47.5, 80.0, 0.8),
+            ("rua_oeste_carga", CAIXOTES, -48.5, 30.5, 20.0, 0.82),
+            ("rua_oeste_barris", BARRIS, -50.5, 28.5, 240.0, 0.82),
+            ("rua_leste_carga", CAIXOTES, 49.5, 30.0, 200.0, 0.82),
+            ("rua_leste_sacos", SACO, 51.0, 27.8, 95.0, 0.8),
+            ("oficina_norte_barris", BARRIS, 39.0, -35.0, 150.0, 0.86),
+            ("oficina_norte_caixas", CAIXOTES, 41.5, -35.5, 45.0, 0.82),
+            ("residencia_norte_sacos", SACO, -39.0, -35.0, 300.0, 0.8)):
+        prop(nome, alvo, x, z, giro=giro, escala=escala)
 
     # 6. Arvores dos dois lados da muralha. O lado de dentro suaviza pedra e
     # telhado; o de fora liga a cidade a floresta antes do portal carregar.
@@ -874,6 +909,15 @@ def cidade_de_acordelot():
                               x, z, giro=(arv_id * 47) % 360,
                               escala=0.9 + (arv_id % 3) * 0.08))
             arv_id += 1
+
+    # Pequenos bosques nos quatro cantos internos: fecham o fundo das quadras e
+    # escondem a linha dura entre telhados e muralha, sem invadir as ruas.
+    for x, z in ((-53.0, 44.0), (-44.0, 52.0), (53.0, 44.0), (44.0, 52.0),
+                 (-53.0, -44.0), (-44.0, -52.0), (53.0, -44.0), (44.0, -52.0)):
+        pecas.append(peca(f"arvore_canto_interno_{arv_id}", "pinheiro", PINHEIRO,
+                          x, z, giro=(arv_id * 71) % 360,
+                          escala=0.78 + (arv_id % 3) * 0.06))
+        arv_id += 1
 
     # Sub-bosque em grupos curtos perto das copas, barato e com textura.
     for i, (x, z) in enumerate(((-56.0, 46.0), (56.0, 44.0), (-54.0, -46.0),

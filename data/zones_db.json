@@ -46,8 +46,8 @@
     },
     "zone_portoes": {
       "id": "zone_portoes",
-      "name": "🛡️ Portões Reais da Fortaleza",
-      "tier": "Tier III — Guarnição Militar",
+      "name": "🏰 Cidade de Acordelot — Praça Imperial",
+      "tier": "Capital Real — Centro Urbano",
       "biome": "cidade",
       "grid_pos": [0, 1],
       "terrain_type": "plato_urbano",
@@ -67,8 +67,8 @@
     },
     "zone_capital": {
       "id": "zone_capital",
-      "name": "🏰 Praça Imperial de Acordelot",
-      "tier": "Capital Real — Cidade Principal",
+      "name": "👑 Distrito do Palácio Imperial",
+      "tier": "Capital Real — Distrito Nobre",
       "biome": "cidade",
       "grid_pos": [0, 0],
       "terrain_type": "plato_urbano",
