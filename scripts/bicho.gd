@@ -56,6 +56,8 @@ var _anim_player: AnimationPlayer
 var _animacao_atual := ""
 var _aura: MeshInstance3D = null
 var _fagulhas: CPUParticles3D = null
+var _centro_do_corpo := Vector3.ZERO
+var _barra_fundo: MeshInstance3D = null
 ## O dano de cada forma fica GUARDADO na tabela e ainda nao e aplicado: neste
 ## sistema o bicho persegue e nao golpeia — quem tira vida do jogador ainda nao
 ## existe. O numero mora la para o dia em que o golpe entrar, e para a variante
@@ -103,7 +105,10 @@ func _construir_modelo(cfg: Dictionary) -> void:
     # Repoe a prateleira DEPOIS do quadro: assim o proximo bicho tambem acha
     # modelo pronto, e a montagem acontece num quadro em que nao nasce ninguem.
     if _estoque.size() < 3:
-        (func(): encher_estoque(4)).call_deferred()
+        # Pelo nome do metodo, sem lambda: a versao com funcao anonima nao passa
+        # no analisador desta versao da engine, e um erro de sintaxe aqui derruba
+        # a cena inteira — sem ZoneBuilder nao ha chao, e o jogador despenca.
+        call_deferred("encher_estoque", 4)
     add_child(_modelo)
     _vestir()
     _preparar_animacoes()
@@ -129,6 +134,17 @@ func _assentar(cfg: Dictionary) -> void:
     var fator: float = clampf(float(cfg.get("altura", 2.0)) / caixa.size.y, 0.05, 6.0)
     _modelo.scale = Vector3.ONE * fator
     _modelo.position.y = -caixa.position.y * fator
+
+    # ONDE O CORPO REALMENTE ESTA, no plano do chao.
+    #
+    # A malha do Mixamo nao vem centrada na origem do arquivo: e desenhada meio
+    # metro para o lado. Como a barra de vida e o nome nasciam na origem do NO,
+    # apareciam flutuando ao lado da criatura em vez de sobre a cabeca dela.
+    # Guardado aqui, serve para a barra, o nome, a aura e o numero de dano.
+    _centro_do_corpo = Vector3(
+        (caixa.position.x + caixa.size.x * 0.5) * fator, 0.0,
+        (caixa.position.z + caixa.size.z * 0.5) * fator)
+
     # A pose gravada no arquivo e a T do Mixamo: pes no chao, corpo em pe. E a
     # unica medida confiavel — a caixa da malha com esqueleto NAO acompanha a
     # animacao, entao medir depois, com o bicho ja andando, devolve numero
@@ -214,6 +230,7 @@ func _acender_aura(cfg: Dictionary) -> void:
 
     _aura = MeshInstance3D.new()
     _aura.name = "Aura"
+    _aura.position = _centro_do_corpo
     _aura.mesh = quadro
     _aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     add_child(_aura)
@@ -235,6 +252,7 @@ func _acender_aura(cfg: Dictionary) -> void:
     # Nascem num anel na altura do peito e sobem devagar, como brasa de fogueira.
     fagulhas.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE_SURFACE
     fagulhas.emission_sphere_radius = 0.55 * (1.0 + 0.25 * monster_type)
+    fagulhas.position = _centro_do_corpo
     fagulhas.position.y = float(cfg.get("altura", 2.0)) * 0.45
     fagulhas.direction = Vector3.UP
     fagulhas.spread = 25.0
@@ -276,6 +294,59 @@ func _golpear() -> void:
         + _anim_player.get_animation("shiker/atacar").length + PAUSA_DO_GOLPE
 
 
+## Prende a barra ao OSSO DA CABECA.
+##
+## Foram tres tentativas antes desta, e todas erravam pelo mesmo motivo: eu
+## calculava onde o corpo estava. Primeiro pela origem do no — mas a malha do
+## Mixamo nao nasce centrada nela. Depois pela caixa da malha — mas a caixa e a
+## da pose GRAVADA no arquivo, e o Shiker em guarda fica meio metro ao lado
+## dela. Depois pelo quadril, medido uma vez — mas ele anda enquanto o bicho
+## anda.
+##
+## BoneAttachment3D nao calcula nada: ele SEGUE o osso, quadro a quadro, com a
+## pose que estiver valendo. A barra passa a morar onde a cabeca esta, e nao
+## onde eu achava que ela estaria.
+##
+## O suporte fica fora do modelo escalado, para a barra ter tamanho de barra e
+## nao herdar a escala do bicho; quem o leva ate a cabeca e uma copia de
+## posicao por quadro, que custa uma soma de vetor.
+const ALTURA_SOBRE_A_CABECA := 0.42
+
+var _cabeca: BoneAttachment3D = null
+var _suporte_da_barra: Node3D = null
+
+func _prender_na_cabeca() -> void:
+    var esqueleto: Skeleton3D = null
+    for n in _modelo.find_children("*", "Skeleton3D", true, false):
+        esqueleto = n as Skeleton3D
+        break
+    if esqueleto == null:
+        return
+
+    # O importador do Godot troca os dois-pontos do Mixamo por sublinhado:
+    # o osso chama "mixamorig_Head", e nao "mixamorig:Head". Procurar pelo nome
+    # errado devolvia -1, o suporte nunca era preso e a barra sumia da tela.
+    var osso := -1
+    for candidato in ["mixamorig_Head", "mixamorig:Head", "Head",
+                      "mixamorig_Hips", "mixamorig:Hips", "Hips"]:
+        osso = esqueleto.find_bone(candidato)
+        if osso >= 0:
+            break
+    if osso < 0:
+        return
+
+    _cabeca = BoneAttachment3D.new()
+    _cabeca.name = "OssoDaCabeca"
+    _cabeca.bone_idx = osso
+    esqueleto.add_child(_cabeca)
+
+
+func _seguir_a_cabeca() -> void:
+    if _suporte_da_barra == null or _cabeca == null or not is_instance_valid(_cabeca):
+        return
+    _suporte_da_barra.global_position = _cabeca.global_position + Vector3.UP * ALTURA_SOBRE_A_CABECA
+
+
 func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
     var acumulado := Transform3D.IDENTITY
     var atual: Node3D = no
@@ -299,18 +370,22 @@ const ALTURA_DA_BARRA := 0.10
 var _barra_cheia: MeshInstance3D = null
 
 func _construir_barra_vida_3d(cfg: Dictionary) -> void:
-    # A ALTURA VEM DO BICHO, nao de um numero fixo: o anciao tem quase tres
-    # metros e o comum menos de dois, e barra em altura fixa fica dentro da
-    # cabeca de um e flutuando sobre o outro.
-    var h: float = float(cfg.get("altura", 2.2)) + 0.22
+    _prender_na_cabeca()
+
+    # top_level: o suporte ignora a rotacao e a escala do bicho. Sem isso a
+    # barra girava junto com a criatura e mudava de tamanho com ela.
+    _suporte_da_barra = Node3D.new()
+    _suporte_da_barra.name = "Vitais"
+    _suporte_da_barra.top_level = true
+    add_child(_suporte_da_barra)
 
     var fundo := _quadro(Color(0.06, 0.03, 0.04, 0.85), LARGURA_DA_BARRA, ALTURA_DA_BARRA)
-    fundo.position = Vector3(0.0, h, 0.0)
-    add_child(fundo)
+    _suporte_da_barra.add_child(fundo)
+    _barra_fundo = fundo
 
-    _barra_cheia = _quadro(Color(0.85, 0.16, 0.16, 0.95), LARGURA_DA_BARRA - 0.04, ALTURA_DA_BARRA - 0.04)
-    _barra_cheia.position = Vector3(0.0, h, 0.01)
-    add_child(_barra_cheia)
+    _barra_cheia = _quadro(Color(0.85, 0.16, 0.16, 0.95), LARGURA_DA_BARRA - 0.03, ALTURA_DA_BARRA - 0.03)
+    _barra_cheia.position.z = 0.01
+    _suporte_da_barra.add_child(_barra_cheia)
 
     _name_label_3d = Label3D.new()
     _name_label_3d.text = str(cfg.get("nome", "Monstro"))
@@ -319,8 +394,8 @@ func _construir_barra_vida_3d(cfg: Dictionary) -> void:
     _name_label_3d.modulate = Color(1.0, 0.9, 0.55)
     _name_label_3d.outline_modulate = Color(0.1, 0.05, 0.02, 0.95)
     _name_label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    _name_label_3d.position = Vector3(0.0, h + 0.24, 0.0)
-    add_child(_name_label_3d)
+    _name_label_3d.position.y = 0.22
+    _suporte_da_barra.add_child(_name_label_3d)
 
     _hp_label_3d = Label3D.new()
     _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
@@ -329,8 +404,10 @@ func _construir_barra_vida_3d(cfg: Dictionary) -> void:
     _hp_label_3d.modulate = Color(0.95, 0.75, 0.75)
     _hp_label_3d.outline_modulate = Color(0.15, 0.0, 0.0, 0.95)
     _hp_label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    _hp_label_3d.position = Vector3(0.0, h - 0.15, 0.0)
-    add_child(_hp_label_3d)
+    _hp_label_3d.position.y = -0.16
+    _suporte_da_barra.add_child(_hp_label_3d)
+
+    _seguir_a_cabeca()
 
 
 ## Um retangulo chapado que sempre encara a camera.
@@ -377,6 +454,7 @@ func _pintar_barra() -> void:
 
 
 func _physics_process(delta: float) -> void:
+    _seguir_a_cabeca()
     if _morrendo:
         return
     _fase += delta
@@ -500,7 +578,11 @@ func _criar_popup_dano(qtd: float) -> void:
     # Do LADO da cabeca, nao em cima dela: centrado, o numero grande cobria o
     # bicho justamente no momento em que se quer ver o que ele esta fazendo.
     var lado: float = 0.7 if randf() > 0.5 else -0.7
-    lbl.position = Vector3(lado, float(_altura_do_corpo()) * 0.75, 0.0)
+    if _cabeca and is_instance_valid(_cabeca):
+        lbl.top_level = true
+        lbl.global_position = _cabeca.global_position + Vector3(lado, 0.15, 0.0)
+    else:
+        lbl.position = Vector3(lado, float(_altura_do_corpo()) * 0.75, 0.0)
     add_child(lbl)
 
     # Sobe pouco e sai rapido: meio segundo basta para ler, e mais que isso
@@ -550,6 +632,7 @@ func _morrer() -> void:
     if _hp_label_3d: _hp_label_3d.visible = false
     if _name_label_3d: _name_label_3d.visible = false
     if _aura: _aura.visible = false
+    if _suporte_da_barra: _suporte_da_barra.visible = false
     if _fagulhas: _fagulhas.emitting = false
 
     # Cai antes de sumir. O encolhimento sozinho — o que havia aqui — lia como

@@ -157,6 +157,18 @@ func _tirar_print() -> void:
     await get_tree().create_timer(1.5).timeout
     # `-- --shot --inv` abre o inventario antes do clique: conferir tela de menu
     # sem isso exigiria alguem segurando o celular.
+    # `-- --shot --bicho` planta um Shiker na frente do jogador antes do clique:
+    # conferir barra de vida sem isso exige esperar um nascer sozinho.
+    if OS.get_cmdline_user_args().has("--bicho"):
+        var Bicho := load("res://scripts/bicho.gd")
+        for i in 2:
+            var b: Node3D = Bicho.new()
+            b.monster_type = i * 2
+            add_child(b)
+            b.global_position = _player.global_position + Vector3(2.5 - 5.0 * i, 0.5, -4.0)
+            await get_tree().process_frame
+            b.levar_dano(b.vida_maxima * 0.45, Vector3.FORWARD)
+        await get_tree().create_timer(0.5).timeout
     if OS.get_cmdline_user_args().has("--ajustes"):
         var aj := find_child("Ajustes", true, false)
         if aj:

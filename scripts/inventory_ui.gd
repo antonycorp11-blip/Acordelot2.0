@@ -108,11 +108,15 @@ var _det_raridade: Label
 var _det_posse: Label
 var _det_desc: Label
 var _rotulo_bolsa: Label
+var _rotulo_moedas: Label
 var _recado: Label
 var _camada: CanvasLayer
 
 
 func _ready() -> void:
+    # Pelo grupo: a clave coletada no chao precisa achar a bolsa sem saber por
+    # onde ela pendura na arvore de nos.
+    add_to_group("inventario")
     set_anchors_preset(Control.PRESET_FULL_RECT)
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     _montar()
@@ -305,7 +309,7 @@ func _cabecalho() -> Control:
     linha.add_child(vao)
 
     _rotulo_bolsa = _ficha(linha, "barra_ficha_bolsa", "%d / 150" % bag_items.size())
-    _ficha(linha, "barra_ficha_moeda", _milhar(gold_amount))
+    _rotulo_moedas = _ficha(linha, "barra_ficha_moeda", _milhar(gold_amount))
     _ficha(linha, "barra_ficha_gema", _milhar(gemas))
 
     # FECHAR, escrito. O "X" sozinho, pequeno e em cima da cantoneira dourada,
@@ -714,6 +718,17 @@ func _milhar(valor: int) -> String:
         if conta % 3 == 0 and i > 0:
             saida = "." + saida
     return saida
+
+
+## Guarda o que a clave trouxe.
+##
+## O contador do topo era pintado uma vez, quando a tela nascia: a moeda entrava
+## no numero guardado, e o jogador so via a diferenca se fechasse e abrisse o
+## inventario. Agora o rotulo e repintado na hora.
+func receber_claves(quantidade: int) -> void:
+    gold_amount += quantidade
+    if _rotulo_moedas and is_instance_valid(_rotulo_moedas):
+        _rotulo_moedas.text = _milhar(gold_amount)
 
 
 func toggle_inventory(force_state = null) -> void:

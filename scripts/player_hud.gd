@@ -156,8 +156,12 @@ func _montar_retrato_e_barras() -> void:
         # estava aqui, esticada num quadro quadrado, cortava o queixo e deixava
         # so os olhos: a celula da folha e rosto E tronco, e o tronco nao cabe
         # numa miniatura redonda.
-        corte.region = Rect2(celula.x * 0.22, celula.y * 0.03,
-                             celula.x * 0.56, celula.y * 0.30)
+        # Quadrado em volta da cabeca, com as fracoes MEDIDAS na folha: a
+        # silhueta do Akles ocupa de 14,7% a 93,1% da largura da celula, e a
+        # cabeca vai de 16,7% a 47,9% da altura. Chutar isso foi o que deu
+        # barba ocupando a medalha inteira.
+        corte.region = Rect2(celula.x * 0.147, celula.y * 0.115,
+                             celula.x * 0.784, celula.y * 0.416)
 
         var rosto := TextureRect.new()
         rosto.texture = corte
@@ -166,8 +170,11 @@ func _montar_retrato_e_barras() -> void:
         # Dentro do buraco da moldura, que nao ocupa a arte inteira.
         # Dentro do circulo da moldura, medido na propria arte: o buraco fica
         # centrado a 45% da largura e 42% da altura, com raio de um terco.
-        rosto.position = Vector2(LADO_DO_RETRATO * 0.16, LADO_DO_RETRATO * 0.11)
-        rosto.size = Vector2(LADO_DO_RETRATO * 0.60, LADO_DO_RETRATO * 0.60)
+        # Centrado no buraco da moldura, que fica a 45% da largura e 42% da
+        # altura da arte, com raio de um terco do lado.
+        var lado_rosto := LADO_DO_RETRATO * 0.62
+        rosto.size = Vector2(lado_rosto, lado_rosto)
+        rosto.position = Vector2(LADO_DO_RETRATO * 0.45, LADO_DO_RETRATO * 0.42) - rosto.size * 0.5
         rosto.mouse_filter = Control.MOUSE_FILTER_IGNORE
         canto.add_child(rosto)
         # POR CIMA da moldura, e nao atras: a arte traz um rosto generico

@@ -143,8 +143,8 @@ func _coletar() -> void:
     var bolsa := get_tree().get_first_node_in_group("inventario")
     if bolsa == null:
         bolsa = get_node_or_null("/root/ZonedWorld/HUD/InventoryUI")
-    if bolsa and "gold_amount" in bolsa:
-        bolsa.gold_amount += valor
+    if bolsa and bolsa.has_method("receber_claves"):
+        bolsa.receber_claves(valor)
 
     var aviso := Label3D.new()
     aviso.text = "+%d" % valor
