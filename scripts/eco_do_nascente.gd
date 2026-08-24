@@ -29,9 +29,11 @@ var _ate_assentar := 0.0
 
 func _ready() -> void:
     _altura_visual_inicial = visual.position.y
-    # A arte ocupa aproximadamente 150 px de altura dentro do canvas comum.
-    # Assim a escala exposta representa metros aparentes, e nao um fator magico.
-    sprite.pixel_size = altura_aparente_m / 150.0
+    # O primeiro Eco usa canvas de 220 px; os novos atlases usam 128 px para
+    # economizar memoria. Ajuste pelos dois formatos sem exigir escala por cena.
+    var quadro := sprite.sprite_frames.get_frame_texture(&"idle", 0)
+    var altura_de_referencia := 150.0 if quadro == null or quadro.get_height() > 180 else float(quadro.get_height()) * 0.66
+    sprite.pixel_size = altura_aparente_m / altura_de_referencia
     sprite.animation_finished.connect(_ao_terminar_animacao)
     sprite.play(&"idle")
     _origem_do_passeio = global_position

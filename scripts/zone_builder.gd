@@ -5,6 +5,18 @@ const PortalScript = preload("res://scripts/zone_portal.gd")
 const BichoScript = preload("res://scripts/bicho.gd")
 const RecursoColetavelScript = preload("res://scripts/recurso_coletavel.gd")
 const EcoDoNascenteCena = preload("res://scenes/ecos/EcoDoNascente.tscn")
+const ECOS_NOVOS := [
+    {"id": "ambar", "frames": preload("res://resources/eco_ambar_frames.tres")},
+    {"id": "rubi", "frames": preload("res://resources/eco_rubi_frames.tres")},
+    {"id": "cervo_dourado", "frames": preload("res://resources/eco_cervo_dourado_frames.tres")},
+    {"id": "folha", "frames": preload("res://resources/eco_folha_frames.tres")},
+    {"id": "agua", "frames": preload("res://resources/eco_agua_frames.tres")},
+    {"id": "clave_azul", "frames": preload("res://resources/eco_clave_azul_frames.tres")},
+    {"id": "safira", "frames": preload("res://resources/eco_safira_frames.tres")},
+    {"id": "ametista", "frames": preload("res://resources/eco_ametista_frames.tres")},
+    {"id": "draconico", "frames": preload("res://resources/eco_draconico_frames.tres")},
+    {"id": "celeste", "frames": preload("res://resources/eco_celeste_frames.tres")},
+]
 
 signal portal_triggered(dest_zone_id: String, from_direction: String)
 
@@ -90,7 +102,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _construir_barreiras_perimetro_arvores_reais()
     _construir_monstros()
     _construir_recursos_coletaveis()
-    _plantar_eco_do_de_teste()
+    _plantar_ecos_musicais()
     _construir_portais()
 
 
@@ -116,17 +128,38 @@ func _construir_recursos_coletaveis() -> void:
         recursos.add_child(recurso)
 
 
-## Um unico Eco 2.5D perto do inicio. As outras zonas e todos os sistemas de
-## combate permanecem intocados enquanto validamos arte, escala e animacoes.
-func _plantar_eco_do_de_teste() -> void:
-    if str(_zone_data.get("id", "")) != "zone_floresta_despertar":
+## Ecos 2.5D pacificos, divididos entre as duas zonas naturais para nao pesar
+## no navegador. Reutilizam a mesma cena, colisao e rotina de passeio.
+func _plantar_ecos_musicais() -> void:
+    var zona := str(_zone_data.get("id", ""))
+    if zona not in ["zone_floresta_despertar", "zone_floresta_sombria"]:
         return
+    var pontos := [
+        Vector2(4.5, 4.0), Vector2(-18.0, 13.0), Vector2(21.0, 17.0),
+        Vector2(-24.0, -15.0), Vector2(17.0, -22.0), Vector2(2.0, 28.0),
+    ]
+    var inicio := 0 if zona == "zone_floresta_despertar" else 5
+    var fim := 5 if zona == "zone_floresta_despertar" else 10
+
+    # O Eco de Do ja aprovado permanece perto do inicio.
+    if zona == "zone_floresta_despertar":
+        _instanciar_eco("do_nascente", null, pontos[0], 0.72)
+    for indice in range(inicio, fim):
+        var dados: Dictionary = ECOS_NOVOS[indice]
+        var ponto: Vector2 = pontos[indice - inicio + 1]
+        _instanciar_eco(str(dados["id"]), dados["frames"], ponto, 0.68 + float(indice % 3) * 0.04)
+
+
+func _instanciar_eco(id: String, frames: SpriteFrames, ponto: Vector2, altura: float) -> void:
     var eco := EcoDoNascenteCena.instantiate()
-    eco.name = "EcoDoNascente_Teste"
+    eco.name = "Eco_" + id
     eco.passeio_natural = true
-    var x := 4.5
-    var z := 4.0
-    eco.position = Vector3(x, calcular_altura(x, z) + 0.03, z)
+    eco.raio_do_passeio = 3.25
+    eco.altura_aparente_m = altura
+    if frames != null:
+        var sprite := eco.get_node("Visual/AnimatedSprite3D") as AnimatedSprite3D
+        sprite.sprite_frames = frames
+    eco.position = Vector3(ponto.x, calcular_altura(ponto.x, ponto.y) + 0.03, ponto.y)
     _props_node.add_child(eco)
 
 # -------------------------------------------------------------

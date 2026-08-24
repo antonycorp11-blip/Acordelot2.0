@@ -169,7 +169,7 @@ func _cabecalho() -> Control:
     _resumo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     linha.add_child(_resumo)
     var fechar := _botao("Fechar", 120)
-    fechar.pressed.connect(func(): mostrar(false))
+    fechar.button_down.connect(func(): mostrar(false))
     linha.add_child(fechar)
     return linha
 
@@ -181,7 +181,10 @@ func _abas() -> Control:
     for dados in [["notas", "Notas e Fragmentos"], ["partituras", "Partituras e Nível"]]:
         var b := _botao(str(dados[1]), 260)
         b.toggle_mode = true
-        b.pressed.connect(_trocar_aba.bind(str(dados[0])))
+        # No navegador mobile o release podia se perder quando o Control base
+        # estava escalado. button_down responde no primeiro toque e nao depende
+        # de o dedo terminar exatamente dentro do botao.
+        b.button_down.connect(_trocar_aba.bind(str(dados[0])))
         linha.add_child(b)
         _botoes_abas[dados[0]] = b
     return linha
@@ -206,7 +209,7 @@ func _montar_notas() -> Control:
         b.icon = load(ITENS + "fragmento_" + id + ".png")
         b.expand_icon = true
         b.add_theme_constant_override("icon_max_width", 40)
-        b.pressed.connect(_selecionar_nota.bind(id))
+        b.button_down.connect(_selecionar_nota.bind(id))
         grade.add_child(b)
         _botoes_notas[id] = b
 
@@ -244,10 +247,10 @@ func _montar_notas() -> Control:
     acoes.add_theme_constant_override("separation", 12)
     coluna.add_child(acoes)
     _botao_purificar = _botao("Purificar 1", 190)
-    _botao_purificar.pressed.connect(_purificar)
+    _botao_purificar.button_down.connect(_purificar)
     acoes.add_child(_botao_purificar)
     _botao_sintetizar = _botao("Sintetizar 5", 210, true)
-    _botao_sintetizar.pressed.connect(_sintetizar)
+    _botao_sintetizar.button_down.connect(_sintetizar)
     acoes.add_child(_botao_sintetizar)
     var ajuda := _texto("Shikers deixam fragmentos com partículas roxas. Purifique-os e una 5 fragmentos limpos para formar uma nota.", 14, Color(0.67, 0.72, 0.78))
     ajuda.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -295,7 +298,7 @@ func _montar_partituras() -> Control:
     _ascensao = _texto("", 15, Color(0.78, 0.80, 0.86))
     bloco.add_child(_ascensao)
     _botao_ascensao = _botao("Realizar ascensão", 220, true)
-    _botao_ascensao.pressed.connect(_ascender)
+    _botao_ascensao.button_down.connect(_ascender)
     linha.add_child(_botao_ascensao)
     return coluna
 
@@ -327,11 +330,11 @@ func _cartao_partitura(tipo: String) -> Control:
     acoes.alignment = BoxContainer.ALIGNMENT_CENTER
     coluna.add_child(acoes)
     var criar := _botao("Criar", 125)
-    criar.pressed.connect(_criar_partitura.bind(tipo))
+    criar.button_down.connect(_criar_partitura.bind(tipo))
     acoes.add_child(criar)
     _partituras_criar[tipo] = criar
     var usar := _botao("Usar", 125, true)
-    usar.pressed.connect(_usar_partitura.bind(tipo))
+    usar.button_down.connect(_usar_partitura.bind(tipo))
     acoes.add_child(usar)
     _partituras_usar[tipo] = usar
     return painel
