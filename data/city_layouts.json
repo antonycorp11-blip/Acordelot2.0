@@ -39,7 +39,7 @@
     [
      "renaldo",
      2.6,
-     55.0,
+     48.0,
      190.0,
      "renaldo_portao",
      true
@@ -123,49 +123,49 @@
    "tochas": [
     [
      -7.0,
-     54.0,
+     50.0,
      90.0,
      2.5
     ],
     [
      7.0,
-     54.0,
+     50.0,
      270.0,
      2.5
     ],
     [
      -7.0,
-     -54.0,
+     -50.0,
      90.0,
      2.5
     ],
     [
      7.0,
-     -54.0,
+     -50.0,
      270.0,
      2.5
     ],
     [
-     -54.0,
+     -50.0,
      7.0,
      180.0,
      2.5
     ],
     [
-     -54.0,
+     -50.0,
      -7.0,
      0.0,
      2.5
     ],
     [
      9.0,
-     43.0,
+     38.0,
      270.0,
      2.2
     ],
     [
      -9.0,
-     -43.0,
+     -38.0,
      90.0,
      2.2
     ]
@@ -5358,7 +5358,7 @@
     "model": "res://models/casa_torre.glb",
     "position": [
      -11.5,
-     54.0
+     50.0
     ],
     "rotation": 90.0,
     "scale": 1.0,
@@ -5370,7 +5370,7 @@
     "model": "res://models/casa_torre.glb",
     "position": [
      11.5,
-     54.0
+     50.0
     ],
     "rotation": 270.0,
     "scale": 1.0,
@@ -5382,7 +5382,7 @@
     "model": "res://models/casa_torre.glb",
     "position": [
      -11.5,
-     -54.0
+     -50.0
     ],
     "rotation": 90.0,
     "scale": 1.0,
@@ -5394,7 +5394,7 @@
     "model": "res://models/casa_torre.glb",
     "position": [
      11.5,
-     -54.0
+     -50.0
     ],
     "rotation": 270.0,
     "scale": 1.0,
@@ -5405,7 +5405,7 @@
     "tag": "casa_torre",
     "model": "res://models/casa_torre.glb",
     "position": [
-     -54.0,
+     -50.0,
      11.5
     ],
     "rotation": 180.0,
@@ -5417,7 +5417,7 @@
     "tag": "casa_torre",
     "model": "res://models/casa_torre.glb",
     "position": [
-     -54.0,
+     -50.0,
      -11.5
     ],
     "rotation": 0.0,
@@ -5430,7 +5430,7 @@
     "model": "res://models/casa_pedra.glb",
     "position": [
      -11.58,
-     43.0
+     38.0
     ],
     "rotation": 90.0,
     "scale": 1.0,
@@ -5466,7 +5466,7 @@
     "model": "res://models/casarao_madeira.glb",
     "position": [
      -14.5,
-     -43.0
+     -38.0
     ],
     "rotation": 90.0,
     "scale": 1.0,
@@ -5478,7 +5478,7 @@
     "model": "res://models/taverna.glb",
     "position": [
      13.5,
-     43.0
+     38.0
     ],
     "rotation": 270.0,
     "scale": 1.0,
@@ -5514,7 +5514,7 @@
     "model": "res://models/casa_solar.glb",
     "position": [
      14.26,
-     -43.0
+     -38.0
     ],
     "rotation": 270.0,
     "scale": 1.0,

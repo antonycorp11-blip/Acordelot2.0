@@ -802,19 +802,21 @@ def cidade_de_acordelot():
         pecas.append(peca(f"muralha_oeste_{i}", "muralha", MURALHA_ACORDELOT,
                           -63.0, z, giro=90.0))
 
-    # 2. Torres que tornam as tres aberturas marcos visuais.
-    for eixo, z in (("sul", 54.0), ("norte", -54.0)):
+    # 2. Torres que tornam as tres aberturas marcos visuais. Ficam recuadas em
+    # relacao ao portal de zona (72 m): o jogador ganha um patio de chegada e
+    # nao nasce com o portao fisico colado na camera.
+    for eixo, z in (("sul", 50.0), ("norte", -50.0)):
         for sinal, lado in ((-1.0, "o"), (1.0, "l")):
             por(f"torre_{eixo}_{lado}", "casa_torre", sinal * 11.5, z,
                 giro=(90.0 if sinal < 0 else 270.0))
-    por("torre_oeste_s", "casa_torre", -54.0, 11.5, giro=180.0)
-    por("torre_oeste_n", "casa_torre", -54.0, -11.5, giro=0.0)
+    por("torre_oeste_s", "casa_torre", -50.0, 11.5, giro=180.0)
+    por("torre_oeste_n", "casa_torre", -50.0, -11.5, giro=0.0)
 
     # 3. Eixo principal, da Vila do Caminho ao portal norte.
-    oeste = [(43.0, "casa_pedra"), (16.0, "casa_taipa"),
-             (-17.0, "casa_larga"), (-43.0, "casarao")]
-    leste = [(43.0, "taverna"), (16.0, "casa_larga"),
-             (-17.0, "casa_pedra"), (-43.0, "solar")]
+    oeste = [(38.0, "casa_pedra"), (16.0, "casa_taipa"),
+             (-17.0, "casa_larga"), (-38.0, "casarao")]
+    leste = [(38.0, "taverna"), (16.0, "casa_larga"),
+             (-17.0, "casa_pedra"), (-38.0, "solar")]
     for lado, sinal, lotes in (("o", -1.0, oeste), ("l", 1.0, leste)):
         for i, (z, etiqueta) in enumerate(lotes):
             fundo = CASAS_DA_CIDADE[etiqueta][3]
@@ -964,10 +966,10 @@ def _tochas_de_acordelot():
     para de significar coisa alguma.
     """
     return [
-        [-7.0, 54.0, 90.0, 2.5], [7.0, 54.0, 270.0, 2.5],
-        [-7.0, -54.0, 90.0, 2.5], [7.0, -54.0, 270.0, 2.5],
-        [-54.0, 7.0, 180.0, 2.5], [-54.0, -7.0, 0.0, 2.5],
-        [9.0, 43.0, 270.0, 2.2], [-9.0, -43.0, 90.0, 2.2],
+        [-7.0, 50.0, 90.0, 2.5], [7.0, 50.0, 270.0, 2.5],
+        [-7.0, -50.0, 90.0, 2.5], [7.0, -50.0, 270.0, 2.5],
+        [-50.0, 7.0, 180.0, 2.5], [-50.0, -7.0, 0.0, 2.5],
+        [9.0, 38.0, 270.0, 2.2], [-9.0, -38.0, 90.0, 2.2],
     ]
 
 
@@ -1253,7 +1255,7 @@ def main():
         # Fixo, com "True" no sexto campo — quem guarda um portao nao passeia.
         if ident == "custom_1785880661560_858":
             saida["pracas"][ident]["npcs"] = [
-                ["renaldo", 2.6, 55.0, 190.0, "renaldo_portao", True]]
+                ["renaldo", 2.6, 48.0, 190.0, "renaldo_portao", True]]
 
         if geometria.get("so_com_textura"):
             saida["pracas"][ident]["so_com_textura"] = True

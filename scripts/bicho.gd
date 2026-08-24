@@ -627,6 +627,7 @@ func _largar_clave() -> void:
 
 func _morrer() -> void:
     remove_from_group("bicho")
+    _recompensar_progresso()
     _largar_clave()
     _morrendo = true
     if _hp_label_3d: _hp_label_3d.visible = false
@@ -648,3 +649,20 @@ func _morrer() -> void:
     tw.tween_interval(queda + 0.35)
     tw.tween_property(_modelo, "scale", Vector3.ZERO, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
     tw.tween_callback(queue_free)
+
+
+## O corpo do Shiker continua largando as claves no chao, mas experiencia,
+## fragmentos entram direto: sao progresso, nao objetos 3D caros.
+const XP_POR_FORMA := [30, 70, 180]
+const CHANCE_DE_FRAGMENTO := [0.22, 0.55, 1.0]
+const ALTURAS := ["do", "re", "mi", "fa", "sol", "la", "si"]
+
+func _recompensar_progresso() -> void:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return
+    var forma := monster_type % XP_POR_FORMA.size()
+    var ganhos := {}
+    if randf() <= float(CHANCE_DE_FRAGMENTO[forma]):
+        ganhos["fragmento_" + ALTURAS.pick_random()] = 1
+    progresso.recompensar_batalha(int(XP_POR_FORMA[forma]), ganhos)

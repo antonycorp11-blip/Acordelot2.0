@@ -140,6 +140,11 @@ func _process(delta: float) -> void:
 
 func _coletar() -> void:
     _coletada = true
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso:
+        progresso.adicionar_recurso("claves", valor)
+        queue_free()
+        return
     var bolsa := get_tree().get_first_node_in_group("inventario")
     if bolsa == null:
         bolsa = get_node_or_null("/root/ZonedWorld/HUD/InventoryUI")

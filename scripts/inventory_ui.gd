@@ -42,42 +42,32 @@ const BORDA_BOTAO := [36, 28, 36, 14]
 const PROPORCAO := 16.0 / 9.0
 const COLUNAS := 6
 
-var gold_amount: int = 78542
-var gemas: int = 1250
+var gold_amount: int = 0
+var equipped_slots := {}
 
-var equipped_slots := {
-    "Arma": {"id": "espada_akles", "name": "Lâmina Harmônica", "arte": "equip/espada", "tier": "Nível do Item: 18", "rarity": "Épico", "stats": "+78 Força  •  +52 Vitalidade", "desc": "Lâmina ancestral imbuída com o poder dos mestres da música."},
-    "Cabeça": {"id": "chapeu_bardo", "name": "Chapéu do Trovador", "arte": "equip/chapeu", "tier": "Nível do Item: 16", "rarity": "Raro", "stats": "+24 Inteligência  •  +12 Fé", "desc": "A pluma foi presente de um corvo que gostava de música."},
-    "Amuleto": {"id": "amuleto_safira", "name": "Amuleto de Safira", "arte": "equip/amuleto", "tier": "Nível do Item: 17", "rarity": "Épico", "stats": "+60 Mana  •  +10% Regeneração", "desc": "Gema sintonizada com os fluxos de mana."},
-    "Acessório": {"id": "anel_arcano", "name": "Anel da Floresta", "arte": "equip/anel", "tier": "Nível do Item: 15", "rarity": "Raro", "stats": "+38 Ressonância", "desc": "Safira lapidada pelos ourives da Capital."},
-    "Peitoral": {"id": "peitoral_guardiao", "name": "Armadura do Guardião", "arte": "equip/peitoral", "tier": "Nível do Item: 18", "rarity": "Épico", "stats": "+85 Defesa  •  +350 Vida", "desc": "Placas reforçadas com encantamento de proteção."},
-    "Luvas": {"id": "luvas_aco", "name": "Manoplas de Aço", "arte": "equip/luvas", "tier": "Nível do Item: 16", "rarity": "Raro", "stats": "+28 Defesa  •  +9 Destreza", "desc": "Articulações finas o bastante para dedilhar."},
-    "Calças": {"id": "calcas_couro", "name": "Calças de Viajante", "arte": "equip/calcas", "tier": "Nível do Item: 14", "rarity": "Incomum", "stats": "+31 Defesa", "desc": "Couro curtido, remendado mais de uma vez."},
-    "Botas": {"id": "botas_couro", "name": "Botas de Andarilho", "arte": "equip/botas", "tier": "Nível do Item: 15", "rarity": "Raro", "stats": "+22 Defesa  •  +14% Velocidade", "desc": "Couro resistente para terrenos acidentados."},
-}
-
-var bag_items: Array = [
-    {"id": "pocao_cura_g", "name": "Poção de Vitalidade", "arte": "item/pocao_vida", "qtd": 24, "tier": "Épico", "rarity": "Épico", "tipo": "consumivel", "desc": "Restaura 60% da Vida máxima. Uma mistura vibrante que ressoa com a essência da vida."},
-    {"id": "pocao_mana_g", "name": "Poção de Mana", "arte": "item/pocao_mana", "qtd": 15, "tier": "Raro", "rarity": "Raro", "tipo": "consumivel", "desc": "Restaura 300 pontos de mana arcana."},
-    {"id": "pocao_roxa", "name": "Elixir de Harmonia", "arte": "item/pocao_roxa", "qtd": 12, "tier": "Épico", "rarity": "Épico", "tipo": "consumivel", "desc": "Aumenta a ressonância por dois minutos."},
-    {"id": "pocao_dourada", "name": "Néctar do Bardo", "arte": "item/pocao_dourada", "qtd": 8, "tier": "Lendário", "rarity": "Lendário", "tipo": "consumivel", "desc": "Dizem que foi engarrafado durante um eclipse."},
-    {"id": "cristal_azul", "name": "Cristal de Mana", "arte": "item/cristal_azul", "qtd": 32, "tier": "Raro", "rarity": "Raro", "tipo": "material", "desc": "Gema pulsante usada em encantamentos."},
-    {"id": "gema_roxa", "name": "Ametista Ressonante", "arte": "item/gema_roxa", "qtd": 18, "tier": "Épico", "rarity": "Épico", "tipo": "material", "desc": "Vibra sozinha quando há música por perto."},
-    {"id": "gema_verde", "name": "Esmeralda Bruta", "arte": "item/gema_verde", "qtd": 9, "tier": "Raro", "rarity": "Raro", "tipo": "material", "desc": "Verde profundo, ainda por lapidar."},
-    {"id": "gema_ambar", "name": "Âmbar Antigo", "arte": "item/gema_ambar", "qtd": 6, "tier": "Incomum", "rarity": "Incomum", "tipo": "material", "desc": "Guarda dentro de si uma nota presa há mil anos."},
-    {"id": "partitura", "name": "Partitura Rara", "arte": "item/partitura", "qtd": 42, "tier": "Raro", "rarity": "Raro", "tipo": "missao", "desc": "Um trecho de melodia que ninguém sabe terminar."},
-    {"id": "moeda_antiga", "name": "Moeda da Coroa", "arte": "item/moeda", "qtd": 65, "tier": "Comum", "rarity": "Comum", "tipo": "valioso", "desc": "Cunhada no reinado anterior. Ainda vale."},
-    {"id": "corneta", "name": "Corneta de Bronze", "arte": "item/corneta", "qtd": 3, "tier": "Incomum", "rarity": "Incomum", "tipo": "valioso", "desc": "Rouca, mas ouve-se do outro lado do vale."},
-    {"id": "pena", "name": "Pena de Escriba", "arte": "item/pena", "qtd": 31, "tier": "Comum", "rarity": "Comum", "tipo": "material", "desc": "Para copiar partituras sem borrar."},
-    {"id": "bolsa_couro", "name": "Bolsa de Couro", "arte": "item/bolsa", "qtd": 19, "tier": "Comum", "rarity": "Comum", "tipo": "material", "desc": "Vazia. Serve para carregar o resto."},
-    {"id": "flor_arcana", "name": "Flor de Lua", "arte": "item/flor", "qtd": 22, "tier": "Incomum", "rarity": "Incomum", "tipo": "material", "desc": "Só abre quando alguém canta perto dela."},
-    {"id": "minerio_ferro", "name": "Minério de Ferro", "arte": "item/minerio", "qtd": 13, "tier": "Comum", "rarity": "Comum", "tipo": "material", "desc": "Minério bruto para barras de aço."},
-    {"id": "chave_antiga", "name": "Chave Enferrujada", "arte": "item/chave", "qtd": 3, "tier": "Raro", "rarity": "Raro", "tipo": "missao", "desc": "Abre alguma coisa. Ninguém lembra o quê."},
-    {"id": "fita_vermelha", "name": "Fita Carmesim", "arte": "item/fita", "qtd": 9, "tier": "Incomum", "rarity": "Incomum", "tipo": "valioso", "desc": "Marca a página de uma partitura importante."},
-    {"id": "mapa_velho", "name": "Mapa do Vale", "arte": "item/mapa", "qtd": 1, "tier": "Raro", "rarity": "Raro", "tipo": "missao", "desc": "Um X no meio da floresta, sem legenda."},
-    {"id": "runa_antiga", "name": "Runa Silente", "arte": "item/runa", "qtd": 17, "tier": "Épico", "rarity": "Épico", "tipo": "material", "desc": "A pedra é fria mesmo ao sol."},
-    {"id": "nota_arcana", "name": "Essência Melódica", "arte": "item/nota", "qtd": 30, "tier": "Épico", "rarity": "Épico", "tipo": "material", "desc": "Fragmento concentrado de harmonia pura."},
+## A bolsa deixou de ser uma vitrine de itens ficticios. Estes sao exatamente os
+## recursos que os sistemas do jogo entregam e a Sintese consome.
+const ITENS_DE_RECURSO := [
+    ["claves", "Claves", "item/moeda", "Valioso", "valioso", "Moeda PVE deixada pelos Shikers."],
+    ["madeira", "Madeira", "item/bolsa", "Comum", "material", "Material coletado de árvores e galhos aproveitáveis."],
+    ["pedra", "Pedra", "item/minerio", "Comum", "material", "Material bruto obtido em veios e rochas."],
+    ["fragmento_do", "Fragmento de Dó", "item/nota", "Incomum", "material", "Parte instável da nota Dó."],
+    ["fragmento_re", "Fragmento de Ré", "item/nota", "Incomum", "material", "Parte instável da nota Ré."],
+    ["fragmento_mi", "Fragmento de Mi", "item/nota", "Incomum", "material", "Parte instável da nota Mi."],
+    ["fragmento_fa", "Fragmento de Fá", "item/nota", "Incomum", "material", "Parte instável da nota Fá."],
+    ["fragmento_sol", "Fragmento de Sol", "item/nota", "Raro", "material", "Parte instável da nota Sol."],
+    ["fragmento_la", "Fragmento de Lá", "item/nota", "Raro", "material", "Parte instável da nota Lá."],
+    ["fragmento_si", "Fragmento de Si", "item/nota", "Raro", "material", "Parte instável da nota Si."],
+    ["nota_do", "Nota Dó Sintetizada", "item/nota", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_re", "Nota Ré Sintetizada", "item/nota", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_mi", "Nota Mi Sintetizada", "item/nota", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_fa", "Nota Fá Sintetizada", "item/nota", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_sol", "Nota Sol Sintetizada", "item/nota", "Épico", "material", "Nota estável pronta para composição."],
+    ["nota_la", "Nota Lá Sintetizada", "item/nota", "Épico", "material", "Nota estável pronta para composição."],
+    ["nota_si", "Nota Si Sintetizada", "item/nota", "Épico", "material", "Nota estável pronta para composição."],
 ]
+
+var bag_items: Array = []
 
 ## Cada raridade tem a sua moldura, e e por isso que existem quatro molduras na
 ## arte. Cor de borda diz o valor do item antes de qualquer leitura de texto.
@@ -112,6 +102,8 @@ var _det_posse: Label
 var _det_desc: Label
 var _rotulo_bolsa: Label
 var _rotulo_moedas: Label
+var _rotulo_materiais: Label
+var _rotulo_fragmentos: Label
 var _recado: Label
 var _camada: CanvasLayer
 
@@ -122,7 +114,11 @@ func _ready() -> void:
     add_to_group("inventario")
     set_anchors_preset(Control.PRESET_FULL_RECT)
     mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _sincronizar_recursos()
     _montar()
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso and not progresso.recurso_alterado.is_connected(_recurso_mudou):
+        progresso.recurso_alterado.connect(_recurso_mudou)
     visible = false
 
 
@@ -312,8 +308,10 @@ func _cabecalho() -> Control:
     linha.add_child(vao)
 
     _rotulo_bolsa = _ficha(linha, "barra_ficha_bolsa", "%d / 150" % bag_items.size())
-    _rotulo_moedas = _ficha(linha, "barra_ficha_moeda", _milhar(gold_amount))
-    _ficha(linha, "barra_ficha_gema", _milhar(gemas))
+    _rotulo_moedas = _ficha(linha, "barra_ficha_moeda", "Claves  " + _milhar(gold_amount))
+    var progresso := get_node_or_null("/root/Progresso")
+    _rotulo_materiais = _ficha(linha, "barra_ficha_gema", "Materiais  " + _milhar(_total_de_materiais()))
+    _rotulo_fragmentos = _ficha(linha, "barra_ficha_bolsa", "Frag.  " + _milhar(_total_de_fragmentos()))
 
     # FECHAR, escrito. O "X" sozinho, pequeno e em cima da cantoneira dourada,
     # nao se lia no celular — e sair de uma tela cheia e a acao que mais precisa
@@ -558,7 +556,7 @@ func _cartao_de_detalhe() -> Control:
 ## nao existem. Ficam na barra assim mesmo porque a barra E o conceito: escondê
 ## las mudaria o desenho da tela por um motivo temporario.
 const ABAS := [["personagem", "Personagem"], ["talentos", "Talentos"],
-    ["melodia", "Melodia"], ["inventario", "Inventário"], ["missoes", "Missões"],
+    ["melodia", "Síntese"], ["inventario", "Inventário"], ["missoes", "Missões"],
     ["mapa", "Mapa"], ["loja", "Loja"], ["lira", "Coleção"]]
 
 func _barra_de_navegacao() -> Control:
@@ -692,6 +690,10 @@ func _selecionar(item: Dictionary) -> void:
 func _acao(qual: String) -> void:
     if _selecionado.is_empty():
         return
+    # Recursos pertencem a sistemas (Sintese, criacao, economia). Nao podem ser
+    # apagados por um toque acidental em Usar/Descartar.
+    if str(_selecionado.get("tipo", "")) in ["material", "valioso"]:
+        return
     var ident: String = str(_selecionado.get("id", ""))
     match qual:
         "Usar":
@@ -726,15 +728,64 @@ func _milhar(valor: int) -> String:
     return saida
 
 
-## Guarda o que a clave trouxe.
-##
-## O contador do topo era pintado uma vez, quando a tela nascia: a moeda entrava
-## no numero guardado, e o jogador so via a diferenca se fechasse e abrisse o
-## inventario. Agora o rotulo e repintado na hora.
+func _sincronizar_recursos() -> void:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return
+    if bag_items.is_empty():
+        for dados in ITENS_DE_RECURSO:
+            bag_items.append({
+                "id": dados[0], "name": dados[1], "arte": dados[2],
+                "qtd": progresso.quantidade(str(dados[0])),
+                "tier": dados[3], "rarity": dados[3], "tipo": dados[4],
+                "desc": dados[5],
+            })
+    else:
+        for item in bag_items:
+            item["qtd"] = progresso.quantidade(str(item.get("id", "")))
+    gold_amount = progresso.quantidade("claves")
+
+
+func _total_de_fragmentos() -> int:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return 0
+    var total := 0
+    for nota in ["do", "re", "mi", "fa", "sol", "la", "si"]:
+        total += progresso.quantidade("fragmento_" + nota)
+    return total
+
+
+func _total_de_materiais() -> int:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return 0
+    return progresso.quantidade("madeira") + progresso.quantidade("pedra")
+
+
+func _recurso_mudou(_id: String, _total: int) -> void:
+    _sincronizar_recursos()
+    if _rotulo_moedas:
+        _rotulo_moedas.text = "Claves  " + _milhar(gold_amount)
+    var progresso := get_node_or_null("/root/Progresso")
+    if _rotulo_materiais:
+        _rotulo_materiais.text = "Materiais  " + _milhar(_total_de_materiais())
+    if _rotulo_fragmentos:
+        _rotulo_fragmentos.text = "Frag.  " + _milhar(_total_de_fragmentos())
+    if _camada and _camada.visible and _grade:
+        _preencher_grade()
+
+
+## A clave agora entra no estado persistente, aparece como moeda no cabecalho e
+## como item da bolsa, inclusive depois de fechar o navegador.
 func receber_claves(quantidade: int) -> void:
-    gold_amount += quantidade
-    if _rotulo_moedas and is_instance_valid(_rotulo_moedas):
-        _rotulo_moedas.text = _milhar(gold_amount)
+    receber_recurso("claves", quantidade)
+
+
+func receber_recurso(id: String, quantidade: int) -> void:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso:
+        progresso.adicionar_recurso(id, quantidade)
 
 
 func toggle_inventory(force_state = null) -> void:
@@ -748,4 +799,5 @@ func toggle_inventory(force_state = null) -> void:
     # chama, ligando o botao da mochila na abertura — recebe a tela vazia em vez
     # de um erro; ela se preenche sozinha ao nascer.
     if novo and _grade != null:
+        _sincronizar_recursos()
         _preencher_grade()

@@ -535,7 +535,7 @@ func _disparar_feixe_laser(origem: Vector3, frente: Vector3) -> void:
         if dist > 28.0:
             continue
         if frente.angle_to(ate.normalized()) < deg_to_rad(40.0):
-            bicho.levar_dano(350.0, frente)
+            bicho.levar_dano(_dano_atual() * 5.8, frente)
             
     var tw := create_tween()
     tw.tween_property(mesh_inst, "scale", Vector3(1.5, 1.0, 1.5), 0.15)
@@ -573,7 +573,8 @@ func _atingir() -> void:
     var frente := global_transform.basis.z.normalized()
     var alcance: float = 5.5 if _buff_espada_gigante else ALCANCE_DO_GOLPE
     var abertura: float = 360.0 if _buff_espada_gigante else ABERTURA_DO_GOLPE
-    var dano_base: float = DANO * 1.8 if _buff_aura_azul else DANO
+    var dano_base: float = _dano_atual() * (1.8 if _buff_aura_azul else 1.0)
+    var stats := _estatisticas_atuais()
     
     var acertou := false
     for bicho in get_tree().get_nodes_in_group("bicho"):
@@ -586,7 +587,10 @@ func _atingir() -> void:
             continue
         if abertura < 350.0 and frente.angle_to(ate.normalized()) > deg_to_rad(abertura * 0.5):
             continue
-        bicho.levar_dano(dano_base, ate.normalized())
+        var dano_final := dano_base
+        if randf() * 100.0 < float(stats.get("critico", 0.0)):
+            dano_final *= float(stats.get("dano_critico", 135.0)) / 100.0
+        bicho.levar_dano(dano_final, ate.normalized())
         acertou = true
         
     if acertou and _buff_aura_azul:
@@ -595,6 +599,15 @@ func _atingir() -> void:
             hud = get_node_or_null("/root/ZonedWorld/HUD/PlayerHUD")
         if hud and hud.has_method("curar"):
             hud.curar(35.0)
+
+
+func _estatisticas_atuais() -> Dictionary:
+    var progresso := get_node_or_null("/root/Progresso")
+    return progresso.estatisticas() if progresso else {"ataque": DANO}
+
+
+func _dano_atual() -> float:
+    return float(_estatisticas_atuais().get("ataque", DANO))
 
 func _tocar_nota() -> void:
     var nota: String = ESCALA[_proxima_nota]

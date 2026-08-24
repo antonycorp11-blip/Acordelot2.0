@@ -3,6 +3,7 @@ class_name ZoneBuilder
 
 const PortalScript = preload("res://scripts/zone_portal.gd")
 const BichoScript = preload("res://scripts/bicho.gd")
+const RecursoColetavelScript = preload("res://scripts/recurso_coletavel.gd")
 
 signal portal_triggered(dest_zone_id: String, from_direction: String)
 
@@ -87,7 +88,31 @@ func construir_zona(zone_data: Dictionary) -> void:
     _construir_floresta_3d_real()
     _construir_barreiras_perimetro_arvores_reais()
     _construir_monstros()
+    _construir_recursos_coletaveis()
     _construir_portais()
+
+
+## Poucos pontos reutilizaveis em zonas naturais. Cidades ficam sem madeira,
+## pedra ou fragmento brotando nas ruas; seus recursos virao de comercio/NPC.
+func _construir_recursos_coletaveis() -> void:
+    var urbana: bool = (_zone_data.get("biome") == "cidade" or str(_zone_data.get("layout_id", "")) != "")
+    if urbana:
+        return
+    var receita := [
+        ["madeira", Vector2(-22, 16), 2], ["madeira", Vector2(26, -18), 2],
+        ["pedra", Vector2(20, 24), 2], ["pedra", Vector2(-28, -20), 2],
+        ["fragmento_" + ["do", "re", "mi", "fa", "sol", "la", "si"].pick_random(), Vector2(-8, 30), 1],
+    ]
+    var recursos := Node3D.new()
+    recursos.name = "RecursosColetaveis"
+    add_child(recursos)
+    for dados in receita:
+        var recurso: Node3D = RecursoColetavelScript.new()
+        recurso.recurso_id = str(dados[0])
+        recurso.quantidade = int(dados[2])
+        var ponto: Vector2 = dados[1]
+        recurso.position = Vector3(ponto.x, calcular_altura(ponto.x, ponto.y) + 0.05, ponto.y)
+        recursos.add_child(recurso)
 
 # -------------------------------------------------------------
 # 1. Terreno com Altura e Shader Zoned

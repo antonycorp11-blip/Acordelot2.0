@@ -8,7 +8,8 @@ const DialogoScript := preload("res://scripts/dialogo.gd")
 ## varre o projeto, e isso quebra exportacao limpa.
 const AquecimentoScript := preload("res://scripts/aquecimento.gd")
 const AjustesScript := preload("res://scripts/ajustes.gd")
-const TelaPersonagemScript := preload("res://scripts/tela_personagem.gd")
+const TelaPersonagemScript := preload("res://scripts/tela_personagem_real.gd")
+const TelaSinteseScript := preload("res://scripts/tela_sintese.gd")
 
 ## A NPC ao alcance, se houver. E ela que decide o que o botao de ataque faz.
 var _npc_perto: Node = null
@@ -92,11 +93,17 @@ func _ready() -> void:
     var ficha: CanvasLayer = TelaPersonagemScript.new()
     ficha.name = "TelaPersonagem"
     add_child(ficha)
+    var sintese: CanvasLayer = TelaSinteseScript.new()
+    sintese.name = "TelaSintese"
+    add_child(sintese)
     if inv_ui and inv_ui.has_signal("aba_pedida"):
         inv_ui.aba_pedida.connect(func(qual: String):
             if qual == "personagem":
                 inv_ui.toggle_inventory(false)
-                ficha.mostrar(true))
+                ficha.mostrar(true)
+            elif qual == "melodia":
+                inv_ui.toggle_inventory(false)
+                sintese.mostrar(true))
 
     if hud_vida and hud_vida.has_signal("config_pedida"):
         hud_vida.config_pedida.connect(func(): ajustes.mostrar(true))

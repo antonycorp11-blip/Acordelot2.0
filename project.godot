@@ -25,6 +25,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Progresso="*res://scripts/progresso.gd"
 World="*res://scripts/world.gd"
 
 [display]

@@ -1,6 +1,6 @@
 extends Control
 class_name PlayerHUD
-## O painel do jogador: retrato, vida, mana e a barra do alvo.
+## O painel do jogador: retrato, vida, experiencia e a barra do alvo.
 ##
 ## As pecas vem do kit de arte com o preenchimento PINTADO DENTRO — a barra de
 ## vida chega com o vermelho em 89% e os numeros ja desenhados. Colada assim ela
@@ -14,15 +14,13 @@ class_name PlayerHUD
 
 @export var max_health: float = 1000.0
 @export var current_health: float = 1000.0
-@export var max_mana: float = 500.0
-@export var current_mana: float = 500.0
-@export var player_level: int = 12
+@export var player_level: int = 1
 
 ## O buraco de cada moldura, em fracao da imagem. Medido no proprio arquivo
 ## depois do recorte — nao chute.
 const BURACOS := {
     "vida": Rect2(0.0189, 0.30, 0.9623, 0.60),
-    "mana": Rect2(0.0189, 0.1304, 0.9623, 0.7391),
+    "xp": Rect2(0.0189, 0.1304, 0.9623, 0.7391),
     "alvo": Rect2(0.0748, 0.2131, 0.8866, 0.5738),
 }
 
@@ -32,8 +30,9 @@ const LADO_DO_RETRATO := 78.0
 var _hp_fundo: ColorRect
 var _hp_cheio: ColorRect
 var _hp_label: Label
-var _mana_cheio: ColorRect
-var _mana_label: Label
+var _xp_cheio: ColorRect
+var _xp_label: Label
+var _nivel_label: Label
 
 var _alvo_caixa: Control
 var _alvo_cheio: ColorRect
@@ -60,6 +59,11 @@ func _ready() -> void:
     add_to_group("player_hud")
 
     _montar_retrato_e_barras()
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso:
+        if not progresso.alterado.is_connected(_atualizar_progressao):
+            progresso.alterado.connect(_atualizar_progressao)
+        _atualizar_progressao()
     # A BARRA DO ALVO FOI EMBORA.
     #
     # Com a barra sobre a cabeca do bicho, esta virou a terceira barra de vida
@@ -199,18 +203,18 @@ func _montar_retrato_e_barras() -> void:
     medalha.mouse_filter = Control.MOUSE_FILTER_IGNORE
     canto.add_child(medalha)
 
-    var nivel := Label.new()
-    nivel.position = medalha.position
-    nivel.size = medalha.size
-    nivel.text = str(player_level)
-    nivel.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    nivel.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    nivel.add_theme_font_size_override("font_size", 16)
-    nivel.add_theme_color_override("font_color", Color(1, 1, 1))
-    nivel.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.0, 0.95))
-    nivel.add_theme_constant_override("outline_size", 4)
-    nivel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    canto.add_child(nivel)
+    _nivel_label = Label.new()
+    _nivel_label.position = medalha.position
+    _nivel_label.size = medalha.size
+    _nivel_label.text = str(player_level)
+    _nivel_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _nivel_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    _nivel_label.add_theme_font_size_override("font_size", 16)
+    _nivel_label.add_theme_color_override("font_color", Color(1, 1, 1))
+    _nivel_label.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.0, 0.95))
+    _nivel_label.add_theme_constant_override("outline_size", 4)
+    _nivel_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    canto.add_child(_nivel_label)
 
     # --- vida
     var t_vida := Vector2(LARGURA_DA_BARRA, LARGURA_DA_BARRA * 60.0 / 424.0)
@@ -226,21 +230,21 @@ func _montar_retrato_e_barras() -> void:
     _moldura("res://textures/ui/barra_vida.png", t_vida, caixa_vida)
     _hp_label = _numero(t_vida, BURACOS["vida"], 13, caixa_vida)
 
-    # --- mana
-    var t_mana := Vector2(LARGURA_DA_BARRA, LARGURA_DA_BARRA * 46.0 / 424.0)
-    var caixa_mana := Control.new()
-    caixa_mana.position = Vector2(LADO_DO_RETRATO - 6.0, 8.0 + t_vida.y + 2.0)
-    caixa_mana.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    canto.add_child(caixa_mana)
+    # A segunda barra e experiencia. O jogo nao tem mana.
+    var t_xp := Vector2(LARGURA_DA_BARRA, LARGURA_DA_BARRA * 46.0 / 424.0)
+    var caixa_xp := Control.new()
+    caixa_xp.position = Vector2(LADO_DO_RETRATO - 6.0, 8.0 + t_vida.y + 2.0)
+    caixa_xp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    canto.add_child(caixa_xp)
 
-    var partes_mana := _preencher(BURACOS["mana"], t_mana,
-        Color(0.12, 0.48, 0.92), caixa_mana)
-    _mana_cheio = partes_mana[1]
-    _moldura("res://textures/ui/barra_mana.png", t_mana, caixa_mana)
-    _mana_label = _numero(t_mana, BURACOS["mana"], 11, caixa_mana)
+    var partes_xp := _preencher(BURACOS["xp"], t_xp,
+        Color(0.18, 0.52, 0.92), caixa_xp)
+    _xp_cheio = partes_xp[1]
+    _moldura("res://textures/ui/kit/barra_exp.png", t_xp, caixa_xp)
+    _xp_label = _numero(t_xp, BURACOS["xp"], 11, caixa_xp)
 
     _pintar_vida()
-    _pintar_mana()
+    _pintar_xp()
 
     # --- engrenagem e mochila, no canto de cima a direita
     # AO LADO DO MAPA, no alto — o lugar padrao deste tipo de botao em jogo de
@@ -331,14 +335,35 @@ func _pintar_vida() -> void:
         _hp_label.text = "%d / %d" % [int(current_health), int(max_health)]
 
 
-func _pintar_mana() -> void:
-    if _mana_cheio == null:
+func _pintar_xp() -> void:
+    if _xp_cheio == null:
         return
-    var largura: float = BURACOS["mana"].size.x * LARGURA_DA_BARRA
-    var fracao: float = 0.0 if max_mana <= 0.0 else current_mana / max_mana
-    _mana_cheio.size.x = largura * clampf(fracao, 0.0, 1.0)
-    if _mana_label:
-        _mana_label.text = "%d / %d" % [int(current_mana), int(max_mana)]
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return
+    var largura: float = BURACOS["xp"].size.x * LARGURA_DA_BARRA
+    var necessario: float = float(progresso.xp_para_nivel())
+    var fracao: float = 0.0 if necessario <= 0.0 else float(progresso.experiencia) / necessario
+    _xp_cheio.size.x = largura * clampf(fracao, 0.0, 1.0)
+    if _xp_label:
+        _xp_label.text = "%d / %d XP" % [progresso.experiencia, int(necessario)]
+
+
+func _atualizar_progressao() -> void:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return
+    player_level = progresso.nivel
+    if _nivel_label:
+        _nivel_label.text = str(player_level)
+    var stats: Dictionary = progresso.estatisticas()
+    var nova_vida := float(stats.get("vida_maxima", max_health))
+    var estava_cheio := current_health >= max_health - 0.01
+    max_health = nova_vida
+    if estava_cheio or current_health > max_health:
+        current_health = max_health
+    _pintar_vida()
+    _pintar_xp()
 
 
 func curar(qtd: float) -> void:
