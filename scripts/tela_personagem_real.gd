@@ -6,6 +6,7 @@ const FUNDO := "res://textures/ui/painel_harmonia_v2.jpg"
 const KIT := "res://textures/ui/kit/"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
+const TAMANHO_LAYOUT := Vector2(1600.0, 900.0)
 const ATRIBUTOS := [["forca", "Força"], ["destreza", "Destreza"],
     ["vitalidade", "Vitalidade"], ["ressonancia", "Ressonância"],
     ["percepcao", "Percepção"]]
@@ -33,6 +34,7 @@ var _botoes_atributo := {}
 var _valores_combate := {}
 var _linhas_poder := {}
 var _slots := {}
+var _base_layout: Control
 
 
 func _ready() -> void:
@@ -40,6 +42,8 @@ func _ready() -> void:
     visible = false
     _progresso = get_node_or_null("/root/Progresso")
     _montar()
+    get_viewport().size_changed.connect(_ajustar_ao_celular)
+    _ajustar_ao_celular()
     if _progresso and not _progresso.alterado.is_connected(_atualizar):
         _progresso.alterado.connect(_atualizar)
     _atualizar()
@@ -89,14 +93,12 @@ func _montar() -> void:
     sombra.set_anchors_preset(Control.PRESET_FULL_RECT)
     sombra.mouse_filter = Control.MOUSE_FILTER_STOP
     add_child(sombra)
-    var proporcao := AspectRatioContainer.new()
-    proporcao.set_anchors_preset(Control.PRESET_FULL_RECT)
-    proporcao.ratio = 16.0 / 9.0
-    proporcao.stretch_mode = AspectRatioContainer.STRETCH_FIT
-    sombra.add_child(proporcao)
     var base := Control.new()
-    base.custom_minimum_size = Vector2(1600, 900)
-    proporcao.add_child(base)
+    base.custom_minimum_size = TAMANHO_LAYOUT
+    base.size = TAMANHO_LAYOUT
+    base.pivot_offset = Vector2.ZERO
+    sombra.add_child(base)
+    _base_layout = base
     var arte := TextureRect.new()
     arte.texture = load(FUNDO)
     arte.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -122,6 +124,17 @@ func _montar() -> void:
     corpo.add_child(_painel_equipamentos())
     corpo.add_child(_painel_akles())
     corpo.add_child(_painel_dados())
+
+
+func _ajustar_ao_celular() -> void:
+    if _base_layout == null:
+        return
+    var viewport := get_viewport().get_visible_rect().size
+    if viewport.x <= 0.0 or viewport.y <= 0.0:
+        return
+    var fator := minf(viewport.x / TAMANHO_LAYOUT.x, viewport.y / TAMANHO_LAYOUT.y)
+    _base_layout.scale = Vector2.ONE * fator
+    _base_layout.position = (viewport - TAMANHO_LAYOUT * fator) * 0.5
 
 
 func _cabecalho() -> Control:
