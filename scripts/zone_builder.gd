@@ -98,9 +98,18 @@ func calcular_altura(x: float, z: float) -> float:
     
     match tipo_terreno:
         "plato_urbano":
-            if d_centro < 45.0:
+            # Acordelot ocupa quase toda a zona. O plato antigo acabava em
+            # 45 m e punha os bairros novos e a muralha numa ladeira. So a
+            # cidade principal ganha o raio maior; a vila continua compacta.
+            var acorde_lot := str(_zone_data.get("id", "")) == "zone_portoes"
+            var raio_plano := 70.0 if acorde_lot else 45.0
+            # A muralha e retangular. Medir pelo raio de um circulo deixaria
+            # justamente os quatro cantos fora do plato, com segmentos
+            # flutuando. Na cidade mede-se ate a borda do quadrado.
+            var distancia_do_plato := maxf(absf(x), absf(z)) if acorde_lot else d_centro
+            if distancia_do_plato < raio_plano:
                 return 0.0
-            var t: float = clampf((d_centro - 45.0) / 30.0, 0.0, 1.0)
+            var t: float = clampf((distancia_do_plato - raio_plano) / 10.0, 0.0, 1.0)
             var morro: float = (sin(x * 0.08) * cos(z * 0.08)) * 2.5
             return morro * t
             
@@ -255,6 +264,10 @@ func _pintar_as_vias(mat: ShaderMaterial) -> void:
         float(vias.get("largo", 0.0)), float(travessas[1])))
     mat.set_shader_parameter("via_travessa", Vector2(
         float(travessas[0]), float(travessas[2])))
+    var secundarias: Array = vias.get("secundarias", [999.0, 999.0, 0.0, 0.0])
+    mat.set_shader_parameter("vias_secundarias", Vector4(
+        float(secundarias[0]), float(secundarias[1]),
+        float(secundarias[2]), float(secundarias[3])))
     mat.set_shader_parameter("via_de_pedra", 1.0 if bool(vias.get("pedra", false)) else 0.0)
 
 

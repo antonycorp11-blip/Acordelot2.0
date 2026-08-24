@@ -30,6 +30,8 @@ uniform float shore_blend = 0.8;
 uniform vec4 via_principal = vec4(0.0);
 // x = em que Z as travessas cruzam, y = ate que |X| elas vao
 uniform vec2 via_travessa = vec2(0.0);
+// Duas ruas paralelas opcionais: z1, z2, meia largura, alcance em X.
+uniform vec4 vias_secundarias = vec4(999.0, 999.0, 0.0, 0.0);
 // 0 = terra batida, 1 = calcamento de pedra.
 //
 // Vila e cidade tem o mesmo desenho de via e chao diferente, e a diferenca
@@ -105,7 +107,18 @@ void fragment() {
                        * (1.0 - smoothstep(via_travessa.y - 3.0, via_travessa.y,
                                            abs(world_pos.x)));
 
-        float via = clamp(max(max(rua, largo), travessa), 0.0, 1.0);
+        float meia_s = vias_secundarias.z + franja;
+        float secundaria_1 = (1.0 - smoothstep(meia_s - 0.7, meia_s + 0.5,
+                                                abs(world_pos.z - vias_secundarias.x)))
+                           * (1.0 - smoothstep(vias_secundarias.w - 3.0,
+                                               vias_secundarias.w, abs(world_pos.x)));
+        float secundaria_2 = (1.0 - smoothstep(meia_s - 0.7, meia_s + 0.5,
+                                                abs(world_pos.z - vias_secundarias.y)))
+                           * (1.0 - smoothstep(vias_secundarias.w - 3.0,
+                                               vias_secundarias.w, abs(world_pos.x)));
+
+        float via = clamp(max(max(max(rua, largo), travessa),
+                              max(secundaria_1, secundaria_2)), 0.0, 1.0);
         // Terra batida, um tom mais escura que a de fora: chao pisado escurece.
         // Ou pedra, quando a zona pede calcamento.
         vec3 cor_da_via = mix(col_dirt * 0.82, col_stone * 0.92, via_de_pedra);

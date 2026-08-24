@@ -262,7 +262,7 @@ func _montar_retrato_e_barras() -> void:
     inventario.pressed.connect(func(): mochila_pedida.emit())
     add_child(inventario)
 
-    var config := _botao("res://textures/ui/btn_config.png", lado)
+    var config := _botao("res://textures/ui/btn_config_novo.png", lado)
     config.set_anchors_preset(Control.PRESET_TOP_RIGHT, true)
     # AO LADO, na mesma fileira: empilhada embaixo ela descia para a altura do
     # anel do relogio e disputava espaco com ele.

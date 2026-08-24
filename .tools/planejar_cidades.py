@@ -265,7 +265,7 @@ RAIO_PLANO = 44.0
 # os Portoes Reais. A vila e uma PASSAGEM, e a rua dela e a estrada que a criou.
 MEIA_RUA = 4.0          # a rua tem 8 m
 FACHADA_X = 7.0         # a linha das fachadas: 3 m de calcada ate a rua
-MEIA_PRACA = 12.0       # o largo no meio, onde a rua se abre
+MEIA_PRACA = 9.0        # largo pequeno; doze metros ja lia como praca de cidade
 LANE_Z = 0.0            # as travessas saem do largo
 LANE_ATE = 28.0
 MEIA_LANE = 3.0
@@ -310,16 +310,17 @@ def vila_da_estrada():
     # norte: chega-se pelas casas simples, passa-se pelo largo com o solar de
     # telhado vermelho — a construcao mais rica, a que marca o centro — e sai-se
     # pelo casarao de madeira, que ja e quase celeiro, quase roca.
+    # Sete casas, concentradas. Antes eram treze construcoes e quatro ruas:
+    # isso ja lia como cidade pequena. A vila volta a ser um povoado de estrada,
+    # com vazios naturais entre dois pequenos nucleos habitados.
     LOTES = {
-        ("oeste",  36.0): "casa_pedra",
-        ("oeste",  14.0): "casa_larga",
-        ("oeste", -14.0): "casa_alta",
-        ("oeste", -25.0): "casa_pedra",
-        ("oeste", -36.0): "casarao",
-        ("leste",  36.0): "casa_alta",
-        ("leste",  25.0): "casa_larga",
-        ("leste", -14.0): "solar",
-        ("leste", -36.0): "casa_pedra",
+        ("oeste",  28.0): "casa_pedra",
+        ("oeste",   8.0): "casa_larga",
+        ("oeste", -16.0): "casa_alta",
+        ("oeste", -29.0): "casarao",
+        ("leste",  28.0): "casa_alta",
+        ("leste",   5.0): "casa_pedra",
+        ("leste", -20.0): "solar",
     }
 
     for (lado, z), etiqueta in LOTES.items():
@@ -331,25 +332,6 @@ def vila_da_estrada():
         giro = (90.0 if sinal < 0 else 270.0) + GIRO_DA_FACHADA[etiqueta]
         pecas.append(peca(f"casa_{lado}_{mao}{abs(int(z)):02d}", etiqueta, modelo,
                           x, z, giro=giro))
-
-    # --- as travessas: duas ruas curtas saindo do largo, com duas casas cada
-    #
-    # Sem elas a vila e uma fita e o jogador so anda para frente. Uma travessa
-    # da profundidade: existe um "dentro" da vila, e nao so uma passagem.
-    TRAVESSAS = {
-        ("oeste",  1.0): "casa_pedra",
-        ("oeste", -1.0): "casa_alta",
-        ("leste",  1.0): "casa_alta",
-        ("leste", -1.0): "casa_larga",
-    }
-    for (lado, mao), etiqueta in TRAVESSAS.items():
-        modelo, _altura, _frente, fundo = CASAS[etiqueta]
-        sinal = -1.0 if lado == "oeste" else 1.0
-        z = mao * (MEIA_LANE + 2.0 + fundo * 0.5)
-        giro = (180.0 if mao > 0 else 0.0) + GIRO_DA_FACHADA[etiqueta]
-        pecas.append(peca(
-            f"travessa_{lado}_{'s' if mao > 0 else 'n'}", etiqueta, modelo,
-            sinal * 23.0, z, giro=giro))
 
     # --- o portal do sul: duas arvores grandes fazendo porta
     #
@@ -373,21 +355,18 @@ def vila_da_estrada():
     # Foram de 13,5 para 21 m quando as casas novas entraram: o casarao tem onze
     # metros de fundo e o solar dez, e no lugar antigo o pinheiro nascia dentro
     # do telhado.
-    for i, z in enumerate((33.0, 22.0, -22.0, -33.0)):
+    for i, z in enumerate((30.0, 14.0, -18.0, -31.0)):
         for sinal in (-1.0, 1.0):
             pecas.append(peca(f"pinheiro_fundo_{i}_{'o' if sinal < 0 else 'l'}",
                               "pinheiro", PINHEIRO, sinal * 21.0, z,
                               giro=(i * 71 + (0 if sinal < 0 else 37)) % 360))
 
-    # --- as pontas das travessas
-    #
-    # Duas arvores fechando o fim de cada travessa. Sem elas a rua curta some no
-    # gramado e parece inacabada; com elas o jogador ve onde a travessa termina
-    # e nao vai procurar caminho que nao existe.
+    # Copas laterais fecham o povoado sem sugerir novas ruas.
     for sinal in (-1.0, 1.0):
-        pecas.append(peca(f"pinheiro_travessa_{'o' if sinal < 0 else 'l'}",
-                          "pinheiro", PINHEIRO, sinal * 29.0, 2.0,
-                          giro=(i * 37 + 120) % 360))
+        for z in (16.0, -9.0):
+            pecas.append(peca(f"pinheiro_lateral_{'o' if sinal < 0 else 'l'}_{int(z)}",
+                              "pinheiro", PINHEIRO, sinal * 27.0, z,
+                              giro=int(abs(z) * 19 + (0 if sinal < 0 else 87)) % 360))
 
     # --- a saida norte, mais discreta que a entrada
     for sinal in (-1.0, 1.0):
@@ -422,7 +401,7 @@ def vila_da_estrada():
         "vias": {
             "principal": [MEIA_RUA, 44.0],
             "largo": MEIA_PRACA,
-            "travessas": [LANE_Z, MEIA_LANE, LANE_ATE],
+            "travessas": [LANE_Z, 0.0, 0.0],
         },
         # Quem mora aqui. Por enquanto uma so: [id, x, z, giro, dialogo].
         "npcs": [["mirella", 6.2, -8.0, 250.0, "mirella_boas_vindas"]],
@@ -448,7 +427,7 @@ def _postes_da_vila():
     postes = []
     # A rua: dois pares ao norte do largo, dois ao sul. E o corredor de luz que
     # leva o jogador de um portal ao outro.
-    for z in (31.0, 19.0, -19.0, -31.0):
+    for z in (27.0, 10.0, -12.0, -28.0):
         for sinal in (-1.0, 1.0):
             postes.append([round(sinal * CALCADA_X, 2), z])
     # O largo, onde as travessas cruzam: um par, marcando o cruzamento sem
@@ -542,12 +521,10 @@ def _tochas_de_parede():
     Cada tocha e [x, z, giro, altura_na_parede].
     """
     return [
-        [-7.05,  33.0,  90.0, 2.1],   # oeste 36
-        [-7.05,  11.0,  90.0, 2.1],   # oeste 14
-        [-7.05, -23.0,  90.0, 2.1],   # oeste -25
-        [ 7.05,  22.0, 270.0, 2.1],   # leste 25
-        [ 7.05,  -9.5, 270.0, 2.3],   # leste -14, o solar
-        [ 7.05, -33.5, 270.0, 2.1],   # leste -36
+        [-7.05,  25.0,  90.0, 2.1],
+        [-7.05,   5.0,  90.0, 2.1],
+        [ 7.05,  25.0, 270.0, 2.1],
+        [ 7.05, -15.0, 270.0, 2.3],
     ]
 
 
@@ -787,32 +764,19 @@ CASAS_DA_CIDADE = {
 # diferenca de escala e o que diz "aqui e maior" sem precisar de placa.
 MEIA_RUA_CIDADE = 5.0
 FACHADA_CIDADE = 9.0
-PRACA_Z = -16.0
+PRACA_Z = 0.0
 PRACA_RAIO = 14.0
 LANE_CIDADE = 3.5
 MURALHA_ACORDELOT = "muralha_texturizada"
 
 
 def cidade_de_acordelot():
-    """Acordelot: portoes ao sul, rua principal, praca no coracao, bairros nas
-    laterais.
+    """Acordelot ocupa a zona inteira, mas continua facil de ler.
 
-    Quatro decisoes seguram a leitura:
-
-    1. O PORTAO E MARCADO POR DUAS TORRES e pela abertura da muralha. A muralha
-       nova tem textura de pedra de verdade; os modelos antigos sem textura
-       continuam proibidos.
-
-    2. A RUA E MAIS LARGA QUE A DA VILA. Dez metros contra oito, com as fachadas
-       recuadas a nove. E a mesma gramatica, um degrau acima — e o jogador que
-       veio da vila sente isso antes de saber por que.
-
-    3. A PRACA FICA DEPOIS DE UM TRECHO DE RUA, nao logo na entrada. Ela precisa
-       ser uma CHEGADA: quem entra ve o corredor, anda, e o corredor se abre. Ao
-       fundo dela a rua continua para a Capital, entao a praca nao e um beco.
-
-    4. AS TRAVESSAS SAEM DA PRACA, e nao dos portoes. Assim o centro e o no da
-       cidade — de onde tudo parte e para onde tudo volta.
+    A rua sul-norte une os dois portais, a avenida oeste chega ao terceiro
+    portal e as duas ruas de bairro dividem a cidade em quadras. A muralha fica
+    a dez metros dos portais: quem troca de zona ja chega aos portoes, sem
+    atravessar um campo vazio antes da cidade comecar.
     """
     pecas = []
 
@@ -824,116 +788,109 @@ def cidade_de_acordelot():
         tag, modelo = alvo
         pecas.append(peca(nome, tag, modelo, x, z, giro=giro, escala=escala))
 
-    # --- 1. OS PORTOES, ao sul
-    #
-    # As duas torres avancam sobre a estrada, quase encostando na calcada: e o
-    # aperto que faz a passagem virar portao. Renaldo fica entre elas, e o
-    # planejador o poe pela lista de npcs da praca.
-    for sinal, lado in ((-1.0, "oeste"), (1.0, "leste")):
-        por(f"torre_portao_{lado}", "casa_torre",
-            sinal * (FACHADA_CIDADE + 9.84 * 0.5), 30.0,
-            giro=(90.0 if sinal < 0 else 270.0))
-        # Uma copa alta atras de cada torre, para a silhueta da entrada nao
-        # terminar em telhado seco.
-        pecas.append(peca(f"copa_portao_{lado}", "arvore_marco", ARVORE_GRANDE,
-                          sinal * 24.0, 34.0, giro=(0.0 if sinal < 0 else 180.0)))
+    # 1. Muralha nos 63 m: quase na borda da zona. Sul e norte deixam abertura
+    # central; oeste deixa a abertura do portal do Forjador; leste e fechado.
+    for eixo in ("sul", "norte"):
+        z = 63.0 if eixo == "sul" else -63.0
+        for i, x in enumerate((-57.9, -23.3, 23.3, 57.9)):
+            pecas.append(peca(f"muralha_{eixo}_{i}", "muralha", MURALHA_ACORDELOT,
+                              x, z, giro=0.0))
+    for i, z in enumerate((-52.0, -17.0, 18.0, 53.0)):
+        pecas.append(peca(f"muralha_leste_{i}", "muralha", MURALHA_ACORDELOT,
+                          63.0, z, giro=90.0))
+    for i, z in enumerate((-57.9, -23.3, 23.3, 57.9)):
+        pecas.append(peca(f"muralha_oeste_{i}", "muralha", MURALHA_ACORDELOT,
+                          -63.0, z, giro=90.0))
 
-    # --- 1b. A MURALHA
-    #
-    # O segmento novo mede aproximadamente 35 m depois de normalizado para
-    # 6,5 m de altura. Dez copias fecham o retangulo urbano sem picotar a
-    # silhueta e deixam duas aberturas de 13 m, exatamente no eixo dos portais.
-    # Sul: entrada da Vila do Caminho. Norte: continuacao para a Capital.
-    for lado, x in (("o", -25.0), ("l", 25.0)):
-        pecas.append(peca(f"muralha_sul_{lado}", "muralha", MURALHA_ACORDELOT,
-                          x, 41.0, giro=0.0))
-        pecas.append(peca(f"muralha_norte_{lado}", "muralha", MURALHA_ACORDELOT,
-                          x, -59.0, giro=0.0))
-    for lado, x in (("oeste", -43.0), ("leste", 43.0)):
-        for i, z in enumerate((25.0, -9.0, -43.0)):
-            pecas.append(peca(f"muralha_{lado}_{i}", "muralha", MURALHA_ACORDELOT,
-                              x, z, giro=90.0))
+    # 2. Torres que tornam as tres aberturas marcos visuais.
+    for eixo, z in (("sul", 54.0), ("norte", -54.0)):
+        for sinal, lado in ((-1.0, "o"), (1.0, "l")):
+            por(f"torre_{eixo}_{lado}", "casa_torre", sinal * 11.5, z,
+                giro=(90.0 if sinal < 0 else 270.0))
+    por("torre_oeste_s", "casa_torre", -54.0, 11.5, giro=180.0)
+    por("torre_oeste_n", "casa_torre", -54.0, -11.5, giro=0.0)
 
-    # --- 2. A RUA PRINCIPAL: tres lotes de cada lado, entre o portao e a praca
-    #
-    # A leste, o comercio: taverna e sobrado, que sao as fachadas mais altas e
-    # puxam o olho para aquele lado. A oeste, moradia. A assimetria e de
-    # proposito — rua com os dois lados iguais parece corredor de hotel.
-    RUA_OESTE = [(20.0, "casa_pedra"), (10.0, "casa_taipa"), (0.0, "casa_larga")]
-    RUA_LESTE = [(20.0, "taverna"), (9.0, "casa_larga"), (-1.0, "casa_pedra")]
-
-    for lado, sinal, lotes in (("oeste", -1.0, RUA_OESTE), ("leste", 1.0, RUA_LESTE)):
-        for z, etiqueta in lotes:
+    # 3. Eixo principal, da Vila do Caminho ao portal norte.
+    oeste = [(43.0, "casa_pedra"), (16.0, "casa_taipa"),
+             (-17.0, "casa_larga"), (-43.0, "casarao")]
+    leste = [(43.0, "taverna"), (16.0, "casa_larga"),
+             (-17.0, "casa_pedra"), (-43.0, "solar")]
+    for lado, sinal, lotes in (("o", -1.0, oeste), ("l", 1.0, leste)):
+        for i, (z, etiqueta) in enumerate(lotes):
             fundo = CASAS_DA_CIDADE[etiqueta][3]
-            por(f"rua_{lado}_{abs(int(z)):02d}", etiqueta,
+            por(f"eixo_{lado}_{i}", etiqueta,
                 sinal * (FACHADA_CIDADE + fundo * 0.5), z,
                 giro=(90.0 if sinal < 0 else 270.0))
 
-    # --- 3. A PRACA: o poco no meio-lado, e o resto em volta do vazio
-    #
-    # O centro fica LIVRE. Praca com monumento no meio vira rotatoria, e o que
-    # se quer aqui e um lugar onde caiba gente parada — e, mais tarde, os NPCs
-    # que importam.
-    prop("poco_da_praca", POCO, 7.5, PRACA_Z + 3.0, giro=200.0)
-    prop("banco_praca_o", BANCO, -7.0, PRACA_Z + 2.0, giro=80.0)
-    prop("banco_praca_l", BANCO, 6.5, PRACA_Z - 4.5, giro=250.0)
-    prop("carroca_praca", CARROCA, -6.5, PRACA_Z - 4.5, giro=110.0)
-    prop("barris_feira", BARRIS, -6.5, PRACA_Z + 6.5, giro=30.0)
-    prop("caixotes_feira", CAIXOTES, -3.4, PRACA_Z + 8.4, giro=300.0)
-    prop("saco_feira", SACO, -1.4, PRACA_Z + 6.4, giro=15.0)
+    # 4. Tres avenidas horizontais. Duas formam bairros completos; a central
+    # liga a praca ao portao oeste. As casas olham para a rua, nunca ao acaso.
+    padrao = ["casa_pedra", "casa_taipa", "casa_larga", "taverna",
+              "casa_alta", "solar", "casarao"]
+    for faixa, rua_z, linhas in (("sul", 30.0, (39.5, 22.5)),
+                                 ("centro", 0.0, (11.5, -11.5)),
+                                 ("norte", -31.0, (-23.5, -40.5))):
+        xs = (-47.0, -30.0, 30.0, 47.0)
+        for linha_i, casa_z in enumerate(linhas):
+            for i, x in enumerate(xs):
+                # A ponta oeste da avenida central e o patio do portao: as
+                # duas torres ocupam esses lotes e precisam de espaco livre.
+                if faixa == "centro" and x == -47.0:
+                    continue
+                etiqueta = padrao[(i + linha_i * 2 + int(abs(rua_z))) % len(padrao)]
+                giro = 180.0 if casa_z > rua_z else 0.0
+                por(f"bairro_{faixa}_{linha_i}_{i}", etiqueta, x, casa_z, giro=giro)
 
-    # As quatro casas que fecham a praca, recuadas do circulo.
-    por("praca_noroeste", "solar", -14.5, PRACA_Z - 13.0, giro=0.0)
-    por("praca_nordeste", "casa_torre", 14.0, PRACA_Z - 13.5, giro=180.0)
-    por("praca_sudoeste", "casa_taipa", -17.5, PRACA_Z + 7.5, giro=90.0)
-    por("praca_sudeste", "casa_alta", 17.5, PRACA_Z + 9.0, giro=270.0)
+    # 5. Praca central: livre para gente, mobiliario nas bordas.
+    prop("poco_da_praca", POCO, 7.5, 3.0, giro=200.0)
+    prop("banco_praca_o", BANCO, -8.0, 4.5, giro=80.0)
+    prop("banco_praca_l", BANCO, 8.0, -5.0, giro=250.0)
+    prop("carroca_praca", CARROCA, -8.5, -5.5, giro=110.0)
+    prop("barris_feira", BARRIS, -5.5, 8.0, giro=30.0)
+    prop("caixotes_feira", CAIXOTES, -2.8, 9.2, giro=300.0)
+    prop("saco_feira", SACO, 0.0, 8.0, giro=15.0)
 
-    # --- 4. AS TRAVESSAS, saindo da praca para os bairros
-    #
-    # A oeste, residencial: casas menores, agrupadas de tres, com quintal.
-    # A leste, oficinas: fachadas mais largas e props de trabalho na porta.
-    for i, z in enumerate((-24.0, -32.0, -40.0)):
-        por(f"bairro_oeste_{i}", "casa_taipa", -26.0, z, giro=90.0)
-        por(f"bairro_leste_{i}", "casa_larga" if i % 2 == 0 else "casa_pedra",
-            26.0, z, giro=270.0)
+    # Props de trabalho agrupados por bairro, nao espalhados no gramado.
+    for nome, alvo, x, z, giro in (
+            ("oficina_barris", BARRIS, 37.0, -25.5, 210.0),
+            ("oficina_caixotes", CAIXOTES, 39.0, -28.0, 95.0),
+            ("oficina_carroca", CARROCA, 50.5, -25.0, 15.0),
+            ("residencia_saco", SACO, -37.0, 24.0, 140.0),
+            ("residencia_barris", BARRIS, -48.0, 25.0, 260.0),
+            ("mercado_caixotes", CAIXOTES, 35.0, 5.5, 40.0)):
+        prop(nome, alvo, x, z, giro=giro)
 
-    prop("oficina_barris", BARRIS, 19.5, -30.0, giro=210.0)
-    prop("oficina_caixotes", CAIXOTES, 20.8, -35.0, giro=95.0)
-    prop("oficina_carroca", CARROCA, 20.0, -25.0, giro=15.0)
-    prop("quintal_saco", SACO, -22.5, -27.5, giro=140.0)
-    prop("quintal_barris", BARRIS, -19.0, -36.5, giro=260.0, escala=0.9)
+    # 6. Arvores dos dois lados da muralha. O lado de dentro suaviza pedra e
+    # telhado; o de fora liga a cidade a floresta antes do portal carregar.
+    arv_id = 0
+    for z in (-48.0, -30.0, 28.0, 47.0):
+        for x in (-72.0, -55.0, 55.0, 72.0):
+            pecas.append(peca(f"arvore_muro_lateral_{arv_id}", "pinheiro", PINHEIRO,
+                              x, z, giro=(arv_id * 61) % 360,
+                              escala=0.9 + (arv_id % 3) * 0.08))
+            arv_id += 1
+    for x in (-48.0, -31.0, 31.0, 48.0):
+        for z in (-72.0, -55.0, 55.0, 72.0):
+            pecas.append(peca(f"arvore_muro_horizontal_{arv_id}", "pinheiro", PINHEIRO,
+                              x, z, giro=(arv_id * 47) % 360,
+                              escala=0.9 + (arv_id % 3) * 0.08))
+            arv_id += 1
 
-    # --- 5. A SAIDA NORTE, para a Capital
-    #
-    # Duas casas afastadas e uma copa: a cidade rareia antes de acabar, em vez
-    # de parar de uma vez. Cidade que termina numa linha reta parece cenario
-    # cortado.
-    por("saida_oeste", "casa_pedra", -13.5, -44.0, giro=60.0)
-    por("saida_leste", "casa_alta", 13.0, -45.0, giro=300.0)
-    for sinal in (-1.0, 1.0):
-        pecas.append(peca(f"copa_saida_{'o' if sinal < 0 else 'l'}", "arvore_marco",
-                          ARVORE_GRANDE, sinal * 7.5, -52.5,
-                          giro=(0.0 if sinal < 0 else 180.0)))
-
-    # --- 6. A ORLA: pinheiros e sub-bosque marcando o limite da zona
-    for i, (x, z) in enumerate([(-34.0, 26.0), (33.0, 30.0), (-36.0, 6.0),
-                                (35.0, 2.0), (-35.0, -18.0), (34.0, -14.0),
-                                (-36.5, -40.0), (35.0, -44.0)]):
-        pecas.append(peca(f"pinheiro_orla_{i}", "pinheiro", PINHEIRO, x, z,
-                          giro=(i * 61) % 360))
-    for i, (x, z) in enumerate([(-29.0, 14.0), (28.0, 12.0), (-30.0, -6.0),
-                                (29.0, -8.0), (-28.0, -46.0), (27.0, -48.0)]):
-        pecas.append(peca(f"cogumelo_cidade_{i}", "cogumelo", COGUMELO, x, z,
-                          giro=(i * 83) % 360, escala=round(0.9 + (i % 3) * 0.12, 2)))
+    # Sub-bosque em grupos curtos perto das copas, barato e com textura.
+    for i, (x, z) in enumerate(((-56.0, 46.0), (56.0, 44.0), (-54.0, -46.0),
+                                (54.0, -47.0), (-45.0, 55.0), (44.0, 55.0),
+                                (-44.0, -55.0), (45.0, -55.0))):
+        pecas.append(peca(f"cogumelo_muralha_{i}", "cogumelo", COGUMELO, x, z,
+                          giro=(i * 83) % 360, escala=0.9 + (i % 3) * 0.1))
 
     return pecas, {
-        "avenidas": 2,
+        "avenidas": 4,
         "aneis": [PRACA_RAIO],
         "so_com_textura": True,
         "vias": {
-            "principal": [MEIA_RUA_CIDADE, 46.0],
+            "principal": [MEIA_RUA_CIDADE, 67.0],
             "largo": PRACA_RAIO,
-            "travessas": [PRACA_Z, LANE_CIDADE, 30.0],
+            "travessas": [PRACA_Z, LANE_CIDADE + 1.0, 67.0],
+            "secundarias": [30.0, -31.0, LANE_CIDADE, 55.0],
             # Rua de PEDRA. Na vila o chao e terra pisada; aqui e calcamento, e
             # e essa diferenca que diz ao jogador que ele mudou de lugar.
             "pedra": True,
@@ -945,25 +902,14 @@ def cidade_de_acordelot():
 
 
 def _postes_de_acordelot():
-    """A luz da cidade: aos pares nos dois lados da via, como na vila.
-
-    Mais postes que a vila porque a rua e mais longa, e nao porque cidade tem de
-    ser clara: o escuro entre um poste e outro continua sendo o que faz a noite
-    existir. Doze ao todo — quatro na rua, quatro na praca, dois em cada
-    travessa.
-    """
+    """Corredores de luz marcam os tres caminhos que levam a portais."""
     postes = []
-    calcada = 6.6
-    for z in (26.0, 14.0, 2.0, -8.0):
+    for z in (51.0, 29.0, 10.0, -18.0, -42.0):
         for sinal in (-1.0, 1.0):
-            postes.append([round(sinal * calcada, 2), z])
-    # A praca acesa nos quatro cantos, que e o que a faz virar ponto de encontro
-    # a noite.
-    for x, z in ((-9.0, -11.0), (9.0, -11.0), (-9.0, -21.0), (9.0, -21.0)):
-        postes.append([x, z])
-    # As travessas
-    for sinal in (-1.0, 1.0):
-        postes.append([round(sinal * 19.0, 2), PRACA_Z + 4.0])
+            postes.append([round(sinal * 6.8, 2), z])
+    for x in (-49.0, -29.0, 29.0, 49.0):
+        postes.append([x, -5.2])
+        postes.append([x, 5.2])
     return postes
 
 
@@ -974,12 +920,10 @@ def _tochas_de_acordelot():
     para de significar coisa alguma.
     """
     return [
-        [-9.05, 30.0, 90.0, 2.4],   # torre oeste do portao
-        [9.05, 30.0, 270.0, 2.4],   # torre leste
-        [9.05, 20.0, 270.0, 2.2],   # taverna
-        [9.05, -3.0, 270.0, 2.1],
-        [-9.05, 10.0, 90.0, 2.1],
-        [14.0, -22.5, 180.0, 2.3],  # a casa alta da praca
+        [-7.0, 54.0, 90.0, 2.5], [7.0, 54.0, 270.0, 2.5],
+        [-7.0, -54.0, 90.0, 2.5], [7.0, -54.0, 270.0, 2.5],
+        [-54.0, 7.0, 180.0, 2.5], [-54.0, -7.0, 0.0, 2.5],
+        [9.0, 43.0, 270.0, 2.2], [-9.0, -43.0, 90.0, 2.2],
     ]
 
 
@@ -992,25 +936,30 @@ def _adornos_de_acordelot():
     """
     adornos = []
 
-    # As cercas dos quintais dos bairros, atras das casas laterais.
-    for sinal in (-1.0, 1.0):
-        for z_centro in (-24.0, -32.0, -40.0):
-            for k in range(-2, 3):
-                adornos.append([CERCA, round(sinal * 33.0, 2),
-                                round(z_centro + k * 2.1, 2), 1.4, 90.0, True])
+    # Placas nas tres entradas.
+    adornos += [[PLACA, 7.0, 58.0, 2.8, 270.0, True],
+                [PLACA, -58.0, 7.0, 2.8, 0.0, True],
+                [PLACA, 7.0, -58.0, 2.8, 270.0, True]]
 
-    # A cerca do lote reservado da rua principal, a oeste — o vao entre a casa
-    # de taipa e a larga.
-    for k in range(-2, 3):
-        adornos.append([CERCA, -9.0, round(5.0 + k * 2.1, 2), 1.4, 90.0, True])
+    # Cercas curtas fecham quintais, sem formar outra muralha invisivel.
+    for x, z, giro in ((-37.0, 47.0, 0.0), (38.0, 47.0, 0.0),
+                       (-38.0, -48.0, 0.0), (38.0, -48.0, 0.0),
+                       (-50.0, 16.0, 90.0), (50.0, -16.0, 90.0)):
+        for k in range(-2, 3):
+            dx = k * 2.1 if giro == 0.0 else 0.0
+            dz = k * 2.1 if giro == 90.0 else 0.0
+            adornos.append([CERCA, round(x + dx, 2), round(z + dz, 2),
+                            1.4, giro, True])
 
-    # A placa do portao, virada para quem chega.
-    adornos.append([PLACA, 7.0, 27.0, 2.8, 270.0, True])
-
-    # Touceiras nos vaos e nas bordas.
-    touceiras = [(-18.5, 24.0), (21.5, 34.0), (-16.0, 4.0), (16.5, 6.0),
-                 (-21.0, -14.0), (21.5, -18.0), (-20.0, -44.0), (20.5, -47.0),
-                 (-7.0, -38.5), (12.5, -38.0), (-24.0, 6.0), (24.5, 16.0)]
+    # Vegetacao agrupada nas faces interna e externa da muralha.
+    touceiras = []
+    for z in (-49.0, -29.0, 27.0, 48.0):
+        touceiras += [(-69.0, z), (-57.0, z), (57.0, z), (69.0, z)]
+    for x in (-48.0, -30.0, 30.0, 48.0):
+        touceiras += [(x, -69.0), (x, -57.0), (x, 57.0), (x, 69.0)]
+    # Cantos de quadra que ficariam grandes gramados lisos.
+    touceiras += [(-21.0, 47.0), (21.0, 47.0), (-21.0, -48.0), (21.0, -48.0),
+                   (-52.0, 25.0), (52.0, 25.0), (-52.0, -25.0), (52.0, -25.0)]
     for i, (x, z) in enumerate(touceiras):
         adornos.append([CAPIM[i % len(CAPIM)], x, z, 1.05, float((i * 37) % 360), False])
         adornos.append([CAPIM[(i + 1) % len(CAPIM)], round(x + 1.2, 2),
@@ -1018,9 +967,10 @@ def _adornos_de_acordelot():
         adornos.append([FLORES[i % len(FLORES)], round(x - 1.0, 2),
                         round(z + 1.3, 2), 0.68, float((i * 53) % 360), False])
 
-    # Pedras da orla, sempre com uma menor ao lado.
-    for i, (x, z) in enumerate([(-31.0, 20.0), (31.5, 22.0), (-32.0, -2.0),
-                                (32.5, -4.0), (-34.5, -26.0), (34.0, -34.0)]):
+    # Pedras nas bases externas da muralha, sempre com uma menor ao lado.
+    for i, (x, z) in enumerate([(-70.0, 38.0), (70.0, 39.0), (-70.0, -39.0),
+                                (70.0, -38.0), (-42.0, 70.0), (42.0, 70.0),
+                                (-42.0, -70.0), (42.0, -70.0)]):
         adornos.append([PEDRAS[i % len(PEDRAS)], x, z, 0.85, float((i * 61) % 360), False])
         adornos.append([PEDRAS[(i + 1) % len(PEDRAS)], round(x + 0.9, 2),
                         round(z + 0.8, 2), 0.45, float((i * 113) % 360), False])
@@ -1105,7 +1055,7 @@ CIDADES = {
         # ACORDELOT. Deixou de ser a fortaleza radial gerada por formula: a
         # cidade principal do jogo precisa ser DESENHADA, porque o jogador tem
         # de entender onde entrou, para onde a rua vai e onde e o centro.
-        raio=46.0,
+        raio=70.0,
         planta=cidade_de_acordelot()
     ),
 
@@ -1217,6 +1167,17 @@ CIDADES = {
 
 
 def main():
+    destino = os.path.join(RAIZ, "data", "city_layouts.json")
+    anterior = {}
+    if os.path.exists(destino):
+        with open(destino) as arquivo_anterior:
+            anterior = json.load(arquivo_anterior)
+    # Nesta etapa so a Vila do Caminho e Acordelot foram redesenhadas. Os
+    # layouts radiais antigos usam hash do processo e mudariam de lugar a cada
+    # execucao mesmo sem terem sido pedidos; preserva-los impede uma alteracao
+    # acidental nas outras cinco zonas.
+    alvos = {"custom_1785880661560_858", "custom_1785884200706_430"}
+
     saida = {
         "_nota": ("GERADO por .tools/planejar_cidades.py — nao editar a mao, o "
                   "proximo run sobrescreve. E plano radial, nao sorteio: praca no "
@@ -1226,6 +1187,13 @@ def main():
         "pracas": {}, "layouts": {},
     }
     for ident, cidade in CIDADES.items():
+        if (ident not in alvos and
+                ident in anterior.get("pracas", {}) and
+                ident in anterior.get("layouts", {})):
+            saida["pracas"][ident] = anterior["pracas"][ident]
+            saida["layouts"][ident] = anterior["layouts"][ident]
+            print(f'{ident:26s}  preservada sem alteracao')
+            continue
         pecas, geometria = cidade["planta"]
         saida["pracas"][ident] = {
             "raio": cidade["raio"],
@@ -1241,7 +1209,7 @@ def main():
         # Fixo, com "True" no sexto campo — quem guarda um portao nao passeia.
         if ident == "custom_1785880661560_858":
             saida["pracas"][ident]["npcs"] = [
-                ["renaldo", 2.6, 24.0, 190.0, "renaldo_portao", True]]
+                ["renaldo", 2.6, 55.0, 190.0, "renaldo_portao", True]]
 
         if geometria.get("so_com_textura"):
             saida["pracas"][ident]["so_com_textura"] = True
@@ -1257,7 +1225,6 @@ def main():
               f'praca {cidade["raio"]:4.1f}m  '
               f'{geometria["avenidas"]} avenidas, aneis {geometria["aneis"]}')
 
-    destino = os.path.join(RAIZ, "data", "city_layouts.json")
     with open(destino, "w") as arquivo:
         json.dump(saida, arquivo, ensure_ascii=False, indent=1)
     print(f"Sucesso: {len(CIDADES)} cidades e marcos gravados em data/city_layouts.json")

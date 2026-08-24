@@ -174,7 +174,8 @@ func _tirar_print() -> void:
     # borda: e a unica forma de conferir portal sem alguem andando ate la.
     if OS.get_cmdline_user_args().has("--norte"):
         var zm := find_child("ZoneManager", true, false)
-        for salto in 2:
+        var total_de_saltos := 1 if OS.get_cmdline_user_args().has("--vila") else 2
+        for salto in total_de_saltos:
             await get_tree().create_timer(1.2).timeout
             var construtor := find_child("ZoneBuilder", true, false)
             var alvo := Vector3(0.0, 2.0, -68.0)
@@ -192,6 +193,16 @@ func _tirar_print() -> void:
                 _player.global_position.z -= 0.1
             print("TESTE salto %d: chegou em %s, heroi em %s" % [salto,
                 zm._current_zone_id if zm else "?", str(_player.global_position)])
+        if OS.get_cmdline_user_args().has("--centro"):
+            var centro := Vector3.ZERO
+            var construtor_centro := find_child("ZoneBuilder", true, false)
+            if construtor_centro and construtor_centro.has_method("calcular_altura"):
+                centro.y = construtor_centro.calcular_altura(0.0, 0.0) + 1.5
+            _player.global_position = centro
+            var camera_rig := find_child("CameraRig", true, false) as Node3D
+            if camera_rig:
+                camera_rig.global_position = centro
+            await get_tree().create_timer(0.8).timeout
 
     if OS.get_cmdline_user_args().has("--bicho"):
         var Bicho := load("res://scripts/bicho.gd")
