@@ -136,59 +136,50 @@ func _montar_retrato_e_barras() -> void:
     add_child(canto)
 
     # --- retrato, com o nivel na medalha que ja vem desenhada na arte
-    # O ROSTO E O DO AKLES, recortado da folha de retratos do dialogo.
+    # A MINIATURA E A ARTE NOVA DO AKLES, e nada da antiga fica atras.
     #
-    # A miniatura antiga era um rosto generico que veio junto da moldura: nao
-    # era o personagem, e o jogador percebe. A folha do dialogo ja tem o Akles
-    # em dez expressoes; a neutra e a primeira da grade de cinco por dois.
-    var moldura_retrato := _moldura("res://textures/ui/retrato.png",
-        Vector2(LADO_DO_RETRATO, LADO_DO_RETRATO * 265.0 / 254.0), canto)
-    moldura_retrato.position = Vector2.ZERO
+    # A moldura do kit vinha com um rosto generico PINTADO nela — nao era o
+    # personagem, e ficava aparecendo por baixo de qualquer recorte que se
+    # pusesse em cima. Entao a moldura sai de cena: no lugar dela, um disco
+    # escuro com aro dourado desenhado aqui, o rosto do Akles por cima e nada
+    # mais. Um elemento, uma camada, sem nada herdado por baixo.
+    var aro := Panel.new()
+    var borda := StyleBoxFlat.new()
+    borda.bg_color = Color(0.06, 0.05, 0.09, 1.0)
+    borda.border_color = Color(0.78, 0.62, 0.30)
+    borda.set_border_width_all(3)
+    borda.set_corner_radius_all(int(LADO_DO_RETRATO * 0.5))
+    aro.add_theme_stylebox_override("panel", borda)
+    aro.size = Vector2(LADO_DO_RETRATO, LADO_DO_RETRATO)
+    aro.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    canto.add_child(aro)
 
-    var folha := load("res://textures/dialogo/akles.png") as Texture2D
+    # A FOLHA DO AKLES, e nao a de outro personagem.
+    #
+    # Errei aqui: peguei a arte do Renaldo, que chegou na mesma leva, e pus a
+    # cara dele no retrato do heroi. Quem manda na miniatura e a folha de
+    # expressoes do Akles — a mesma que o dialogo usa, de cinco por dois.
+    var folha := load("res://textures/dialogo/akles_corpo.png") as Texture2D
     if folha:
         var corte := AtlasTexture.new()
         corte.atlas = folha
-        # So a cabeca e os ombros: a celula inteira e rosto e tronco, e o tronco
-        # nao cabe numa miniatura redonda.
-        var celula := Vector2(folha.get_width() / 5.0, folha.get_height() / 2.0)
-        # Recorte QUADRADO em volta da cabeca. A faixa alta e estreita que
-        # estava aqui, esticada num quadro quadrado, cortava o queixo e deixava
-        # so os olhos: a celula da folha e rosto E tronco, e o tronco nao cabe
-        # numa miniatura redonda.
-        # Quadrado em volta da cabeca, com as fracoes MEDIDAS na folha: a
-        # silhueta do Akles ocupa de 14,7% a 93,1% da largura da celula, e a
-        # cabeca vai de 16,7% a 47,9% da altura. Chutar isso foi o que deu
-        # barba ocupando a medalha inteira.
-        corte.region = Rect2(celula.x * 0.147, celula.y * 0.115,
-                             celula.x * 0.784, celula.y * 0.416)
+        var l := float(folha.get_width())
+        var a := float(folha.get_height())
+        # Quadrado em volta da cabeca, MEDIDO na arte: centro em (534, 133) de
+        # uma imagem de 1086 por 1448, lado de 204 pixels ja com folga para o
+        # cabelo. Chutar essas fracoes foi o que encheu a medalha de barba na
+        # primeira tentativa.
+        corte.region = Rect2(l * 0.3978, a * 0.0214, l * 0.1878, a * 0.1409)
 
         var rosto := TextureRect.new()
         rosto.texture = corte
         rosto.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
         rosto.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-        # Dentro do buraco da moldura, que nao ocupa a arte inteira.
-        # Dentro do circulo da moldura, medido na propria arte: o buraco fica
-        # centrado a 45% da largura e 42% da altura, com raio de um terco.
-        # Centrado no buraco da moldura, que fica a 45% da largura e 42% da
-        # altura da arte, com raio de um terco do lado.
-        var lado_rosto := LADO_DO_RETRATO * 0.62
-        rosto.size = Vector2(lado_rosto, lado_rosto)
-        rosto.position = Vector2(LADO_DO_RETRATO * 0.45, LADO_DO_RETRATO * 0.42) - rosto.size * 0.5
+        rosto.size = Vector2(LADO_DO_RETRATO - 8.0, LADO_DO_RETRATO - 8.0)
+        rosto.position = Vector2(4.0, 4.0)
         rosto.mouse_filter = Control.MOUSE_FILTER_IGNORE
         canto.add_child(rosto)
-        # POR CIMA da moldura, e nao atras: a arte traz um rosto generico
-        # pintado e opaco, e por baixo o Akles nunca apareceria. Como o recorte
-        # tem fundo transparente — o magenta ja saiu dele — nao ha canto
-        # quadrado para a moldura precisar esconder.
 
-    # O NUMERO VAI EM CIMA DA MEDALHA QUE A ARTE JA TEM.
-    #
-    # A tentativa de desenhar um disco proprio ao lado dela deixou DOIS numeros
-    # de nivel na tela — o da arte e o meu. A moldura ja traz a medalha
-    # desenhada no pe do retrato; o que faltava era acertar onde ela cai, e a
-    # medida saiu do proprio quadro: quarenta e quatro por cento da largura,
-    # oitenta e dois por cento da altura.
     # O NUMERO 18 ESTA PINTADO NA ARTE.
     #
     # A medalha no pe do retrato nao e um espaco vazio esperando texto: ela vem

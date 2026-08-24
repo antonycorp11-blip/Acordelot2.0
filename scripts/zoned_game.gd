@@ -8,6 +8,7 @@ const DialogoScript := preload("res://scripts/dialogo.gd")
 ## varre o projeto, e isso quebra exportacao limpa.
 const AquecimentoScript := preload("res://scripts/aquecimento.gd")
 const AjustesScript := preload("res://scripts/ajustes.gd")
+const TelaPersonagemScript := preload("res://scripts/tela_personagem.gd")
 
 ## A NPC ao alcance, se houver. E ela que decide o que o botao de ataque faz.
 var _npc_perto: Node = null
@@ -87,6 +88,16 @@ func _ready() -> void:
 
     # A engrenagem passa a abrir os ajustes. O mapa continua a um toque de
     # distancia pelo proprio botao "Mapa do Reino", embaixo do minimapa.
+    # A ficha do personagem, aberta pela aba do inventario.
+    var ficha: CanvasLayer = TelaPersonagemScript.new()
+    ficha.name = "TelaPersonagem"
+    add_child(ficha)
+    if inv_ui and inv_ui.has_signal("aba_pedida"):
+        inv_ui.aba_pedida.connect(func(qual: String):
+            if qual == "personagem":
+                inv_ui.toggle_inventory(false)
+                ficha.mostrar(true))
+
     if hud_vida and hud_vida.has_signal("config_pedida"):
         hud_vida.config_pedida.connect(func(): ajustes.mostrar(true))
         
@@ -173,6 +184,15 @@ func _tirar_print() -> void:
         var aj := find_child("Ajustes", true, false)
         if aj:
             aj.mostrar(true)
+        await get_tree().create_timer(0.4).timeout
+    if OS.get_cmdline_user_args().has("--ficha"):
+        var f := find_child("TelaPersonagem", true, false)
+        if f:
+            f.mostrar(true)
+        await get_tree().create_timer(0.4).timeout
+    if OS.get_cmdline_user_args().has("--fala"):
+        if _dialogo:
+            _dialogo.comecar("renaldo_portao" if OS.get_cmdline_user_args().has("--renaldo") else "mirella_boas_vindas")
         await get_tree().create_timer(0.4).timeout
     if OS.get_cmdline_user_args().has("--inv"):
         var inv := find_child("InventoryUI", true, false)

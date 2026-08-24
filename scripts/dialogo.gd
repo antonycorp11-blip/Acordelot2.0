@@ -14,13 +14,35 @@ class_name Dialogo
 
 signal terminou
 
-## A folha e uma grade de 5 por 2. A ordem das caras e a que veio na arte, lida
-## da esquerda para a direita: e ela que os dialogos citam pelo nome.
-const COLUNAS := 5
-const LINHAS := 2
-const EXPRESSOES := {
-    "neutro": 0, "feliz": 1, "rindo": 2, "surpresa": 3, "triste": 4,
-    "calmo": 5, "serio": 6, "preocupado": 7, "duvida": 8, "pensativo": 9,
+## CADA FOLHA TEM A SUA GRADE.
+##
+## A da Mirella e do Akles veio em cinco por dois; a do Renaldo, em tres por
+## tres. Fixar a grade numa constante so funcionava enquanto havia um formato —
+## com o segundo personagem, o recorte cairia no meio da cara errada. Aqui cada
+## folha declara o proprio tamanho e a ordem em que as expressoes foram
+## desenhadas, lida da esquerda para a direita.
+const FOLHAS := {
+    "mirella": {
+        "colunas": 5, "linhas": 2,
+        "caras": ["neutro", "feliz", "rindo", "surpresa", "triste",
+                  "calmo", "serio", "preocupado", "duvida", "pensativo"],
+    },
+    "akles": {
+        "colunas": 5, "linhas": 2,
+        "caras": ["neutro", "feliz", "rindo", "surpresa", "triste",
+                  "calmo", "serio", "preocupado", "duvida", "pensativo"],
+    },
+    "renaldo": {
+        "colunas": 3, "linhas": 3,
+        "caras": ["serio", "feliz", "desconfiado",
+                  "surpresa", "bravo", "triste",
+                  "de_lado", "neutro", "preocupado"],
+    },
+}
+const FOLHA_PADRAO := {
+    "colunas": 5, "linhas": 2,
+    "caras": ["neutro", "feliz", "rindo", "surpresa", "triste",
+              "calmo", "serio", "preocupado", "duvida", "pensativo"],
 }
 
 var _falas: Array = []
@@ -74,12 +96,26 @@ func _montar() -> void:
     # O retrato SAI da caixa para cima. Rosto e tronco contidos numa faixa de
     # duzentos pixels ficariam do tamanho de um icone; deixando a figura subir
     # ela ganha presenca de personagem em cena.
+    # O RETRATO SOBE PARA FORA DA CAIXA.
+    #
+    # Ele estava ancorado pelo pe dentro da linha de texto, e a figura ficava
+    # afundada na caixa: aparecia so o tronco, com a cabeca na altura do nome.
+    # Como Control nao desenha para fora do proprio retangulo sem ajuda, quem
+    # sobe e o no: margem negativa no topo tira a figura da caixa e a poe em
+    # pe sobre ela, que e a composicao de todo jogo do genero.
+    var berco := Control.new()
+    berco.custom_minimum_size = Vector2(210.0, 190.0)
+    berco.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    linha.add_child(berco)
+
     _retrato = TextureRect.new()
-    _retrato.custom_minimum_size = Vector2(190.0, 330.0)
     _retrato.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    _retrato.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    _retrato.size_flags_vertical = Control.SIZE_SHRINK_END
-    linha.add_child(_retrato)
+    _retrato.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
+    _retrato.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    _retrato.offset_top = -300.0
+    _retrato.offset_bottom = 16.0
+    _retrato.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    berco.add_child(_retrato)
 
     var coluna := VBoxContainer.new()
     coluna.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -173,15 +209,21 @@ func _cara(quem: String, expressao: String) -> Texture2D:
         return null
     var folha := load(caminho) as Texture2D
 
-    var indice: int = int(EXPRESSOES.get(expressao, 0))
-    var largura: float = folha.get_width() / float(COLUNAS)
-    var altura: float = folha.get_height() / float(LINHAS)
+    var ficha: Dictionary = FOLHAS.get(quem, FOLHA_PADRAO)
+    var colunas: int = int(ficha["colunas"])
+    var caras: Array = ficha["caras"]
+    var indice: int = caras.find(expressao)
+    if indice < 0:
+        indice = 0
+
+    var largura: float = folha.get_width() / float(colunas)
+    var altura: float = folha.get_height() / float(int(ficha["linhas"]))
 
     var recorte := AtlasTexture.new()
     recorte.atlas = folha
     recorte.region = Rect2(
-        (indice % COLUNAS) * largura,
-        floori(indice / float(COLUNAS)) * altura,
+        (indice % colunas) * largura,
+        floori(indice / float(colunas)) * altura,
         largura, altura)
     _atlas[chave] = recorte
     return recorte

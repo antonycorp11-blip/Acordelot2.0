@@ -50,15 +50,34 @@ const ANGULO_PARA_ANDAR := 0.55
 signal jogador_chegou(npc: Npc)
 signal jogador_saiu(npc: Npc)
 
-## PRELOAD, nao load: a Mirella nasce junto com a zona, e ler malha, animacao e
-## textura do disco no meio do quadro era um engasgo na cara do jogador.
-const CENA := preload("res://personagem/mirella_idle.fbx")
-const BIBLIOTECA := preload("res://personagem/mirella_anims.res")
-const PELE := preload("res://personagem/mirella_cor.png")
+## O ELENCO, com tudo pre-carregado.
+##
+## Preload e nao load: o morador nasce junto com a zona, e ler malha, animacao e
+## textura do disco no meio do quadro e um engasgo na cara do jogador. Como sao
+## dois personagens e nao um, o que era constante virou tabela — acrescentar o
+## proximo NPC e uma linha aqui, nao um script novo.
+const ELENCO := {
+    "mirella": {
+        "cena": preload("res://personagem/mirella_idle.fbx"),
+        "anims": preload("res://personagem/mirella_anims.res"),
+        "pele": preload("res://personagem/mirella_cor.png"),
+        "altura": 1.68,
+    },
+    "renaldo": {
+        "cena": preload("res://personagem/renaldo_base.fbx"),
+        "anims": preload("res://personagem/renaldo_anims.res"),
+        "pele": preload("res://personagem/renaldo_cor.png"),
+        # Guarda de portao, e mais alto que o heroi de proposito: quem barra a
+        # entrada precisa parecer capaz de barrar.
+        "altura": 1.88,
+    },
+}
 
-## Um material so para todas as Mirellas que existirem.
-static var _pele_compartilhada: StandardMaterial3D = null
+## Um material por personagem, e nao por copia.
+static var _peles: Dictionary = {}
 
+## Quem e este NPC no elenco acima.
+@export var elenco := "mirella"
 @export var nome := "Mirella"
 @export var modelo_path := "res://personagem/mirella_idle.fbx"
 ## A textura ORIGINAL da personagem.
@@ -84,6 +103,10 @@ var _animacao_atual := ""
 var _terreno: Node = null
 
 
+func ficha_do_elenco() -> Dictionary:
+    return ELENCO.get(elenco, ELENCO["mirella"])
+
+
 func _ready() -> void:
     # O jogo encontra os NPCs pelo grupo depois que a zona nasce — sao criados
     # junto com o cenario, entao nao ha como liga-los uma vez so no comeco.
@@ -91,15 +114,17 @@ func _ready() -> void:
     _casa = position
     _espera = randf_range(PAUSA.x, PAUSA.y)
 
-    var modelo := CENA.instantiate()
+    var ficha: Dictionary = ELENCO.get(elenco, ELENCO["mirella"])
+    var modelo: Node3D = (ficha["cena"] as PackedScene).instantiate()
     add_child(modelo)
     _vestir(modelo)
     _assentar(modelo)
 
     _animador = modelo.find_child("AnimationPlayer", true, false)
     if _animador:
-        if BIBLIOTECA:
-            _animador.add_animation_library("mirella", BIBLIOTECA)
+        var biblioteca: AnimationLibrary = ficha_do_elenco()["anims"]
+        if biblioteca:
+            _animador.add_animation_library("mirella", biblioteca)
             _tocar("parado")
         else:
             var lista := _animador.get_animation_list()
@@ -114,14 +139,16 @@ func _ready() -> void:
 func _vestir(modelo: Node3D) -> void:
     # Um material so, guardado: cada Mirella nova reaproveita o mesmo em vez de
     # montar outro — material novo e variante de shader nova para o motor.
-    if _pele_compartilhada == null:
-        _pele_compartilhada = StandardMaterial3D.new()
-        _pele_compartilhada.albedo_texture = PELE
+    var ficha: Dictionary = ELENCO.get(elenco, ELENCO["mirella"])
+    if not _peles.has(elenco):
+        var nova := StandardMaterial3D.new()
+        nova.albedo_texture = ficha["pele"]
         # Sem metal: o FBX chega com o fator do exportador, e metal puro sem
         # reflexo do ambiente aparece preto no renderizador de compatibilidade.
-        _pele_compartilhada.metallic = 0.0
-        _pele_compartilhada.roughness = 0.9
-    var pele := _pele_compartilhada
+        nova.metallic = 0.0
+        nova.roughness = 0.9
+        _peles[elenco] = nova
+    var pele: StandardMaterial3D = _peles[elenco]
     for malha in modelo.find_children("*", "MeshInstance3D", true, false):
         (malha as MeshInstance3D).material_override = pele
 
@@ -143,7 +170,7 @@ func _assentar(modelo: Node3D) -> void:
         achou = true
     if not achou or caixa.size.y <= 0.001:
         return
-    var fator: float = ALTURA_ALVO / caixa.size.y
+    var fator: float = float(ficha_do_elenco().get("altura", ALTURA_ALVO)) / caixa.size.y
     modelo.scale = Vector3.ONE * fator
     modelo.position.y = -caixa.position.y * fator
 

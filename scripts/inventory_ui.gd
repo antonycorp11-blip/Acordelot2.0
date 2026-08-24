@@ -14,6 +14,9 @@ extends Control
 
 signal item_used(item_id: String)
 signal item_equipped(item_id: String, slot: String)
+## Qual aba da barra de baixo foi tocada. Quem sabe abrir cada tela e o jogo, e
+## nao o inventario — assim uma tela nova nao pede mudanca aqui dentro.
+signal aba_pedida(qual: String)
 
 const KIT := "res://textures/ui/kit/"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
@@ -616,6 +619,9 @@ func _barra_de_navegacao() -> Control:
 ## so trocar este aviso pela abertura dela.
 func _abrir_aba(ident: String, rotulo: String) -> void:
     if ident == "inventario":
+        return
+    aba_pedida.emit(ident)
+    if ident == "personagem":
         return
     if _recado == null:
         return

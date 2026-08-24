@@ -1,17 +1,79 @@
 {
-  "_nota": "Uma fala e: quem fala (nome), a folha de retratos (retrato), a cara (expressao) e o texto. As caras validas estao em scripts/dialogo.gd. Para um NPC novo basta uma chave nova aqui e uma folha em textures/dialogo/.",
-  "mirella_boas_vindas": [
-    {"nome": "Mirella", "retrato": "mirella", "expressao": "surpresa",
-     "texto": "Ora essa! Gente nova na Vila do Caminho? Faz semanas que so passa carroça por aqui."},
-    {"nome": "Akles", "retrato": "akles", "expressao": "calmo",
-     "texto": "Vim pela estrada do sul. A floresta ficou barulhenta demais para dormir nela."},
-    {"nome": "Mirella", "retrato": "mirella", "expressao": "preocupado",
-     "texto": "Barulhenta... entao voce tambem ouviu. Nao e bicho comum o que anda ali embaixo."},
-    {"nome": "Akles", "retrato": "akles", "expressao": "serio",
-     "texto": "Ouvi, e vi. Por isso subi ate aqui antes de escurecer de vez."},
-    {"nome": "Mirella", "retrato": "mirella", "expressao": "feliz",
-     "texto": "Pois fez bem. Acenda uma tocha, coma alguma coisa — a vila e pequena, mas ninguem dorme na rua."},
-    {"nome": "Mirella", "retrato": "mirella", "expressao": "rindo",
-     "texto": "E se voce tocar alguma coisa nessa espada aí, eu ate finjo que gostei."}
-  ]
+ "_nota": "Uma fala e: quem fala (nome), a folha de retratos (retrato), a cara (expressao) e o texto. As caras validas estao em scripts/dialogo.gd. Para um NPC novo basta uma chave nova aqui e uma folha em textures/dialogo/.",
+ "mirella_boas_vindas": [
+  {
+   "nome": "Mirella",
+   "retrato": "mirella",
+   "expressao": "surpresa",
+   "texto": "Ora essa! Gente nova na Vila do Caminho? Faz semanas que so passa carroça por aqui."
+  },
+  {
+   "nome": "Akles",
+   "retrato": "akles",
+   "expressao": "calmo",
+   "texto": "Vim pela estrada do sul. A floresta ficou barulhenta demais para dormir nela."
+  },
+  {
+   "nome": "Mirella",
+   "retrato": "mirella",
+   "expressao": "preocupado",
+   "texto": "Barulhenta... entao voce tambem ouviu. Nao e bicho comum o que anda ali embaixo."
+  },
+  {
+   "nome": "Akles",
+   "retrato": "akles",
+   "expressao": "serio",
+   "texto": "Ouvi, e vi. Por isso subi ate aqui antes de escurecer de vez."
+  },
+  {
+   "nome": "Mirella",
+   "retrato": "mirella",
+   "expressao": "feliz",
+   "texto": "Pois fez bem. Acenda uma tocha, coma alguma coisa — a vila e pequena, mas ninguem dorme na rua."
+  },
+  {
+   "nome": "Mirella",
+   "retrato": "mirella",
+   "expressao": "rindo",
+   "texto": "E se voce tocar alguma coisa nessa espada aí, eu ate finjo que gostei."
+  }
+ ],
+ "renaldo_portao": [
+  {
+   "nome": "Renaldo",
+   "retrato": "renaldo",
+   "expressao": "serio",
+   "texto": "Alto lá. Ninguém passa os Portões Reais sem dizer a que vem."
+  },
+  {
+   "nome": "Akles",
+   "retrato": "akles",
+   "expressao": "calmo",
+   "texto": "Venho da Vila do Caminho. Trago notícia do que anda na floresta ao sul."
+  },
+  {
+   "nome": "Renaldo",
+   "retrato": "renaldo",
+   "expressao": "desconfiado",
+   "texto": "Notícia. Todo mundo traz notícia, e nenhuma delas paga o conserto do portão."
+  },
+  {
+   "nome": "Akles",
+   "retrato": "akles",
+   "expressao": "serio",
+   "texto": "Essa anda em bando e não faz barulho de bicho. Chamam de Shiker."
+  },
+  {
+   "nome": "Renaldo",
+   "retrato": "renaldo",
+   "expressao": "surpresa",
+   "texto": "Shiker? Aqui em cima? Então a mata desceu mais do que o capitão admite."
+  },
+  {
+   "nome": "Renaldo",
+   "retrato": "renaldo",
+   "expressao": "feliz",
+   "texto": "Pode entrar, andarilho. E se a espada for mesmo afinada, apareça no pátio ao anoitecer."
+  }
+ ]
 }

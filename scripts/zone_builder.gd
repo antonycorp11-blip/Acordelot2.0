@@ -213,6 +213,9 @@ const ALTURA_POR_TAG := {
     # planejar_cidades.py, poe casa dentro de casa.
     "casa_alta": 8.5, "casa_larga": 7.5,
     "casa_pedra": 7.0, "casarao": 8.5, "solar": 9.5,
+    # As tres de Acordelot. A torre e a mais alta da cidade de proposito: ela
+    # faz o portao e fecha a praca, e marco precisa ser visto de longe.
+    "casa_taipa": 8.0, "casa_torre": 12.0, "taverna": 11.5,
     # Os props da rua. Medidos pelo que a coisa mede no mundo: um barril tem
     # um metro de altura, um caixote oitenta centimetros, um saco meio metro.
     # Prop fora de escala e o erro que mais denuncia cenario montado as pressas.
@@ -262,6 +265,7 @@ func _pintar_as_vias(mat: ShaderMaterial) -> void:
 const COM_TEXTURA := [
     "medieval_house_1", "medieval_house_3",
     "casa_pedra", "casarao_madeira", "casa_solar",
+    "casa_taipa", "casa_torre", "taverna",
     "poste_vila", "tocha_vila", "poco_vila", "barris_vila",
     "caixotes_vila", "carroca_vila", "saco_vila", "banco_vila",
     "tree_gn", "pine_tree", "mushroom_tree",
@@ -480,6 +484,7 @@ func _plantar_os_npcs() -> void:
             continue
         var npc := NpcScript.new()
         npc.name = "Npc_" + str(dados[0])
+        npc.elenco = String(dados[0])
         npc.nome = String(dados[0]).capitalize()
         npc.dialogo = str(dados[4])
         # Sexto campo, opcional: NPC de missao nao passeia.
@@ -825,6 +830,7 @@ func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, escala_m
 ## continua igual, com um desenho a menos.
 const PROJETA_SOMBRA := [
     "casa_alta", "casa_larga", "casa_pedra", "casarao", "solar",
+    "casa_taipa", "casa_torre", "taverna",
     "arvore_marco", "arvore_gigante",
     "torre", "moinho", "celeiro", "muralha",
 ]
@@ -956,6 +962,60 @@ func _adicionar_colisor_prop(node: Node3D, tag: String, escala: float) -> void:
     body.add_child(col)
     node.add_child(body)
     
+## Os pontos onde monstro nasce, e quem esta vivo em cada um.
+##
+## Nao ha lista de inimigos no mapa nem estado salvo: cada ninho lembra so o seu
+## ponto, o tipo que nasce ali e quando o proximo pode vir.
+var _ninhos: Array = []
+
+## Quanto tempo o ninho fica vazio antes de repor. Meio minuto e o bastante para
+## o jogador sentir que limpou a area, e curto o bastante para a zona nao virar
+## um campo morto quando ele voltar.
+const ESPERA_DO_RENASCIMENTO := 30.0
+## Nao nasce em cima de quem esta jogando: vinte metros e alem do raio em que o
+## bicho enxerga, entao ele aparece longe e caminha ate la.
+const LONGE_DO_JOGADOR := 20.0
+## De quanto em quanto tempo os ninhos sao conferidos. Um por segundo basta e
+## nao pesa nada.
+const RITMO_DA_CONFERENCIA := 1.0
+
+var _ate_conferir := RITMO_DA_CONFERENCIA
+
+
+func _process(delta: float) -> void:
+    if _ninhos.is_empty():
+        return
+    _ate_conferir -= delta
+    if _ate_conferir > 0.0:
+        return
+    _ate_conferir = RITMO_DA_CONFERENCIA
+    _repor_monstros()
+
+
+func _repor_monstros() -> void:
+    var jogador := get_tree().get_first_node_in_group("jogador") as Node3D
+    var agora := Time.get_ticks_msec() / 1000.0
+
+    for ninho in _ninhos:
+        if is_instance_valid(ninho["bicho"]):
+            continue
+        # Marca a hora da morte na primeira vez que o ninho e visto vazio.
+        if float(ninho["volta_em"]) <= 0.0:
+            ninho["volta_em"] = agora + ESPERA_DO_RENASCIMENTO
+            continue
+        if agora < float(ninho["volta_em"]):
+            continue
+        if jogador and jogador.global_position.distance_to(ninho["onde"]) < LONGE_DO_JOGADOR:
+            continue
+
+        var bicho = BichoScript.new()
+        bicho.monster_type = int(ninho["tipo"])
+        bicho.position = ninho["onde"]
+        _props_node.add_child(bicho)
+        ninho["bicho"] = bicho
+        ninho["volta_em"] = 0.0
+
+
 func _construir_monstros() -> void:
     var is_cidade: bool = (_zone_data.get("biome") == "cidade" or str(_zone_data.get("layout_id", "")) != "")
     if is_cidade:
@@ -981,4 +1041,9 @@ func _construir_monstros() -> void:
             
         bicho.position = Vector3(px, py + 0.1, pz)
         _props_node.add_child(bicho)
+        # O ponto fica guardado: e dele que o proximo Shiker nasce quando este
+        # morrer. Sem isso a zona esvaziava para sempre — os dezesseis nasciam
+        # uma vez, na construcao, e nunca mais.
+        _ninhos.append({"onde": bicho.position, "tipo": bicho.monster_type,
+                        "bicho": bicho, "volta_em": 0.0})
 

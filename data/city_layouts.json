@@ -11,11 +11,803 @@
    ]
   },
   "custom_1785880661560_858": {
-   "raio": 44.0,
-   "avenidas": 4,
+   "raio": 46.0,
+   "avenidas": 2,
    "aneis": [
-    19.5,
-    30.0
+    14.0
+   ],
+   "vias": {
+    "principal": [
+     5.0,
+     46.0
+    ],
+    "largo": 14.0,
+    "travessas": [
+     -16.0,
+     3.5,
+     30.0
+    ]
+   },
+   "npcs": [
+    [
+     "renaldo",
+     2.6,
+     24.0,
+     190.0,
+     "renaldo_portao",
+     true
+    ]
+   ],
+   "so_com_textura": true,
+   "luzes": [
+    [
+     -6.6,
+     26.0
+    ],
+    [
+     6.6,
+     26.0
+    ],
+    [
+     -6.6,
+     14.0
+    ],
+    [
+     6.6,
+     14.0
+    ],
+    [
+     -6.6,
+     2.0
+    ],
+    [
+     6.6,
+     2.0
+    ],
+    [
+     -6.6,
+     -8.0
+    ],
+    [
+     6.6,
+     -8.0
+    ],
+    [
+     -9.0,
+     -11.0
+    ],
+    [
+     9.0,
+     -11.0
+    ],
+    [
+     -9.0,
+     -21.0
+    ],
+    [
+     9.0,
+     -21.0
+    ],
+    [
+     -19.0,
+     -12.0
+    ],
+    [
+     19.0,
+     -12.0
+    ]
+   ],
+   "tochas": [
+    [
+     -9.05,
+     30.0,
+     90.0,
+     2.4
+    ],
+    [
+     9.05,
+     30.0,
+     270.0,
+     2.4
+    ],
+    [
+     9.05,
+     20.0,
+     270.0,
+     2.2
+    ],
+    [
+     9.05,
+     -3.0,
+     270.0,
+     2.1
+    ],
+    [
+     -9.05,
+     10.0,
+     90.0,
+     2.1
+    ],
+    [
+     14.0,
+     -22.5,
+     180.0,
+     2.3
+    ]
+   ],
+   "adornos": [
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -28.2,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -26.1,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -24.0,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -21.9,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -19.8,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -36.2,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -34.1,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -32.0,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -29.9,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -27.8,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -44.2,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -42.1,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -40.0,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -37.9,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -33.0,
+     -35.8,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -28.2,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -26.1,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -24.0,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -21.9,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -19.8,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -36.2,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -34.1,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -32.0,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -29.9,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -27.8,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -44.2,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -42.1,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -40.0,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -37.9,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     33.0,
+     -35.8,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -9.0,
+     0.8,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -9.0,
+     2.9,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -9.0,
+     5.0,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -9.0,
+     7.1,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/cerca_tabua",
+     -9.0,
+     9.2,
+     1.4,
+     90.0,
+     true
+    ],
+    [
+     "props/placa_madeira",
+     7.0,
+     27.0,
+     2.8,
+     270.0,
+     true
+    ],
+    [
+     "props/tufo_grama_1",
+     -18.5,
+     24.0,
+     1.05,
+     0.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     -17.3,
+     23.0,
+     0.7,
+     0.0,
+     false
+    ],
+    [
+     "props/flores_1",
+     -19.5,
+     25.3,
+     0.68,
+     0.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     21.5,
+     34.0,
+     1.05,
+     37.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     22.7,
+     33.0,
+     0.7,
+     91.0,
+     false
+    ],
+    [
+     "props/flores_2",
+     20.5,
+     35.3,
+     0.68,
+     53.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     -16.0,
+     4.0,
+     1.05,
+     74.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     -14.8,
+     3.0,
+     0.7,
+     182.0,
+     false
+    ],
+    [
+     "props/flores_3",
+     -17.0,
+     5.3,
+     0.68,
+     106.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     16.5,
+     6.0,
+     1.05,
+     111.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     17.7,
+     5.0,
+     0.7,
+     273.0,
+     false
+    ],
+    [
+     "props/flores_1",
+     15.5,
+     7.3,
+     0.68,
+     159.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     -21.0,
+     -14.0,
+     1.05,
+     148.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     -19.8,
+     -15.0,
+     0.7,
+     4.0,
+     false
+    ],
+    [
+     "props/flores_2",
+     -22.0,
+     -12.7,
+     0.68,
+     212.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     21.5,
+     -18.0,
+     1.05,
+     185.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     22.7,
+     -19.0,
+     0.7,
+     95.0,
+     false
+    ],
+    [
+     "props/flores_3",
+     20.5,
+     -16.7,
+     0.68,
+     265.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     -20.0,
+     -44.0,
+     1.05,
+     222.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     -18.8,
+     -45.0,
+     0.7,
+     186.0,
+     false
+    ],
+    [
+     "props/flores_1",
+     -21.0,
+     -42.7,
+     0.68,
+     318.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     20.5,
+     -47.0,
+     1.05,
+     259.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     21.7,
+     -48.0,
+     0.7,
+     277.0,
+     false
+    ],
+    [
+     "props/flores_2",
+     19.5,
+     -45.7,
+     0.68,
+     11.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     -7.0,
+     -38.5,
+     1.05,
+     296.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     -5.8,
+     -39.5,
+     0.7,
+     8.0,
+     false
+    ],
+    [
+     "props/flores_3",
+     -8.0,
+     -37.2,
+     0.68,
+     64.0,
+     false
+    ],
+    [
+     "props/tufo_grama_2",
+     12.5,
+     -38.0,
+     1.05,
+     333.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     13.7,
+     -39.0,
+     0.7,
+     99.0,
+     false
+    ],
+    [
+     "props/flores_1",
+     11.5,
+     -36.7,
+     0.68,
+     117.0,
+     false
+    ],
+    [
+     "props/tufo_grama_3",
+     -24.0,
+     6.0,
+     1.05,
+     10.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     -22.8,
+     5.0,
+     0.7,
+     190.0,
+     false
+    ],
+    [
+     "props/flores_2",
+     -25.0,
+     7.3,
+     0.68,
+     170.0,
+     false
+    ],
+    [
+     "props/tufo_grama_4",
+     24.5,
+     16.0,
+     1.05,
+     47.0,
+     false
+    ],
+    [
+     "props/tufo_grama_1",
+     25.7,
+     15.0,
+     0.7,
+     281.0,
+     false
+    ],
+    [
+     "props/flores_3",
+     23.5,
+     17.3,
+     0.68,
+     223.0,
+     false
+    ],
+    [
+     "props/pedra_1",
+     -31.0,
+     20.0,
+     0.85,
+     0.0,
+     false
+    ],
+    [
+     "props/pedra_2",
+     -30.1,
+     20.8,
+     0.45,
+     0.0,
+     false
+    ],
+    [
+     "props/pedra_2",
+     31.5,
+     22.0,
+     0.85,
+     61.0,
+     false
+    ],
+    [
+     "props/pedra_3",
+     32.4,
+     22.8,
+     0.45,
+     113.0,
+     false
+    ],
+    [
+     "props/pedra_3",
+     -32.0,
+     -2.0,
+     0.85,
+     122.0,
+     false
+    ],
+    [
+     "props/pedra_1",
+     -31.1,
+     -1.2,
+     0.45,
+     226.0,
+     false
+    ],
+    [
+     "props/pedra_1",
+     32.5,
+     -4.0,
+     0.85,
+     183.0,
+     false
+    ],
+    [
+     "props/pedra_2",
+     33.4,
+     -3.2,
+     0.45,
+     339.0,
+     false
+    ],
+    [
+     "props/pedra_2",
+     -34.5,
+     -26.0,
+     0.85,
+     244.0,
+     false
+    ],
+    [
+     "props/pedra_3",
+     -33.6,
+     -25.2,
+     0.45,
+     92.0,
+     false
+    ],
+    [
+     "props/pedra_3",
+     34.0,
+     -34.0,
+     0.85,
+     305.0,
+     false
+    ],
+    [
+     "props/pedra_1",
+     34.9,
+     -33.2,
+     0.45,
+     205.0,
+     false
+    ]
    ]
   },
   "custom_1785884200706_430": {
@@ -3666,783 +4458,603 @@
   ],
   "custom_1785880661560_858": [
    {
-    "id": "monumento_armas",
-    "tag": "fonte",
-    "model": "res://models/fonte_praca.glb",
+    "id": "torre_portao_oeste",
+    "tag": "casa_torre",
+    "model": "res://models/casa_torre.glb",
     "position": [
-     0,
-     0
-    ],
-    "rotation": 0.0,
-    "scale": 1.4,
-    "y": 0.0
-   },
-   {
-    "id": "lamp_praca_00",
-    "tag": "lampiao",
-    "model": "res://models/lampiao.glb",
-    "position": [
-     7.5,
-     0.0
-    ],
-    "rotation": 0.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "lamp_praca_01",
-    "tag": "lampiao",
-    "model": "res://models/lampiao.glb",
-    "position": [
-     0.0,
-     7.5
-    ],
-    "rotation": 0.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "lamp_praca_02",
-    "tag": "lampiao",
-    "model": "res://models/lampiao.glb",
-    "position": [
-     -7.5,
-     0.0
-    ],
-    "rotation": 0.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "lamp_praca_03",
-    "tag": "lampiao",
-    "model": "res://models/lampiao.glb",
-    "position": [
-     -0.0,
-     -7.5
-    ],
-    "rotation": 0.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_00",
-    "tag": "casa_enxaimel_2",
-    "model": "res://models/medieval_house_3.glb",
-    "position": [
-     11.77,
-     7.58
-    ],
-    "rotation": 237.2,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_01",
-    "tag": "casa",
-    "model": "res://models/casa_nobre.glb",
-    "position": [
-     7.58,
-     11.77
-    ],
-    "rotation": 212.8,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_02",
-    "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
-    "position": [
-     -7.58,
-     11.77
-    ],
-    "rotation": 147.2,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_03",
-    "tag": "casa_enxaimel_1",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     -11.77,
-     7.58
-    ],
-    "rotation": 122.8,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_04",
-    "tag": "casa_enxaimel_2",
-    "model": "res://models/medieval_house_3.glb",
-    "position": [
-     -11.77,
-     -7.58
-    ],
-    "rotation": 57.2,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_05",
-    "tag": "casa",
-    "model": "res://models/casa_nobre.glb",
-    "position": [
-     -7.58,
-     -11.77
-    ],
-    "rotation": 32.8,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_06",
-    "tag": "casa",
-    "model": "res://models/casa_sobrado.glb",
-    "position": [
-     7.58,
-     -11.77
-    ],
-    "rotation": 327.2,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel0_07",
-    "tag": "casa_enxaimel_1",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     11.77,
-     -7.58
-    ],
-    "rotation": 302.8,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_00",
-    "tag": "casa_enxaimel_1",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     23.03,
-     9.73
-    ],
-    "rotation": 247.1,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_01",
-    "tag": "casa_enxaimel_2",
-    "model": "res://models/medieval_house_3.glb",
-    "position": [
-     17.68,
-     17.68
-    ],
-    "rotation": 225.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_02",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
-    "position": [
-     9.73,
-     23.03
-    ],
-    "rotation": 202.9,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_03",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
-    "position": [
-     -9.73,
-     23.03
-    ],
-    "rotation": 157.1,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_04",
-    "tag": "casa",
-    "model": "res://models/casa_chale.glb",
-    "position": [
-     -17.68,
-     17.68
-    ],
-    "rotation": 135.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_05",
-    "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
-    "position": [
-     -23.03,
-     9.73
-    ],
-    "rotation": 112.9,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_06",
-    "tag": "casa_enxaimel_1",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     -23.03,
-     -9.73
-    ],
-    "rotation": 67.1,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_07",
-    "tag": "casa_enxaimel_2",
-    "model": "res://models/medieval_house_3.glb",
-    "position": [
-     -17.68,
-     -17.68
-    ],
-    "rotation": 45.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_08",
-    "tag": "casa",
-    "model": "res://models/casa_vila.glb",
-    "position": [
-     -9.73,
-     -23.03
-    ],
-    "rotation": 22.9,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_09",
-    "tag": "casa",
-    "model": "res://models/casa_camponesa.glb",
-    "position": [
-     9.73,
-     -23.03
-    ],
-    "rotation": 337.1,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_10",
-    "tag": "casa",
-    "model": "res://models/casa_chale.glb",
-    "position": [
-     17.68,
-     -17.68
-    ],
-    "rotation": 315.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "anel1_11",
-    "tag": "casa",
-    "model": "res://models/casa_mercador.glb",
-    "position": [
-     23.03,
-     -9.73
-    ],
-    "rotation": 292.9,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "torre_comando",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     -30.0,
-     0.0
+     -13.92,
+     30.0
     ],
     "rotation": 90.0,
-    "scale": 1.5,
-    "y": 0.0
-   },
-   {
-    "id": "quartel_mestre",
-    "tag": "casa_enxaimel_2",
-    "model": "res://models/medieval_house_3.glb",
-    "position": [
-     28.0,
-     0.0
-    ],
-    "rotation": 270.0,
-    "scale": 1.2,
-    "y": 0.0
-   },
-   {
-    "id": "estandarte_norte_1",
-    "tag": "estandarte",
-    "model": "res://models/estandarte_agudo.glb",
-    "position": [
-     7.78,
-     7.78
-    ],
-    "rotation": 225.0,
-    "scale": 1.1,
-    "y": 0.0
-   },
-   {
-    "id": "estandarte_norte_2",
-    "tag": "estandarte",
-    "model": "res://models/estandarte_grave.glb",
-    "position": [
-     -7.78,
-     7.78
-    ],
-    "rotation": 135.0,
-    "scale": 1.1,
-    "y": 0.0
-   },
-   {
-    "id": "estandarte_sul_1",
-    "tag": "estandarte",
-    "model": "res://models/estandarte_agudo.glb",
-    "position": [
-     -7.78,
-     -7.78
-    ],
-    "rotation": 45.0,
-    "scale": 1.1,
-    "y": 0.0
-   },
-   {
-    "id": "estandarte_sul_2",
-    "tag": "estandarte",
-    "model": "res://models/estandarte_grave.glb",
-    "position": [
-     7.78,
-     -7.78
-    ],
-    "rotation": 315.0,
-    "scale": 1.1,
-    "y": 0.0
-   },
-   {
-    "id": "poco_guarnicao",
-    "tag": "poco",
-    "model": "res://models/poco.glb",
-    "position": [
-     -14.1,
-     -5.13
-    ],
-    "rotation": 70.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "barris_quartel",
-    "tag": "mobilia",
-    "model": "res://models/barris.glb",
+    "id": "copa_portao_oeste",
+    "tag": "arvore_marco",
+    "model": "res://models/tree_gn.glb",
     "position": [
-     -12.29,
-     -8.6
+     -24.0,
+     34.0
     ],
-    "rotation": 55.0,
+    "rotation": 0.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "torre_01",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
+    "id": "torre_portao_leste",
+    "tag": "casa_torre",
+    "model": "res://models/casa_torre.glb",
     "position": [
-     28.99,
-     28.99
-    ],
-    "rotation": 225.0,
-    "scale": 1.1,
-    "y": 0.0
-   },
-   {
-    "id": "torre_03",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     -28.99,
-     28.99
-    ],
-    "rotation": 135.0,
-    "scale": 1.1,
-    "y": 0.0
-   },
-   {
-    "id": "torre_05",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     -28.99,
-     -28.99
-    ],
-    "rotation": 45.0,
-    "scale": 1.1,
-    "y": 0.0
-   },
-   {
-    "id": "torre_07",
-    "tag": "torre",
-    "model": "res://models/torre_redonda.glb",
-    "position": [
-     28.99,
-     -28.99
-    ],
-    "rotation": 315.0,
-    "scale": 1.1,
-    "y": 0.0
-   },
-   {
-    "id": "portao_0",
-    "tag": "muralha",
-    "model": "res://models/muralha_portao.glb",
-    "position": [
-     41.0,
-     0.0
+     13.92,
+     30.0
     ],
     "rotation": 270.0,
-    "scale": 1.25,
+    "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "portao_1",
-    "tag": "muralha",
-    "model": "res://models/muralha_portao.glb",
+    "id": "copa_portao_leste",
+    "tag": "arvore_marco",
+    "model": "res://models/tree_gn.glb",
     "position": [
-     0.0,
-     41.0
+     24.0,
+     34.0
     ],
     "rotation": 180.0,
-    "scale": 1.25,
+    "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "portao_2",
-    "tag": "muralha",
-    "model": "res://models/muralha_portao.glb",
+    "id": "rua_oeste_20",
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
     "position": [
-     -41.0,
+     -11.58,
+     20.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "rua_oeste_10",
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -14.08,
+     10.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "rua_oeste_00",
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     -10.82,
      0.0
     ],
     "rotation": 90.0,
-    "scale": 1.25,
+    "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "portao_3",
-    "tag": "muralha",
-    "model": "res://models/muralha_portao.glb",
+    "id": "rua_leste_20",
+    "tag": "taverna",
+    "model": "res://models/taverna.glb",
     "position": [
-     -0.0,
-     -41.0
+     13.5,
+     20.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "rua_leste_09",
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     10.82,
+     9.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "rua_leste_01",
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     11.58,
+     -1.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "poco_da_praca",
+    "tag": "poco",
+    "model": "res://models/poco_vila.glb",
+    "position": [
+     7.5,
+     -13.0
+    ],
+    "rotation": 200.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "banco_praca_o",
+    "tag": "banco",
+    "model": "res://models/banco_vila.glb",
+    "position": [
+     -7.0,
+     -14.0
+    ],
+    "rotation": 80.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "banco_praca_l",
+    "tag": "banco",
+    "model": "res://models/banco_vila.glb",
+    "position": [
+     6.5,
+     -20.5
+    ],
+    "rotation": 250.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "carroca_praca",
+    "tag": "carroca",
+    "model": "res://models/carroca_vila.glb",
+    "position": [
+     -6.5,
+     -20.5
+    ],
+    "rotation": 110.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "barris_feira",
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
+    "position": [
+     -6.5,
+     -9.5
+    ],
+    "rotation": 30.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "caixotes_feira",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     -3.4,
+     -7.6
+    ],
+    "rotation": 300.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "saco_feira",
+    "tag": "saco",
+    "model": "res://models/saco_vila.glb",
+    "position": [
+     -1.4,
+     -9.6
+    ],
+    "rotation": 15.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "praca_noroeste",
+    "tag": "solar",
+    "model": "res://models/casa_solar.glb",
+    "position": [
+     -14.5,
+     -29.0
     ],
     "rotation": 0.0,
-    "scale": 1.25,
+    "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "arvore_rua_00",
-    "tag": "arvore_de_rua",
-    "model": "res://models/arvore_frondosa.glb",
+    "id": "praca_nordeste",
+    "tag": "casa_torre",
+    "model": "res://models/casa_torre.glb",
+    "position": [
+     14.0,
+     -29.5
+    ],
+    "rotation": 180.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "praca_sudoeste",
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -17.5,
+     -8.5
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "praca_sudeste",
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     17.5,
+     -7.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "bairro_oeste_0",
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -26.0,
+     -24.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "bairro_leste_0",
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     26.0,
+     -24.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "bairro_oeste_1",
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -26.0,
+     -32.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "bairro_leste_1",
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     26.0,
+     -32.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "bairro_oeste_2",
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -26.0,
+     -40.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "bairro_leste_2",
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     26.0,
+     -40.0
+    ],
+    "rotation": 270.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "oficina_barris",
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
     "position": [
      19.5,
-     -4.85
+     -30.0
+    ],
+    "rotation": 210.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "oficina_caixotes",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     20.8,
+     -35.0
+    ],
+    "rotation": 95.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "oficina_carroca",
+    "tag": "carroca",
+    "model": "res://models/carroca_vila.glb",
+    "position": [
+     20.0,
+     -25.0
+    ],
+    "rotation": 15.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "quintal_saco",
+    "tag": "saco",
+    "model": "res://models/saco_vila.glb",
+    "position": [
+     -22.5,
+     -27.5
+    ],
+    "rotation": 140.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "quintal_barris",
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
+    "position": [
+     -19.0,
+     -36.5
+    ],
+    "rotation": 260.0,
+    "scale": 0.9,
+    "y": 0.0
+   },
+   {
+    "id": "saida_oeste",
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     -13.5,
+     -44.0
+    ],
+    "rotation": 60.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "saida_leste",
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     13.0,
+     -45.0
+    ],
+    "rotation": 300.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "copa_saida_o",
+    "tag": "arvore_marco",
+    "model": "res://models/tree_gn.glb",
+    "position": [
+     -7.5,
+     -52.5
     ],
     "rotation": 0.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "arvore_rua_01",
-    "tag": "arvore_de_rua",
-    "model": "res://models/arvore_carvalho.glb",
+    "id": "copa_saida_l",
+    "tag": "arvore_marco",
+    "model": "res://models/tree_gn.glb",
     "position": [
-     19.5,
-     4.85
+     7.5,
+     -52.5
     ],
-    "rotation": 47.0,
+    "rotation": 180.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "arvore_rua_02",
-    "tag": "arvore_de_rua",
-    "model": "res://models/arvore_pequena.glb",
+    "id": "pinheiro_orla_0",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     4.85,
-     19.5
-    ],
-    "rotation": 94.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "arvore_rua_03",
-    "tag": "arvore_de_rua",
-    "model": "res://models/arvore_frondosa.glb",
-    "position": [
-     -4.85,
-     19.5
-    ],
-    "rotation": 141.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "arvore_rua_04",
-    "tag": "arvore_de_rua",
-    "model": "res://models/arvore_carvalho.glb",
-    "position": [
-     -19.5,
-     4.85
-    ],
-    "rotation": 188.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "arvore_rua_05",
-    "tag": "arvore_de_rua",
-    "model": "res://models/arvore_pequena.glb",
-    "position": [
-     -19.5,
-     -4.85
-    ],
-    "rotation": 235.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "arvore_rua_06",
-    "tag": "arvore_de_rua",
-    "model": "res://models/arvore_frondosa.glb",
-    "position": [
-     -4.85,
-     -19.5
-    ],
-    "rotation": 282.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "arvore_rua_07",
-    "tag": "arvore_de_rua",
-    "model": "res://models/arvore_carvalho.glb",
-    "position": [
-     4.85,
-     -19.5
-    ],
-    "rotation": 329.0,
-    "scale": 1.0,
-    "y": 0.0
-   },
-   {
-    "id": "verde_quarteirao_00",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
-    "position": [
-     16.53,
-     10.35
+     -34.0,
+     26.0
     ],
     "rotation": 0.0,
-    "scale": 0.85,
+    "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_01",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "pinheiro_orla_1",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     10.35,
-     16.53
+     33.0,
+     30.0
     ],
     "rotation": 61.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_02",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "pinheiro_orla_2",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     -10.35,
-     16.53
+     -36.0,
+     6.0
     ],
     "rotation": 122.0,
-    "scale": 1.25,
+    "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_03",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "pinheiro_orla_3",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     -16.53,
-     10.35
+     35.0,
+     2.0
     ],
     "rotation": 183.0,
-    "scale": 1.05,
+    "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_04",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "pinheiro_orla_4",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     -16.53,
-     -10.35
+     -35.0,
+     -18.0
     ],
     "rotation": 244.0,
-    "scale": 0.85,
+    "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_05",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "pinheiro_orla_5",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     -10.35,
-     -16.53
+     34.0,
+     -14.0
     ],
     "rotation": 305.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_06",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "pinheiro_orla_6",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     10.35,
-     -16.53
+     -36.5,
+     -40.0
     ],
     "rotation": 6.0,
-    "scale": 1.25,
+    "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_07",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "pinheiro_orla_7",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     16.53,
-     -10.35
+     35.0,
+     -44.0
     ],
     "rotation": 67.0,
-    "scale": 1.05,
-    "y": 0.0
-   },
-   {
-    "id": "verde_quarteirao_08",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
-    "position": [
-     25.82,
-     14.28
-    ],
-    "rotation": 128.0,
-    "scale": 0.85,
-    "y": 0.0
-   },
-   {
-    "id": "verde_quarteirao_09",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
-    "position": [
-     14.28,
-     25.82
-    ],
-    "rotation": 189.0,
     "scale": 1.0,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_10",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "cogumelo_cidade_0",
+    "tag": "cogumelo",
+    "model": "res://models/mushroom_tree.glb",
     "position": [
-     -14.28,
-     25.82
+     -29.0,
+     14.0
     ],
-    "rotation": 250.0,
-    "scale": 1.25,
+    "rotation": 0.0,
+    "scale": 0.9,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_11",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "cogumelo_cidade_1",
+    "tag": "cogumelo",
+    "model": "res://models/mushroom_tree.glb",
     "position": [
-     -25.82,
-     14.28
+     28.0,
+     12.0
     ],
-    "rotation": 311.0,
-    "scale": 1.05,
+    "rotation": 83.0,
+    "scale": 1.02,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_12",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "cogumelo_cidade_2",
+    "tag": "cogumelo",
+    "model": "res://models/mushroom_tree.glb",
     "position": [
-     -25.82,
-     -14.28
+     -30.0,
+     -6.0
     ],
-    "rotation": 12.0,
-    "scale": 0.85,
+    "rotation": 166.0,
+    "scale": 1.14,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_13",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "cogumelo_cidade_3",
+    "tag": "cogumelo",
+    "model": "res://models/mushroom_tree.glb",
     "position": [
-     -14.28,
-     -25.82
+     29.0,
+     -8.0
     ],
-    "rotation": 73.0,
-    "scale": 1.0,
+    "rotation": 249.0,
+    "scale": 0.9,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_14",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "cogumelo_cidade_4",
+    "tag": "cogumelo",
+    "model": "res://models/mushroom_tree.glb",
     "position": [
-     14.28,
-     -25.82
+     -28.0,
+     -46.0
     ],
-    "rotation": 134.0,
-    "scale": 1.25,
+    "rotation": 332.0,
+    "scale": 1.02,
     "y": 0.0
    },
    {
-    "id": "verde_quarteirao_15",
-    "tag": "folhagem",
-    "model": "res://models/grass.glb",
+    "id": "cogumelo_cidade_5",
+    "tag": "cogumelo",
+    "model": "res://models/mushroom_tree.glb",
     "position": [
-     25.82,
-     -14.28
+     27.0,
+     -48.0
     ],
-    "rotation": 195.0,
-    "scale": 1.05,
+    "rotation": 55.0,
+    "scale": 1.14,
     "y": 0.0
    }
   ],

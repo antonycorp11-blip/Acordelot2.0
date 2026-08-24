@@ -762,6 +762,253 @@ def _adornos_da_vila():
     return adornos
 
 
+# ------------------------------------------------------------ ACORDELOT
+#
+# A cidade que o jogador ve depois da vila, e que precisa ser LIDA em vinte
+# segundos: onde entrou, para onde a rua vai, onde e o centro. Tudo aqui serve a
+# isso, e nada e simetrico por simetria.
+#
+# O eixo e o Z, como na vila e pelo mesmo motivo: e o eixo dos portais desta
+# zona. Entra-se pelo sul, vindo da vila, e sai-se ao norte para a Capital.
+#
+#            etiqueta          modelo          altura  frente  fundo
+CASAS_DA_CIDADE = {
+    "casa_alta":   ("medieval_house_1",  8.5,  2.85,  4.17),
+    "casa_larga":  ("medieval_house_3",  7.5,  8.31,  3.64),
+    "casa_pedra":  ("casa_pedra",        7.0,  7.04,  5.16),
+    "casarao":     ("casarao_madeira",   8.5,  6.08, 11.01),
+    "solar":       ("casa_solar",        9.5, 10.73, 10.52),
+    "casa_taipa":  ("casa_taipa",        8.0,  4.31, 10.16),
+    "casa_torre":  ("casa_torre",       12.0,  7.67,  9.84),
+    "taverna":     ("taverna",          11.5,  6.86,  9.01),
+}
+
+# A rua da cidade e mais larga que a da vila — dez metros contra oito. A
+# diferenca de escala e o que diz "aqui e maior" sem precisar de placa.
+MEIA_RUA_CIDADE = 5.0
+FACHADA_CIDADE = 9.0
+PRACA_Z = -16.0
+PRACA_RAIO = 14.0
+LANE_CIDADE = 3.5
+
+
+def cidade_de_acordelot():
+    """Acordelot: portoes ao sul, rua principal, praca no coracao, bairros nas
+    laterais.
+
+    Quatro decisoes seguram a leitura:
+
+    1. O PORTAO E FEITO DE CASA, nao de muralha. Nenhum modelo de muralha do
+       acervo tem textura, e massinha na porta de entrada e a pior primeira
+       impressao possivel. Duas torres de doze metros ladeando a estrada fazem o
+       mesmo trabalho: estreitam a vista e dizem "aqui comeca a cidade".
+
+    2. A RUA E MAIS LARGA QUE A DA VILA. Dez metros contra oito, com as fachadas
+       recuadas a nove. E a mesma gramatica, um degrau acima — e o jogador que
+       veio da vila sente isso antes de saber por que.
+
+    3. A PRACA FICA DEPOIS DE UM TRECHO DE RUA, nao logo na entrada. Ela precisa
+       ser uma CHEGADA: quem entra ve o corredor, anda, e o corredor se abre. Ao
+       fundo dela a rua continua para a Capital, entao a praca nao e um beco.
+
+    4. AS TRAVESSAS SAEM DA PRACA, e nao dos portoes. Assim o centro e o no da
+       cidade — de onde tudo parte e para onde tudo volta.
+    """
+    pecas = []
+
+    def por(nome, etiqueta, x, z, giro=0.0, escala=1.0):
+        modelo = CASAS_DA_CIDADE[etiqueta][0]
+        pecas.append(peca(nome, etiqueta, modelo, x, z, giro=giro, escala=escala))
+
+    def prop(nome, alvo, x, z, giro=0.0, escala=1.0):
+        tag, modelo = alvo
+        pecas.append(peca(nome, tag, modelo, x, z, giro=giro, escala=escala))
+
+    # --- 1. OS PORTOES, ao sul
+    #
+    # As duas torres avancam sobre a estrada, quase encostando na calcada: e o
+    # aperto que faz a passagem virar portao. Renaldo fica entre elas, e o
+    # planejador o poe pela lista de npcs da praca.
+    for sinal, lado in ((-1.0, "oeste"), (1.0, "leste")):
+        por(f"torre_portao_{lado}", "casa_torre",
+            sinal * (FACHADA_CIDADE + 9.84 * 0.5), 30.0,
+            giro=(90.0 if sinal < 0 else 270.0))
+        # Uma copa alta atras de cada torre, para a silhueta da entrada nao
+        # terminar em telhado seco.
+        pecas.append(peca(f"copa_portao_{lado}", "arvore_marco", ARVORE_GRANDE,
+                          sinal * 24.0, 34.0, giro=(0.0 if sinal < 0 else 180.0)))
+
+    # --- 2. A RUA PRINCIPAL: tres lotes de cada lado, entre o portao e a praca
+    #
+    # A leste, o comercio: taverna e sobrado, que sao as fachadas mais altas e
+    # puxam o olho para aquele lado. A oeste, moradia. A assimetria e de
+    # proposito — rua com os dois lados iguais parece corredor de hotel.
+    RUA_OESTE = [(20.0, "casa_pedra"), (10.0, "casa_taipa"), (0.0, "casa_larga")]
+    RUA_LESTE = [(20.0, "taverna"), (9.0, "casa_larga"), (-1.0, "casa_pedra")]
+
+    for lado, sinal, lotes in (("oeste", -1.0, RUA_OESTE), ("leste", 1.0, RUA_LESTE)):
+        for z, etiqueta in lotes:
+            fundo = CASAS_DA_CIDADE[etiqueta][3]
+            por(f"rua_{lado}_{abs(int(z)):02d}", etiqueta,
+                sinal * (FACHADA_CIDADE + fundo * 0.5), z,
+                giro=(90.0 if sinal < 0 else 270.0))
+
+    # --- 3. A PRACA: o poco no meio-lado, e o resto em volta do vazio
+    #
+    # O centro fica LIVRE. Praca com monumento no meio vira rotatoria, e o que
+    # se quer aqui e um lugar onde caiba gente parada — e, mais tarde, os NPCs
+    # que importam.
+    prop("poco_da_praca", POCO, 7.5, PRACA_Z + 3.0, giro=200.0)
+    prop("banco_praca_o", BANCO, -7.0, PRACA_Z + 2.0, giro=80.0)
+    prop("banco_praca_l", BANCO, 6.5, PRACA_Z - 4.5, giro=250.0)
+    prop("carroca_praca", CARROCA, -6.5, PRACA_Z - 4.5, giro=110.0)
+    prop("barris_feira", BARRIS, -6.5, PRACA_Z + 6.5, giro=30.0)
+    prop("caixotes_feira", CAIXOTES, -3.4, PRACA_Z + 8.4, giro=300.0)
+    prop("saco_feira", SACO, -1.4, PRACA_Z + 6.4, giro=15.0)
+
+    # As quatro casas que fecham a praca, recuadas do circulo.
+    por("praca_noroeste", "solar", -14.5, PRACA_Z - 13.0, giro=0.0)
+    por("praca_nordeste", "casa_torre", 14.0, PRACA_Z - 13.5, giro=180.0)
+    por("praca_sudoeste", "casa_taipa", -17.5, PRACA_Z + 7.5, giro=90.0)
+    por("praca_sudeste", "casa_alta", 17.5, PRACA_Z + 9.0, giro=270.0)
+
+    # --- 4. AS TRAVESSAS, saindo da praca para os bairros
+    #
+    # A oeste, residencial: casas menores, agrupadas de tres, com quintal.
+    # A leste, oficinas: fachadas mais largas e props de trabalho na porta.
+    for i, z in enumerate((-24.0, -32.0, -40.0)):
+        por(f"bairro_oeste_{i}", "casa_taipa", -26.0, z, giro=90.0)
+        por(f"bairro_leste_{i}", "casa_larga" if i % 2 == 0 else "casa_pedra",
+            26.0, z, giro=270.0)
+
+    prop("oficina_barris", BARRIS, 19.5, -30.0, giro=210.0)
+    prop("oficina_caixotes", CAIXOTES, 20.8, -35.0, giro=95.0)
+    prop("oficina_carroca", CARROCA, 20.0, -25.0, giro=15.0)
+    prop("quintal_saco", SACO, -22.5, -27.5, giro=140.0)
+    prop("quintal_barris", BARRIS, -19.0, -36.5, giro=260.0, escala=0.9)
+
+    # --- 5. A SAIDA NORTE, para a Capital
+    #
+    # Duas casas afastadas e uma copa: a cidade rareia antes de acabar, em vez
+    # de parar de uma vez. Cidade que termina numa linha reta parece cenario
+    # cortado.
+    por("saida_oeste", "casa_pedra", -13.5, -44.0, giro=60.0)
+    por("saida_leste", "casa_alta", 13.0, -45.0, giro=300.0)
+    for sinal in (-1.0, 1.0):
+        pecas.append(peca(f"copa_saida_{'o' if sinal < 0 else 'l'}", "arvore_marco",
+                          ARVORE_GRANDE, sinal * 7.5, -52.5,
+                          giro=(0.0 if sinal < 0 else 180.0)))
+
+    # --- 6. A ORLA: pinheiros e sub-bosque marcando o limite da zona
+    for i, (x, z) in enumerate([(-34.0, 26.0), (33.0, 30.0), (-36.0, 6.0),
+                                (35.0, 2.0), (-35.0, -18.0), (34.0, -14.0),
+                                (-36.5, -40.0), (35.0, -44.0)]):
+        pecas.append(peca(f"pinheiro_orla_{i}", "pinheiro", PINHEIRO, x, z,
+                          giro=(i * 61) % 360))
+    for i, (x, z) in enumerate([(-29.0, 14.0), (28.0, 12.0), (-30.0, -6.0),
+                                (29.0, -8.0), (-28.0, -46.0), (27.0, -48.0)]):
+        pecas.append(peca(f"cogumelo_cidade_{i}", "cogumelo", COGUMELO, x, z,
+                          giro=(i * 83) % 360, escala=round(0.9 + (i % 3) * 0.12, 2)))
+
+    return pecas, {
+        "avenidas": 2,
+        "aneis": [PRACA_RAIO],
+        "so_com_textura": True,
+        "vias": {
+            "principal": [MEIA_RUA_CIDADE, 46.0],
+            "largo": PRACA_RAIO,
+            "travessas": [PRACA_Z, LANE_CIDADE, 30.0],
+        },
+        "luzes": _postes_de_acordelot(),
+        "tochas": _tochas_de_acordelot(),
+        "adornos": _adornos_de_acordelot(),
+    }
+
+
+def _postes_de_acordelot():
+    """A luz da cidade: aos pares nos dois lados da via, como na vila.
+
+    Mais postes que a vila porque a rua e mais longa, e nao porque cidade tem de
+    ser clara: o escuro entre um poste e outro continua sendo o que faz a noite
+    existir. Doze ao todo — quatro na rua, quatro na praca, dois em cada
+    travessa.
+    """
+    postes = []
+    calcada = 6.6
+    for z in (26.0, 14.0, 2.0, -8.0):
+        for sinal in (-1.0, 1.0):
+            postes.append([round(sinal * calcada, 2), z])
+    # A praca acesa nos quatro cantos, que e o que a faz virar ponto de encontro
+    # a noite.
+    for x, z in ((-9.0, -11.0), (9.0, -11.0), (-9.0, -21.0), (9.0, -21.0)):
+        postes.append([x, z])
+    # As travessas
+    for sinal in (-1.0, 1.0):
+        postes.append([round(sinal * 19.0, 2), PRACA_Z + 4.0])
+    return postes
+
+
+def _tochas_de_acordelot():
+    """Tochas nas fachadas que importam: portao, taverna e a casa da praca.
+
+    Uma por marco, e so nos marcos. Tocha em toda porta vira parede de fogo e
+    para de significar coisa alguma.
+    """
+    return [
+        [-9.05, 30.0, 90.0, 2.4],   # torre oeste do portao
+        [9.05, 30.0, 270.0, 2.4],   # torre leste
+        [9.05, 20.0, 270.0, 2.2],   # taverna
+        [9.05, -3.0, 270.0, 2.1],
+        [-9.05, 10.0, 90.0, 2.1],
+        [14.0, -22.5, 180.0, 2.3],  # a casa alta da praca
+    ]
+
+
+def _adornos_de_acordelot():
+    """Cerca, mato e pedra — o mesmo vocabulario da vila, na escala da cidade.
+
+    A regra que vale aqui e a que aprendemos la: nada na rua, nada na calcada,
+    nada na frente de porta. E agrupado, porque tres coisas juntas leem como
+    canto de terreno e as mesmas tres espalhadas leem como enfeite jogado.
+    """
+    adornos = []
+
+    # As cercas dos quintais dos bairros, atras das casas laterais.
+    for sinal in (-1.0, 1.0):
+        for z_centro in (-24.0, -32.0, -40.0):
+            for k in range(-2, 3):
+                adornos.append([CERCA, round(sinal * 33.0, 2),
+                                round(z_centro + k * 2.1, 2), 1.4, 90.0, True])
+
+    # A cerca do lote reservado da rua principal, a oeste — o vao entre a casa
+    # de taipa e a larga.
+    for k in range(-2, 3):
+        adornos.append([CERCA, -9.0, round(5.0 + k * 2.1, 2), 1.4, 90.0, True])
+
+    # A placa do portao, virada para quem chega.
+    adornos.append([PLACA, 7.0, 27.0, 2.8, 270.0, True])
+
+    # Touceiras nos vaos e nas bordas.
+    touceiras = [(-18.5, 24.0), (21.5, 34.0), (-16.0, 4.0), (16.5, 6.0),
+                 (-21.0, -14.0), (21.5, -18.0), (-20.0, -44.0), (20.5, -47.0),
+                 (-7.0, -38.5), (12.5, -38.0), (-24.0, 6.0), (24.5, 16.0)]
+    for i, (x, z) in enumerate(touceiras):
+        adornos.append([CAPIM[i % len(CAPIM)], x, z, 1.05, float((i * 37) % 360), False])
+        adornos.append([CAPIM[(i + 1) % len(CAPIM)], round(x + 1.2, 2),
+                        round(z - 1.0, 2), 0.7, float((i * 91) % 360), False])
+        adornos.append([FLORES[i % len(FLORES)], round(x - 1.0, 2),
+                        round(z + 1.3, 2), 0.68, float((i * 53) % 360), False])
+
+    # Pedras da orla, sempre com uma menor ao lado.
+    for i, (x, z) in enumerate([(-31.0, 20.0), (31.5, 22.0), (-32.0, -2.0),
+                                (32.5, -4.0), (-34.5, -26.0), (34.0, -34.0)]):
+        adornos.append([PEDRAS[i % len(PEDRAS)], x, z, 0.85, float((i * 61) % 360), False])
+        adornos.append([PEDRAS[(i + 1) % len(PEDRAS)], round(x + 0.9, 2),
+                        round(z + 0.8, 2), 0.45, float((i * 113) % 360), False])
+
+    return adornos
+
+
 def cidade_radial(avenidas, aneis, raio_da_muralha, portoes, marcos, monumento=("monumento", "fonte", "fonte_musical", 1.6)):
     pecas = []
     if monumento:
@@ -836,27 +1083,11 @@ CIDADES = {
 
     # 2. 🛡️ Portões Reais & Fortaleza da Guarda (col 0, row 1)
     "custom_1785880661560_858": dict(
-        raio=44.0,
-        planta=cidade_radial(
-            avenidas=4,
-            aneis=[
-                (14.0, 2, NOBRES_E_MANSOES),
-                (25.0, 3, CASAS_MEDIEVAIS)
-            ],
-            raio_da_muralha=41.0,
-            portoes=[0.0, 90.0, 180.0, 270.0],
-            marcos=[
-                ("torre_comando", "torre", "torre_redonda", 180.0, 30.0, 1.5),
-                ("quartel_mestre", "casa_enxaimel_2", "medieval_house_3", 0.0, 28.0, 1.2),
-                ("estandarte_norte_1", "estandarte", "estandarte_agudo", 45.0, 11.0, 1.1),
-                ("estandarte_norte_2", "estandarte", "estandarte_grave", 135.0, 11.0, 1.1),
-                ("estandarte_sul_1", "estandarte", "estandarte_agudo", 225.0, 11.0, 1.1),
-                ("estandarte_sul_2", "estandarte", "estandarte_grave", 315.0, 11.0, 1.1),
-                ("poco_guarnicao", "poco", "poco", 200.0, 15.0, 1.0),
-                ("barris_quartel", "mobilia", "barris", 215.0, 15.0, 1.0),
-            ],
-            monumento=("monumento_armas", "fonte", "fonte_praca", 1.4)
-        )
+        # ACORDELOT. Deixou de ser a fortaleza radial gerada por formula: a
+        # cidade principal do jogo precisa ser DESENHADA, porque o jogador tem
+        # de entender onde entrou, para onde a rua vai e onde e o centro.
+        raio=46.0,
+        planta=cidade_de_acordelot()
     ),
 
     # 3. 🏘️ Vila do Caminho & Mercado do Vale (col 0, row 2)
@@ -986,6 +1217,13 @@ def main():
         # do chao usa para pintar a rua; sem ele a via e so a ausencia de casa.
         if "vias" in geometria:
             saida["pracas"][ident]["vias"] = geometria["vias"]
+        # O GUARDA DOS PORTOES. Nao entra na planta da cidade porque nao e
+        # construcao: gente entra pela lista de npcs, e a lista mora na praca.
+        # Fixo, com "True" no sexto campo — quem guarda um portao nao passeia.
+        if ident == "custom_1785880661560_858":
+            saida["pracas"][ident]["npcs"] = [
+                ["renaldo", 2.6, 24.0, 190.0, "renaldo_portao", True]]
+
         if geometria.get("so_com_textura"):
             saida["pracas"][ident]["so_com_textura"] = True
         # As tochas e a decoracao da povoacao. Moram na praca e nao na lista de

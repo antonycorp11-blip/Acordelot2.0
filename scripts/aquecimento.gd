@@ -40,9 +40,12 @@ var _descartaveis: Array[Node] = []
 func _ready() -> void:
     # Bem na frente de quem estiver olhando: fora do campo de visao o motor
     # descarta antes de desenhar, e sem desenhar nao ha compilacao.
-    var camera := get_viewport().get_camera_3d()
-    if camera:
-        global_position = camera.global_position + camera.global_transform.basis.z * -1.4
+    # A camera ainda pode nao existir neste instante — o forno nasce dentro do
+    # _ready do jogo, e a plataforma da camera se monta na mesma leva. Se ficar
+    # onde estava, os manequins nascem longe do campo de visao, NAO SAO
+    # DESENHADOS, e sem desenho nao ha compilacao de shader: era por isso que o
+    # aquecimento nao estava aquecendo. Agora a posicao e refeita a cada quadro.
+    _colar_na_camera()
 
     _assar_bichos()
     _assar_moradores()
@@ -170,7 +173,16 @@ func _assar_animacoes_do_heroi() -> void:
         animador.play(guardada)
 
 
+## Cola o forno na frente da camera. Chamado todo quadro enquanto ele vive.
+func _colar_na_camera() -> void:
+    var camera := get_viewport().get_camera_3d()
+    if camera == null:
+        return
+    global_position = camera.global_position + camera.global_transform.basis.z * -1.4
+
+
 func _process(_delta: float) -> void:
+    _colar_na_camera()
     _restam -= 1
     if _restam > 0:
         return
