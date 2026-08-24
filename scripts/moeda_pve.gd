@@ -123,7 +123,11 @@ func _process(delta: float) -> void:
         _halo.rotation.y = -rotation.y
 
     if _jogador == null or not is_instance_valid(_jogador):
-        _jogador = get_tree().get_first_node_in_group("jogador") as Node3D
+        # O personagem zonado pertence ao grupo "player". Procurar apenas por
+        # "jogador" fazia a clave flutuar ate expirar sem nunca ser capturada.
+        _jogador = get_tree().get_first_node_in_group("player") as Node3D
+        if _jogador == null:
+            _jogador = get_tree().get_first_node_in_group("jogador") as Node3D
         if _jogador == null:
             return
 
@@ -143,13 +147,12 @@ func _coletar() -> void:
     var progresso := get_node_or_null("/root/Progresso")
     if progresso:
         progresso.adicionar_recurso("claves", valor)
-        queue_free()
-        return
-    var bolsa := get_tree().get_first_node_in_group("inventario")
-    if bolsa == null:
-        bolsa = get_node_or_null("/root/ZonedWorld/HUD/InventoryUI")
-    if bolsa and bolsa.has_method("receber_claves"):
-        bolsa.receber_claves(valor)
+    else:
+        var bolsa := get_tree().get_first_node_in_group("inventario")
+        if bolsa == null:
+            bolsa = get_node_or_null("/root/ZonedWorld/HUD/InventoryUI")
+        if bolsa and bolsa.has_method("receber_claves"):
+            bolsa.receber_claves(valor)
 
     var aviso := Label3D.new()
     aviso.text = "+%d" % valor

@@ -608,6 +608,12 @@ func _altura_do_corpo() -> float:
 ##                     quantas, quanto vale cada
 const CLAVES_POR_FORMA := [[1, 50], [2, 100], [3, 200]]
 const MoedaScript := preload("res://scripts/moeda_pve.gd")
+const FragmentoDropScript := preload("res://scripts/fragmento_drop.gd")
+const CHANCE_DE_FRAGMENTO := [0.22, 0.55, 1.0]
+const ALTURAS := [
+    "do", "do_sustenido", "re", "re_sustenido", "mi", "fa",
+    "fa_sustenido", "sol", "sol_sustenido", "la", "la_sustenido", "si",
+]
 
 func _largar_clave() -> void:
     var receita: Array = CLAVES_POR_FORMA[monster_type % CLAVES_POR_FORMA.size()]
@@ -625,10 +631,26 @@ func _largar_clave() -> void:
         pai.add_child(moeda)
 
 
+func _largar_fragmento() -> void:
+    var forma := monster_type % CHANCE_DE_FRAGMENTO.size()
+    if randf() > float(CHANCE_DE_FRAGMENTO[forma]):
+        return
+    var pai := get_parent()
+    if pai == null:
+        return
+    var fragmento: Node3D = FragmentoDropScript.new()
+    fragmento.altura_id = str(ALTURAS.pick_random())
+    var angulo := randf() * TAU
+    fragmento.position = global_position + Vector3(cos(angulo), 0.06, sin(angulo)) * 0.85
+    # No pai, porque o corpo do Shiker desaparece depois da animacao de morte.
+    pai.add_child(fragmento)
+
+
 func _morrer() -> void:
     remove_from_group("bicho")
     _recompensar_progresso()
     _largar_clave()
+    _largar_fragmento()
     _morrendo = true
     if _hp_label_3d: _hp_label_3d.visible = false
     if _name_label_3d: _name_label_3d.visible = false
@@ -651,18 +673,13 @@ func _morrer() -> void:
     tw.tween_callback(queue_free)
 
 
-## O corpo do Shiker continua largando as claves no chao, mas experiencia,
-## fragmentos entram direto: sao progresso, nao objetos 3D caros.
+## Experiencia entra direto. Claves e fragmentos ficam visiveis no chao e so
+## entram no inventario quando o jogador realmente os coleta.
 const XP_POR_FORMA := [30, 70, 180]
-const CHANCE_DE_FRAGMENTO := [0.22, 0.55, 1.0]
-const ALTURAS := ["do", "re", "mi", "fa", "sol", "la", "si"]
 
 func _recompensar_progresso() -> void:
     var progresso := get_node_or_null("/root/Progresso")
     if progresso == null:
         return
     var forma := monster_type % XP_POR_FORMA.size()
-    var ganhos := {}
-    if randf() <= float(CHANCE_DE_FRAGMENTO[forma]):
-        ganhos["fragmento_" + ALTURAS.pick_random()] = 1
-    progresso.recompensar_batalha(int(XP_POR_FORMA[forma]), ganhos)
+    progresso.recompensar_batalha(int(XP_POR_FORMA[forma]), {})

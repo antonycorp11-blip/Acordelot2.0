@@ -51,20 +51,42 @@ const ITENS_DE_RECURSO := [
     ["claves", "Claves", "item/moeda", "Valioso", "valioso", "Moeda PVE deixada pelos Shikers."],
     ["madeira", "Madeira", "item/bolsa", "Comum", "material", "Material coletado de árvores e galhos aproveitáveis."],
     ["pedra", "Pedra", "item/minerio", "Comum", "material", "Material bruto obtido em veios e rochas."],
-    ["fragmento_do", "Fragmento de Dó", "item/nota", "Incomum", "material", "Parte instável da nota Dó."],
-    ["fragmento_re", "Fragmento de Ré", "item/nota", "Incomum", "material", "Parte instável da nota Ré."],
-    ["fragmento_mi", "Fragmento de Mi", "item/nota", "Incomum", "material", "Parte instável da nota Mi."],
-    ["fragmento_fa", "Fragmento de Fá", "item/nota", "Incomum", "material", "Parte instável da nota Fá."],
-    ["fragmento_sol", "Fragmento de Sol", "item/nota", "Raro", "material", "Parte instável da nota Sol."],
-    ["fragmento_la", "Fragmento de Lá", "item/nota", "Raro", "material", "Parte instável da nota Lá."],
-    ["fragmento_si", "Fragmento de Si", "item/nota", "Raro", "material", "Parte instável da nota Si."],
-    ["nota_do", "Nota Dó Sintetizada", "item/nota", "Raro", "material", "Nota estável pronta para composição."],
-    ["nota_re", "Nota Ré Sintetizada", "item/nota", "Raro", "material", "Nota estável pronta para composição."],
-    ["nota_mi", "Nota Mi Sintetizada", "item/nota", "Raro", "material", "Nota estável pronta para composição."],
-    ["nota_fa", "Nota Fá Sintetizada", "item/nota", "Raro", "material", "Nota estável pronta para composição."],
-    ["nota_sol", "Nota Sol Sintetizada", "item/nota", "Épico", "material", "Nota estável pronta para composição."],
-    ["nota_la", "Nota Lá Sintetizada", "item/nota", "Épico", "material", "Nota estável pronta para composição."],
-    ["nota_si", "Nota Si Sintetizada", "item/nota", "Épico", "material", "Nota estável pronta para composição."],
+    ["fragmento_do", "Fragmento de Dó", "res://textures/items/notas/fragmento_do.png", "Incomum", "material", "Fragmento harmônico de Dó obtido de um Eco Musical."],
+    ["fragmento_do_sustenido", "Fragmento de Dó#", "res://textures/items/notas/fragmento_do_sustenido.png", "Incomum", "material", "Fragmento harmônico de Dó sustenido obtido de um Eco Musical."],
+    ["fragmento_re", "Fragmento de Ré", "res://textures/items/notas/fragmento_re.png", "Incomum", "material", "Fragmento harmônico de Ré obtido de um Eco Musical."],
+    ["fragmento_re_sustenido", "Fragmento de Ré#", "res://textures/items/notas/fragmento_re_sustenido.png", "Incomum", "material", "Fragmento harmônico de Ré sustenido obtido de um Eco Musical."],
+    ["fragmento_mi", "Fragmento de Mi", "res://textures/items/notas/fragmento_mi.png", "Incomum", "material", "Fragmento harmônico de Mi obtido de um Eco Musical."],
+    ["fragmento_fa", "Fragmento de Fá", "res://textures/items/notas/fragmento_fa.png", "Incomum", "material", "Fragmento harmônico de Fá obtido de um Eco Musical."],
+    ["fragmento_fa_sustenido", "Fragmento de Fá#", "res://textures/items/notas/fragmento_fa_sustenido.png", "Raro", "material", "Fragmento harmônico de Fá sustenido obtido de um Eco Musical."],
+    ["fragmento_sol", "Fragmento de Sol", "res://textures/items/notas/fragmento_sol.png", "Raro", "material", "Fragmento harmônico de Sol obtido de um Eco Musical."],
+    ["fragmento_sol_sustenido", "Fragmento de Sol#", "res://textures/items/notas/fragmento_sol_sustenido.png", "Raro", "material", "Fragmento harmônico de Sol sustenido obtido de um Eco Musical."],
+    ["fragmento_la", "Fragmento de Lá", "res://textures/items/notas/fragmento_la.png", "Raro", "material", "Fragmento harmônico de Lá obtido de um Eco Musical."],
+    ["fragmento_la_sustenido", "Fragmento de Lá#", "res://textures/items/notas/fragmento_la_sustenido.png", "Raro", "material", "Fragmento harmônico de Lá sustenido obtido de um Eco Musical."],
+    ["fragmento_si", "Fragmento de Si", "res://textures/items/notas/fragmento_si.png", "Raro", "material", "Fragmento harmônico de Si obtido de um Eco Musical."],
+    ["fragmento_corrompido_do", "Dó Corrompido", "res://textures/items/notas/fragmento_corrompido_do.png", "Raro", "material", "Fragmento de Dó contaminado por um Shiker. Precisa ser purificado."],
+    ["fragmento_corrompido_do_sustenido", "Dó# Corrompido", "res://textures/items/notas/fragmento_corrompido_do_sustenido.png", "Raro", "material", "Fragmento de Dó sustenido contaminado. Precisa ser purificado."],
+    ["fragmento_corrompido_re", "Ré Corrompido", "res://textures/items/notas/fragmento_corrompido_re.png", "Raro", "material", "Fragmento de Ré contaminado por um Shiker. Precisa ser purificado."],
+    ["fragmento_corrompido_re_sustenido", "Ré# Corrompido", "res://textures/items/notas/fragmento_corrompido_re_sustenido.png", "Raro", "material", "Fragmento de Ré sustenido contaminado. Precisa ser purificado."],
+    ["fragmento_corrompido_mi", "Mi Corrompido", "res://textures/items/notas/fragmento_corrompido_mi.png", "Raro", "material", "Fragmento de Mi contaminado por um Shiker. Precisa ser purificado."],
+    ["fragmento_corrompido_fa", "Fá Corrompido", "res://textures/items/notas/fragmento_corrompido_fa.png", "Raro", "material", "Fragmento de Fá contaminado por um Shiker. Precisa ser purificado."],
+    ["fragmento_corrompido_fa_sustenido", "Fá# Corrompido", "res://textures/items/notas/fragmento_corrompido_fa_sustenido.png", "Raro", "material", "Fragmento de Fá sustenido contaminado. Precisa ser purificado."],
+    ["fragmento_corrompido_sol", "Sol Corrompido", "res://textures/items/notas/fragmento_corrompido_sol.png", "Raro", "material", "Fragmento de Sol contaminado por um Shiker. Precisa ser purificado."],
+    ["fragmento_corrompido_sol_sustenido", "Sol# Corrompido", "res://textures/items/notas/fragmento_corrompido_sol_sustenido.png", "Raro", "material", "Fragmento de Sol sustenido contaminado. Precisa ser purificado."],
+    ["fragmento_corrompido_la", "Lá Corrompido", "res://textures/items/notas/fragmento_corrompido_la.png", "Raro", "material", "Fragmento de Lá contaminado por um Shiker. Precisa ser purificado."],
+    ["fragmento_corrompido_la_sustenido", "Lá# Corrompido", "res://textures/items/notas/fragmento_corrompido_la_sustenido.png", "Raro", "material", "Fragmento de Lá sustenido contaminado. Precisa ser purificado."],
+    ["fragmento_corrompido_si", "Si Corrompido", "res://textures/items/notas/fragmento_corrompido_si.png", "Raro", "material", "Fragmento de Si contaminado por um Shiker. Precisa ser purificado."],
+    ["nota_do", "Nota Dó Sintetizada", "res://textures/items/notas/nota_do.png", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_do_sustenido", "Nota Dó# Sintetizada", "res://textures/items/notas/nota_do_sustenido.png", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_re", "Nota Ré Sintetizada", "res://textures/items/notas/nota_re.png", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_re_sustenido", "Nota Ré# Sintetizada", "res://textures/items/notas/nota_re_sustenido.png", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_mi", "Nota Mi Sintetizada", "res://textures/items/notas/nota_mi.png", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_fa", "Nota Fá Sintetizada", "res://textures/items/notas/nota_fa.png", "Raro", "material", "Nota estável pronta para composição."],
+    ["nota_fa_sustenido", "Nota Fá# Sintetizada", "res://textures/items/notas/nota_fa_sustenido.png", "Épico", "material", "Nota estável pronta para composição."],
+    ["nota_sol", "Nota Sol Sintetizada", "res://textures/items/notas/nota_sol.png", "Épico", "material", "Nota estável pronta para composição."],
+    ["nota_sol_sustenido", "Nota Sol# Sintetizada", "res://textures/items/notas/nota_sol_sustenido.png", "Épico", "material", "Nota estável pronta para composição."],
+    ["nota_la", "Nota Lá Sintetizada", "res://textures/items/notas/nota_la.png", "Épico", "material", "Nota estável pronta para composição."],
+    ["nota_la_sustenido", "Nota Lá# Sintetizada", "res://textures/items/notas/nota_la_sustenido.png", "Épico", "material", "Nota estável pronta para composição."],
+    ["nota_si", "Nota Si Sintetizada", "res://textures/items/notas/nota_si.png", "Épico", "material", "Nota estável pronta para composição."],
 ]
 
 var bag_items: Array = []
@@ -139,6 +161,13 @@ func _arte(nome: String, borda: Array) -> NinePatchRect:
     np.patch_margin_bottom = borda[3]
     np.mouse_filter = Control.MOUSE_FILTER_IGNORE
     return np
+
+
+func _textura_de_item(arte: String):
+    var caminho := arte if arte.begins_with("res://") else KIT + arte + ".png"
+    if ResourceLoader.exists(caminho):
+        return load(caminho)
+    return load(KIT + "item/nota.png")
 
 
 ## Uma caixa de fundo simples: cor, borda fina e canto arredondado.
@@ -415,7 +444,7 @@ func _slot(item: Dictionary) -> Control:
     botao.add_theme_stylebox_override("pressed", _caixa(Color(0.16, 0.19, 0.28, 0.95), cor, 2))
 
     var icone := TextureRect.new()
-    icone.texture = load(KIT + str(item.get("arte", "item/moeda")) + ".png")
+    icone.texture = _textura_de_item(str(item.get("arte", "item/moeda")))
     icone.set_anchors_preset(Control.PRESET_FULL_RECT)
     # Recuo grande: a moldura tem bico em cima e embaixo, e o icone encostado
     # nele fica com a cabeca cortada pelo ornamento.
@@ -446,7 +475,7 @@ func _slot(item: Dictionary) -> Control:
 ## acompanhando o dedo para o jogador ver o que esta carregando.
 func _pegar_arrastado(_pos: Vector2, item: Dictionary) -> Variant:
     var pre := TextureRect.new()
-    pre.texture = load(KIT + str(item.get("arte", "item/moeda")) + ".png")
+    pre.texture = _textura_de_item(str(item.get("arte", "item/moeda")))
     pre.custom_minimum_size = Vector2(64, 64)
     pre.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     pre.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -677,7 +706,7 @@ func _trocar_filtro(nome: String) -> void:
 func _selecionar(item: Dictionary) -> void:
     _selecionado = item
     var raridade: String = str(item.get("rarity", "Comum"))
-    _det_icone.texture = load(KIT + str(item.get("arte", "item/moeda")) + ".png")
+    _det_icone.texture = _textura_de_item(str(item.get("arte", "item/moeda")))
     var cor_r: Color = COR_DA_RARIDADE.get(raridade, Color(0.6, 0.6, 0.6))
     _det_moldura.add_theme_stylebox_override("panel", _caixa(Color(0.09, 0.11, 0.18, 0.9), cor_r, 2))
     _det_nome.text = str(item.get("name", ""))
@@ -751,8 +780,10 @@ func _total_de_fragmentos() -> int:
     if progresso == null:
         return 0
     var total := 0
-    for nota in ["do", "re", "mi", "fa", "sol", "la", "si"]:
+    for nota in ["do", "do_sustenido", "re", "re_sustenido", "mi", "fa",
+                 "fa_sustenido", "sol", "sol_sustenido", "la", "la_sustenido", "si"]:
         total += progresso.quantidade("fragmento_" + nota)
+        total += progresso.quantidade("fragmento_corrompido_" + nota)
     return total
 
 

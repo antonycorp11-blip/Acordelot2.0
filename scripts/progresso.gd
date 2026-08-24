@@ -20,18 +20,40 @@ const RECURSOS_INICIAIS := {
     "madeira": 0,
     "pedra": 0,
     "fragmento_do": 0,
+    "fragmento_corrompido_do": 0,
+    "fragmento_do_sustenido": 0,
+    "fragmento_corrompido_do_sustenido": 0,
     "fragmento_re": 0,
+    "fragmento_corrompido_re": 0,
+    "fragmento_re_sustenido": 0,
+    "fragmento_corrompido_re_sustenido": 0,
     "fragmento_mi": 0,
+    "fragmento_corrompido_mi": 0,
     "fragmento_fa": 0,
+    "fragmento_corrompido_fa": 0,
+    "fragmento_fa_sustenido": 0,
+    "fragmento_corrompido_fa_sustenido": 0,
     "fragmento_sol": 0,
+    "fragmento_corrompido_sol": 0,
+    "fragmento_sol_sustenido": 0,
+    "fragmento_corrompido_sol_sustenido": 0,
     "fragmento_la": 0,
+    "fragmento_corrompido_la": 0,
+    "fragmento_la_sustenido": 0,
+    "fragmento_corrompido_la_sustenido": 0,
     "fragmento_si": 0,
+    "fragmento_corrompido_si": 0,
     "nota_do": 0,
+    "nota_do_sustenido": 0,
     "nota_re": 0,
+    "nota_re_sustenido": 0,
     "nota_mi": 0,
     "nota_fa": 0,
+    "nota_fa_sustenido": 0,
     "nota_sol": 0,
+    "nota_sol_sustenido": 0,
     "nota_la": 0,
+    "nota_la_sustenido": 0,
     "nota_si": 0,
 }
 
@@ -147,6 +169,20 @@ func sintetizar_nota(nota: String) -> bool:
     var pronta := "nota_" + nota
     recursos[pronta] = quantidade(pronta) + 1
     recurso_alterado.emit(pronta, int(recursos[pronta]))
+    salvar()
+    alterado.emit()
+    return true
+
+
+func purificar_fragmento(nota: String) -> bool:
+    var corrompido := "fragmento_corrompido_" + nota
+    if quantidade(corrompido) < 1:
+        return false
+    recursos[corrompido] = quantidade(corrompido) - 1
+    recurso_alterado.emit(corrompido, int(recursos[corrompido]))
+    var limpo := "fragmento_" + nota
+    recursos[limpo] = quantidade(limpo) + 1
+    recurso_alterado.emit(limpo, int(recursos[limpo]))
     salvar()
     alterado.emit()
     return true

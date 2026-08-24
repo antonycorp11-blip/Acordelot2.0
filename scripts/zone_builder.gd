@@ -4,6 +4,7 @@ class_name ZoneBuilder
 const PortalScript = preload("res://scripts/zone_portal.gd")
 const BichoScript = preload("res://scripts/bicho.gd")
 const RecursoColetavelScript = preload("res://scripts/recurso_coletavel.gd")
+const EcoDoNascenteCena = preload("res://scenes/ecos/EcoDoNascente.tscn")
 
 signal portal_triggered(dest_zone_id: String, from_direction: String)
 
@@ -89,6 +90,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _construir_barreiras_perimetro_arvores_reais()
     _construir_monstros()
     _construir_recursos_coletaveis()
+    _plantar_eco_do_de_teste()
     _construir_portais()
 
 
@@ -101,7 +103,6 @@ func _construir_recursos_coletaveis() -> void:
     var receita := [
         ["madeira", Vector2(-22, 16), 2], ["madeira", Vector2(26, -18), 2],
         ["pedra", Vector2(20, 24), 2], ["pedra", Vector2(-28, -20), 2],
-        ["fragmento_" + ["do", "re", "mi", "fa", "sol", "la", "si"].pick_random(), Vector2(-8, 30), 1],
     ]
     var recursos := Node3D.new()
     recursos.name = "RecursosColetaveis"
@@ -113,6 +114,20 @@ func _construir_recursos_coletaveis() -> void:
         var ponto: Vector2 = dados[1]
         recurso.position = Vector3(ponto.x, calcular_altura(ponto.x, ponto.y) + 0.05, ponto.y)
         recursos.add_child(recurso)
+
+
+## Um unico Eco 2.5D perto do inicio. As outras zonas e todos os sistemas de
+## combate permanecem intocados enquanto validamos arte, escala e animacoes.
+func _plantar_eco_do_de_teste() -> void:
+    if str(_zone_data.get("id", "")) != "zone_floresta_despertar":
+        return
+    var eco := EcoDoNascenteCena.instantiate()
+    eco.name = "EcoDoNascente_Teste"
+    eco.modo_demonstracao = true
+    var x := 4.5
+    var z := 4.0
+    eco.position = Vector3(x, calcular_altura(x, z) + 0.03, z)
+    _props_node.add_child(eco)
 
 # -------------------------------------------------------------
 # 1. Terreno com Altura e Shader Zoned

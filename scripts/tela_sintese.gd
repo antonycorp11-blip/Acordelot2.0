@@ -3,15 +3,21 @@ extends CanvasLayer
 ## por Progresso; o inventario recebe a nota pronta imediatamente.
 
 const KIT := "res://textures/ui/kit/"
+const ITENS_NOTAS := "res://textures/items/notas/"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
 const NOTAS := [
     ["do", "Dó", Color(0.90, 0.30, 0.28)],
+    ["do_sustenido", "Dó#", Color(0.98, 0.48, 0.18)],
     ["re", "Ré", Color(0.95, 0.55, 0.24)],
+    ["re_sustenido", "Ré#", Color(0.68, 0.82, 0.20)],
     ["mi", "Mi", Color(0.92, 0.80, 0.26)],
     ["fa", "Fá", Color(0.35, 0.78, 0.42)],
+    ["fa_sustenido", "Fá#", Color(0.20, 0.77, 0.78)],
     ["sol", "Sol", Color(0.28, 0.70, 0.92)],
+    ["sol_sustenido", "Sol#", Color(0.31, 0.45, 0.95)],
     ["la", "Lá", Color(0.42, 0.46, 0.94)],
+    ["la_sustenido", "Lá#", Color(0.88, 0.28, 0.67)],
     ["si", "Si", Color(0.72, 0.38, 0.90)],
 ]
 
@@ -19,8 +25,10 @@ var _progresso: Node
 var _fragmentos_totais: Label
 var _recado: Label
 var _fragmentos := {}
+var _corrompidos := {}
 var _prontas := {}
 var _botoes := {}
+var _botoes_purificar := {}
 
 
 func _ready() -> void:
@@ -100,7 +108,7 @@ func _montar() -> void:
     explicacao.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     coluna.add_child(explicacao)
     var grade := GridContainer.new()
-    grade.columns = 7
+    grade.columns = 6
     grade.add_theme_constant_override("h_separation", 10)
     grade.size_flags_vertical = Control.SIZE_EXPAND_FILL
     coluna.add_child(grade)
@@ -113,7 +121,7 @@ func _montar() -> void:
 
 func _cartao(id: String, nome: String, cor: Color) -> Control:
     var painel := PanelContainer.new()
-    painel.custom_minimum_size = Vector2(150, 430)
+    painel.custom_minimum_size = Vector2(150, 390)
     painel.add_theme_stylebox_override("panel",
         _caixa(Color(0.07, 0.085, 0.15, 0.95), cor.darkened(0.35), 2, 10))
     var margem := MarginContainer.new()
@@ -129,22 +137,57 @@ func _cartao(id: String, nome: String, cor: Color) -> Control:
     var titulo := _texto(nome, 30, cor.lightened(0.18), true)
     titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     coluna.add_child(titulo)
-    var icone := TextureRect.new()
-    icone.texture = load(KIT + "item/nota.png")
-    icone.custom_minimum_size = Vector2(100, 130)
-    icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    icone.modulate = cor
-    coluna.add_child(icone)
+    # Fragmento real -> nota real. A tela deixa de usar o mesmo icone generico
+    # tingido para as doze alturas, portanto o jogador reconhece no inventario
+    # exatamente o que acabou de sintetizar.
+    var transformacao := HBoxContainer.new()
+    transformacao.alignment = BoxContainer.ALIGNMENT_CENTER
+    transformacao.add_theme_constant_override("separation", 2)
+    coluna.add_child(transformacao)
+    var corrompido := TextureRect.new()
+    corrompido.texture = load(ITENS_NOTAS + "fragmento_corrompido_" + id + ".png")
+    corrompido.custom_minimum_size = Vector2(40, 62)
+    corrompido.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    corrompido.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    transformacao.add_child(corrompido)
+    var seta_limpa := _texto(">", 14, Color(0.70, 0.55, 0.82))
+    seta_limpa.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    transformacao.add_child(seta_limpa)
+    var fragmento := TextureRect.new()
+    fragmento.texture = load(ITENS_NOTAS + "fragmento_" + id + ".png")
+    fragmento.custom_minimum_size = Vector2(40, 62)
+    fragmento.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    fragmento.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    transformacao.add_child(fragmento)
+    var seta := _texto(">", 14, Color(0.78, 0.72, 0.58))
+    seta.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    transformacao.add_child(seta)
+    var nota := TextureRect.new()
+    nota.texture = load(ITENS_NOTAS + "nota_" + id + ".png")
+    nota.custom_minimum_size = Vector2(40, 62)
+    nota.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    nota.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    transformacao.add_child(nota)
     var fragmentos := _texto("", 16, Color(0.84, 0.86, 0.92))
     fragmentos.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     coluna.add_child(fragmentos)
+    var quantidade_corrompida := _texto("", 14, Color(0.76, 0.58, 0.92))
+    quantidade_corrompida.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    coluna.add_child(quantidade_corrompida)
     var prontas := _texto("", 16, Color(0.98, 0.90, 0.62))
     prontas.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     coluna.add_child(prontas)
     var vao := Control.new()
     vao.size_flags_vertical = Control.SIZE_EXPAND_FILL
     coluna.add_child(vao)
+    var purificar := Button.new()
+    purificar.text = "Purificar 1"
+    purificar.custom_minimum_size.y = 38
+    purificar.add_theme_font_override("font", load(FONTE_TEXTO))
+    purificar.add_theme_font_size_override("font_size", 13)
+    purificar.add_theme_stylebox_override("normal", _caixa(Color(0.19, 0.12, 0.27), Color(0.58, 0.35, 0.78), 1))
+    purificar.pressed.connect(_purificar.bind(id, nome))
+    coluna.add_child(purificar)
     var botao := Button.new()
     botao.text = "Sintetizar"
     botao.custom_minimum_size.y = 48
@@ -154,8 +197,10 @@ func _cartao(id: String, nome: String, cor: Color) -> Control:
     botao.pressed.connect(_sintetizar.bind(id, nome))
     coluna.add_child(botao)
     _fragmentos[id] = fragmentos
+    _corrompidos[id] = quantidade_corrompida
     _prontas[id] = prontas
     _botoes[id] = botao
+    _botoes_purificar[id] = purificar
     return painel
 
 
@@ -166,18 +211,30 @@ func _sintetizar(id: String, nome: String) -> void:
         _recado.text = "Faltam fragmentos para sintetizar %s." % nome
 
 
+func _purificar(id: String, nome: String) -> void:
+    if _progresso and _progresso.purificar_fragmento(id):
+        _recado.text = "Fragmento corrompido de %s purificado." % nome
+    else:
+        _recado.text = "Você não possui fragmentos corrompidos de %s." % nome
+
+
 func _atualizar() -> void:
     if _progresso == null or _fragmentos_totais == null:
         return
     var total := 0
-    for altura in ["do", "re", "mi", "fa", "sol", "la", "si"]:
+    var total_corrompido := 0
+    for altura in ["do", "do_sustenido", "re", "re_sustenido", "mi", "fa",
+                   "fa_sustenido", "sol", "sol_sustenido", "la", "la_sustenido", "si"]:
         total += _progresso.quantidade("fragmento_" + altura)
-    _fragmentos_totais.text = "Fragmentos: %d" % total
+        total_corrompido += _progresso.quantidade("fragmento_corrompido_" + altura)
+    _fragmentos_totais.text = "Limpos: %d   Corrompidos: %d" % [total, total_corrompido]
     for dados in NOTAS:
         var id := str(dados[0])
         (_fragmentos[id] as Label).text = "Fragmentos  %d / 5" % _progresso.quantidade("fragmento_" + id)
+        (_corrompidos[id] as Label).text = "Corrompidos  %d" % _progresso.quantidade("fragmento_corrompido_" + id)
         (_prontas[id] as Label).text = "Notas prontas  %d" % _progresso.quantidade("nota_" + id)
         (_botoes[id] as Button).disabled = not _progresso.pode_pagar({"fragmento_" + id: 5})
+        (_botoes_purificar[id] as Button).disabled = _progresso.quantidade("fragmento_corrompido_" + id) < 1
 
 
 func mostrar(sim := true) -> void:

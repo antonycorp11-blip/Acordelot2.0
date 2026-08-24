@@ -1,0 +1,69 @@
+[gd_resource type="SpriteFrames" load_steps=35 format=3]
+
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/idle/frame_00.png" id="1_idle_frame_00"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/idle/frame_01.png" id="2_idle_frame_01"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/idle/frame_02.png" id="3_idle_frame_02"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/idle/frame_03.png" id="4_idle_frame_03"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/idle/frame_04.png" id="5_idle_frame_04"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/walk/frame_00.png" id="6_walk_frame_00"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/walk/frame_01.png" id="7_walk_frame_01"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/walk/frame_02.png" id="8_walk_frame_02"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/walk/frame_03.png" id="9_walk_frame_03"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/walk/frame_04.png" id="10_walk_frame_04"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/walk/frame_05.png" id="11_walk_frame_05"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/walk/frame_06.png" id="12_walk_frame_06"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/walk/frame_07.png" id="13_walk_frame_07"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/run/frame_00.png" id="14_run_frame_00"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/run/frame_01.png" id="15_run_frame_01"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/run/frame_02.png" id="16_run_frame_02"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/run/frame_03.png" id="17_run_frame_03"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/run/frame_04.png" id="18_run_frame_04"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/run/frame_05.png" id="19_run_frame_05"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/attack/frame_00.png" id="20_attack_frame_00"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/attack/frame_01.png" id="21_attack_frame_01"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/attack/frame_02.png" id="22_attack_frame_02"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/attack/frame_03.png" id="23_attack_frame_03"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/attack/frame_04.png" id="24_attack_frame_04"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/attack/frame_05.png" id="25_attack_frame_05"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/hurt/frame_00.png" id="26_hurt_frame_00"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/hurt/frame_01.png" id="27_hurt_frame_01"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/hurt/frame_02.png" id="28_hurt_frame_02"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/disappear/frame_00.png" id="29_disappear_frame_00"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/disappear/frame_01.png" id="30_disappear_frame_01"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/disappear/frame_02.png" id="31_disappear_frame_02"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/disappear/frame_03.png" id="32_disappear_frame_03"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/disappear/frame_04.png" id="33_disappear_frame_04"]
+[ext_resource type="Texture2D" path="res://textures/ecos/do_nascente/disappear/frame_05.png" id="34_disappear_frame_05"]
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("1_idle_frame_00")}, {"duration": 1.0, "texture": ExtResource("2_idle_frame_01")}, {"duration": 1.0, "texture": ExtResource("3_idle_frame_02")}, {"duration": 1.0, "texture": ExtResource("4_idle_frame_03")}, {"duration": 1.0, "texture": ExtResource("5_idle_frame_04")}],
+"loop": true,
+"name": &"idle",
+"speed": 7.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("6_walk_frame_00")}, {"duration": 1.0, "texture": ExtResource("7_walk_frame_01")}, {"duration": 1.0, "texture": ExtResource("8_walk_frame_02")}, {"duration": 1.0, "texture": ExtResource("9_walk_frame_03")}, {"duration": 1.0, "texture": ExtResource("10_walk_frame_04")}, {"duration": 1.0, "texture": ExtResource("11_walk_frame_05")}, {"duration": 1.0, "texture": ExtResource("12_walk_frame_06")}, {"duration": 1.0, "texture": ExtResource("13_walk_frame_07")}],
+"loop": true,
+"name": &"walk",
+"speed": 9.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("14_run_frame_00")}, {"duration": 1.0, "texture": ExtResource("15_run_frame_01")}, {"duration": 1.0, "texture": ExtResource("16_run_frame_02")}, {"duration": 1.0, "texture": ExtResource("17_run_frame_03")}, {"duration": 1.0, "texture": ExtResource("18_run_frame_04")}, {"duration": 1.0, "texture": ExtResource("19_run_frame_05")}],
+"loop": true,
+"name": &"run",
+"speed": 11.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("20_attack_frame_00")}, {"duration": 1.0, "texture": ExtResource("21_attack_frame_01")}, {"duration": 1.0, "texture": ExtResource("22_attack_frame_02")}, {"duration": 1.0, "texture": ExtResource("23_attack_frame_03")}, {"duration": 1.0, "texture": ExtResource("24_attack_frame_04")}, {"duration": 1.0, "texture": ExtResource("25_attack_frame_05")}],
+"loop": false,
+"name": &"attack",
+"speed": 11.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("26_hurt_frame_00")}, {"duration": 1.0, "texture": ExtResource("27_hurt_frame_01")}, {"duration": 1.0, "texture": ExtResource("28_hurt_frame_02")}],
+"loop": false,
+"name": &"hurt",
+"speed": 9.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("29_disappear_frame_00")}, {"duration": 1.0, "texture": ExtResource("30_disappear_frame_01")}, {"duration": 1.0, "texture": ExtResource("31_disappear_frame_02")}, {"duration": 1.0, "texture": ExtResource("32_disappear_frame_03")}, {"duration": 1.0, "texture": ExtResource("33_disappear_frame_04")}, {"duration": 1.0, "texture": ExtResource("34_disappear_frame_05")}],
+"loop": false,
+"name": &"disappear",
+"speed": 10.0
+}]
