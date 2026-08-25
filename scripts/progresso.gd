@@ -34,6 +34,8 @@ const ATRIBUTOS_INICIAIS := {
 }
 const RECURSOS_INICIAIS := {
     "claves": 0,
+    # Ferramenta durável de teste. Mais adiante ela será forjada na ferraria.
+    "ressonador": 1,
     "madeira": 0,
     "pedra": 0,
     "partitura_menor": 0,
@@ -77,6 +79,18 @@ const RECURSOS_INICIAIS := {
     "nota_la": 0,
     "nota_la_sustenido": 0,
     "nota_si": 0,
+    "alma_eco_do": 0,
+    "alma_eco_do_sustenido": 0,
+    "alma_eco_re": 0,
+    "alma_eco_re_sustenido": 0,
+    "alma_eco_mi": 0,
+    "alma_eco_fa": 0,
+    "alma_eco_fa_sustenido": 0,
+    "alma_eco_sol": 0,
+    "alma_eco_sol_sustenido": 0,
+    "alma_eco_la": 0,
+    "alma_eco_la_sustenido": 0,
+    "alma_eco_si": 0,
 }
 
 ## Equipamentos nao mudam a aparencia. Sao seis acessorios de ressonancia.
@@ -105,10 +119,9 @@ var arma_equipada := "Espada do Despertar"
 var nivel_da_arma := 1
 var niveis_skills := {"ataque_basico": 1, "skill_1": 1, "skill_2": 1, "skill_3": 1}
 var eco_equipado: Dictionary = {}
-## Liberados nesta build de validacao. Si permanece no catalogo, mas aguarda a
-## folha de animacao que ainda nao foi enviada.
-var ecos_descobertos: Array = ["do", "do_sustenido", "re", "re_sustenido", "mi",
-    "fa", "fa_sustenido", "sol", "sol_sustenido", "la", "la_sustenido"]
+## Novos saves começam com Dó para validar a quarta skill. Saves de teste que
+## já tinham os demais liberados são preservados; captura não apaga progresso.
+var ecos_descobertos: Array = ["do"]
 var acordes_equipados: Array = []
 ## Quando novos personagens jogaveis entrarem, cada ficha registra aqui seu
 ## Poder de Luta consolidado. Hoje a conta tem apenas Akles.

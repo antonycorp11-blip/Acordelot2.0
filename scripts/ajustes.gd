@@ -20,6 +20,7 @@ const NIVEIS := [
     ["Qualidade", 1.0, "Tudo na resolução do aparelho"],
     ["Equilíbrio", 0.8, "Um pouco mais leve, quase igual"],
     ["Desempenho", 0.62, "Para celulares mais simples"],
+    ["Celular simples", 0.50, "Máxima fluidez; HUD permanece nítida"],
 ]
 
 var _escolhido := 1
@@ -80,7 +81,7 @@ func _montar() -> void:
     # ouro da moldura.
     coluna.offset_top = 78
     coluna.offset_bottom = -34
-    coluna.add_theme_constant_override("separation", 10)
+    coluna.add_theme_constant_override("separation", 7)
     painel.add_child(coluna)
 
     coluna.add_child(_rotulo("Desempenho", 26, Color(0.97, 0.84, 0.47)))
@@ -110,7 +111,7 @@ func _rotulo(txt: String, corpo: int, cor: Color, quebra := false) -> Label:
 
 func _botao(rotulo: String, aceso: bool, arte := "") -> Button:
     var b := Button.new()
-    b.custom_minimum_size = Vector2(0, 56)
+    b.custom_minimum_size = Vector2(0, 48)
     b.text = rotulo
     b.add_theme_font_override("font", load(FONTE))
     b.add_theme_font_size_override("font_size", 19)

@@ -34,6 +34,8 @@ var _xp_cheio: ColorRect
 var _xp_label: Label
 var _nivel_label: Label
 var _poder_label: Label
+var _escudo := 0.0
+var _escudo_ate := 0.0
 
 var _alvo_caixa: Control
 var _alvo_cheio: ColorRect
@@ -78,6 +80,9 @@ func _process(delta: float) -> void:
         _alvo_some_em -= delta
         if _alvo_some_em <= 0.0:
             _alvo_caixa.visible = false
+    if _escudo > 0.0 and Time.get_ticks_msec() / 1000.0 >= _escudo_ate:
+        _escudo = 0.0
+        _pintar_vida()
 
 
 # ---------------------------------------------------------------- construcao
@@ -344,7 +349,8 @@ func _pintar_vida() -> void:
     var fracao: float = 0.0 if max_health <= 0.0 else current_health / max_health
     _hp_cheio.size.x = _hp_fundo.size.x * clampf(fracao, 0.0, 1.0)
     if _hp_label:
-        _hp_label.text = "%d / %d" % [int(current_health), int(max_health)]
+        _hp_label.text = "%d / %d%s" % [int(current_health), int(max_health),
+            "  +%d" % int(_escudo) if _escudo > 0.0 else ""]
 
 
 func _pintar_xp() -> void:
@@ -386,7 +392,15 @@ func curar(qtd: float) -> void:
 
 
 func tomar_dano(qtd: float) -> void:
-    current_health = clampf(current_health - qtd, 0.0, max_health)
+    var absorvido := minf(_escudo, qtd)
+    _escudo -= absorvido
+    current_health = clampf(current_health - (qtd - absorvido), 0.0, max_health)
+    _pintar_vida()
+
+
+func conceder_escudo(qtd: float) -> void:
+    _escudo = maxf(_escudo, qtd)
+    _escudo_ate = Time.get_ticks_msec() / 1000.0 + 8.0
     _pintar_vida()
 
 

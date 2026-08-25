@@ -105,6 +105,15 @@ func _assar_moradores() -> void:
         morador.remove_from_group("npc")
         morador.scale = Vector3.ONE * TAMANHO
         _descartaveis.append(morador)
+        # O primeiro diálogo também pagava o custo de montar as trilhas do
+        # esqueleto. Avançar cada animação em zero prepara o cache sem mexer no
+        # morador visível da cidade.
+        var animador := morador.find_child("AnimationPlayer", true, false) as AnimationPlayer
+        if animador:
+            for animacao in animador.get_animation_list():
+                animador.play(animacao)
+                animador.advance(0.0)
+            animador.stop()
 
 
 ## As tres skills, montadas como o heroi as monta.

@@ -85,6 +85,18 @@ func _botao(valor: String, largura: float) -> Button:
     return b
 
 
+func _retrato_eco(id: String, arte_frames: String) -> Texture2D:
+    # Retrato dedicado nítido para menu. O atlas menor continua exclusivo do
+    # mundo 3D, onde economiza memória e nunca é ampliado desta forma.
+    var retrato := "res://textures/ui/ecos/%s.png" % id
+    if ResourceLoader.exists(retrato):
+        return load(retrato) as Texture2D
+    if not arte_frames.is_empty() and ResourceLoader.exists(arte_frames):
+        var frames := load(arte_frames) as SpriteFrames
+        return frames.get_frame_texture(&"idle", 0)
+    return null
+
+
 func _montar() -> void:
     var sombra := ColorRect.new()
     sombra.color = Color(0.005, 0.008, 0.018, 0.90)
@@ -157,9 +169,7 @@ func _montar_catalogo() -> Control:
         icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
         icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
         var caminho := str(eco.get("arte", ""))
-        if not caminho.is_empty() and ResourceLoader.exists(caminho):
-            var frames := load(caminho) as SpriteFrames
-            icone.texture = frames.get_frame_texture(&"idle", 0)
+        icone.texture = _retrato_eco(id, caminho)
         pilha.add_child(icone)
         var forma := _texto("Forma 1  •  Nascente" if not caminho.is_empty() else "Arte pendente", 13, Color(0.58, 0.78, 0.91))
         forma.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -221,6 +231,7 @@ func _atualizar() -> void:
     var equipado: bool = str(_progresso.eco_equipado.get("id", "")) == _selecionado
     for id in _botoes:
         (_botoes[id] as Button).button_pressed = str(id) == _selecionado
+        (_botoes[id] as Button).modulate = Color.WHITE if id in _progresso.ecos_descobertos else Color(0.42, 0.46, 0.54, 0.80)
     _nome.text = str(eco.get("nome", "Eco"))
     _forma.text = "Forma 1 de 3  •  NASCENTE  •  Poder %d" % int(eco.get("poder", 0))
     _personalidade.text = "Personalidade\n" + str(eco.get("personalidade", ""))
@@ -228,12 +239,17 @@ func _atualizar() -> void:
     _buff.text = "Passiva — %s\n%s" % [eco.get("buff", ""), eco.get("buff_efeito", "")]
     var caminho := str(eco.get("arte", ""))
     _preview.texture = null
-    if not caminho.is_empty() and ResourceLoader.exists(caminho):
-        var frames := load(caminho) as SpriteFrames
-        _preview.texture = frames.get_frame_texture(&"idle", 1)
+    _preview.texture = _retrato_eco(_selecionado, caminho)
     _equipar.disabled = not descoberto or caminho.is_empty() or equipado
     _equipar.text = "Equipado" if equipado else "Equipar como 4ª skill" if descoberto else "Ainda não capturado"
-    _estado.text = "Acompanha Akles no mundo" if equipado else "Disponível para teste nesta build" if descoberto else "Descubra este Eco no mundo"
+    if equipado:
+        _estado.text = "Equipado • acompanha Akles e libera a 4ª skill"
+    elif descoberto:
+        _estado.text = "Disponível para equipar"
+    else:
+        var almas: int = int(_progresso.quantidade("alma_eco_" + _selecionado))
+        var notas: int = int(_progresso.quantidade("nota_" + _selecionado))
+        _estado.text = "Bloqueado • Almas %d / 3 • Notas %d / 5 • catalisador ainda será definido" % [almas, notas]
 
 
 func _equipar_atual() -> void:

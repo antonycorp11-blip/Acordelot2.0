@@ -4,8 +4,10 @@ class_name EcoDoNascente
 @export_range(0.55, 0.90, 0.01) var altura_aparente_m: float = 0.72
 @export_range(0.0, 0.12, 0.005) var amplitude_flutuacao: float = 0.065
 @export_range(1.0, 4.0, 0.1) var periodo_flutuacao: float = 2.1
-@export var velocidade_normal: float = 1.15
-@export var velocidade_corrida: float = 2.25
+@export var velocidade_normal: float = 1.55
+@export var velocidade_corrida: float = 3.65
+@export var eco_id: String = "do"
+@export var capturavel: bool = false
 @export var passeio_natural: bool = false
 @export var usar_particulas: bool = true
 @export_range(1.0, 8.0, 0.25) var raio_do_passeio: float = 3.5
@@ -65,6 +67,10 @@ func definir_terreno(terreno: Node) -> void:
 func definir_seguidor(alvo: Node3D) -> void:
     _alvo_seguidor = alvo
     passeio_natural = false
+
+
+func esta_disponivel_para_captura() -> bool:
+    return capturavel and not _desaparecido and not _acao_uma_vez
 
 
 func _process(delta: float) -> void:
@@ -199,16 +205,16 @@ func _processar_passeio(delta: float) -> void:
 
 func _processar_seguidor() -> void:
     var destino := _alvo_seguidor.global_position
-    destino += _alvo_seguidor.global_basis.x * 1.25
-    destino -= _alvo_seguidor.global_basis.z * 1.1
+    destino += _alvo_seguidor.global_basis.x * 0.72
+    destino -= _alvo_seguidor.global_basis.z * 0.58
     var ate := destino - global_position
     ate.y = 0.0
     var distancia := ate.length()
-    if distancia < 1.45:
+    if distancia < 0.88:
         if _direcao.length_squared() > 0.001:
             parar()
         return
-    definir_movimento(ate, distancia > 6.0)
+    definir_movimento(ate, distancia > 2.8)
 
 
 func _virar_para_o_movimento() -> void:
