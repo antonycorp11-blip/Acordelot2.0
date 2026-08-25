@@ -19,6 +19,7 @@ signal item_equipped(item_id: String, slot: String)
 signal aba_pedida(qual: String)
 
 const KIT := "res://textures/ui/kit/"
+const FUNDO_HARMONICO := "res://textures/ui/harmonia_celestial_v3.jpg"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
 
@@ -263,7 +264,7 @@ func _montar() -> void:
     # tela cobre tudo, como a caixa de conversa ja fazia.
     _camada = CanvasLayer.new()
     _camada.name = "CamadaInventario"
-    _camada.layer = 15
+    _camada.layer = 120
     # NASCE ESCONDIDA, e escondida NELA, nao no Control de fora.
     #
     # CanvasLayer nao e CanvasItem: ele ignora o visible do pai. Enquanto quem
@@ -296,6 +297,16 @@ func _montar() -> void:
     _janela.mouse_filter = Control.MOUSE_FILTER_IGNORE
     proporcao.add_child(_janela)
 
+    # Base celeste comum às telas novas. É uma textura vazia de conteúdo:
+    # números, filtros, itens e ações continuam sendo Controls funcionais.
+    var arte_fundo := TextureRect.new()
+    arte_fundo.texture = load(FUNDO_HARMONICO)
+    arte_fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    arte_fundo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    arte_fundo.stretch_mode = TextureRect.STRETCH_SCALE
+    arte_fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _janela.add_child(arte_fundo)
+
     # MOLDURA DISCRETA, e nao a filigrana inteira.
     #
     # A arte do conceito e desenhada para ser OLHADA; um inventario e usado. Com
@@ -305,7 +316,7 @@ func _montar() -> void:
     # ruido sai, e o que brilha passa a ser o item.
     var moldura := PanelContainer.new()
     moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
-    moldura.add_theme_stylebox_override("panel", _caixa(Color(0.055, 0.07, 0.13, 0.97), Color(0.62, 0.50, 0.26), 2, 12))
+    moldura.add_theme_stylebox_override("panel", _caixa(Color(0.008, 0.025, 0.055, 0.34), Color(0.62, 0.50, 0.26), 1, 12))
     moldura.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _janela.add_child(moldura)
 
@@ -313,10 +324,10 @@ func _montar() -> void:
     # cima do ouro.
     var miolo := MarginContainer.new()
     miolo.set_anchors_preset(Control.PRESET_FULL_RECT)
-    miolo.add_theme_constant_override("margin_left", 26)
-    miolo.add_theme_constant_override("margin_right", 26)
-    miolo.add_theme_constant_override("margin_top", 20)
-    miolo.add_theme_constant_override("margin_bottom", 18)
+    miolo.add_theme_constant_override("margin_left", 34)
+    miolo.add_theme_constant_override("margin_right", 34)
+    miolo.add_theme_constant_override("margin_top", 22)
+    miolo.add_theme_constant_override("margin_bottom", 20)
     miolo.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _janela.add_child(miolo)
 
@@ -337,7 +348,7 @@ func _montar() -> void:
 
     coluna.add_child(_barra_de_navegacao())
 
-    _preencher_grade()
+    _trocar_filtro(_filtro)
 
 
 ## O topo: titulo a esquerda, recursos no meio, fechar a direita.
@@ -346,7 +357,7 @@ func _cabecalho() -> Control:
     linha.custom_minimum_size.y = 62
     linha.add_theme_constant_override("separation", 16)
 
-    var titulo := _texto("Inventário", 40, Color(0.97, 0.84, 0.47), true)
+    var titulo := _texto("♫  INVENTÁRIO", 34, Color(0.97, 0.84, 0.47), true)
     titulo.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     linha.add_child(titulo)
 
@@ -363,9 +374,10 @@ func _cabecalho() -> Control:
     # FECHAR, escrito. O "X" sozinho, pequeno e em cima da cantoneira dourada,
     # nao se lia no celular — e sair de uma tela cheia e a acao que mais precisa
     # ser obvia, porque quem nao acha a saida acha que o jogo travou.
-    var fechar := _botao("✕  Fechar", "botao_vermelho", 158.0, 58.0)
+    var fechar := _botao("×", "botao_vermelho", 62.0, 58.0)
     fechar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    fechar.add_theme_font_size_override("font_size", 20)
+    fechar.add_theme_font_size_override("font_size", 30)
+    fechar.tooltip_text = "Fechar"
     fechar.pressed.connect(func(): toggle_inventory(false))
     linha.add_child(fechar)
     return linha
@@ -394,12 +406,13 @@ func _ficha(pai: Control, arte: String, valor: String) -> Label:
 
 func _coluna_de_filtros() -> Control:
     var coluna := VBoxContainer.new()
-    coluna.custom_minimum_size.x = 190
+    coluna.custom_minimum_size.x = 220
     coluna.add_theme_constant_override("separation", 10)
 
     for nome in FILTROS:
         var arte: String = "botao_roxo" if nome == _filtro else "botao_azul"
-        var b := _botao(nome, arte, 180.0, 54.0)
+        var b := _botao(nome, arte, 210.0, 56.0)
+        b.alignment = HORIZONTAL_ALIGNMENT_LEFT
         b.set_meta("filtro", nome)
         b.pressed.connect(_trocar_filtro.bind(nome))
         coluna.add_child(b)
@@ -418,7 +431,7 @@ func _area_da_grade() -> Control:
 
     var fundo := PanelContainer.new()
     fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-    fundo.add_theme_stylebox_override("panel", _caixa(Color(0.04, 0.055, 0.10, 0.85), Color(0.30, 0.26, 0.18), 1, 10))
+    fundo.add_theme_stylebox_override("panel", _caixa(Color(0.018, 0.045, 0.09, 0.72), Color(0.42, 0.35, 0.22), 1, 10))
     fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
     area.add_child(fundo)
 
@@ -443,7 +456,7 @@ func _area_da_grade() -> Control:
 ## Um slot: moldura da raridade, arte do item, quantidade no canto.
 func _slot(item: Dictionary) -> Control:
     var botao := Button.new()
-    botao.custom_minimum_size = Vector2(92, 106)
+    botao.custom_minimum_size = Vector2(104, 112)
     for estado in ["normal", "hover", "pressed", "focus"]:
         botao.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
     botao.pressed.connect(_selecionar.bind(item))
@@ -522,12 +535,12 @@ func _soltar_em(_pos: Vector2, dados: Variant, destino: Dictionary) -> void:
 
 func _cartao_de_detalhe() -> Control:
     var area := Control.new()
-    area.custom_minimum_size.x = 300
+    area.custom_minimum_size.x = 325
     area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
     var fundo := PanelContainer.new()
     fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-    fundo.add_theme_stylebox_override("panel", _caixa(Color(0.04, 0.055, 0.10, 0.85), Color(0.30, 0.26, 0.18), 1, 10))
+    fundo.add_theme_stylebox_override("panel", _caixa(Color(0.018, 0.045, 0.09, 0.78), Color(0.42, 0.35, 0.22), 1, 10))
     fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
     area.add_child(fundo)
 
@@ -618,7 +631,7 @@ func _barra_de_navegacao() -> Control:
         # tela de destino ainda nao existe.
         var caixa := Button.new()
         # Largura que cabe "Inventario" sem encostar em "Missoes".
-        caixa.custom_minimum_size = Vector2(96, 74)
+        caixa.custom_minimum_size = Vector2(112, 74)
         caixa.tooltip_text = str(aba[1])
         for estado in ["normal", "hover", "pressed", "focus"]:
             caixa.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
@@ -693,7 +706,7 @@ func _preencher_grade() -> void:
     var faltam: int = (COLUNAS - visiveis.size() % COLUNAS) % COLUNAS
     for i in faltam + COLUNAS:
         var vazio := PanelContainer.new()
-        vazio.custom_minimum_size = Vector2(92, 106)
+        vazio.custom_minimum_size = Vector2(104, 112)
         vazio.add_theme_stylebox_override("panel", _caixa(Color(0.06, 0.075, 0.13, 0.55), Color(0.22, 0.24, 0.32), 1))
         vazio.mouse_filter = Control.MOUSE_FILTER_IGNORE
         _grade.add_child(vazio)
@@ -714,10 +727,10 @@ func _itens_do_filtro() -> Array:
 func _trocar_filtro(nome: String) -> void:
     _filtro = nome
     for b in _botoes_de_filtro:
-        var arte: String = "botao_roxo" if str(b.get_meta("filtro")) == nome else "botao_azul"
-        for filho in b.get_children():
-            if filho is NinePatchRect:
-                (filho as NinePatchRect).texture = load(KIT + arte + ".png")
+        var ativo: bool = str(b.get_meta("filtro")) == nome
+        var cor := Color(0.055, 0.20, 0.38, 0.96) if ativo else Color(0.035, 0.065, 0.12, 0.90)
+        var borda := Color(0.30, 0.72, 1.0) if ativo else Color(0.26, 0.35, 0.46)
+        b.add_theme_stylebox_override("normal", _caixa(cor, borda, 2 if ativo else 1, 8))
     _preencher_grade()
 
 
@@ -867,3 +880,5 @@ func toggle_inventory(force_state = null) -> void:
     if novo and _grade != null:
         _sincronizar_recursos()
         _preencher_grade()
+        _janela.modulate.a = 0.0
+        create_tween().tween_property(_janela, "modulate:a", 1.0, 0.22)

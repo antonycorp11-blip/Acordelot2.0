@@ -8,10 +8,10 @@ const DialogoScript := preload("res://scripts/dialogo.gd")
 ## varre o projeto, e isso quebra exportacao limpa.
 const AquecimentoScript := preload("res://scripts/aquecimento.gd")
 const AjustesScript := preload("res://scripts/ajustes.gd")
-const TelaPersonagemScript := preload("res://scripts/tela_personagem_real.gd")
-const TelaSinteseScript := preload("res://scripts/tela_sintese.gd")
-const TelaEcosScript := preload("res://scripts/tela_ecos.gd")
-const TelaSkillsScript := preload("res://scripts/tela_skills.gd")
+const TelaPersonagemScript := preload("res://scripts/tela_personagem_v3.gd")
+const TelaSinteseScript := preload("res://scripts/tela_sintese_v3.gd")
+const TelaEcosScript := preload("res://scripts/tela_ecos_v3.gd")
+const TelaSkillsScript := preload("res://scripts/tela_skills_v3.gd")
 const EcoDoNascenteCena := preload("res://scenes/ecos/EcoDoNascente.tscn")
 const RessonanciaHUDScript := preload("res://scripts/ressonancia_hud.gd")
 const DesempenhoAdaptativoScript := preload("res://scripts/desempenho_adaptativo.gd")
@@ -122,6 +122,13 @@ func _ready() -> void:
     var sintese: CanvasLayer = TelaSinteseScript.new()
     sintese.name = "TelaSintese"
     add_child(sintese)
+    if ficha.has_signal("tela_pedida"):
+        ficha.tela_pedida.connect(func(qual: String):
+            ficha.mostrar(false)
+            if qual == "talentos":
+                _abrir_tela_skills()
+            elif qual == "sintese":
+                sintese.mostrar(true))
     if inv_ui and inv_ui.has_signal("aba_pedida"):
         inv_ui.aba_pedida.connect(func(qual: String):
             if qual == "personagem":
@@ -530,11 +537,22 @@ func _tirar_print() -> void:
         var f := find_child("TelaPersonagem", true, false)
         if f:
             f.mostrar(true)
+            for argumento in OS.get_cmdline_user_args():
+                if argumento.begins_with("--aba=") and f.has_method("_mudar_aba_v3"):
+                    f._mudar_aba_v3(argumento.trim_prefix("--aba="))
         await get_tree().create_timer(0.4).timeout
     if OS.get_cmdline_user_args().has("--sintese"):
         var s := find_child("TelaSintese", true, false)
         if s:
             s.mostrar(true)
+            if OS.get_cmdline_user_args().has("--partituras"):
+                s._trocar_aba("partituras")
+        await get_tree().create_timer(0.4).timeout
+    if OS.get_cmdline_user_args().has("--skills"):
+        _abrir_tela_skills()
+        await get_tree().create_timer(0.4).timeout
+    if OS.get_cmdline_user_args().has("--ecos"):
+        _abrir_tela_ecos()
         await get_tree().create_timer(0.4).timeout
     if OS.get_cmdline_user_args().has("--fala"):
         if _dialogo:
@@ -545,9 +563,18 @@ func _tirar_print() -> void:
         if inv:
             inv.toggle_inventory(true)
         await get_tree().create_timer(0.4).timeout
+    if DisplayServer.get_name() == "headless":
+        print("SHOT indisponível no renderizador headless; árvore validada.")
+        get_tree().quit()
+        return
     var imagem := get_viewport().get_texture().get_image()
-    imagem.save_png("user://shot.png")
-    print("SHOT ", ProjectSettings.globalize_path("user://shot.png"))
+    if imagem:
+        imagem.save_png("user://shot.png")
+        print("SHOT ", ProjectSettings.globalize_path("user://shot.png"))
+    else:
+        # O renderizador dummy do teste headless não possui textura. Ainda
+        # assim o teste deve encerrar, em vez de deixar um Godot preso por horas.
+        print("SHOT indisponível no renderizador headless; árvore validada.")
     get_tree().quit()
 
 
