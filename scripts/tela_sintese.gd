@@ -42,6 +42,7 @@ var _partituras_usar := {}
 var _ascensao: Label
 var _botao_ascensao: Button
 var _base_layout: Control
+var _botao_fechar: Button
 
 
 func _ready() -> void:
@@ -132,16 +133,16 @@ func _montar() -> void:
     margem.add_child(coluna)
     coluna.add_child(_cabecalho())
     coluna.add_child(_abas())
+    _recado = _texto("", 17, Color(0.75, 0.88, 1.0))
+    _recado.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _recado.custom_minimum_size.y = 28
+    coluna.add_child(_recado)
     _painel_notas = _montar_notas()
     _painel_notas.size_flags_vertical = Control.SIZE_EXPAND_FILL
     coluna.add_child(_painel_notas)
     _painel_partituras = _montar_partituras()
     _painel_partituras.size_flags_vertical = Control.SIZE_EXPAND_FILL
     coluna.add_child(_painel_partituras)
-    _recado = _texto("", 16, Color(0.75, 0.88, 1.0))
-    _recado.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _recado.custom_minimum_size.y = 26
-    coluna.add_child(_recado)
 
 
 func _ajustar_ao_celular() -> void:
@@ -168,9 +169,8 @@ func _cabecalho() -> Control:
     _resumo = _texto("", 15, Color(0.66, 0.80, 0.90))
     _resumo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     linha.add_child(_resumo)
-    var fechar := _botao("Fechar", 120)
-    fechar.button_down.connect(func(): mostrar(false))
-    linha.add_child(fechar)
+    _botao_fechar = _botao("Fechar", 120)
+    linha.add_child(_botao_fechar)
     return linha
 
 
@@ -181,10 +181,6 @@ func _abas() -> Control:
     for dados in [["notas", "Notas e Fragmentos"], ["partituras", "Partituras e Nível"]]:
         var b := _botao(str(dados[1]), 260)
         b.toggle_mode = true
-        # No navegador mobile o release podia se perder quando o Control base
-        # estava escalado. button_down responde no primeiro toque e nao depende
-        # de o dedo terminar exatamente dentro do botao.
-        b.button_down.connect(_trocar_aba.bind(str(dados[0])))
         linha.add_child(b)
         _botoes_abas[dados[0]] = b
     return linha
@@ -194,7 +190,7 @@ func _montar_notas() -> Control:
     var corpo := HBoxContainer.new()
     corpo.add_theme_constant_override("separation", 18)
     var seletor := PanelContainer.new()
-    seletor.custom_minimum_size.x = 330
+    seletor.custom_minimum_size.x = 470
     seletor.add_theme_stylebox_override("panel", _caixa(Color(0.02, 0.04, 0.075, 0.90), Color(0.25, 0.32, 0.38), 1, 10))
     corpo.add_child(seletor)
     var grade := GridContainer.new()
@@ -204,12 +200,12 @@ func _montar_notas() -> Control:
     seletor.add_child(grade)
     for dados in NOTAS:
         var id := str(dados[0])
-        var b := _botao(str(dados[1]), 94)
-        b.custom_minimum_size.y = 80
+        var b := _botao(str(dados[1]), 140)
+        b.custom_minimum_size.y = 98
         b.icon = load(ITENS + "fragmento_" + id + ".png")
         b.expand_icon = true
-        b.add_theme_constant_override("icon_max_width", 40)
-        b.button_down.connect(_selecionar_nota.bind(id))
+        b.add_theme_constant_override("icon_max_width", 34)
+        b.add_theme_font_size_override("font_size", 13)
         grade.add_child(b)
         _botoes_notas[id] = b
 
@@ -246,13 +242,11 @@ func _montar_notas() -> Control:
     acoes.alignment = BoxContainer.ALIGNMENT_CENTER
     acoes.add_theme_constant_override("separation", 12)
     coluna.add_child(acoes)
-    _botao_purificar = _botao("Purificar 1", 190)
-    _botao_purificar.button_down.connect(_purificar)
+    _botao_purificar = _botao("Purificar 1 • 25 Claves", 250)
     acoes.add_child(_botao_purificar)
-    _botao_sintetizar = _botao("Sintetizar 5", 210, true)
-    _botao_sintetizar.button_down.connect(_sintetizar)
+    _botao_sintetizar = _botao("Sintetizar 5 • 100 Claves", 280, true)
     acoes.add_child(_botao_sintetizar)
-    var ajuda := _texto("Shikers deixam fragmentos com partículas roxas. Purifique-os e una 5 fragmentos limpos para formar uma nota.", 14, Color(0.67, 0.72, 0.78))
+    var ajuda := _texto("Purificar custa 25 Claves. Unir 5 fragmentos purificados em uma Nota custa 100 Claves.", 14, Color(0.67, 0.72, 0.78))
     ajuda.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     ajuda.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     coluna.add_child(ajuda)
@@ -298,7 +292,6 @@ func _montar_partituras() -> Control:
     _ascensao = _texto("", 15, Color(0.78, 0.80, 0.86))
     bloco.add_child(_ascensao)
     _botao_ascensao = _botao("Realizar ascensão", 220, true)
-    _botao_ascensao.button_down.connect(_ascender)
     linha.add_child(_botao_ascensao)
     return coluna
 
@@ -330,11 +323,9 @@ func _cartao_partitura(tipo: String) -> Control:
     acoes.alignment = BoxContainer.ALIGNMENT_CENTER
     coluna.add_child(acoes)
     var criar := _botao("Criar", 125)
-    criar.button_down.connect(_criar_partitura.bind(tipo))
     acoes.add_child(criar)
     _partituras_criar[tipo] = criar
     var usar := _botao("Usar", 125, true)
-    usar.button_down.connect(_usar_partitura.bind(tipo))
     acoes.add_child(usar)
     _partituras_usar[tipo] = usar
     return painel
@@ -367,13 +358,27 @@ func _nome_da_nota(id: String) -> String:
 
 
 func _purificar() -> void:
+    var corrompido := "fragmento_corrompido_" + _nota_atual
+    if _progresso.quantidade(corrompido) < 1:
+        _recado.text = "Você não possui um fragmento corrompido dessa nota."
+        return
+    if _progresso.quantidade("claves") < _progresso.CUSTO_PURIFICAR_FRAGMENTO:
+        _recado.text = "Faltam Claves: purificar custa 25."
+        return
     var ok: bool = _progresso != null and _progresso.purificar_fragmento(_nota_atual)
-    _recado.text = "Fragmento purificado." if ok else "Você ainda não possui esse fragmento corrompido."
+    _recado.text = "Fragmento purificado por 25 Claves." if ok else "Não foi possível purificar."
 
 
 func _sintetizar() -> void:
+    var limpo := "fragmento_" + _nota_atual
+    if _progresso.quantidade(limpo) < 5:
+        _recado.text = "Faltam fragmentos: são necessários 5 purificados."
+        return
+    if _progresso.quantidade("claves") < _progresso.CUSTO_SINTETIZAR_NOTA:
+        _recado.text = "Faltam Claves: sintetizar uma Nota custa 100."
+        return
     var ok: bool = _progresso != null and _progresso.sintetizar_nota(_nota_atual)
-    _recado.text = "Nota sintetizada e enviada ao inventário." if ok else "São necessários 5 fragmentos purificados."
+    _recado.text = "Nota sintetizada por 100 Claves e enviada ao inventário." if ok else "Não foi possível sintetizar."
 
 
 func _criar_partitura(tipo: String) -> void:
@@ -409,15 +414,25 @@ func _atualizar() -> void:
     _qtd_corrompido.text = "Possui  %d" % _progresso.quantidade(corrompido)
     _qtd_limpo.text = "Possui  %d" % _progresso.quantidade(limpo)
     _qtd_pronto.text = "Possui  %d" % _progresso.quantidade(pronto)
-    _botao_purificar.disabled = _progresso.quantidade(corrompido) < 1
-    _botao_sintetizar.disabled = _progresso.quantidade(limpo) < 5
+    _botao_purificar.disabled = (_progresso.quantidade(corrompido) < 1 or
+        _progresso.quantidade("claves") < _progresso.CUSTO_PURIFICAR_FRAGMENTO)
+    _botao_sintetizar.disabled = (_progresso.quantidade(limpo) < 5 or
+        _progresso.quantidade("claves") < _progresso.CUSTO_SINTETIZAR_NOTA)
     _claves.text = "Claves  %s" % _milhar(_progresso.quantidade("claves"))
     var limpos := 0
     var contaminados := 0
+    var notas_prontas := 0
     for dados in NOTAS:
-        limpos += _progresso.quantidade("fragmento_" + str(dados[0]))
-        contaminados += _progresso.quantidade("fragmento_corrompido_" + str(dados[0]))
-    _resumo.text = "  Fragmentos %d  •  Corrompidos %d" % [limpos, contaminados]
+        var id := str(dados[0])
+        var qtd_limpa: int = _progresso.quantidade("fragmento_" + id)
+        var qtd_corrompida: int = _progresso.quantidade("fragmento_corrompido_" + id)
+        var qtd_nota: int = _progresso.quantidade("nota_" + id)
+        limpos += qtd_limpa
+        contaminados += qtd_corrompida
+        notas_prontas += qtd_nota
+        var botao := _botoes_notas[id] as Button
+        botao.text = "%s\nCorromp. %d  •  Limpo %d\nNotas %d" % [_nome_da_nota(id), qtd_corrompida, qtd_limpa, qtd_nota]
+    _resumo.text = "  Purificados %d  •  Corrompidos %d  •  Notas %d" % [limpos, contaminados, notas_prontas]
     for tipo in PARTITURAS_ORDEM:
         var receita: Dictionary = _progresso.PARTITURAS[tipo]
         var recurso := str(receita["recurso"])
@@ -467,3 +482,62 @@ func mostrar(sim := true) -> void:
 
 func esta_aberta() -> bool:
     return _aberta
+
+
+## Roteamento direto resolve o caso real do navegador: controles escalados
+## visualmente recebiam o toque, mas o Button podia perder a ativacao no GUI.
+func _input(event: InputEvent) -> void:
+    if not _aberta:
+        return
+    var posicao := Vector2.ZERO
+    if event is InputEventScreenTouch:
+        if not event.pressed:
+            return
+        posicao = event.position
+    elif event is InputEventMouseButton:
+        if not event.pressed or event.button_index != MOUSE_BUTTON_LEFT:
+            return
+        posicao = event.position
+    else:
+        return
+
+    if _botao_fechar and _botao_fechar.get_global_rect().has_point(posicao):
+        mostrar(false)
+        get_viewport().set_input_as_handled()
+        return
+    for id in _botoes_abas:
+        var aba := _botoes_abas[id] as Button
+        if aba.get_global_rect().has_point(posicao):
+            _trocar_aba(str(id))
+            get_viewport().set_input_as_handled()
+            return
+    if _aba == "notas":
+        for id in _botoes_notas:
+            var nota := _botoes_notas[id] as Button
+            if nota.get_global_rect().has_point(posicao):
+                _selecionar_nota(str(id))
+                get_viewport().set_input_as_handled()
+                return
+        if _botao_purificar.get_global_rect().has_point(posicao):
+            _purificar()
+            get_viewport().set_input_as_handled()
+            return
+        if _botao_sintetizar.get_global_rect().has_point(posicao):
+            _sintetizar()
+            get_viewport().set_input_as_handled()
+            return
+    elif _aba == "partituras":
+        for tipo in PARTITURAS_ORDEM:
+            var criar := _partituras_criar[tipo] as Button
+            var usar := _partituras_usar[tipo] as Button
+            if criar.get_global_rect().has_point(posicao):
+                _criar_partitura(tipo)
+                get_viewport().set_input_as_handled()
+                return
+            if usar.get_global_rect().has_point(posicao):
+                _usar_partitura(tipo)
+                get_viewport().set_input_as_handled()
+                return
+        if _botao_ascensao.visible and _botao_ascensao.get_global_rect().has_point(posicao):
+            _ascender()
+            get_viewport().set_input_as_handled()

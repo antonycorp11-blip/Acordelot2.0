@@ -7,6 +7,7 @@ class_name EcoDoNascente
 @export var velocidade_normal: float = 1.15
 @export var velocidade_corrida: float = 2.25
 @export var passeio_natural: bool = false
+@export var usar_particulas: bool = true
 @export_range(1.0, 8.0, 0.25) var raio_do_passeio: float = 3.5
 
 @onready var visual: Node3D = $Visual
@@ -25,6 +26,8 @@ var _destino_do_passeio := Vector3.ZERO
 var _espera_do_passeio := 1.4
 var _sorte := RandomNumberGenerator.new()
 var _ate_assentar := 0.0
+var _ate_conferir_distancia := 0.0
+var _longe_da_camera := false
 
 
 func _ready() -> void:
@@ -36,6 +39,10 @@ func _ready() -> void:
     sprite.pixel_size = altura_aparente_m / altura_de_referencia
     sprite.animation_finished.connect(_ao_terminar_animacao)
     sprite.play(&"idle")
+    if not usar_particulas:
+        particulas.emitting = false
+        particulas.visible = false
+        particulas.process_mode = Node.PROCESS_MODE_DISABLED
     _origem_do_passeio = global_position
     _destino_do_passeio = global_position
     _sorte.seed = hash(name + str(get_instance_id()))
@@ -43,6 +50,19 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
     if _desaparecido:
+        return
+    _ate_conferir_distancia -= delta
+    if _ate_conferir_distancia <= 0.0:
+        _ate_conferir_distancia = 0.5
+        var camera := get_viewport().get_camera_3d()
+        var longe_agora := camera != null and global_position.distance_squared_to(camera.global_position) > 34.0 * 34.0
+        if longe_agora != _longe_da_camera:
+            _longe_da_camera = longe_agora
+            if _longe_da_camera:
+                sprite.pause()
+            else:
+                _atualizar_animacao_de_movimento()
+    if _longe_da_camera:
         return
     _tempo_flutuacao += delta
     visual.position.y = _altura_visual_inicial + sin(_tempo_flutuacao * TAU / periodo_flutuacao) * amplitude_flutuacao
@@ -56,7 +76,7 @@ func _process(delta: float) -> void:
         _virar_para_o_movimento()
         _ate_assentar -= delta
         if _ate_assentar <= 0.0:
-            _ate_assentar = 0.12
+            _ate_assentar = 0.28
             _assentar_no_terreno()
 
 
@@ -103,7 +123,7 @@ func reaparecer() -> void:
     _desaparecido = false
     _acao_uma_vez = false
     visual.visible = true
-    particulas.emitting = true
+    particulas.emitting = usar_particulas
     area.monitoring = true
     area.monitorable = true
     sprite.play(&"idle")
@@ -156,9 +176,11 @@ func _processar_passeio(delta: float) -> void:
 func _virar_para_o_movimento() -> void:
     var camera := get_viewport().get_camera_3d()
     if camera:
-        sprite.flip_h = _direcao.dot(camera.global_basis.x) < 0.0
+        # As folhas originais olham para a esquerda. Ao mover para a direita
+        # da tela, espelhe a arte; a condicao anterior fazia o oposto.
+        sprite.flip_h = _direcao.dot(camera.global_basis.x) > 0.0
     else:
-        sprite.flip_h = _direcao.x < 0.0
+        sprite.flip_h = _direcao.x > 0.0
 
 
 func _assentar_no_terreno() -> void:

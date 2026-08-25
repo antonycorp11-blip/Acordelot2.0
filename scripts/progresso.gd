@@ -10,6 +10,8 @@ signal recurso_alterado(id: String, total: int)
 const ARQUIVO := "user://progresso.cfg"
 const NIVEL_MAXIMO := 60
 const TRAVAS_DE_ASCENSAO := [20, 40]
+const CUSTO_PURIFICAR_FRAGMENTO := 25
+const CUSTO_SINTETIZAR_NOTA := 100
 const PARTITURAS := {
     "menor": {"nome": "Partitura Menor", "custo": 500, "xp": 100, "recurso": "partitura_menor"},
     "harmonica": {"nome": "Partitura Harmônica", "custo": 2000, "xp": 500, "recurso": "partitura_harmonica"},
@@ -250,7 +252,7 @@ func pagar(custos: Dictionary) -> bool:
 
 func sintetizar_nota(nota: String) -> bool:
     var fragmento := "fragmento_" + nota
-    var custos := {fragmento: 5}
+    var custos := {fragmento: 5, "claves": CUSTO_SINTETIZAR_NOTA}
     if not pode_pagar(custos):
         return false
     for id in custos:
@@ -266,10 +268,12 @@ func sintetizar_nota(nota: String) -> bool:
 
 func purificar_fragmento(nota: String) -> bool:
     var corrompido := "fragmento_corrompido_" + nota
-    if quantidade(corrompido) < 1:
+    if quantidade(corrompido) < 1 or quantidade("claves") < CUSTO_PURIFICAR_FRAGMENTO:
         return false
     recursos[corrompido] = quantidade(corrompido) - 1
     recurso_alterado.emit(corrompido, int(recursos[corrompido]))
+    recursos["claves"] = quantidade("claves") - CUSTO_PURIFICAR_FRAGMENTO
+    recurso_alterado.emit("claves", int(recursos["claves"]))
     var limpo := "fragmento_" + nota
     recursos[limpo] = quantidade(limpo) + 1
     recurso_alterado.emit(limpo, int(recursos[limpo]))

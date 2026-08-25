@@ -6,16 +6,16 @@ const BichoScript = preload("res://scripts/bicho.gd")
 const RecursoColetavelScript = preload("res://scripts/recurso_coletavel.gd")
 const EcoDoNascenteCena = preload("res://scenes/ecos/EcoDoNascente.tscn")
 const ECOS_NOVOS := [
-    {"id": "ambar", "frames": preload("res://resources/eco_ambar_frames.tres")},
-    {"id": "rubi", "frames": preload("res://resources/eco_rubi_frames.tres")},
-    {"id": "cervo_dourado", "frames": preload("res://resources/eco_cervo_dourado_frames.tres")},
-    {"id": "folha", "frames": preload("res://resources/eco_folha_frames.tres")},
-    {"id": "agua", "frames": preload("res://resources/eco_agua_frames.tres")},
-    {"id": "clave_azul", "frames": preload("res://resources/eco_clave_azul_frames.tres")},
-    {"id": "safira", "frames": preload("res://resources/eco_safira_frames.tres")},
-    {"id": "ametista", "frames": preload("res://resources/eco_ametista_frames.tres")},
-    {"id": "draconico", "frames": preload("res://resources/eco_draconico_frames.tres")},
-    {"id": "celeste", "frames": preload("res://resources/eco_celeste_frames.tres")},
+    {"id": "ambar", "frames": "res://resources/eco_ambar_frames.tres"},
+    {"id": "rubi", "frames": "res://resources/eco_rubi_frames.tres"},
+    {"id": "cervo_dourado", "frames": "res://resources/eco_cervo_dourado_frames.tres"},
+    {"id": "folha", "frames": "res://resources/eco_folha_frames.tres"},
+    {"id": "agua", "frames": "res://resources/eco_agua_frames.tres"},
+    {"id": "clave_azul", "frames": "res://resources/eco_clave_azul_frames.tres"},
+    {"id": "safira", "frames": "res://resources/eco_safira_frames.tres"},
+    {"id": "ametista", "frames": "res://resources/eco_ametista_frames.tres"},
+    {"id": "draconico", "frames": "res://resources/eco_draconico_frames.tres"},
+    {"id": "celeste", "frames": "res://resources/eco_celeste_frames.tres"},
 ]
 
 signal portal_triggered(dest_zone_id: String, from_direction: String)
@@ -143,22 +143,24 @@ func _plantar_ecos_musicais() -> void:
 
     # O Eco de Do ja aprovado permanece perto do inicio.
     if zona == "zone_floresta_despertar":
-        _instanciar_eco("do_nascente", null, pontos[0], 0.72)
+        _instanciar_eco("do_nascente", "", pontos[0], 0.72)
     for indice in range(inicio, fim):
         var dados: Dictionary = ECOS_NOVOS[indice]
         var ponto: Vector2 = pontos[indice - inicio + 1]
         _instanciar_eco(str(dados["id"]), dados["frames"], ponto, 0.68 + float(indice % 3) * 0.04)
 
 
-func _instanciar_eco(id: String, frames: SpriteFrames, ponto: Vector2, altura: float) -> void:
+func _instanciar_eco(id: String, frames_path: String, ponto: Vector2, altura: float) -> void:
     var eco := EcoDoNascenteCena.instantiate()
     eco.name = "Eco_" + id
     eco.passeio_natural = true
     eco.raio_do_passeio = 3.25
     eco.altura_aparente_m = altura
-    if frames != null:
+    if not frames_path.is_empty():
         var sprite := eco.get_node("Visual/AnimatedSprite3D") as AnimatedSprite3D
-        sprite.sprite_frames = frames
+        sprite.sprite_frames = load(frames_path) as SpriteFrames
+        sprite.visibility_range_end = 32.0
+        eco.usar_particulas = false
     eco.position = Vector3(ponto.x, calcular_altura(ponto.x, ponto.y) + 0.03, ponto.y)
     _props_node.add_child(eco)
 
