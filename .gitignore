@@ -27,3 +27,9 @@ textures/props/_refazer/
 # O Godot varre builds/web e importa os icones da pagina como se fossem arte do
 # jogo. Sao gerados na exportacao e nao entram no .pck.
 builds/web/*.import
+
+# Pacotes-fonte baixados; o jogo versiona somente as peças selecionadas em
+# assets/dungeon, evitando carregar dezenas de modelos que não usa.
+kenney_modular-dungeon-kit_1.0.zip
+Updated Modular Dungeon*.zip
+*_4k.blend.zip

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bm3a32neto07a"
+path="res://.godot/imported/Chest.obj-d6f221d1d8adefd68e8c31ecfed25feb.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Chest.obj-d6f221d1d8adefd68e8c31ecfed25feb.mesh"]
+
+source_file="res://assets/dungeon/quaternius/Chest.obj"
+dest_files=["res://.godot/imported/Chest.obj-d6f221d1d8adefd68e8c31ecfed25feb.mesh", "res://.godot/imported/Chest.obj-d6f221d1d8adefd68e8c31ecfed25feb.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

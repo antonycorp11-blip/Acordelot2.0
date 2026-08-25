@@ -66,6 +66,7 @@ var _velocidade := VELOCIDADE
 var _morrendo := false
 var _colado_no_jogador := false
 var _ataque_ate := -1.0
+var _nome_personalizado := ""
 
 func _ready() -> void:
     add_to_group("bicho")
@@ -543,6 +544,22 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
     if vida <= 0.0:
         _morrer()
 
+
+## Variante única da primeira dungeon. Reaproveita malha, rig, animações e
+## materiais já aquecidos; só amplia escala e atributos, sem novo custo pesado.
+func tornar_super_shiker() -> void:
+    _nome_personalizado = "Super Shiker"
+    vida_maxima = 2200.0
+    vida = vida_maxima
+    scale = Vector3.ONE * 1.42
+    _velocidade = 4.0
+    if _name_label_3d:
+        _name_label_3d.text = _nome_personalizado
+        _name_label_3d.modulate = Color(1.0, 0.50, 0.92)
+    if _hp_label_3d:
+        _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+    _pintar_barra()
+
 ## Acende a barra do alvo no alto da tela.
 ##
 ## A barra sobre a cabeca do bicho conta a mesma coisa, mas some no meio da mata
@@ -554,7 +571,8 @@ func _avisar_a_barra_do_alvo() -> void:
         hud = get_node_or_null("/root/ZonedWorld/HUD/PlayerHUD")
     if hud and hud.has_method("mostrar_alvo"):
         var cfg: Dictionary = MONSTROS_CONFIG[monster_type % MONSTROS_CONFIG.size()]
-        hud.mostrar_alvo(str(cfg.get("nome", "Monstro")), vida, vida_maxima)
+        var nome := _nome_personalizado if not _nome_personalizado.is_empty() else str(cfg.get("nome", "Monstro"))
+        hud.mostrar_alvo(nome, vida, vida_maxima)
 
 
 func _piscar_dano() -> void:

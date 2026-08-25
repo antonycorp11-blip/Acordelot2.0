@@ -15,6 +15,7 @@ const TelaSkillsScript := preload("res://scripts/tela_skills_v3.gd")
 const EcoDoNascenteCena := preload("res://scenes/ecos/EcoDoNascente.tscn")
 const RessonanciaHUDScript := preload("res://scripts/ressonancia_hud.gd")
 const DesempenhoAdaptativoScript := preload("res://scripts/desempenho_adaptativo.gd")
+const DungeonCavernaScript := preload("res://scripts/dungeon_caverna.gd")
 const FRAMES_ECOS := {
     "do": preload("res://resources/eco_do_nascente_frames.tres"),
     "do_sustenido": preload("res://resources/eco_ambar_frames.tres"),
@@ -54,6 +55,12 @@ var _sorte_captura := RandomNumberGenerator.new()
 func _ready() -> void:
     var hud_vida: Node = find_child("PlayerHUD", true, false)
     var inv_ui: Node = find_child("InventoryUI", true, false)
+
+    # A DG é isolada do mapa por zonas e acessada por um único botão no HUD.
+    # Nasce uma vez no carregamento para não montar modelos durante a partida.
+    var dungeon := DungeonCavernaScript.new()
+    dungeon.name = "DungeonCaverna"
+    add_child(dungeon)
     
     _btn_ataque = find_child("BtnAtaque", true, false)
     if _btn_ataque:
@@ -500,6 +507,11 @@ func _tirar_print() -> void:
     # conferir barra de vida sem isso exige esperar um nascer sozinho.
     # `-- --norte` sobe o mapa de zona em zona, contando o que acontece em cada
     # borda: e a unica forma de conferir portal sem alguem andando ate la.
+    if OS.get_cmdline_user_args().has("--dg"):
+        var dg := find_child("DungeonCaverna", true, false)
+        if dg and dg.has_method("_entrar"):
+            dg._entrar()
+            await get_tree().create_timer(1.0).timeout
     if OS.get_cmdline_user_args().has("--norte"):
         var zm := find_child("ZoneManager", true, false)
         var total_de_saltos := 1 if OS.get_cmdline_user_args().has("--vila") else 2
