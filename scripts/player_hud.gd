@@ -33,6 +33,7 @@ var _hp_label: Label
 var _xp_cheio: ColorRect
 var _xp_label: Label
 var _nivel_label: Label
+var _poder_label: Label
 
 var _alvo_caixa: Control
 var _alvo_cheio: ColorRect
@@ -243,6 +244,17 @@ func _montar_retrato_e_barras() -> void:
     _moldura("res://textures/ui/kit/barra_exp.png", t_xp, caixa_xp)
     _xp_label = _numero(t_xp, BURACOS["xp"], 11, caixa_xp)
 
+    _poder_label = Label.new()
+    _poder_label.position = Vector2(LADO_DO_RETRATO, 8.0 + t_vida.y + t_xp.y + 13.0)
+    _poder_label.size = Vector2(LARGURA_DA_BARRA, 24)
+    _poder_label.add_theme_font_override("font", load("res://fontes/Cinzel.ttf"))
+    _poder_label.add_theme_font_size_override("font_size", 12)
+    _poder_label.add_theme_color_override("font_color", Color(0.95, 0.79, 0.38))
+    _poder_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+    _poder_label.add_theme_constant_override("outline_size", 3)
+    _poder_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    canto.add_child(_poder_label)
+
     _pintar_vida()
     _pintar_xp()
 
@@ -356,6 +368,8 @@ func _atualizar_progressao() -> void:
     player_level = progresso.nivel
     if _nivel_label:
         _nivel_label.text = str(player_level)
+    if _poder_label:
+        _poder_label.text = "PODER DA CONTA  %s" % _milhar(progresso.poder_de_luta_da_conta())
     var stats: Dictionary = progresso.estatisticas()
     var nova_vida := float(stats.get("vida_maxima", max_health))
     var estava_cheio := current_health >= max_health - 0.01
@@ -381,6 +395,18 @@ func tomar_dano(qtd: float) -> void:
 ## e a barra sobre a cabeca dele, no proprio mundo.
 func mostrar_alvo(_nome: String, _vida: float, _vida_maxima: float) -> void:
     return
+
+
+func _milhar(valor: int) -> String:
+    var texto := str(valor)
+    var saida := ""
+    var conta := 0
+    for i in range(texto.length() - 1, -1, -1):
+        saida = texto[i] + saida
+        conta += 1
+        if conta % 3 == 0 and i > 0:
+            saida = "." + saida
+    return saida
 
 
 func _mostrar_alvo_antigo(nome: String, vida: float, vida_maxima: float) -> void:

@@ -7,6 +7,7 @@ const ITENS := "res://textures/items/notas/"
 const KIT := "res://textures/ui/kit/"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
+const CelebracaoScript := preload("res://scripts/celebracao_harmonica.gd")
 const TAMANHO_LAYOUT := Vector2(1600.0, 900.0)
 const NOTAS := [
     ["do", "Dó"], ["do_sustenido", "Dó#"], ["re", "Ré"],
@@ -43,6 +44,7 @@ var _ascensao: Label
 var _botao_ascensao: Button
 var _base_layout: Control
 var _botao_fechar: Button
+var _celebracao: Control
 
 
 func _ready() -> void:
@@ -143,6 +145,8 @@ func _montar() -> void:
     _painel_partituras = _montar_partituras()
     _painel_partituras.size_flags_vertical = Control.SIZE_EXPAND_FILL
     coluna.add_child(_painel_partituras)
+    _celebracao = CelebracaoScript.new()
+    add_child(_celebracao)
 
 
 func _ajustar_ao_celular() -> void:
@@ -367,6 +371,8 @@ func _purificar() -> void:
         return
     var ok: bool = _progresso != null and _progresso.purificar_fragmento(_nota_atual)
     _recado.text = "Fragmento purificado por 25 Claves." if ok else "Não foi possível purificar."
+    if ok:
+        _celebracao.mostrar_evento("Fragmento purificado", _nome_da_nota(_nota_atual) + " voltou a ressoar", Color(0.48, 0.76, 1.0))
 
 
 func _sintetizar() -> void:
@@ -379,17 +385,24 @@ func _sintetizar() -> void:
         return
     var ok: bool = _progresso != null and _progresso.sintetizar_nota(_nota_atual)
     _recado.text = "Nota sintetizada por 100 Claves e enviada ao inventário." if ok else "Não foi possível sintetizar."
+    if ok:
+        _celebracao.mostrar_evento("Nota sintetizada", _nome_da_nota(_nota_atual) + " foi estabilizada", Color(0.82, 0.48, 1.0))
 
 
 func _criar_partitura(tipo: String) -> void:
     var ok: bool = _progresso != null and _progresso.criar_partitura(tipo)
     _recado.text = "Partitura criada." if ok else "Claves insuficientes para essa Partitura."
+    if ok:
+        var receita: Dictionary = _progresso.PARTITURAS.get(tipo, {})
+        _celebracao.mostrar_evento("Partitura criada", str(receita.get("nome", tipo.capitalize())), Color(0.96, 0.72, 0.28))
 
 
 func _usar_partitura(tipo: String) -> void:
     var ok: bool = _progresso != null and _progresso.usar_partitura(tipo)
     if ok:
         _recado.text = "XP adicionada. Abra Personagem e toque em Subir nível quando completar a barra."
+        var receita: Dictionary = _progresso.PARTITURAS.get(tipo, {})
+        _celebracao.mostrar_evento("Ressonância absorvida", "+%s XP" % _milhar(int(receita.get("xp", 0))), Color(0.30, 0.82, 1.0))
     elif _progresso and _progresso.nivel >= _progresso.NIVEL_MAXIMO:
         _recado.text = "Akles já alcançou o nível máximo atual."
     else:

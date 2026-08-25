@@ -10,6 +10,10 @@ signal recurso_alterado(id: String, total: int)
 const ARQUIVO := "user://progresso.cfg"
 const NIVEL_MAXIMO := 60
 const TRAVAS_DE_ASCENSAO := [20, 40]
+const NIVEL_MAXIMO_SKILL := 10
+const NIVEIS_DESBLOQUEIO_SKILLS := {
+    "ataque_basico": 1, "skill_1": 2, "skill_2": 4, "skill_3": 6,
+}
 const CUSTO_PURIFICAR_FRAGMENTO := 25
 const CUSTO_SINTETIZAR_NOTA := 100
 const PARTITURAS := {
@@ -101,6 +105,10 @@ var arma_equipada := "Espada do Despertar"
 var nivel_da_arma := 1
 var niveis_skills := {"ataque_basico": 1, "skill_1": 1, "skill_2": 1, "skill_3": 1}
 var eco_equipado: Dictionary = {}
+## Liberados nesta build de validacao. Si permanece no catalogo, mas aguarda a
+## folha de animacao que ainda nao foi enviada.
+var ecos_descobertos: Array = ["do", "do_sustenido", "re", "re_sustenido", "mi",
+    "fa", "fa_sustenido", "sol", "sol_sustenido", "la", "la_sustenido"]
 var acordes_equipados: Array = []
 ## Quando novos personagens jogaveis entrarem, cada ficha registra aqui seu
 ## Poder de Luta consolidado. Hoje a conta tem apenas Akles.
@@ -214,6 +222,44 @@ func investir_atributo(id: String) -> bool:
         return false
     atributos[id] = int(atributos[id]) + 1
     pontos_de_atributo -= 1
+    salvar()
+    alterado.emit()
+    return true
+
+
+func equipar_eco(dados: Dictionary) -> bool:
+    var id := str(dados.get("id", ""))
+    if id.is_empty() or id not in ecos_descobertos:
+        return false
+    eco_equipado = {
+        "id": id, "nome": str(dados.get("nome", id.capitalize())),
+        "forma": 1, "poder": int(dados.get("poder", 0)),
+        "arte": str(dados.get("arte", "")),
+        "habilidade": str(dados.get("habilidade", "")),
+        "buff": str(dados.get("buff", "")),
+    }
+    salvar()
+    alterado.emit()
+    return true
+
+
+func pontos_de_skill_disponiveis() -> int:
+    var investidos := 0
+    for valor in niveis_skills.values():
+        investidos += maxi(0, int(valor) - 1)
+    return maxi(0, nivel - 1 - investidos)
+
+
+func skill_desbloqueada(id: String) -> bool:
+    return nivel >= int(NIVEIS_DESBLOQUEIO_SKILLS.get(id, 1))
+
+
+func subir_skill(id: String) -> bool:
+    if not niveis_skills.has(id) or not skill_desbloqueada(id):
+        return false
+    if int(niveis_skills[id]) >= NIVEL_MAXIMO_SKILL or pontos_de_skill_disponiveis() <= 0:
+        return false
+    niveis_skills[id] = int(niveis_skills[id]) + 1
     salvar()
     alterado.emit()
     return true
@@ -376,6 +422,7 @@ func salvar() -> void:
     cfg.set_value("poder", "nivel_arma", nivel_da_arma)
     cfg.set_value("poder", "skills", niveis_skills)
     cfg.set_value("poder", "eco", eco_equipado)
+    cfg.set_value("poder", "ecos_descobertos", ecos_descobertos)
     cfg.set_value("poder", "acordes", acordes_equipados)
     cfg.set_value("poder", "outros_personagens", poder_outros_personagens)
     cfg.set_value("inventario", "recursos", recursos)
@@ -417,6 +464,9 @@ func carregar() -> void:
     var eco_salvo = cfg.get_value("poder", "eco", {})
     if eco_salvo is Dictionary:
         eco_equipado = eco_salvo.duplicate(true)
+    var ecos_salvos = cfg.get_value("poder", "ecos_descobertos", ecos_descobertos)
+    if ecos_salvos is Array:
+        ecos_descobertos = ecos_salvos.duplicate()
     var acordes_salvos = cfg.get_value("poder", "acordes", [])
     if acordes_salvos is Array:
         acordes_equipados = acordes_salvos.duplicate(true)

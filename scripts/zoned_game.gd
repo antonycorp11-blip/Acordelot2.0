@@ -10,11 +10,18 @@ const AquecimentoScript := preload("res://scripts/aquecimento.gd")
 const AjustesScript := preload("res://scripts/ajustes.gd")
 const TelaPersonagemScript := preload("res://scripts/tela_personagem_real.gd")
 const TelaSinteseScript := preload("res://scripts/tela_sintese.gd")
+const TelaEcosScript := preload("res://scripts/tela_ecos.gd")
+const TelaSkillsScript := preload("res://scripts/tela_skills.gd")
+const EcoDoNascenteCena := preload("res://scenes/ecos/EcoDoNascente.tscn")
 
 ## A NPC ao alcance, se houver. E ela que decide o que o botao de ataque faz.
 var _npc_perto: Node = null
 var _btn_ataque: Node = null
 var _dialogo: Node = null
+var _tela_ecos: CanvasLayer = null
+var _tela_skills: CanvasLayer = null
+var _eco_companheiro: Node3D = null
+var _eco_companheiro_id := ""
 
 @onready var _player: CharacterBody3D = $Player
 @onready var _zone_manager: ZoneManager = $ZoneManager
@@ -47,7 +54,9 @@ func _ready() -> void:
 
     # Cada zona nova traz os seus moradores: reconecta a cada troca.
     if _zone_manager:
-        _zone_manager.zone_changed.connect(func(_z): registrar_npcs())
+        _zone_manager.zone_changed.connect(func(_z):
+            registrar_npcs()
+            _sincronizar_eco_companheiro(true))
 
     # A caixa de conversa nasce com o mundo, escondida.
     _dialogo = DialogoScript.new()
@@ -103,7 +112,22 @@ func _ready() -> void:
                 ficha.mostrar(true)
             elif qual == "melodia":
                 inv_ui.toggle_inventory(false)
-                sintese.mostrar(true))
+                sintese.mostrar(true)
+            elif qual == "lira":
+                inv_ui.toggle_inventory(false)
+                _abrir_tela_ecos()
+            elif qual == "talentos":
+                inv_ui.toggle_inventory(false)
+                _abrir_tela_skills())
+
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso:
+        if not progresso.alterado.is_connected(_sincronizar_eco_companheiro):
+            progresso.alterado.connect(_sincronizar_eco_companheiro)
+        if not progresso.alterado.is_connected(_atualizar_botoes_skill):
+            progresso.alterado.connect(_atualizar_botoes_skill)
+        call_deferred("_sincronizar_eco_companheiro")
+        call_deferred("_atualizar_botoes_skill")
 
     if hud_vida and hud_vida.has_signal("config_pedida"):
         hud_vida.config_pedida.connect(func(): ajustes.mostrar(true))
@@ -165,6 +189,64 @@ func _ready() -> void:
     var joystick := find_child("VirtualJoystick", true, false)
     if joystick:
         joystick.add_to_group("virtual_joystick")
+
+
+func _abrir_tela_ecos() -> void:
+    # Carrega os dez atlas apenas quando o jogador abre o catalogo. Durante o
+    # mapa ficam na memoria somente as criaturas realmente presentes na zona.
+    if _tela_ecos == null:
+        _tela_ecos = TelaEcosScript.new()
+        _tela_ecos.name = "TelaEcos"
+        add_child(_tela_ecos)
+    _tela_ecos.mostrar(true)
+
+
+func _abrir_tela_skills() -> void:
+    if _tela_skills == null:
+        _tela_skills = TelaSkillsScript.new()
+        _tela_skills.name = "TelaSkills"
+        add_child(_tela_skills)
+    _tela_skills.mostrar(true)
+
+
+func _atualizar_botoes_skill() -> void:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return
+    for dados in [["BtnSkill1", "skill_1"], ["BtnSkill2", "skill_2"], ["BtnSkill3", "skill_3"]]:
+        var botao := find_child(str(dados[0]), true, false) as BaseButton
+        if botao:
+            botao.disabled = not progresso.skill_desbloqueada(str(dados[1]))
+            botao.modulate = Color.WHITE if not botao.disabled else Color(0.30, 0.32, 0.38, 0.72)
+
+
+func _sincronizar_eco_companheiro(_forcar := false) -> void:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return
+    var dados: Dictionary = progresso.eco_equipado
+    var id := str(dados.get("id", ""))
+    if not _forcar and id == _eco_companheiro_id and is_instance_valid(_eco_companheiro):
+        return
+    if is_instance_valid(_eco_companheiro):
+        _eco_companheiro.queue_free()
+    _eco_companheiro = null
+    _eco_companheiro_id = id
+    var caminho := str(dados.get("arte", ""))
+    if id.is_empty() or caminho.is_empty() or not ResourceLoader.exists(caminho):
+        return
+    var eco := EcoDoNascenteCena.instantiate()
+    eco.name = "EcoEquipado_" + id
+    eco.usar_particulas = false
+    eco.altura_aparente_m = 0.70
+    var sprite := eco.get_node("Visual/AnimatedSprite3D") as AnimatedSprite3D
+    sprite.sprite_frames = load(caminho) as SpriteFrames
+    sprite.visibility_range_end = 34.0
+    add_child(eco)
+    eco.global_position = _player.global_position + Vector3(1.2, 0.2, 1.0)
+    eco.definir_terreno(find_child("ZoneBuilder", true, false))
+    eco.definir_seguidor(_player)
+    _eco_companheiro = eco
 
 ## Gancho de teste, irmao do que ja existe no game.gd: rodar com `-- --shot`
 ## salva um quadro em user://shot.png e sai. E assim que se confere a HUD sem

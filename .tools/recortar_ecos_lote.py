@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 """Recorta folhas irregulares de Ecos e cria um atlas leve por criatura.
 
 As poses nao formam uma grade perfeita. Cada faixa e cada janela horizontal
@@ -9,8 +10,14 @@ centro para nao cortar asas, caudas, notas ou o efeito largo da skill.
 from pathlib import Path
 import sys
 
-import cv2
-import numpy as np
+try:
+    import cv2
+except ModuleNotFoundError:
+    cv2 = None
+try:
+    import numpy as np
+except ModuleNotFoundError:
+    np = None
 from PIL import Image
 
 
@@ -52,9 +59,13 @@ ANIMACOES = {
     },
 }
 
-CELULA = (240, 80)
+# No mundo cada Eco mede menos de um metro. A celula anterior (240x80) fazia
+# dez atlas ocuparem quase 28 MiB de VRAM RGBA no navegador, embora o desenho
+# apareca com poucas dezenas de pixels no celular. 192x64 preserva a leitura e
+# reduz em 36% tanto a area de textura quanto o upload para a GPU.
+CELULA = (192, 64)
 COLUNAS = 4
-BASE_CELULA = 73
+BASE_CELULA = 58
 
 
 def _caracteristicas(x: np.ndarray, y: np.ndarray) -> np.ndarray:
@@ -64,6 +75,8 @@ def _caracteristicas(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
 def remover_fundo(imagem: Image.Image) -> Image.Image:
     """Subtrai o gradiente magenta da foto e descontamina o antialias."""
+    if cv2 is None or np is None:
+        raise RuntimeError("recorte completo requer opencv; use --reduzir-existentes")
     rgb = np.asarray(imagem.convert("RGB"), dtype=np.float32)
     altura, largura = rgb.shape[:2]
     yy, xx = np.mgrid[0:altura:4, 0:largura:4]
@@ -211,8 +224,30 @@ def escrever_sprite_frames(nome: str, quadros: dict[str, list[Image.Image]],
 
 
 def main() -> None:
+    if len(sys.argv) == 4 and sys.argv[1] == "--reduzir-existentes":
+        texturas, recursos = map(Path, sys.argv[2:])
+        quadros_vazios = {nome: [None] * len(dados["quadros"])
+                          for nome, dados in ANIMACOES.items()}
+        for _, nome in ECOS:
+            atlas = texturas / nome / "atlas.webp"
+            imagem = Image.open(atlas).convert("RGBA")
+            imagem = imagem.resize((CELULA[0] * COLUNAS, CELULA[1] * 9),
+                                    Image.Resampling.LANCZOS)
+            imagem.save(atlas, "WEBP", quality=88, method=4)
+            posicoes = {}
+            indice_global = 0
+            for animacao, imagens in quadros_vazios.items():
+                for indice in range(len(imagens)):
+                    coluna, linha = indice_global % COLUNAS, indice_global // COLUNAS
+                    posicoes[(animacao, indice)] = (coluna * CELULA[0], linha * CELULA[1])
+                    indice_global += 1
+            escrever_sprite_frames(nome, quadros_vazios, posicoes, atlas,
+                                   recursos / f"eco_{nome}_frames.tres")
+            print(f"{nome}: {atlas.stat().st_size / 1024:.1f} KiB")
+        return
     if len(sys.argv) != 4:
-        raise SystemExit("uso: recortar_ecos_lote.py PASTA_FOTOS PASTA_TEXTURES PASTA_RESOURCES")
+        raise SystemExit("uso: recortar_ecos_lote.py PASTA_FOTOS PASTA_TEXTURES PASTA_RESOURCES\n"
+                         "  ou: recortar_ecos_lote.py --reduzir-existentes PASTA_TEXTURES PASTA_RESOURCES")
     origem, texturas, recursos = map(Path, sys.argv[1:])
     for numero, nome in ECOS:
         folha = origem / f"{numero}-Foto-{numero}.jpg"

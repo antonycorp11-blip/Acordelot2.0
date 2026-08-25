@@ -6,6 +6,7 @@ const FUNDO := "res://textures/ui/painel_harmonia_v2.jpg"
 const KIT := "res://textures/ui/kit/"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
+const CelebracaoScript := preload("res://scripts/celebracao_harmonica.gd")
 const TAMANHO_LAYOUT := Vector2(1600.0, 900.0)
 const ATRIBUTOS := [["forca", "Força"], ["destreza", "Destreza"],
     ["vitalidade", "Vitalidade"], ["ressonancia", "Ressonância"],
@@ -36,6 +37,7 @@ var _valores_combate := {}
 var _linhas_poder := {}
 var _slots := {}
 var _base_layout: Control
+var _celebracao: Control
 
 
 func _ready() -> void:
@@ -125,6 +127,8 @@ func _montar() -> void:
     corpo.add_child(_painel_equipamentos())
     corpo.add_child(_painel_akles())
     corpo.add_child(_painel_dados())
+    _celebracao = CelebracaoScript.new()
+    add_child(_celebracao)
 
 
 func _ajustar_ao_celular() -> void:
@@ -378,7 +382,16 @@ func _investir(id: String) -> void:
 
 func _subir_nivel() -> void:
     if _progresso:
-        _progresso.subir_nivel()
+        var anterior: int = _progresso.nivel
+        if _progresso.subir_nivel():
+            _celebracao.mostrar_evento("Nível aumentado", "Akles alcançou o nível %d  •  +3 pontos de atributo" % _progresso.nivel, Color(0.96, 0.72, 0.28))
+            _animar_barra_de_nivel(anterior)
+
+
+func _animar_barra_de_nivel(_anterior: int) -> void:
+    _xp_barra.modulate = Color(1.8, 1.55, 0.65, 1.0)
+    var tw := create_tween()
+    tw.tween_property(_xp_barra, "modulate", Color.WHITE, 0.65).set_trans(Tween.TRANS_QUAD)
 
 
 func _atualizar() -> void:

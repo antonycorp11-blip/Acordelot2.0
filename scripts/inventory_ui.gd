@@ -591,7 +591,7 @@ func _cartao_de_detalhe() -> Control:
 ## las mudaria o desenho da tela por um motivo temporario.
 const ABAS := [["personagem", "Personagem"], ["talentos", "Talentos"],
     ["melodia", "Síntese"], ["inventario", "Inventário"], ["missoes", "Missões"],
-    ["mapa", "Mapa"], ["loja", "Loja"], ["lira", "Coleção"]]
+    ["mapa", "Mapa"], ["loja", "Loja"], ["lira", "Ecos"]]
 
 func _barra_de_navegacao() -> Control:
     var linha := HBoxContainer.new()

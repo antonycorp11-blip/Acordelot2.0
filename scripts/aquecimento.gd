@@ -19,7 +19,7 @@ class_name Aquecimento
 
 ## Quantos quadros as pecas ficam desenhadas. Um so nao basta: o motor enfileira
 ## a compilacao e ela acontece no desenho seguinte.
-const QUADROS := 6
+const QUADROS := 10
 ## Tamanho das pecas de teste. Pequenas o bastante para ninguem ver, grandes o
 ## bastante para nao serem descartadas antes de desenhar.
 const TAMANHO := 0.04
@@ -35,6 +35,7 @@ const NpcScript := preload("res://scripts/npc.gd")
 const MoedaScript := preload("res://scripts/moeda_pve.gd")
 
 var _descartaveis: Array[Node] = []
+var _para_ocultar: Array[Node] = []
 
 
 func _ready() -> void:
@@ -94,12 +95,16 @@ func _assar_bichos() -> void:
 
 
 func _assar_moradores() -> void:
-    var mirella: Node3D = NpcScript.new()
-    add_child(mirella)
-    mirella.set_physics_process(false)
-    mirella.remove_from_group("npc")
-    mirella.scale = Vector3.ONE * TAMANHO
-    _descartaveis.append(mirella)
+    # A cidade usa outro FBX, outra textura e outro esqueleto. Aquecer somente
+    # Mirella deixava Renaldo pagar todo esse custo ao aparecer no portao.
+    for elenco in ["mirella", "renaldo"]:
+        var morador: Node3D = NpcScript.new()
+        morador.elenco = elenco
+        add_child(morador)
+        morador.set_physics_process(false)
+        morador.remove_from_group("npc")
+        morador.scale = Vector3.ONE * TAMANHO
+        _descartaveis.append(morador)
 
 
 ## As tres skills, montadas como o heroi as monta.
@@ -115,7 +120,7 @@ func _assar_skills() -> void:
         heroi.call("_criar_aura_azul_visual")
         var fx = heroi.get("_aura_fx_node")
         if fx:
-            _descartaveis.append(fx)
+            _para_ocultar.append(fx)
 
     # O feixe: cilindro sem sombreamento com alfa, mais a luz que o acompanha.
     var feixe := MeshInstance3D.new()
@@ -191,4 +196,7 @@ func _process(_delta: float) -> void:
     for no in _descartaveis:
         if is_instance_valid(no):
             no.queue_free()
+    for no in _para_ocultar:
+        if is_instance_valid(no):
+            no.visible = false
     queue_free()

@@ -34,6 +34,12 @@ const INSTANTE_DO_IMPACTO := 0.38
 @export var giro_do_punho := Vector3(180.0, 0.0, 0.0)
 
 const ESCALA := ["do", "re", "mi", "fa", "sol", "la", "si"]
+const SONS_NOTAS := [
+    preload("res://audio/nota_do.wav"), preload("res://audio/nota_re.wav"),
+    preload("res://audio/nota_mi.wav"), preload("res://audio/nota_fa.wav"),
+    preload("res://audio/nota_sol.wav"), preload("res://audio/nota_la.wav"),
+    preload("res://audio/nota_si.wav"),
+]
 const COMBO := ["corte_fora", "corte_dentro", "ataque_pulo"]
 const PAUSA_DO_COMBO := 1.2
 
@@ -54,6 +60,11 @@ var _buff_aura_azul: bool = false
 var _buff_espada_gigante: bool = false
 var _aura_fx_node: Node3D = null
 var _espada_light: OmniLight3D = null
+var _carga_fx: MeshInstance3D = null
+var _feixe_fx_root: Node3D = null
+var _feixe_fx_mesh: MeshInstance3D = null
+var _tween_carga: Tween = null
+var _tween_feixe: Tween = null
 
 func _ready() -> void:
     var modelo := (load("res://personagem/heroi_base.fbx") as PackedScene).instantiate()
@@ -83,6 +94,7 @@ func _ready() -> void:
     _equipar_espada(modelo)
     _montar_audio()
     _construir_indicador_mira_chao()
+    _preparar_fx_skills()
 
     if _espada:
         _espada.visible = false
@@ -351,13 +363,14 @@ func ativar_aura_azul() -> void:
     tw.tween_callback(func():
         _buff_aura_azul = false
         if _aura_fx_node and is_instance_valid(_aura_fx_node):
-            _aura_fx_node.queue_free()
+            _aura_fx_node.visible = false
     )
 
 func _criar_aura_azul_visual() -> void:
     if _aura_fx_node and is_instance_valid(_aura_fx_node):
-        _aura_fx_node.queue_free()
-        
+        _aura_fx_node.visible = true
+        return
+
     _aura_fx_node = Node3D.new()
     _aura_fx_node.name = "AuraAzulFX"
     add_child(_aura_fx_node)
@@ -382,6 +395,60 @@ func _criar_aura_azul_visual() -> void:
     ring.material_override = mat
     ring.position.y = 0.2
     _aura_fx_node.add_child(ring)
+
+
+## Os efeitos vivem durante toda a sessao e apenas alternam visibilidade.
+## Criar malha, material e luz no quadro do toque era a fonte dos engasgos
+## recorrentes das skills, mesmo depois do primeiro aquecimento.
+func _preparar_fx_skills() -> void:
+    _criar_aura_azul_visual()
+    _aura_fx_node.visible = false
+
+    _espada_light = OmniLight3D.new()
+    _espada_light.light_color = Color(1.0, 0.85, 0.25)
+    _espada_light.light_energy = 5.0
+    _espada_light.omni_range = 6.0
+    _espada_light.visible = false
+    _espada.add_child(_espada_light)
+
+    _carga_fx = MeshInstance3D.new()
+    var esfera := SphereMesh.new()
+    esfera.radius = 0.4
+    esfera.height = 0.8
+    _carga_fx.mesh = esfera
+    var mat_orbe := StandardMaterial3D.new()
+    mat_orbe.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat_orbe.albedo_color = Color(0.4, 0.9, 1.0, 0.95)
+    _carga_fx.material_override = mat_orbe
+    _carga_fx.position = Vector3(0, 1.15, -0.6)
+    _carga_fx.visible = false
+    add_child(_carga_fx)
+
+    _feixe_fx_root = Node3D.new()
+    _feixe_fx_root.name = "KamehamehaBeamPool"
+    _feixe_fx_root.top_level = true
+    _feixe_fx_root.visible = false
+    add_child(_feixe_fx_root)
+    _feixe_fx_mesh = MeshInstance3D.new()
+    var cilindro := CylinderMesh.new()
+    cilindro.top_radius = 0.95
+    cilindro.bottom_radius = 0.35
+    cilindro.height = 28.0
+    _feixe_fx_mesh.mesh = cilindro
+    _feixe_fx_mesh.position.z = -14.0
+    _feixe_fx_mesh.rotation_degrees.x = 90.0
+    var mat_feixe := StandardMaterial3D.new()
+    mat_feixe.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat_feixe.albedo_color = Color(0.25, 0.85, 1.0, 0.95)
+    mat_feixe.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    _feixe_fx_mesh.material_override = mat_feixe
+    _feixe_fx_root.add_child(_feixe_fx_mesh)
+    var luz_feixe := OmniLight3D.new()
+    luz_feixe.light_color = Color(0.4, 0.9, 1.0)
+    luz_feixe.light_energy = 9.0
+    luz_feixe.omni_range = 16.0
+    luz_feixe.position.z = -10.0
+    _feixe_fx_root.add_child(luz_feixe)
 
 func ativar_espada_gigante() -> void:
     if _buff_espada_gigante:
@@ -409,12 +476,8 @@ func _fazer_espada_brilhar(brilhar: bool) -> void:
     if not _espada:
         return
     if brilhar:
-        if _espada_light == null or not is_instance_valid(_espada_light):
-            _espada_light = OmniLight3D.new()
-            _espada_light.light_color = Color(1.0, 0.85, 0.25)
-            _espada_light.light_energy = 5.0
-            _espada_light.omni_range = 6.0
-            _espada.add_child(_espada_light)
+        if _espada_light:
+            _espada_light.visible = true
         for malha in _espada.find_children("*", "MeshInstance3D", true, false):
             var mat = malha.material_override as StandardMaterial3D
             if mat:
@@ -423,8 +486,7 @@ func _fazer_espada_brilhar(brilhar: bool) -> void:
                 mat.emission_energy_multiplier = 4.0
     else:
         if _espada_light and is_instance_valid(_espada_light):
-            _espada_light.queue_free()
-            _espada_light = null
+            _espada_light.visible = false
         for malha in _espada.find_children("*", "MeshInstance3D", true, false):
             var mat = malha.material_override as StandardMaterial3D
             if mat:
@@ -472,58 +534,28 @@ func lancar_raio_kamehameha(direcao_manual := Vector3.ZERO) -> void:
         
     var origem := global_position + Vector3(0, 1.15, 0)
     
-    # 2. Esfera de Carga de Energia nas Mãos (0.15s)
-    var carga := MeshInstance3D.new()
-    var sphere := SphereMesh.new()
-    sphere.radius = 0.4
-    sphere.height = 0.8
-    carga.mesh = sphere
-    
-    var mat_orb := StandardMaterial3D.new()
-    mat_orb.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-    mat_orb.albedo_color = Color(0.4, 0.9, 1.0, 0.95)
-    carga.material_override = mat_orb
-    carga.position = Vector3(0, 1.15, -0.6)
-    add_child(carga)
-    
-    var tw_charge := create_tween()
-    tw_charge.tween_property(carga, "scale", Vector3(1.6, 1.6, 1.6), 0.18)
-    tw_charge.tween_callback(func():
-        carga.queue_free()
+    # A esfera ja esta pronta: o toque so a mostra e anima.
+    if _tween_carga and _tween_carga.is_valid():
+        _tween_carga.kill()
+    _carga_fx.visible = true
+    _carga_fx.scale = Vector3.ONE
+    _tween_carga = create_tween()
+    _tween_carga.tween_property(_carga_fx, "scale", Vector3(1.6, 1.6, 1.6), 0.18)
+    _tween_carga.tween_callback(func():
+        _carga_fx.visible = false
         _disparar_feixe_laser(origem, frente)
     )
 
 func _disparar_feixe_laser(origem: Vector3, frente: Vector3) -> void:
-    var feixe_root := Node3D.new()
-    feixe_root.name = "KamehamehaBeam"
-    get_parent().add_child(feixe_root)
+    var feixe_root := _feixe_fx_root
+    feixe_root.visible = true
     feixe_root.global_position = origem
     
     if frente.length_squared() > 0.001:
         feixe_root.look_at(origem + frente, Vector3.UP)
         
-    var mesh_inst := MeshInstance3D.new()
-    var cyl := CylinderMesh.new()
-    cyl.top_radius = 0.95
-    cyl.bottom_radius = 0.35
-    cyl.height = 28.0
-    mesh_inst.mesh = cyl
-    mesh_inst.position.z = -14.0
-    mesh_inst.rotation_degrees.x = 90.0
-    
-    var mat_beam := StandardMaterial3D.new()
-    mat_beam.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-    mat_beam.albedo_color = Color(0.25, 0.85, 1.0, 0.95)
-    mat_beam.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-    mesh_inst.material_override = mat_beam
-    feixe_root.add_child(mesh_inst)
-    
-    var l_beam := OmniLight3D.new()
-    l_beam.light_color = Color(0.4, 0.9, 1.0)
-    l_beam.light_energy = 9.0
-    l_beam.omni_range = 16.0
-    l_beam.position.z = -10.0
-    feixe_root.add_child(l_beam)
+    var mesh_inst := _feixe_fx_mesh
+    mesh_inst.scale = Vector3.ONE
     
     # Dano Massivo (350 DMG) a todos os inimigos no cone do feixe
     for bicho in get_tree().get_nodes_in_group("bicho"):
@@ -535,13 +567,15 @@ func _disparar_feixe_laser(origem: Vector3, frente: Vector3) -> void:
         if dist > 28.0:
             continue
         if frente.angle_to(ate.normalized()) < deg_to_rad(40.0):
-            bicho.levar_dano(_dano_atual() * 5.8, frente)
+            bicho.levar_dano(_dano_atual() * 5.8 * (1.0 + (_nivel_da_skill("skill_3") - 1) * 0.08), frente)
             
-    var tw := create_tween()
-    tw.tween_property(mesh_inst, "scale", Vector3(1.5, 1.0, 1.5), 0.15)
-    tw.tween_property(mesh_inst, "scale", Vector3(0.0, 1.0, 0.0), 0.45)
-    tw.tween_callback(func():
-        feixe_root.queue_free()
+    if _tween_feixe and _tween_feixe.is_valid():
+        _tween_feixe.kill()
+    _tween_feixe = create_tween()
+    _tween_feixe.tween_property(mesh_inst, "scale", Vector3(1.5, 1.0, 1.5), 0.15)
+    _tween_feixe.tween_property(mesh_inst, "scale", Vector3(0.0, 1.0, 0.0), 0.45)
+    _tween_feixe.tween_callback(func():
+        feixe_root.visible = false
         _atacando = false
         _animador.play("heroi/parado", 0.2)
     )
@@ -573,7 +607,11 @@ func _atingir() -> void:
     var frente := global_transform.basis.z.normalized()
     var alcance: float = 5.5 if _buff_espada_gigante else ALCANCE_DO_GOLPE
     var abertura: float = 360.0 if _buff_espada_gigante else ABERTURA_DO_GOLPE
-    var dano_base: float = _dano_atual() * (1.8 if _buff_aura_azul else 1.0)
+    var multiplicador_aura := 1.0 + 0.8 + (_nivel_da_skill("skill_1") - 1) * 0.07
+    var multiplicador_espada := 1.0 + (_nivel_da_skill("skill_2") - 1) * 0.06
+    var dano_base: float = _dano_atual() * (multiplicador_aura if _buff_aura_azul else 1.0)
+    if _buff_espada_gigante:
+        dano_base *= multiplicador_espada
     var stats := _estatisticas_atuais()
     
     var acertou := false
@@ -607,12 +645,18 @@ func _estatisticas_atuais() -> Dictionary:
 
 
 func _dano_atual() -> float:
-    return float(_estatisticas_atuais().get("ataque", DANO))
+    var progresso := get_node_or_null("/root/Progresso")
+    var nivel_skill := int(progresso.niveis_skills.get("ataque_basico", 1)) if progresso else 1
+    return float(_estatisticas_atuais().get("ataque", DANO)) * (1.0 + (nivel_skill - 1) * 0.05)
+
+
+func _nivel_da_skill(id: String) -> int:
+    var progresso := get_node_or_null("/root/Progresso")
+    return int(progresso.niveis_skills.get(id, 1)) if progresso else 1
 
 func _tocar_nota() -> void:
-    var nota: String = ESCALA[_proxima_nota]
+    _voz.stream = SONS_NOTAS[_proxima_nota]
     _proxima_nota = (_proxima_nota + 1) % ESCALA.size()
-    _voz.stream = load("res://audio/nota_%s.wav" % nota)
     _voz.play()
 
 func _ao_terminar(animacao: StringName) -> void:

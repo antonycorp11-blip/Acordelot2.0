@@ -28,6 +28,8 @@ var _sorte := RandomNumberGenerator.new()
 var _ate_assentar := 0.0
 var _ate_conferir_distancia := 0.0
 var _longe_da_camera := false
+var _terreno: Node = null
+var _alvo_seguidor: Node3D = null
 
 
 func _ready() -> void:
@@ -46,6 +48,23 @@ func _ready() -> void:
     _origem_do_passeio = global_position
     _destino_do_passeio = global_position
     _sorte.seed = hash(name + str(get_instance_id()))
+    # Espalha as conferencias entre quadros. Onze temporizadores sincronizados
+    # criavam um pequeno pico a cada meio segundo mesmo fazendo pouco trabalho.
+    _ate_conferir_distancia = _sorte.randf_range(0.05, 0.50)
+    _ate_assentar = _sorte.randf_range(0.05, 0.45)
+    # A captura ainda nao existe. Manter onze Areas monitorando o mundo sem
+    # qualquer sinal conectado so aumenta o broadphase de fisica.
+    area.monitoring = false
+    area.monitorable = false
+
+
+func definir_terreno(terreno: Node) -> void:
+    _terreno = terreno
+
+
+func definir_seguidor(alvo: Node3D) -> void:
+    _alvo_seguidor = alvo
+    passeio_natural = false
 
 
 func _process(delta: float) -> void:
@@ -67,7 +86,9 @@ func _process(delta: float) -> void:
     _tempo_flutuacao += delta
     visual.position.y = _altura_visual_inicial + sin(_tempo_flutuacao * TAU / periodo_flutuacao) * amplitude_flutuacao
 
-    if passeio_natural and not _acao_uma_vez:
+    if _alvo_seguidor and is_instance_valid(_alvo_seguidor) and not _acao_uma_vez:
+        _processar_seguidor()
+    elif passeio_natural and not _acao_uma_vez:
         _processar_passeio(delta)
 
     if not _acao_uma_vez and _direcao.length_squared() > 0.001:
@@ -76,7 +97,7 @@ func _process(delta: float) -> void:
         _virar_para_o_movimento()
         _ate_assentar -= delta
         if _ate_assentar <= 0.0:
-            _ate_assentar = 0.28
+            _ate_assentar = 0.45
             _assentar_no_terreno()
 
 
@@ -124,8 +145,8 @@ func reaparecer() -> void:
     _acao_uma_vez = false
     visual.visible = true
     particulas.emitting = usar_particulas
-    area.monitoring = true
-    area.monitorable = true
+    area.monitoring = false
+    area.monitorable = false
     sprite.play(&"idle")
 
 
@@ -147,11 +168,14 @@ func _atualizar_animacao_de_movimento() -> void:
     if _desaparecido or _acao_uma_vez:
         return
     if _direcao.length_squared() <= 0.001:
-        sprite.play(&"idle")
+        if sprite.animation != &"idle" or not sprite.is_playing():
+            sprite.play(&"idle")
     elif _rapido:
-        sprite.play(&"run")
+        if sprite.animation != &"run" or not sprite.is_playing():
+            sprite.play(&"run")
     else:
-        sprite.play(&"walk")
+        if sprite.animation != &"walk" or not sprite.is_playing():
+            sprite.play(&"walk")
 
 
 ## O Eco e pacifico com humanos: esta rotina apenas escolhe pequenos destinos,
@@ -173,6 +197,20 @@ func _processar_passeio(delta: float) -> void:
     definir_movimento(_destino_do_passeio - global_position)
 
 
+func _processar_seguidor() -> void:
+    var destino := _alvo_seguidor.global_position
+    destino += _alvo_seguidor.global_basis.x * 1.25
+    destino -= _alvo_seguidor.global_basis.z * 1.1
+    var ate := destino - global_position
+    ate.y = 0.0
+    var distancia := ate.length()
+    if distancia < 1.45:
+        if _direcao.length_squared() > 0.001:
+            parar()
+        return
+    definir_movimento(ate, distancia > 6.0)
+
+
 func _virar_para_o_movimento() -> void:
     var camera := get_viewport().get_camera_3d()
     if camera:
@@ -184,6 +222,11 @@ func _virar_para_o_movimento() -> void:
 
 
 func _assentar_no_terreno() -> void:
+    # Nas zonas do jogo a altura ja e uma funcao pura do construtor. Usa-la
+    # evita dezenas de raycasts por segundo quando todos os Ecos estao juntos.
+    if _terreno != null and _terreno.has_method("calcular_altura"):
+        global_position.y = float(_terreno.calcular_altura(global_position.x, global_position.z)) + 0.03
+        return
     var mundo := get_world_3d()
     if mundo == null:
         return

@@ -128,25 +128,27 @@ func _construir_recursos_coletaveis() -> void:
         recursos.add_child(recurso)
 
 
-## Ecos 2.5D pacificos, divididos entre as duas zonas naturais para nao pesar
-## no navegador. Reutilizam a mesma cena, colisao e rotina de passeio.
+## Ecos 2.5D pacificos. Nesta primeira build a Floresta do Despertar funciona
+## como vitrine: um exemplar de cada arte disponivel, sem duplicatas.
 func _plantar_ecos_musicais() -> void:
     var zona := str(_zone_data.get("id", ""))
     if zona not in ["zone_floresta_despertar", "zone_floresta_sombria"]:
         return
     var pontos := [
-        Vector2(4.5, 4.0), Vector2(-18.0, 13.0), Vector2(21.0, 17.0),
-        Vector2(-24.0, -15.0), Vector2(17.0, -22.0), Vector2(2.0, 28.0),
+        Vector2(4.5, 4.0), Vector2(-8.0, 8.0), Vector2(11.0, 10.0),
+        Vector2(-15.0, 15.0), Vector2(18.0, 17.0), Vector2(-21.0, 4.0),
+        Vector2(23.0, 3.0), Vector2(-18.0, -10.0), Vector2(18.0, -12.0),
+        Vector2(-9.0, -20.0), Vector2(8.0, -22.0),
     ]
     var inicio := 0 if zona == "zone_floresta_despertar" else 5
-    var fim := 5 if zona == "zone_floresta_despertar" else 10
+    var fim := ECOS_NOVOS.size() if zona == "zone_floresta_despertar" else 10
 
     # O Eco de Do ja aprovado permanece perto do inicio.
     if zona == "zone_floresta_despertar":
         _instanciar_eco("do_nascente", "", pontos[0], 0.72)
     for indice in range(inicio, fim):
         var dados: Dictionary = ECOS_NOVOS[indice]
-        var ponto: Vector2 = pontos[indice - inicio + 1]
+        var ponto: Vector2 = pontos[indice - inicio + 1] if zona == "zone_floresta_despertar" else pontos[indice - inicio]
         _instanciar_eco(str(dados["id"]), dados["frames"], ponto, 0.68 + float(indice % 3) * 0.04)
 
 
@@ -156,10 +158,11 @@ func _instanciar_eco(id: String, frames_path: String, ponto: Vector2, altura: fl
     eco.passeio_natural = true
     eco.raio_do_passeio = 3.25
     eco.altura_aparente_m = altura
+    eco.definir_terreno(self)
     if not frames_path.is_empty():
         var sprite := eco.get_node("Visual/AnimatedSprite3D") as AnimatedSprite3D
         sprite.sprite_frames = load(frames_path) as SpriteFrames
-        sprite.visibility_range_end = 32.0
+        sprite.visibility_range_end = 30.0
         eco.usar_particulas = false
     eco.position = Vector3(ponto.x, calcular_altura(ponto.x, ponto.y) + 0.03, ponto.y)
     _props_node.add_child(eco)
