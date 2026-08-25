@@ -641,8 +641,9 @@ static func _lampada() -> OmniLight3D:
     luz.omni_range = 13.0
     luz.omni_attenuation = 0.9
     luz.shadow_enabled = false
-    luz.light_energy = 6.5 if luzes_acesas else 0.0
-    luz.visible = luzes_acesas
+    var luz_real := luzes_acesas and not OS.has_feature("web")
+    luz.light_energy = 6.5 if luz_real else 0.0
+    luz.visible = luz_real
     luz.add_to_group("lampada")
     return luz
 

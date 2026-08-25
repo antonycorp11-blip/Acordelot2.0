@@ -85,8 +85,13 @@ const RELOGIO := "user://relogio.cfg"
 ## De quanto em quanto tempo a hora vai para o disco. Gravar todo quadro seria
 ## escrever sessenta vezes por segundo para guardar um numero.
 const INTERVALO_DE_GRAVACAO := 15.0
+## O dia dura minutos; atualizar ceu, ambiente e rotacao da luz sessenta vezes
+## por segundo nao muda o que o olho ve e invalida estado do renderizador. Dez
+## vezes por segundo continua perfeitamente continuo e e bem mais barato.
+const INTERVALO_VISUAL := 0.10
 
 var _ate_gravar := INTERVALO_DE_GRAVACAO
+var _ate_atualizar_visual := 0.0
 
 
 func _ready() -> void:
@@ -111,7 +116,10 @@ func _process(delta: float) -> void:
     if not rodando:
         return
     hora = fposmod(hora + delta * (24.0 / (minutos_por_dia * 60.0)), 24.0)
-    _aplicar()
+    _ate_atualizar_visual -= delta
+    if _ate_atualizar_visual <= 0.0:
+        _ate_atualizar_visual = INTERVALO_VISUAL
+        _aplicar()
 
     _ate_gravar -= delta
     if _ate_gravar <= 0.0:
@@ -189,9 +197,14 @@ func _acender_as_lampadas(deve_acender: bool) -> void:
         return
     _lampadas_acesas = deve_acender
     ChunkBuilder.luzes_acesas = deve_acender
+    # No GL Compatibility do navegador a luz real quase nao chega ao chao; a
+    # poca aditiva e o halo abaixo sao o que o jogador efetivamente enxerga.
+    # Desligar somente a Omni no Web preserva a leitura noturna e remove dezenas
+    # de luzes dinamicas da cidade.
+    var luz_real := deve_acender and not OS.has_feature("web")
     for lampada in get_tree().get_nodes_in_group("lampada"):
-        lampada.visible = deve_acender
-        lampada.light_energy = 6.5 if deve_acender else 0.0
+        lampada.visible = luz_real
+        lampada.light_energy = 6.5 if luz_real else 0.0
     for claro in get_tree().get_nodes_in_group("claro_de_poste"):
         claro.visible = deve_acender
 

@@ -36,6 +36,7 @@ var _alvo_seguidor: Node3D = null
 
 func _ready() -> void:
     _altura_visual_inicial = visual.position.y
+    _sorte.seed = hash(name + str(get_instance_id()))
     # O primeiro Eco usa canvas de 220 px; os novos atlases usam 128 px para
     # economizar memoria. Ajuste pelos dois formatos sem exigir escala por cena.
     var quadro := sprite.sprite_frames.get_frame_texture(&"idle", 0)
@@ -43,13 +44,17 @@ func _ready() -> void:
     sprite.pixel_size = altura_aparente_m / altura_de_referencia
     sprite.animation_finished.connect(_ao_terminar_animacao)
     sprite.play(&"idle")
+    # As criaturas nasciam no mesmo quadro e trocavam de frame todas juntas.
+    # Espalhar a fase da animacao distribui essas atualizacoes entre quadros.
+    var quadros_idle := sprite.sprite_frames.get_frame_count(&"idle")
+    if quadros_idle > 0:
+        sprite.set_frame_and_progress(_sorte.randi_range(0, quadros_idle - 1), _sorte.randf())
     if not usar_particulas:
         particulas.emitting = false
         particulas.visible = false
         particulas.process_mode = Node.PROCESS_MODE_DISABLED
     _origem_do_passeio = global_position
     _destino_do_passeio = global_position
-    _sorte.seed = hash(name + str(get_instance_id()))
     # Espalha as conferencias entre quadros. Onze temporizadores sincronizados
     # criavam um pequeno pico a cada meio segundo mesmo fazendo pouco trabalho.
     _ate_conferir_distancia = _sorte.randf_range(0.05, 0.50)

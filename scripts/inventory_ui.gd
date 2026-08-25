@@ -22,6 +22,7 @@ const KIT := "res://textures/ui/kit/"
 const FUNDO_HARMONICO := "res://textures/ui/harmonia_celestial_v3.jpg"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
+const AreaSeguraUI := preload("res://scripts/area_segura_ui.gd")
 
 ## As bordas de cada arte, em pixels, medidas no arquivo.
 ##
@@ -147,6 +148,7 @@ var _rotulo_materiais: Label
 var _rotulo_fragmentos: Label
 var _recado: Label
 var _camada: CanvasLayer
+var _proporcao: AspectRatioContainer
 
 
 func _ready() -> void:
@@ -157,6 +159,8 @@ func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     _sincronizar_recursos()
     _montar()
+    get_viewport().size_changed.connect(_ajustar_area_segura)
+    _ajustar_area_segura()
     var progresso := get_node_or_null("/root/Progresso")
     if progresso and not progresso.recurso_alterado.is_connected(_recurso_mudou):
         progresso.recurso_alterado.connect(_recurso_mudou)
@@ -286,16 +290,16 @@ func _montar() -> void:
         if evento is InputEventMouseButton and (evento as InputEventMouseButton).pressed:
             toggle_inventory(false))
 
-    var proporcao := AspectRatioContainer.new()
-    proporcao.set_anchors_preset(Control.PRESET_FULL_RECT)
-    proporcao.ratio = PROPORCAO
-    proporcao.stretch_mode = AspectRatioContainer.STRETCH_FIT
-    proporcao.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _fundo.add_child(proporcao)
+    _proporcao = AspectRatioContainer.new()
+    _proporcao.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _proporcao.ratio = PROPORCAO
+    _proporcao.stretch_mode = AspectRatioContainer.STRETCH_FIT
+    _proporcao.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _fundo.add_child(_proporcao)
 
     _janela = Control.new()
     _janela.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    proporcao.add_child(_janela)
+    _proporcao.add_child(_janela)
 
     # Base celeste comum às telas novas. É uma textura vazia de conteúdo:
     # números, filtros, itens e ações continuam sendo Controls funcionais.
@@ -882,3 +886,7 @@ func toggle_inventory(force_state = null) -> void:
         _preencher_grade()
         _janela.modulate.a = 0.0
         create_tween().tween_property(_janela, "modulate:a", 1.0, 0.22)
+
+
+func _ajustar_area_segura() -> void:
+    AreaSeguraUI.ajustar_container(_proporcao, get_viewport().get_visible_rect().size)

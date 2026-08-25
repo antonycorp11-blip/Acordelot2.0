@@ -15,6 +15,19 @@ const TelaSkillsScript := preload("res://scripts/tela_skills_v3.gd")
 const EcoDoNascenteCena := preload("res://scenes/ecos/EcoDoNascente.tscn")
 const RessonanciaHUDScript := preload("res://scripts/ressonancia_hud.gd")
 const DesempenhoAdaptativoScript := preload("res://scripts/desempenho_adaptativo.gd")
+const FRAMES_ECOS := {
+    "do": preload("res://resources/eco_do_nascente_frames.tres"),
+    "do_sustenido": preload("res://resources/eco_ambar_frames.tres"),
+    "re": preload("res://resources/eco_rubi_frames.tres"),
+    "re_sustenido": preload("res://resources/eco_cervo_dourado_frames.tres"),
+    "mi": preload("res://resources/eco_folha_frames.tres"),
+    "fa": preload("res://resources/eco_agua_frames.tres"),
+    "fa_sustenido": preload("res://resources/eco_clave_azul_frames.tres"),
+    "sol": preload("res://resources/eco_safira_frames.tres"),
+    "sol_sustenido": preload("res://resources/eco_ametista_frames.tres"),
+    "la": preload("res://resources/eco_draconico_frames.tres"),
+    "la_sustenido": preload("res://resources/eco_celeste_frames.tres"),
+}
 
 ## A NPC ao alcance, se houver. E ela que decide o que o botao de ataque faz.
 var _npc_perto: Node = null
@@ -265,7 +278,8 @@ func _sincronizar_eco_companheiro(_forcar := false) -> void:
     _eco_companheiro = null
     _eco_companheiro_id = id
     var caminho := str(dados.get("arte", ""))
-    if id.is_empty() or caminho.is_empty() or not ResourceLoader.exists(caminho):
+    var frames: SpriteFrames = FRAMES_ECOS.get(id) as SpriteFrames
+    if id.is_empty() or caminho.is_empty() or frames == null:
         _atualizar_botao_skill_eco()
         return
     var eco := EcoDoNascenteCena.instantiate()
@@ -273,7 +287,7 @@ func _sincronizar_eco_companheiro(_forcar := false) -> void:
     eco.usar_particulas = false
     eco.altura_aparente_m = 0.70
     var sprite := eco.get_node("Visual/AnimatedSprite3D") as AnimatedSprite3D
-    sprite.sprite_frames = load(caminho) as SpriteFrames
+    sprite.sprite_frames = frames
     sprite.visibility_range_end = 34.0
     add_child(eco)
     eco.global_position = _player.global_position + Vector3(1.2, 0.2, 1.0)

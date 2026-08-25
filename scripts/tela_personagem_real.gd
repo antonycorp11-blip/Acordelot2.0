@@ -7,6 +7,7 @@ const KIT := "res://textures/ui/kit/"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
 const CelebracaoScript := preload("res://scripts/celebracao_harmonica.gd")
+const AreaSeguraUI := preload("res://scripts/area_segura_ui.gd")
 const TAMANHO_LAYOUT := Vector2(1600.0, 900.0)
 const ATRIBUTOS := [["forca", "Força"], ["destreza", "Destreza"],
     ["vitalidade", "Vitalidade"], ["ressonancia", "Ressonância"],
@@ -135,11 +136,7 @@ func _ajustar_ao_celular() -> void:
     if _base_layout == null:
         return
     var viewport := get_viewport().get_visible_rect().size
-    if viewport.x <= 0.0 or viewport.y <= 0.0:
-        return
-    var fator := minf(viewport.x / TAMANHO_LAYOUT.x, viewport.y / TAMANHO_LAYOUT.y)
-    _base_layout.scale = Vector2.ONE * fator
-    _base_layout.position = (viewport - TAMANHO_LAYOUT * fator) * 0.5
+    AreaSeguraUI.ajustar_base(_base_layout, TAMANHO_LAYOUT, viewport)
 
 
 func _cabecalho() -> Control:

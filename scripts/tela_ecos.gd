@@ -5,6 +5,7 @@ extends CanvasLayer
 const FUNDO := "res://textures/ui/painel_harmonia_v2.jpg"
 const FONTE_TITULO := "res://fontes/CinzelDecorative.ttf"
 const FONTE_TEXTO := "res://fontes/Cinzel.ttf"
+const AreaSeguraUI := preload("res://scripts/area_segura_ui.gd")
 const TAMANHO := Vector2(1600, 900)
 
 var _progresso: Node
@@ -268,9 +269,7 @@ func _ajustar() -> void:
     if _base == null:
         return
     var viewport := get_viewport().get_visible_rect().size
-    var fator := minf(viewport.x / TAMANHO.x, viewport.y / TAMANHO.y)
-    _base.scale = Vector2.ONE * fator
-    _base.position = (viewport - TAMANHO * fator) * 0.5
+    AreaSeguraUI.ajustar_base(_base, TAMANHO, viewport)
 
 
 func _input(event: InputEvent) -> void:
