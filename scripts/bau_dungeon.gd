@@ -47,9 +47,9 @@ func _ready() -> void:
     add_child(forma)
 
     _rotulo = Label3D.new()
-    _rotulo.text = "BAÚ DE TESOURO"
-    _rotulo.position = Vector3(0.0, 1.55, 0.0)
-    _rotulo.font_size = 28
+    _rotulo.text = "BAÚ"
+    _rotulo.position = Vector3(0.0, 1.75, 0.0)
+    _rotulo.font_size = 40
     _rotulo.outline_size = 7
     _rotulo.modulate = Color(1.0, 0.83, 0.38)
     _rotulo.outline_modulate = Color(0.08, 0.04, 0.01, 0.95)
@@ -66,12 +66,30 @@ func _ao_entrar(corpo: Node3D) -> void:
     _aberto = true
     monitoring = false
     var progresso := get_node_or_null("/root/Progresso")
+    var ganhos: Array[String] = []
     if progresso and progresso.has_method("adicionar_recurso"):
         progresso.adicionar_recurso("claves", recompensa_claves)
+        ganhos.append("%d CLAVES" % recompensa_claves)
 
-    _rotulo.text = "+%d CLAVES" % recompensa_claves
+        # BAU NAO DA SO MOEDA. Claves compram; fragmento e nota FAZEM. Um bau
+        # que so enche a carteira nao muda nada no jogo de quem abriu — e a
+        # caverna e justamente onde o material de sintese devia aparecer.
+        var notas := ["do", "re", "mi", "fa", "sol", "la", "si"]
+        var quantos := 2 if recompensa_claves >= 400 else 1
+        for i in quantos:
+            var nota: String = notas[randi() % notas.size()]
+            progresso.adicionar_recurso("fragmento_corrompido_" + nota, 1)
+            ganhos.append("1 FRAGMENTO DE " + nota.to_upper())
+
+    # O LETREIRO EM DUAS LINHAS E GRANDE. O texto anterior saia num tamanho de
+    # legenda e sumia em meio segundo: quem abriu o bau nao conseguia ler o que
+    # ganhou, que e a unica parte que importa.
+    _rotulo.font_size = 46
+    _rotulo.modulate = Color(1.0, 0.92, 0.62)
+    _rotulo.text = "\n".join(ganhos) if not ganhos.is_empty() else "VAZIO"
     var tw := create_tween()
     tw.tween_property(_visual, "position:y", 0.28, 0.16).set_trans(Tween.TRANS_BACK)
     tw.tween_property(_visual, "position:y", 0.0, 0.18)
-    tw.parallel().tween_property(_rotulo, "position:y", 2.25, 0.7)
-    tw.parallel().tween_property(_rotulo, "modulate:a", 0.0, 0.7).set_delay(0.25)
+    # Sobe devagar e fica quase dois segundos: tempo de ler duas linhas.
+    tw.parallel().tween_property(_rotulo, "position:y", 3.1, 1.8)
+    tw.parallel().tween_property(_rotulo, "modulate:a", 0.0, 0.9).set_delay(1.1)

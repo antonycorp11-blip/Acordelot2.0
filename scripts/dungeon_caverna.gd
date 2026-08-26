@@ -34,6 +34,8 @@ var _barra_dia: Control
 var _camera: Camera3D
 var _dungeon: Node3D
 var _botao: Button
+var _placar: Label
+var _shikers_totais := 0
 var _dentro := false
 var _posicao_de_retorno := Vector3.ZERO
 var _ambiente_anterior: Environment
@@ -102,6 +104,15 @@ func _construir_dungeon() -> void:
     _modulo(PORTAO, Vector3(0, 0, 54))
     _modulo(PORTAO, Vector3(0, 0, -17))
 
+    # UMA LAJE SO POR ESTAGIO, e nao uma por peca.
+    #
+    # O chao era montado pedaco a pedaco, com uma caixa por sala e por corredor,
+    # e onde duas caixas nao se encontravam sobrava buraco — o jogador caia do
+    # mapa por uma fresta que ninguem via no editor. Uma laje que cobre a
+    # pegada inteira do estagio nao tem emenda para falhar, e custa uma caixa de
+    # colisao em vez de nove.
+    _laje(Vector3(0, -0.2, 10), Vector3(150, 0.4, 160))
+    _cercar(Vector3(0, 0, 10), Vector2(150, 160))
     _piso(Vector3(0, -0.18, 60), Vector3(12, 0.36, 12))
     _piso(Vector3(0, -0.18, 46), Vector3(8, 0.36, 20))
     _piso(Vector3(0, -0.18, 18), Vector3(60, 0.36, 40))
@@ -148,6 +159,37 @@ func _construir_dungeon() -> void:
 ##
 ## O quarto de volta e obrigatorio: sem ele o corredor deita atravessado e a
 ## lateral fechada dele barra o caminho.
+## A laje do estagio: um piso unico por baixo de tudo.
+func _laje(centro: Vector3, tamanho: Vector3) -> void:
+    _piso(centro, tamanho)
+
+
+## A cerca invisivel da borda.
+##
+## Mesmo com laje, quem sai andando pela lateral de uma sala acaba do lado de
+## fora, num chao sem parede nenhuma, e o mapa vira campo aberto escuro. Quatro
+## caixas altas em volta resolvem: o jogador esbarra num limite que nao ve, e
+## nunca ve o vazio.
+func _cercar(centro: Vector3, tamanho: Vector2) -> void:
+    var meia_x: float = tamanho.x * 0.5
+    var meia_z: float = tamanho.y * 0.5
+    for lado in [Vector3(meia_x, 0, 0), Vector3(-meia_x, 0, 0)]:
+        _parede_invisivel(centro + lado, Vector3(1.0, 12.0, tamanho.y))
+    for lado in [Vector3(0, 0, meia_z), Vector3(0, 0, -meia_z)]:
+        _parede_invisivel(centro + lado, Vector3(tamanho.x, 12.0, 1.0))
+
+
+func _parede_invisivel(onde: Vector3, tamanho: Vector3) -> void:
+    var corpo := StaticBody3D.new()
+    corpo.position = onde + Vector3.UP * 6.0
+    var colisao := CollisionShape3D.new()
+    var forma := BoxShape3D.new()
+    forma.size = tamanho
+    colisao.shape = forma
+    corpo.add_child(colisao)
+    _dungeon.add_child(corpo)
+
+
 func _corredor_z(alturas: Array, x := 0.0) -> void:
     for z in alturas:
         _modulo(CORREDOR, Vector3(x, 0, float(z)), PI * 0.5)
@@ -183,6 +225,8 @@ func _construir_segundo_estagio() -> void:
     _corredor_z([o.z - 34.0, o.z - 42.0])
     _salao(o + Vector3(0, 0, -66), 3, 2)
 
+    _laje(o + Vector3(-10, -0.2, -20), Vector3(190, 0.4, 160))
+    _cercar(o + Vector3(-10, 0, -20), Vector2(190, 160))
     _piso(o + Vector3(0, -0.18, 24), Vector3(8, 0.36, 20))
     _piso(o + Vector3(0, -0.18, -10), Vector3(60, 0.36, 40))
     _piso(o + Vector3(-60, -0.18, -10), Vector3(40, 0.36, 20))
@@ -213,8 +257,10 @@ func _construir_segundo_estagio() -> void:
     var guardiao := _shiker(o + Vector3(0.0, 1.1, -70.0), 2)
     guardiao.call_deferred("tornar_super_shiker")
 
-    _porta_de_estagio(Vector3(0.0, 0.0, -58.0), ORIGEM + ENTRADA_ESTAGIO_2, "Descer")
-    _porta_de_estagio(o + Vector3(0.0, 0.0, 32.0), ORIGEM + Vector3(0.0, 1.15, -30.0), "Subir")
+    _porta_de_estagio(Vector3(0.0, 0.0, -58.0), ORIGEM + ENTRADA_ESTAGIO_2,
+        "⬇  DESCER AO SEGUNDO ESTÁGIO")
+    _porta_de_estagio(o + Vector3(0.0, 0.0, 32.0), ORIGEM + Vector3(0.0, 1.15, -30.0),
+        "⬆  VOLTAR AO PRIMEIRO ESTÁGIO")
 
 
 ## Uma porta que leva de um estagio a outro.
@@ -225,9 +271,15 @@ func _construir_segundo_estagio() -> void:
 func _porta_de_estagio(onde: Vector3, destino: Vector3, rotulo: String) -> void:
     _modulo(PORTA, onde)
 
+    # Duas tochas ladeando a porta e um letreiro grande: era preciso ADIVINHAR
+    # que ali havia passagem, e passagem que nao se anuncia nao existe para
+    # quem joga.
+    _tocha(onde + Vector3(-3.2, 0.0, 0.0), 0.0)
+    _tocha(onde + Vector3(3.2, 0.0, 0.0), PI)
+
     var aviso := Label3D.new()
     aviso.text = rotulo
-    aviso.font_size = 34
+    aviso.font_size = 52
     aviso.outline_size = 8
     aviso.modulate = Color(1.0, 0.86, 0.45)
     aviso.outline_modulate = Color(0.12, 0.06, 0.0, 0.95)
@@ -405,6 +457,7 @@ func _process(delta: float) -> void:
     if _ate_atualizar_inimigos > 0.0:
         return
     _ate_atualizar_inimigos = 0.35
+    _atualizar_placar()
     for inimigo in _inimigos:
         if not is_instance_valid(inimigo):
             continue
@@ -420,6 +473,8 @@ func _criar_botao_hud() -> void:
     _botao = Button.new()
     _botao.name = "BtnDungeon"
     _botao.text = "DG\nCAVERNA"
+    if _placar:
+        _placar.visible = false
     _botao.set_anchors_preset(Control.PRESET_TOP_LEFT)
     _botao.position = Vector2(18, 118)
     _botao.size = Vector2(108, 58)
@@ -438,12 +493,48 @@ func _criar_botao_hud() -> void:
     _botao.pressed.connect(_alternar)
     hud.add_child(_botao)
 
+    # O PLACAR DA CAVERNA. Sem ele o jogador nao sabe se falta um bicho ou
+    # quinze, e uma DG sem fim visivel vira caminhada sem objetivo.
+    _placar = Label.new()
+    _placar.name = "PlacarDungeon"
+    _placar.set_anchors_preset(Control.PRESET_CENTER_TOP)
+    _placar.offset_left = -190.0
+    _placar.offset_right = 190.0
+    _placar.offset_top = 14.0
+    _placar.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _placar.add_theme_font_size_override("font_size", 20)
+    _placar.add_theme_color_override("font_color", Color(1.0, 0.88, 0.55))
+    _placar.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.0))
+    _placar.add_theme_constant_override("outline_size", 5)
+    _placar.visible = false
+    hud.add_child(_placar)
+
 
 func _alternar() -> void:
     if _dentro:
         _sair()
     else:
         _entrar()
+
+
+## Quantos Shikers ainda vivem dentro da caverna.
+func _contar_shikers() -> int:
+    var vivos := 0
+    for b in get_tree().get_nodes_in_group("bicho"):
+        if is_instance_valid(b) and (b as Node3D).global_position.distance_to(ORIGEM) < 400.0:
+            vivos += 1
+    return vivos
+
+
+func _atualizar_placar() -> void:
+    if _placar == null or not _dentro:
+        return
+    var vivos := _contar_shikers()
+    _shikers_totais = maxi(_shikers_totais, vivos)
+    if vivos == 0:
+        _placar.text = "CAVERNA LIMPA  —  volte para receber o espolio"
+    else:
+        _placar.text = "SHIKERS RESTANTES   %d / %d" % [vivos, _shikers_totais]
 
 
 func _entrar() -> void:
@@ -491,6 +582,10 @@ func _entrar() -> void:
     _jogador.global_position = ORIGEM + destino
     _jogador.velocity = Vector3.ZERO
     _botao.text = "SAIR\nDA DG"
+    _shikers_totais = maxi(_shikers_totais, _contar_shikers())
+    if _placar:
+        _placar.visible = true
+    _atualizar_placar()
 
 
 func _sair() -> void:

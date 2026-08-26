@@ -460,6 +460,7 @@ func _physics_process(delta: float) -> void:
     _seguir_a_cabeca()
     if _morrendo:
         return
+    _pensar_no_golpe(delta)
     _fase += delta
     
     if not is_on_floor():
@@ -515,6 +516,118 @@ func _physics_process(delta: float) -> void:
         _tocar("parado")
 
 ## O golpe: por enquanto so a animacao, com pausa entre um e outro.
+
+
+# -------------------------------------------------------------
+# Golpes com aviso
+# -------------------------------------------------------------
+## O ATAQUE QUE SE PODE DESVIAR.
+##
+## Bicho que so encosta e bate nao pede nada do jogador: ou ele aguenta, ou nao.
+## O golpe daqui e outro contrato — a marca acende no chao, o jogador tem um
+## segundo para sair, e quem sai nao toma. E dai que vem a briga de verdade:
+## nao de reflexo, de LEITURA.
+##
+## So o Voraz e o Anciao usam. O comum continua sendo o bicho que ensina o
+## basico; se todos tivessem area telegrafada, nenhuma seria notavel.
+const AVISO_DO_GOLPE := 1.05
+const PAUSA_ENTRE_AREAS := Vector2(5.0, 8.5)
+const ALCANCE_DA_AREA := 16.0
+
+var _proxima_area := 4.0
+var _raio_da_area := 3.2
+
+
+func _pensar_no_golpe(delta: float) -> void:
+    if monster_type < 1 or _morrendo or _jogador == null:
+        return
+    _proxima_area -= delta
+    if _proxima_area > 0.0:
+        return
+    var ate := _jogador.global_position - global_position
+    ate.y = 0.0
+    if ate.length() > ALCANCE_DA_AREA:
+        return
+    _proxima_area = randf_range(PAUSA_ENTRE_AREAS.x, PAUSA_ENTRE_AREAS.y)
+    _marcar_area(_jogador.global_position)
+
+
+## A marca no chao e o estouro depois dela.
+##
+## O circulo cresce durante o aviso: parado ele e so uma mancha, crescendo ele
+## conta quanto tempo falta sem precisar de numero na tela.
+func _marcar_area(onde: Vector3) -> void:
+    var raio: float = _raio_da_area * (1.0 + 0.35 * float(monster_type - 1))
+    var cor: Color = MONSTROS_CONFIG[monster_type % MONSTROS_CONFIG.size()].get("aura", Color(1, 0.5, 0.2))
+    if cor.a <= 0.01:
+        cor = Color(1.0, 0.45, 0.2)
+
+    var marca := MeshInstance3D.new()
+    var disco := QuadMesh.new()
+    disco.size = Vector2(raio * 2.0, raio * 2.0)
+    disco.orientation = PlaneMesh.FACE_Y
+    disco.center_offset = Vector3(0.0, 0.06, 0.0)
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = BRILHO
+    material.albedo_color = Color(cor.r, cor.g, cor.b, 0.85)
+    material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    disco.material = material
+    marca.mesh = disco
+    marca.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    marca.top_level = true
+    marca.global_position = Vector3(onde.x, onde.y + 0.05, onde.z)
+    marca.scale = Vector3(0.35, 1.0, 0.35)
+    add_child(marca)
+
+    var tw := create_tween()
+    tw.tween_property(marca, "scale", Vector3.ONE, AVISO_DO_GOLPE)
+    tw.tween_callback(_estourar_area.bind(marca.global_position, raio, cor))
+    tw.tween_property(marca, "modulate:a", 0.0, 0.22)
+    tw.tween_callback(marca.queue_free)
+
+    if monster_type >= 2:
+        _rugir()
+
+
+func _estourar_area(onde: Vector3, raio: float, cor: Color) -> void:
+    if _jogador == null or not is_instance_valid(_jogador):
+        return
+    var ate := _jogador.global_position - onde
+    ate.y = 0.0
+    if ate.length() > raio:
+        return
+    # Quem ficou dentro toma. O dano vai pela HUD, que e quem sabe a vida do
+    # heroi — o bicho nao precisa conhecer o jogador para machucar.
+    var hud := get_tree().get_first_node_in_group("player_hud")
+    if hud == null:
+        hud = get_node_or_null("/root/ZonedWorld/HUD/PlayerHUD")
+    if hud and hud.has_method("tomar_dano"):
+        hud.tomar_dano(28.0 + 22.0 * float(monster_type))
+
+
+## O rugido do Anciao: uma onda que sobe do chao, so para anunciar quem chegou.
+func _rugir() -> void:
+    var onda := MeshInstance3D.new()
+    var anel := TorusMesh.new()
+    anel.inner_radius = 1.1
+    anel.outer_radius = 1.5
+    onda.mesh = anel
+    var material := StandardMaterial3D.new()
+    material.albedo_color = Color(1.0, 0.55, 0.25, 0.75)
+    material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    onda.material_override = material
+    onda.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    onda.position = _centro_do_corpo + Vector3(0.0, 0.6, 0.0)
+    add_child(onda)
+    var tw := create_tween()
+    tw.tween_property(onda, "scale", Vector3(5.0, 1.0, 5.0), 0.55)
+    tw.parallel().tween_property(onda, "modulate:a", 0.0, 0.55)
+    tw.tween_callback(onda.queue_free)
 
 
 func _achar_jogador() -> Node3D:
