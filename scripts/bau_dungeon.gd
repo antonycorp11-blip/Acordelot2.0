@@ -64,7 +64,7 @@ func _ao_entrar(corpo: Node3D) -> void:
     if _aberto or not corpo.is_in_group("player"):
         return
     _aberto = true
-    monitoring = false
+    set_deferred("monitoring", false)
     var progresso := get_node_or_null("/root/Progresso")
     var ganhos: Array[String] = []
     if progresso and progresso.has_method("adicionar_recurso"):

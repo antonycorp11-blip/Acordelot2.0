@@ -515,6 +515,14 @@ func _tirar_print() -> void:
     # `-- --parede` percorre a DG de ponta a ponta e diz ATE ONDE deu para ir.
     # O teste antigo media "parou na parede" e chamava isso de sucesso — sem
     # perceber que parar era o problema, porque a sala estava lacrada.
+    if OS.get_cmdline_user_args().has("--dg2"):
+        await get_tree().create_timer(1.0).timeout
+        for n in get_tree().root.find_children("*", "Node3D", true, false):
+            if n.get_script() and str(n.get_script().resource_path).ends_with("dungeon_caverna.gd"):
+                n.call("_entrar")
+                break
+        await get_tree().create_timer(0.8).timeout
+
     if OS.get_cmdline_user_args().has("--parede"):
         await get_tree().create_timer(1.2).timeout
         var dg: Node = null
@@ -530,18 +538,18 @@ func _tirar_print() -> void:
             var origem := Vector3(520, 0, 520)
             # Caminha do sul para o norte pelo eixo principal, empurrando de
             # leve para os lados quando trava — como um jogador faria.
-            _player.global_position = origem + Vector3(0, 1.2, 60)
+            _player.global_position = origem + Vector3(0, 1.2, 78)
             _player.velocity = Vector3.ZERO
             for i in 6: await get_tree().physics_frame
-            var mais_ao_norte: float = 60.0
-            for i in 900:
+            var mais_ao_norte: float = 78.0
+            for i in 1200:
                 await get_tree().physics_frame
                 var lado: float = sin(float(i) * 0.08) * 2.5
                 _player.velocity = Vector3(lado, -2.0, -6.0)
                 _player.move_and_slide()
                 var z_local: float = _player.global_position.z - origem.z
                 mais_ao_norte = minf(mais_ao_norte, z_local)
-            print("TESTE: partiu de z=60 e chegou a z=%.1f (arena fica em -52, estagio 2 em -108)" % mais_ao_norte)
+            print("TESTE: partiu de z=78 e chegou a z=%.1f (arena fica em -60, estagio 2 em -180)" % mais_ao_norte)
 
     if OS.get_cmdline_user_args().has("--norte"):
         var zm := find_child("ZoneManager", true, false)
