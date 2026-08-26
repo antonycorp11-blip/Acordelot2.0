@@ -68,240 +68,162 @@ func _construir_dungeon() -> void:
     _dungeon.process_mode = Node.PROCESS_MODE_DISABLED
     add_child(_dungeon)
 
-    # Planta grande e fixa, com leitura clara:
-    # entrada ao sul -> eixo principal -> três alas opcionais -> arena do chefe.
-    _modulo(SALA_PEQUENA, Vector3(0, 0, 60), PI)
-    for z in [50.0, 42.0]:
-        _modulo(CORREDOR, Vector3(0, 0, z))
-    _modulo(JUNCAO, Vector3(0, 0, 34), PI * 0.5)
-    for z in [26.0, 18.0]:
-        _modulo(CORREDOR, Vector3(0, 0, z))
-    _modulo(JUNCAO, Vector3(0, 0, 10), -PI * 0.5)
-    for z in [2.0, -6.0]:
-        _modulo(CORREDOR, Vector3(0, 0, z))
-    _modulo(JUNCAO, Vector3(0, 0, -14), PI * 0.5)
-    for z in [-22.0, -30.0, -38.0]:
-        _modulo(CORREDOR, Vector3(0, 0, z))
-    _modulo(SALA_GRANDE, Vector3(0, 0, -52))
+    # A PLANTA SEGUE O KIT, e nao o contrario.
+    #
+    # A caverna anterior foi desenhada sem medir as pecas, e por isso o jogador
+    # ficava preso: o corredor deste kit tem parede ao NORTE e ao SUL, ou seja,
+    # corre leste-oeste. Colocado sem giro no eixo principal, o que ficava na
+    # frente de quem entrava era a lateral fechada dele — a "parede gigante".
+    #
+    # A segunda medida muda ainda mais: cada sala tem VAO DE PORTA no meio dos
+    # quatro lados. Duas salas encostadas ja estao ligadas. E dai que sai o
+    # salao: quatro salas grandes num quadrado dao quarenta metros de vao livre,
+    # sem parede no meio. A caverna era so tubo de oito metros porque ninguem
+    # tinha juntado salas.
+    #
+    # Nao ha mais caixa de colisao escrita a mao: a malha das pecas e a colisao,
+    # entao onde ha porta ha passagem, e onde ha parede ha parede.
+    _modulo(SALA_PEQUENA, Vector3(0, 0, 60))
+    _corredor_z([50.0, 42.0])
+    # TRES COLUNAS, e nao duas. A porta fica no MEIO de cada sala: com duas
+    # colunas, o corredor do eixo chega em x=0, que e a emenda entre elas — e
+    # emenda e parede dos dois lados. Com tres, a sala do meio esta no eixo e a
+    # porta dela recebe o corredor. Era o que ainda prendia o jogador.
+    _salao(Vector3(0, 0, 18), 3, 2)
+    # As camaras laterais encostam nas salas das PONTAS, na mesma fileira: sala
+    # vizinha so se abre quando os centros batem.
+    _modulo(SALA_GRANDE_B, Vector3(40, 0, 8))
+    _modulo(SALA_GRANDE_B, Vector3(-40, 0, 28))
+    _modulo(SALA_PEQUENA_B, Vector3(40, 0, -8))
+    _modulo(SALA_PEQUENA_B, Vector3(-40, 0, 44))
+    _corredor_z([-6.0, -14.0])
+    _salao(Vector3(0, 0, -38), 3, 2)
 
-    # Ala oeste superior: depósito e primeiro tesouro.
-    for x in [-8.0, -16.0]:
-        _modulo(CORREDOR, Vector3(x, 0, 34), PI * 0.5)
-    _modulo(SALA_PEQUENA_B, Vector3(-26, 0, 34), -PI * 0.5)
-    # Ala leste central: maior sala opcional.
-    for x in [8.0, 16.0, 24.0]:
-        _modulo(CORREDOR, Vector3(x, 0, 10), PI * 0.5)
-    _modulo(SALA_GRANDE, Vector3(38, 0, 10), PI * 0.5)
-    # Ala oeste inferior: cripta curta antes da arena.
-    for x in [-8.0, -16.0, -24.0]:
-        _modulo(CORREDOR, Vector3(x, 0, -14), PI * 0.5)
-    _modulo(SALA_PEQUENA, Vector3(-34, 0, -14), -PI * 0.5)
+    _modulo(PORTAO, Vector3(0, 0, 54))
+    _modulo(PORTAO, Vector3(0, 0, -17))
 
-    # Ala nordeste: curva e sala pequena, o primeiro desvio que o jogador
-    # encontra. Curta de proposito — ensina que ha desvios sem custar muito.
-    for x in [8.0, 16.0]:
-        _modulo(CORREDOR, Vector3(x, 0, 34), PI * 0.5)
-    _modulo(CURVA, Vector3(24, 0, 34), PI * 0.5)
-    for z in [26.0, 18.0]:
-        _modulo(CORREDOR, Vector3(24, 0, z))
-    _modulo(SALA_PEQUENA_B, Vector3(24, 0, 8), 0.0)
-
-    # Ala profunda a oeste, ja perto da arena: a sala grande alternativa, que e
-    # o ultimo lugar onde da para se preparar antes do chefe.
-    _modulo(JUNCAO, Vector3(0, 0, -30), PI * 0.5)
-    for x in [-8.0, -16.0, -24.0]:
-        _modulo(CORREDOR, Vector3(x, 0, -30), PI * 0.5)
-    _modulo(SALA_GRANDE_B, Vector3(-38, 0, -30), -PI * 0.5)
-
-    # Um beco sem saida ao leste da arena — recompensa quem procura.
-    for x in [8.0, 16.0]:
-        _modulo(CORREDOR, Vector3(x, 0, -30), PI * 0.5)
-    _modulo(FUNDO_DE_SACO, Vector3(24, 0, -30), PI * 0.5)
-
-    # As portas das alas. O modelo com folha (gate-door) marca desvio; o vao
-    # aberto (gate) marca passagem obrigatoria. E o que diz ao jogador, de
-    # longe, se aquilo ali e caminho ou opcional.
-    _modulo(PORTA, Vector3(6.2, 0, 34), PI * 0.5)
-    _modulo(PORTA, Vector3(-6.2, 0, 34), PI * 0.5)
-    _modulo(PORTA, Vector3(6.2, 0, 10), PI * 0.5)
-    _modulo(PORTA, Vector3(-6.2, 0, -14), PI * 0.5)
-    _modulo(PORTA, Vector3(-6.2, 0, -30), PI * 0.5)
-    _modulo(PORTA, Vector3(6.2, 0, -30), PI * 0.5)
-
-    _modulo(PORTAO, Vector3(0, 0, 54), 0.0)
-    _modulo(PORTAO, Vector3(0, 0, -42), 0.0)
-
-    # Pisos físicos independentes dos modelos garantem que nada caia no vazio.
     _piso(Vector3(0, -0.18, 60), Vector3(12, 0.36, 12))
-    _piso(Vector3(0, -0.18, 6), Vector3(8, 0.36, 96))
-    _piso(Vector3(0, -0.18, -52), Vector3(20, 0.36, 20))
-    _piso(Vector3(-12, -0.18, 34), Vector3(16, 0.36, 8))
-    _piso(Vector3(-26, -0.18, 34), Vector3(12, 0.36, 12))
-    _piso(Vector3(16, -0.18, 10), Vector3(24, 0.36, 8))
-    _piso(Vector3(38, -0.18, 10), Vector3(20, 0.36, 20))
-    _piso(Vector3(-16, -0.18, -14), Vector3(24, 0.36, 8))
-    _piso(Vector3(-34, -0.18, -14), Vector3(12, 0.36, 12))
-    _piso(Vector3(14, -0.18, 34), Vector3(20, 0.36, 8))
-    _piso(Vector3(24, -0.18, 22), Vector3(8, 0.36, 32))
-    _piso(Vector3(24, -0.18, 8), Vector3(12, 0.36, 12))
-    _piso(Vector3(-16, -0.18, -30), Vector3(24, 0.36, 8))
-    _piso(Vector3(-38, -0.18, -30), Vector3(20, 0.36, 20))
-    _piso(Vector3(14, -0.18, -30), Vector3(20, 0.36, 8))
-    _paredes_de_colisao()
+    _piso(Vector3(0, -0.18, 46), Vector3(8, 0.36, 20))
+    _piso(Vector3(0, -0.18, 18), Vector3(60, 0.36, 40))
+    _piso(Vector3(40, -0.18, 8), Vector3(20, 0.36, 20))
+    _piso(Vector3(-40, -0.18, 28), Vector3(20, 0.36, 20))
+    _piso(Vector3(40, -0.18, -8), Vector3(12, 0.36, 12))
+    _piso(Vector3(-40, -0.18, 44), Vector3(12, 0.36, 12))
+    _piso(Vector3(0, -0.18, -10), Vector3(8, 0.36, 20))
+    _piso(Vector3(0, -0.18, -38), Vector3(60, 0.36, 40))
     _vazio_preto()
 
-    for dados in [
-        [-4.7, 0.0, 58.0, 0.0], [4.7, 0.0, 58.0, PI],
-        [-3.4, 0.0, 46.0, 0.0], [3.4, 0.0, 30.0, PI],
-        [-3.4, 0.0, 14.0, 0.0], [3.4, 0.0, -2.0, PI],
-        [-3.4, 0.0, -26.0, 0.0], [3.4, 0.0, -38.0, PI],
-        [-8.5, 0.0, -55.0, 0.0], [8.5, 0.0, -55.0, PI],
-        [-21.0, 0.0, 37.0, 0.0], [35.0, 0.0, 18.0, PI],
-        [45.0, 0.0, 5.0, 0.0], [-37.0, 0.0, -18.0, 0.0],
-        [21.0, 0.0, 30.0, 0.0], [27.0, 0.0, 18.0, PI],
-        [21.0, 0.0, 6.0, 0.0], [-31.0, 0.0, -27.0, 0.0],
-        [-45.0, 0.0, -33.0, 0.0], [-33.0, 0.0, -36.0, PI],
-        [19.0, 0.0, -27.0, 0.0],
-    ]:
-        _tocha(Vector3(dados[0], dados[1], dados[2]), dados[3])
+    for d in [[-4.7, 58.0, 0.0], [4.7, 58.0, PI], [-3.4, 46.0, 0.0], [3.4, 44.0, PI],
+              [-17.0, 34.0, 0.0], [17.0, 34.0, PI], [-17.0, 2.0, 0.0], [17.0, 2.0, PI],
+              [-38.0, 24.0, 0.0], [38.0, 24.0, PI], [-3.4, -10.0, 0.0], [3.4, -12.0, PI],
+              [-17.0, -22.0, 0.0], [17.0, -22.0, PI], [-17.0, -54.0, 0.0], [17.0, -54.0, PI]]:
+        _tocha(Vector3(d[0], 0.0, d[1]), d[2])
 
-    for dados in [
-        [-29.0, 0.0, 37.0, -0.2], [-23.0, 0.0, 30.0, 0.35],
-        [34.0, 0.0, 17.0, -0.25], [43.0, 0.0, 16.0, 0.1],
-        [-37.0, 0.0, -10.0, 0.3], [-31.0, 0.0, -18.0, -0.3],
-        [-8.2, 0.0, -58.0, 0.1],
-        [26.5, 0.0, 5.5, -0.3], [21.5, 0.0, 10.5, 0.25],
-        [-42.0, 0.0, -26.0, 0.15], [-35.0, 0.0, -35.0, -0.4],
-        [-44.0, 0.0, -34.5, 0.5], [22.5, 0.0, -32.0, -0.15],
-    ]:
-        _prop(CAIXOTE_MESH if int(absf(dados[0])) % 2 == 0 else BARRIL_MESH,
-            Vector3(dados[0], dados[1], dados[2]), dados[3])
-    _prop(CAVEIRA_MESH, Vector3(4.8, 0.04, -45.0), 0.4, 1.35)
-    _prop(CAVEIRA_MESH, Vector3(-40.5, 0.04, -31.0), -0.8, 1.2)
-    _prop(CAVEIRA_MESH, Vector3(25.5, 0.04, -31.5), 1.1, 1.1)
+    for d in [[-14.0, 30.0, -0.2], [15.0, 26.0, 0.35], [-34.0, 22.0, -0.25],
+              [33.0, 14.0, 0.1], [-28.0, -4.0, 0.3], [28.0, -6.0, -0.3],
+              [-15.0, -30.0, 0.1], [16.0, -46.0, 0.45]]:
+        _prop(CAIXOTE_MESH if int(absf(d[0])) % 2 == 0 else BARRIL_MESH,
+            Vector3(d[0], 0.0, d[1]), d[2])
+    _prop(CAVEIRA_MESH, Vector3(6.0, 0.04, -50.0), 0.4, 1.35)
 
-    _bau(Vector3(-27.0, 0.0, 34.0), 200, false)
-    _bau(Vector3(41.0, 0.0, 10.0), 350, true)
-    _bau(Vector3(-35.0, 0.0, -14.0), 300, true)
-    _bau(Vector3(-6.8, 0.0, -58.0), 500, true)
-    _bau(Vector3(26.0, 0.0, 9.0), 260, false)
-    _bau(Vector3(-41.0, 0.0, -30.0), 450, true)
-    _bau(Vector3(25.5, 0.0, -30.0), 320, true)
+    _bau(Vector3(-40.0, 0.0, 28.0), 250, false)
+    _bau(Vector3(40.0, 0.0, 8.0), 350, true)
+    _bau(Vector3(-40.0, 0.0, 44.0), 300, true)
+    _bau(Vector3(40.0, 0.0, -8.0), 300, true)
+    _bau(Vector3(0.0, 0.0, -54.0), 500, true)
 
-    _shiker(Vector3(-1.8, 1.1, 43.0), 0)
-    _shiker(Vector3(1.8, 1.1, 26.0), 0)
-    _shiker(Vector3(-1.8, 1.1, 18.0), 1)
-    _shiker(Vector3(-11.0, 1.1, 34.0), 0)
-    _shiker(Vector3(-25.0, 1.1, 31.0), 1)
-    _shiker(Vector3(1.8, 1.1, 2.0), 0)
-    _shiker(Vector3(13.0, 1.1, 10.0), 0)
-    _shiker(Vector3(35.0, 1.1, 7.0), 1)
-    _shiker(Vector3(42.0, 1.1, 13.0), 0)
-    _shiker(Vector3(-1.8, 1.1, -18.0), 0)
-    _shiker(Vector3(-17.0, 1.1, -14.0), 1)
-    _shiker(Vector3(-34.0, 1.1, -11.0), 0)
-    _shiker(Vector3(-4.5, 1.1, -49.0), 1)
-    _shiker(Vector3(4.5, 1.1, -49.0), 1)
+    for onde in [Vector3(-2, 1.1, 44), Vector3(-12, 1.1, 28), Vector3(12, 1.1, 24),
+                 Vector3(-8, 1.1, 8), Vector3(9, 1.1, 6), Vector3(-30, 1.1, 22),
+                 Vector3(30, 1.1, 14), Vector3(-28, 1.1, -2), Vector3(28, 1.1, -4),
+                 Vector3(-2, 1.1, -12), Vector3(-10, 1.1, -30), Vector3(10, 1.1, -30)]:
+        _shiker(onde, 0 if int(onde.z) % 2 == 0 else 1)
+
     _construir_segundo_estagio()
 
-    _shiker(Vector3(14.0, 1.1, 34.0), 0)
-    _shiker(Vector3(24.0, 1.1, 22.0), 1)
-    _shiker(Vector3(24.0, 1.1, 10.0), 0)
-    _shiker(Vector3(-14.0, 1.1, -30.0), 1)
-    _shiker(Vector3(-34.0, 1.1, -27.0), 0)
-    _shiker(Vector3(-40.0, 1.1, -34.0), 2)
-    _shiker(Vector3(15.0, 1.1, -30.0), 1)
-
-    var chefe := _shiker(Vector3(0.0, 1.1, -56.0), 2)
+    var chefe := _shiker(Vector3(0.0, 1.1, -44.0), 2)
     chefe.call_deferred("tornar_super_shiker")
 
 
-## O SEGUNDO ESTAGIO: o salao que a primeira caverna nao tem.
+## Uma fileira de corredores no eixo NORTE-SUL.
 ##
-## A queixa era justa — o primeiro estagio e feito de corredores de oito metros
-## e salas de vinte, e isso le como tunel o tempo todo. Aqui o espaco vem de
-## EMENDAR modulos: cinco salas grandes em cruz dao sessenta metros de vao no
-## eixo maior, e o jogador sente que saiu do tunel.
+## O quarto de volta e obrigatorio: sem ele o corredor deita atravessado e a
+## lateral fechada dele barra o caminho.
+func _corredor_z(alturas: Array, x := 0.0) -> void:
+    for z in alturas:
+        _modulo(CORREDOR, Vector3(x, 0, float(z)), PI * 0.5)
+
+
+## Um salao feito de salas encostadas.
 ##
-## Fica no mesmo no da caverna, cem metros ao norte: sem carregar cena nova, sem
-## tela de espera, e o custo so aparece quando o alcance de visao alcanca.
+## As portas ficam no meio de cada parede, entao salas vizinhas se abrem uma
+## para a outra sozinhas — nao ha nada a recortar nem a esconder.
+func _salao(centro: Vector3, colunas: int, linhas: int) -> void:
+    var lado := 20.0
+    for i in colunas:
+        for j in linhas:
+            _modulo(SALA_GRANDE, Vector3(
+                centro.x + (float(i) - (colunas - 1) * 0.5) * lado, 0,
+                centro.z + (float(j) - (linhas - 1) * 0.5) * lado))
+
+
+## O SEGUNDO ESTAGIO, com o salao maior do jogo.
+##
+## Tres por duas salas: sessenta por quarenta metros de vao continuo. Fica cem
+## metros ao norte, no mesmo no da caverna — sem cena nova e sem tela de espera.
 const ESTAGIO_2 := Vector3(0.0, 0.0, -140.0)
-const ENTRADA_ESTAGIO_2 := Vector3(0.0, 1.15, -108.0)
+const ENTRADA_ESTAGIO_2 := Vector3(0.0, 1.15, -112.0)
 
 func _construir_segundo_estagio() -> void:
     var o := ESTAGIO_2
 
-    # Corredor de chegada, vindo da porta da arena.
-    for z in [28.0, 20.0, 12.0]:
-        _modulo(CORREDOR, o + Vector3(0, 0, z))
+    _corredor_z([o.z + 28.0, o.z + 20.0])
+    _salao(o + Vector3(0, 0, -10), 3, 2)
+    _modulo(SALA_GRANDE_B, o + Vector3(-50, 0, -10))
+    _modulo(SALA_GRANDE_B, o + Vector3(-70, 0, -10))
+    _corredor_z([o.z - 34.0, o.z - 42.0])
+    _salao(o + Vector3(0, 0, -66), 3, 2)
 
-    # O SALAO EM CRUZ: cinco salas grandes emendadas.
-    _modulo(SALA_GRANDE, o + Vector3(0, 0, -10))
-    _modulo(SALA_GRANDE_B, o + Vector3(-20, 0, -10), PI * 0.5)
-    _modulo(SALA_GRANDE_B, o + Vector3(20, 0, -10), -PI * 0.5)
-    _modulo(SALA_GRANDE, o + Vector3(0, 0, -30), PI)
-    _modulo(SALA_GRANDE_B, o + Vector3(0, 0, 10), PI)
+    _piso(o + Vector3(0, -0.18, 24), Vector3(8, 0.36, 20))
+    _piso(o + Vector3(0, -0.18, -10), Vector3(60, 0.36, 40))
+    _piso(o + Vector3(-60, -0.18, -10), Vector3(40, 0.36, 20))
+    _piso(o + Vector3(0, -0.18, -38), Vector3(8, 0.36, 20))
+    _piso(o + Vector3(0, -0.18, -66), Vector3(60, 0.36, 40))
 
-    # Galeria lateral: tres salas em fila, o braco longo do estagio.
-    for x in [-40.0, -60.0]:
-        _modulo(SALA_GRANDE, o + Vector3(x, 0, -10), PI * 0.5)
+    for d in [[-3.4, 24.0, 0.0], [3.4, 22.0, PI], [-27.0, 2.0, 0.0], [27.0, 2.0, PI],
+              [-27.0, -22.0, 0.0], [27.0, -22.0, PI], [-58.0, -2.0, 0.0],
+              [-78.0, -18.0, PI], [-3.4, -38.0, 0.0], [-17.0, -80.0, 0.0], [17.0, -80.0, PI]]:
+        _tocha(o + Vector3(d[0], 0.0, d[1]), d[2])
 
-    # Arena final ao norte, depois de um corredor curto.
-    for z in [-46.0, -54.0]:
-        _modulo(CORREDOR, o + Vector3(0, 0, z))
-    _modulo(SALA_GRANDE, o + Vector3(0, 0, -70), PI)
+    for d in [[-24.0, -6.0, 0.2], [23.0, -14.0, -0.3], [-54.0, -6.0, 0.4],
+              [-66.0, -14.0, -0.2], [8.0, -60.0, 0.1], [-9.0, -72.0, 0.3]]:
+        _prop(CAIXOTE_MESH if int(absf(d[0])) % 2 == 0 else BARRIL_MESH,
+            o + Vector3(d[0], 0.0, d[1]), d[2])
+    _prop(CAVEIRA_MESH, o + Vector3(-3.0, 0.04, -62.0), 0.7, 1.4)
 
-    # Piso continuo por baixo de tudo: o salao e uma laje so, e nao nove.
-    _piso(o + Vector3(0, -0.18, 20), Vector3(8, 0.36, 40))
-    _piso(o + Vector3(0, -0.18, -10), Vector3(60, 0.36, 60))
-    _piso(o + Vector3(-50, -0.18, -10), Vector3(60, 0.36, 20))
-    _piso(o + Vector3(0, -0.18, -50), Vector3(8, 0.36, 24))
-    _piso(o + Vector3(0, -0.18, -70), Vector3(20, 0.36, 20))
+    _bau(o + Vector3(-68.0, 0.0, -10.0), 600, true)
+    _bau(o + Vector3(26.0, 0.0, -24.0), 400, true)
+    _bau(o + Vector3(0.0, 0.0, -78.0), 900, true)
 
-    for dados in [
-        [-8.0, 0.0, 24.0, 0.0], [8.0, 0.0, 16.0, PI],
-        [-18.0, 0.0, -2.0, 0.0], [18.0, 0.0, -2.0, PI],
-        [-18.0, 0.0, -20.0, 0.0], [18.0, 0.0, -20.0, PI],
-        [-38.0, 0.0, -4.0, 0.0], [-58.0, 0.0, -16.0, PI],
-        [-8.0, 0.0, -50.0, 0.0], [8.0, 0.0, -66.0, PI],
-    ]:
-        _tocha(o + Vector3(dados[0], dados[1], dados[2]), dados[3])
-
-    for dados in [
-        [-16.0, 0.0, -6.0, 0.2], [15.0, 0.0, -14.0, -0.3],
-        [-44.0, 0.0, -6.0, 0.4], [-56.0, 0.0, -14.0, -0.2],
-        [6.0, 0.0, -64.0, 0.1], [-7.0, 0.0, -74.0, 0.3],
-    ]:
-        _prop(CAIXOTE_MESH if int(absf(dados[0])) % 2 == 0 else BARRIL_MESH,
-            o + Vector3(dados[0], dados[1], dados[2]), dados[3])
-    _prop(CAVEIRA_MESH, o + Vector3(-2.5, 0.04, -66.0), 0.7, 1.4)
-
-    _bau(o + Vector3(-58.0, 0.0, -10.0), 600, true)
-    _bau(o + Vector3(19.0, 0.0, -28.0), 400, true)
-    _bau(o + Vector3(0.0, 0.0, -74.0), 900, true)
-
-    for onde in [Vector3(-12, 1.1, 4), Vector3(12, 1.1, 2), Vector3(-24, 1.1, -12),
-                 Vector3(24, 1.1, -8), Vector3(-2, 1.1, -26), Vector3(-44, 1.1, -8),
-                 Vector3(-58, 1.1, -14), Vector3(4, 1.1, -52)]:
+    for onde in [Vector3(-14, 1.1, 4), Vector3(14, 1.1, 2), Vector3(-26, 1.1, -12),
+                 Vector3(26, 1.1, -8), Vector3(-2, 1.1, -22), Vector3(-52, 1.1, -8),
+                 Vector3(-70, 1.1, -14), Vector3(4, 1.1, -40), Vector3(-8, 1.1, -60),
+                 Vector3(8, 1.1, -60)]:
         _shiker(o + onde, 1)
-    for onde in [Vector3(-6, 1.1, -66), Vector3(6, 1.1, -66)]:
-        _shiker(o + onde, 2)
-    var guardiao := _shiker(o + Vector3(0.0, 1.1, -72.0), 2)
+
+    var guardiao := _shiker(o + Vector3(0.0, 1.1, -70.0), 2)
     guardiao.call_deferred("tornar_super_shiker")
 
-    # A porta que leva da arena do chefe para ca, e a de volta.
-    _porta_de_estagio(Vector3(0.0, 0.0, -60.0), ORIGEM + ENTRADA_ESTAGIO_2, "Descer")
-    _porta_de_estagio(o + Vector3(0.0, 0.0, 32.0), ORIGEM + Vector3(0.0, 1.15, -52.0), "Subir")
+    _porta_de_estagio(Vector3(0.0, 0.0, -58.0), ORIGEM + ENTRADA_ESTAGIO_2, "Descer")
+    _porta_de_estagio(o + Vector3(0.0, 0.0, 32.0), ORIGEM + Vector3(0.0, 1.15, -30.0), "Subir")
 
 
 ## Uma porta que leva de um estagio a outro.
 ##
-## E um vao com folha, um brilho e uma area: encostou, muda de estagio. Nao ha
+## Vao com folha, letreiro e area: encostou, muda de estagio. Nao ha
 ## carregamento porque nao ha cena nova — o segundo estagio ja esta construido,
-## so longe. O que o jogador percebe e uma porta que finalmente leva a algum
-## lugar, que era o que faltava.
+## so longe.
 func _porta_de_estagio(onde: Vector3, destino: Vector3, rotulo: String) -> void:
-    _modulo(PORTA, onde, 0.0)
+    _modulo(PORTA, onde)
 
     var aviso := Label3D.new()
     aviso.text = rotulo
@@ -319,7 +241,7 @@ func _porta_de_estagio(onde: Vector3, destino: Vector3, rotulo: String) -> void:
     area.position = onde
     var forma := CollisionShape3D.new()
     var caixa := BoxShape3D.new()
-    caixa.size = Vector3(5.0, 4.0, 2.0)
+    caixa.size = Vector3(6.0, 4.0, 2.0)
     forma.shape = caixa
     forma.position.y = 2.0
     area.add_child(forma)
@@ -341,20 +263,14 @@ func _modulo(cena: PackedScene, onde: Vector3, giro := 0.0) -> void:
     for malha in malhas:
         malha.material_override = _material_da_rocha()
         malha.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-        malha.visibility_range_end = 58.0
-        malha.visibility_range_end_margin = 5.0
+        malha.visibility_range_end = 70.0
+        malha.visibility_range_end_margin = 6.0
     _dungeon.add_child(no)
 
-    # A COLISAO SAI DA PROPRIA GEOMETRIA, e nao de caixas escritas a mao.
-    #
-    # A lista de caixas cobria os corredores e falhava nas salas: onde a parede
-    # do modelo nao coincidia com a caixa, o jogador atravessava e caia no vazio
-    # preto. Manter as duas listas em sincronia — uma no arquivo do artista,
-    # outra no codigo — e trabalho que sempre acaba desatualizado.
-    #
-    # Malha de colisao estatica e barata: o motor a constroi uma vez e nunca
-    # mais mexe nela, porque nada aqui se move. E, ao contrario da caixa, ela
-    # bate exatamente com o que o jogador ve.
+    # A COLISAO E A PROPRIA MALHA. Medi o kit antes de confiar nisso: o miolo de
+    # cada parede de sala tem vinte e quatro vertices — so o batente da porta —
+    # contra mil e duzentos da parede inteira. Ou seja, ha vao em todos os
+    # lados, e a malha nao lacra nada.
     for malha in malhas:
         (malha as MeshInstance3D).create_trimesh_collision()
 
@@ -384,62 +300,6 @@ func _piso(onde: Vector3, tamanho: Vector3) -> void:
     colisao.shape = forma
     corpo.add_child(colisao)
     _dungeon.add_child(corpo)
-
-
-func _parede(onde: Vector3, tamanho: Vector3) -> void:
-    var corpo := StaticBody3D.new()
-    corpo.position = onde
-    var colisao := CollisionShape3D.new()
-    var forma := BoxShape3D.new()
-    forma.size = tamanho
-    colisao.shape = forma
-    corpo.add_child(colisao)
-    _dungeon.add_child(corpo)
-
-
-func _paredes_de_colisao() -> void:
-    # Entrada.
-    _parede(Vector3(-6.0, 2.0, 60), Vector3(0.6, 4, 12))
-    _parede(Vector3(6.0, 2.0, 60), Vector3(0.6, 4, 12))
-    _parede(Vector3(0, 2.0, 66), Vector3(12, 4, 0.6))
-    _parede(Vector3(-5, 2.0, 54), Vector3(2, 4, 0.6))
-    _parede(Vector3(5, 2.0, 54), Vector3(2, 4, 0.6))
-    # Corredor principal. Cada lateral é dividida nos pontos das três alas.
-    _parede(Vector3(-4, 2.0, 47), Vector3(0.6, 4, 14))
-    _parede(Vector3(-4, 2.0, 10), Vector3(0.6, 4, 40))
-    _parede(Vector3(-4, 2.0, -30), Vector3(0.6, 4, 24))
-    _parede(Vector3(4, 2.0, 34), Vector3(0.6, 4, 40))
-    _parede(Vector3(4, 2.0, -16), Vector3(0.6, 4, 44))
-    # Sala do chefe, com entrada central ao sul.
-    _parede(Vector3(-10, 2.0, -52), Vector3(0.6, 4, 20))
-    _parede(Vector3(10, 2.0, -52), Vector3(0.6, 4, 20))
-    _parede(Vector3(0, 2.0, -62), Vector3(20, 4, 0.6))
-    _parede(Vector3(-6.5, 2.0, -42), Vector3(7, 4, 0.6))
-    _parede(Vector3(6.5, 2.0, -42), Vector3(7, 4, 0.6))
-    # Ala oeste superior e sala final dela.
-    _parede(Vector3(-12, 2.0, 30), Vector3(16, 4, 0.6))
-    _parede(Vector3(-12, 2.0, 38), Vector3(16, 4, 0.6))
-    _parede(Vector3(-32, 2.0, 34), Vector3(0.6, 4, 12))
-    _parede(Vector3(-26, 2.0, 28), Vector3(12, 4, 0.6))
-    _parede(Vector3(-26, 2.0, 40), Vector3(12, 4, 0.6))
-    _parede(Vector3(-20, 2.0, 29), Vector3(0.6, 4, 2))
-    _parede(Vector3(-20, 2.0, 39), Vector3(0.6, 4, 2))
-    # Ala leste central e sala grande.
-    _parede(Vector3(16, 2.0, 6), Vector3(24, 4, 0.6))
-    _parede(Vector3(16, 2.0, 14), Vector3(24, 4, 0.6))
-    _parede(Vector3(48, 2.0, 10), Vector3(0.6, 4, 20))
-    _parede(Vector3(38, 2.0, 0), Vector3(20, 4, 0.6))
-    _parede(Vector3(38, 2.0, 20), Vector3(20, 4, 0.6))
-    _parede(Vector3(28, 2.0, 3), Vector3(0.6, 4, 6))
-    _parede(Vector3(28, 2.0, 17), Vector3(0.6, 4, 6))
-    # Ala oeste inferior e cripta.
-    _parede(Vector3(-16, 2.0, -18), Vector3(24, 4, 0.6))
-    _parede(Vector3(-16, 2.0, -10), Vector3(24, 4, 0.6))
-    _parede(Vector3(-40, 2.0, -14), Vector3(0.6, 4, 12))
-    _parede(Vector3(-34, 2.0, -20), Vector3(12, 4, 0.6))
-    _parede(Vector3(-34, 2.0, -8), Vector3(12, 4, 0.6))
-    _parede(Vector3(-28, 2.0, -19), Vector3(0.6, 4, 2))
-    _parede(Vector3(-28, 2.0, -9), Vector3(0.6, 4, 2))
 
 
 func _vazio_preto() -> void:
