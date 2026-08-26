@@ -35,6 +35,7 @@ var _camera: Camera3D
 var _dungeon: Node3D
 var _botao: Button
 var _placar: Label
+var _botoes_dificuldade: Array[Button] = []
 var _shikers_totais := 0
 var _dentro := false
 var _posicao_de_retorno := Vector3.ZERO
@@ -143,11 +144,25 @@ func _construir_dungeon() -> void:
     _bau(Vector3(40.0, 0.0, -8.0), 300, true)
     _bau(Vector3(0.0, 0.0, -54.0), 500, true)
 
-    for onde in [Vector3(-2, 1.1, 44), Vector3(-12, 1.1, 28), Vector3(12, 1.1, 24),
-                 Vector3(-8, 1.1, 8), Vector3(9, 1.1, 6), Vector3(-30, 1.1, 22),
-                 Vector3(30, 1.1, 14), Vector3(-28, 1.1, -2), Vector3(28, 1.1, -4),
-                 Vector3(-2, 1.1, -12), Vector3(-10, 1.1, -30), Vector3(10, 1.1, -30)]:
-        _shiker(onde, 0 if int(onde.z) % 2 == 0 else 1)
+    # OS BICHOS NASCEM NO CENTRO DAS SALAS.
+    #
+    # As posicoes anteriores eram escritas a olho e varias caiam dentro de
+    # parede — o Shiker aparecia atravessado nela, meio corpo de cada lado. O
+    # centro de uma sala e o unico ponto que a planta garante aberto, entao e
+    # dali que eles saem, com um passo de desencontro para nao ficarem
+    # enfileirados.
+    var salas_estagio_1 := [
+        Vector3(-20, 0, 28), Vector3(0, 0, 28), Vector3(20, 0, 28),
+        Vector3(-20, 0, 8), Vector3(20, 0, 8),
+        Vector3(40, 0, 8), Vector3(-40, 0, 28),
+        Vector3(40, 0, -8), Vector3(-40, 0, 44),
+        Vector3(-20, 0, -28), Vector3(20, 0, -28),
+        Vector3(-20, 0, -48), Vector3(20, 0, -48),
+    ]
+    for i in salas_estagio_1.size():
+        var canto := Vector3(cos(float(i) * 1.7) * 4.0, 1.1, sin(float(i) * 2.3) * 4.0)
+        _shiker(salas_estagio_1[i] + canto, 0 if i % 3 else 1)
+    _vestir_salas(salas_estagio_1)
 
     _construir_segundo_estagio()
 
@@ -188,6 +203,25 @@ func _parede_invisivel(onde: Vector3, tamanho: Vector3) -> void:
     colisao.shape = forma
     corpo.add_child(colisao)
     _dungeon.add_child(corpo)
+
+
+## Enche as salas: arco na boca, tocha na parede e cacareco no canto.
+##
+## A caverna estava pobre porque cada sala era uma caixa vazia com uma tocha. O
+## que uma sala precisa e de tres camadas: o vao anunciado, a luz encostada na
+## parede e a sujeira do canto — que e o que conta que alguem esteve ali.
+func _vestir_salas(centros: Array) -> void:
+    for i in centros.size():
+        var c: Vector3 = centros[i]
+        if i % 2 == 0:
+            _modulo(PORTAO, c + Vector3(0, 0, 10.0))
+        _tocha(c + Vector3(-8.6, 0, -2.0 + float(i % 3)), 0.0)
+        _tocha(c + Vector3(8.6, 0, 2.0 - float(i % 3)), PI)
+        var canto := Vector3(6.5 * (1.0 if i % 2 else -1.0), 0.0, -6.5)
+        _prop(CAIXOTE_MESH if i % 3 else BARRIL_MESH, c + canto, float(i) * 0.7)
+        if i % 4 == 0:
+            _prop(CAVEIRA_MESH, c + Vector3(-canto.x * 0.8, 0.04, canto.z + 1.4),
+                float(i) * 1.1, 1.15)
 
 
 func _corredor_z(alturas: Array, x := 0.0) -> void:
@@ -248,11 +282,19 @@ func _construir_segundo_estagio() -> void:
     _bau(o + Vector3(26.0, 0.0, -24.0), 400, true)
     _bau(o + Vector3(0.0, 0.0, -78.0), 900, true)
 
-    for onde in [Vector3(-14, 1.1, 4), Vector3(14, 1.1, 2), Vector3(-26, 1.1, -12),
-                 Vector3(26, 1.1, -8), Vector3(-2, 1.1, -22), Vector3(-52, 1.1, -8),
-                 Vector3(-70, 1.1, -14), Vector3(4, 1.1, -40), Vector3(-8, 1.1, -60),
-                 Vector3(8, 1.1, -60)]:
-        _shiker(o + onde, 1)
+    var salas_estagio_2 := [
+        Vector3(-20, 0, 0), Vector3(20, 0, 0), Vector3(-20, 0, -20),
+        Vector3(20, 0, -20), Vector3(0, 0, 0), Vector3(-50, 0, -10),
+        Vector3(-70, 0, -10), Vector3(-20, 0, -56), Vector3(20, 0, -56),
+        Vector3(-20, 0, -76), Vector3(20, 0, -76),
+    ]
+    for i in salas_estagio_2.size():
+        var canto := Vector3(cos(float(i) * 2.1) * 5.0, 1.1, sin(float(i) * 1.3) * 5.0)
+        _shiker(o + salas_estagio_2[i] + canto, 1 if i % 3 else 2)
+    var absolutos_2 := []
+    for v in salas_estagio_2:
+        absolutos_2.append(o + v)
+    _vestir_salas(absolutos_2)
 
     var guardiao := _shiker(o + Vector3(0.0, 1.1, -70.0), 2)
     guardiao.call_deferred("tornar_super_shiker")
@@ -478,19 +520,27 @@ func _criar_botao_hud() -> void:
     _botao.set_anchors_preset(Control.PRESET_TOP_LEFT)
     _botao.position = Vector2(18, 118)
     _botao.size = Vector2(108, 58)
-    _botao.add_theme_font_size_override("font_size", 15)
+    _botao.add_theme_font_size_override("font_size", 16)
     _botao.add_theme_color_override("font_color", Color(1.0, 0.87, 0.50))
     _botao.add_theme_color_override("font_outline_color", Color(0.03, 0.01, 0.08))
     _botao.add_theme_constant_override("outline_size", 4)
-    var caixa := StyleBoxFlat.new()
-    caixa.bg_color = Color(0.035, 0.025, 0.09, 0.94)
-    caixa.border_color = Color(0.70, 0.48, 0.16, 0.96)
-    caixa.set_border_width_all(2)
-    caixa.set_corner_radius_all(12)
-    _botao.add_theme_stylebox_override("normal", caixa)
-    _botao.add_theme_stylebox_override("hover", caixa)
-    _botao.add_theme_stylebox_override("pressed", caixa)
-    _botao.pressed.connect(_alternar)
+    # A ARTE DO KIT, e nao um retangulo desenhado no codigo.
+    #
+    # O botao da caverna era o unico do HUD feito de caixa lisa, e destoava de
+    # todos os outros — parecia painel de depuracao esquecido na tela.
+    var moldura := NinePatchRect.new()
+    moldura.texture = load("res://textures/ui/kit/botao_roxo.png")
+    moldura.patch_margin_left = 36
+    moldura.patch_margin_top = 28
+    moldura.patch_margin_right = 36
+    moldura.patch_margin_bottom = 14
+    moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
+    moldura.show_behind_parent = true
+    moldura.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _botao.add_child(moldura)
+    for estado in ["normal", "hover", "pressed", "focus"]:
+        _botao.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+    _botao.pressed.connect(_pedir_entrada)
     hud.add_child(_botao)
 
     # O PLACAR DA CAVERNA. Sem ele o jogador nao sabe se falta um bicho ou
@@ -508,6 +558,149 @@ func _criar_botao_hud() -> void:
     _placar.add_theme_constant_override("outline_size", 5)
     _placar.visible = false
     hud.add_child(_placar)
+
+
+## A ANTESSALA DA CAVERNA.
+##
+## Entrar direto no clique tirava do jogador a unica escolha que a DG oferece
+## antes da briga: o quanto ela vai doer. A tela conta o que espera la dentro e
+## deixa escolher — e escolher antes de entrar e o que faz a dificuldade
+## parecer decisao, e nao castigo.
+const DIFICULDADES := [
+    ["SERENA", 0.75, 1.0, "Para conhecer a caverna. Menos vida nos Shikers."],
+    ["DISSONANTE", 1.0, 1.4, "O equilibrio da caverna. Recompensa cheia."],
+    ["CACOFONIA", 1.6, 2.2, "Eles batem mais forte e aguentam mais. Espolio dobrado."],
+]
+
+var _dificuldade := 1
+var _tela_entrada: CanvasLayer
+
+
+func _pedir_entrada() -> void:
+    if _dentro:
+        _sair()
+        return
+    if _tela_entrada == null:
+        _montar_tela_entrada()
+    _tela_entrada.visible = true
+
+
+func _montar_tela_entrada() -> void:
+    _tela_entrada = CanvasLayer.new()
+    _tela_entrada.layer = 60
+    add_child(_tela_entrada)
+
+    var fundo := ColorRect.new()
+    fundo.color = Color(0.01, 0.01, 0.03, 0.86)
+    fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    fundo.mouse_filter = Control.MOUSE_FILTER_STOP
+    _tela_entrada.add_child(fundo)
+
+    var painel := PanelContainer.new()
+    var caixa := StyleBoxFlat.new()
+    caixa.bg_color = Color(0.045, 0.06, 0.12, 0.97)
+    caixa.border_color = Color(0.62, 0.50, 0.26)
+    caixa.set_border_width_all(2)
+    caixa.set_corner_radius_all(12)
+    painel.add_theme_stylebox_override("panel", caixa)
+    painel.set_anchors_preset(Control.PRESET_CENTER)
+    painel.offset_left = -330
+    painel.offset_right = 330
+    painel.offset_top = -240
+    painel.offset_bottom = 240
+    fundo.add_child(painel)
+
+    var margem := MarginContainer.new()
+    for lado in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+        margem.add_theme_constant_override(lado, 26)
+    painel.add_child(margem)
+
+    var coluna := VBoxContainer.new()
+    coluna.add_theme_constant_override("separation", 10)
+    margem.add_child(coluna)
+
+    coluna.add_child(_letra("CAVERNA DA PRIMEIRA RESSONÂNCIA", 26, Color(0.97, 0.84, 0.47)))
+    coluna.add_child(_letra("Dois estágios  •  Shikers, baús e dois Super Shikers", 14, Color(0.72, 0.78, 0.88)))
+
+    for i in DIFICULDADES.size():
+        var d: Array = DIFICULDADES[i]
+        var b := Button.new()
+        b.custom_minimum_size.y = 62
+        b.text = "%s        vida ×%.2f      espólio ×%.1f" % [d[0], d[1], d[2]]
+        b.add_theme_font_size_override("font_size", 17)
+        b.add_theme_color_override("font_color", Color(0.98, 0.94, 0.82))
+        var cor := Color(0.16, 0.22, 0.34) if i != _dificuldade else Color(0.34, 0.24, 0.46)
+        var fundo_b := StyleBoxFlat.new()
+        fundo_b.bg_color = cor
+        fundo_b.border_color = cor.lightened(0.3)
+        fundo_b.set_border_width_all(1)
+        fundo_b.set_corner_radius_all(8)
+        b.add_theme_stylebox_override("normal", fundo_b)
+        b.pressed.connect(_escolher_dificuldade.bind(i))
+        coluna.add_child(b)
+        _botoes_dificuldade.append(b)
+        coluna.add_child(_letra(str(d[3]), 12, Color(0.64, 0.70, 0.80)))
+
+    var acoes := HBoxContainer.new()
+    acoes.alignment = BoxContainer.ALIGNMENT_CENTER
+    acoes.add_theme_constant_override("separation", 14)
+    coluna.add_child(acoes)
+
+    var entrar := Button.new()
+    entrar.text = "ENTRAR NA CAVERNA"
+    entrar.custom_minimum_size = Vector2(300, 56)
+    entrar.add_theme_font_size_override("font_size", 19)
+    entrar.add_theme_color_override("font_color", Color(1.0, 0.93, 0.72))
+    var dourado := StyleBoxFlat.new()
+    dourado.bg_color = Color(0.36, 0.27, 0.10)
+    dourado.border_color = Color(0.80, 0.64, 0.30)
+    dourado.set_border_width_all(2)
+    dourado.set_corner_radius_all(9)
+    entrar.add_theme_stylebox_override("normal", dourado)
+    entrar.pressed.connect(func():
+        _tela_entrada.visible = false
+        _entrar())
+    acoes.add_child(entrar)
+
+    var voltar := Button.new()
+    voltar.text = "VOLTAR"
+    voltar.custom_minimum_size = Vector2(150, 56)
+    voltar.add_theme_font_size_override("font_size", 17)
+    voltar.pressed.connect(func(): _tela_entrada.visible = false)
+    acoes.add_child(voltar)
+
+
+func _letra(txt: String, corpo: int, cor: Color) -> Label:
+    var l := Label.new()
+    l.text = txt
+    l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    l.add_theme_font_size_override("font_size", corpo)
+    l.add_theme_color_override("font_color", cor)
+    return l
+
+
+func _escolher_dificuldade(qual: int) -> void:
+    _dificuldade = qual
+    for i in _botoes_dificuldade.size():
+        var b: Button = _botoes_dificuldade[i]
+        var cor := Color(0.16, 0.22, 0.34) if i != qual else Color(0.34, 0.24, 0.46)
+        var fundo_b := StyleBoxFlat.new()
+        fundo_b.bg_color = cor
+        fundo_b.border_color = cor.lightened(0.3)
+        fundo_b.set_border_width_all(1)
+        fundo_b.set_corner_radius_all(8)
+        b.add_theme_stylebox_override("normal", fundo_b)
+
+
+## Aplica a escolha aos bichos que ja estao de pe na caverna.
+func _aplicar_dificuldade() -> void:
+    var fator: float = float(DIFICULDADES[_dificuldade][1])
+    for inimigo in _inimigos:
+        if not is_instance_valid(inimigo):
+            continue
+        if inimigo.has_method("ajustar_por_dificuldade"):
+            inimigo.ajustar_por_dificuldade(fator)
 
 
 func _alternar() -> void:
@@ -582,6 +775,7 @@ func _entrar() -> void:
     _jogador.global_position = ORIGEM + destino
     _jogador.velocity = Vector3.ZERO
     _botao.text = "SAIR\nDA DG"
+    _aplicar_dificuldade()
     _shikers_totais = maxi(_shikers_totais, _contar_shikers())
     if _placar:
         _placar.visible = true

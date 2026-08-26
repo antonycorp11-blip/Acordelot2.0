@@ -531,11 +531,12 @@ func _physics_process(delta: float) -> void:
 ## So o Voraz e o Anciao usam. O comum continua sendo o bicho que ensina o
 ## basico; se todos tivessem area telegrafada, nenhuma seria notavel.
 const AVISO_DO_GOLPE := 1.05
-const PAUSA_ENTRE_AREAS := Vector2(5.0, 8.5)
-const ALCANCE_DA_AREA := 16.0
+const PAUSA_ENTRE_AREAS := Vector2(4.0, 7.0)
+const ALCANCE_DA_AREA := 18.0
 
-var _proxima_area := 4.0
+var _proxima_area := 3.0
 var _raio_da_area := 3.2
+var _forca_da_area := 28.0
 
 
 func _pensar_no_golpe(delta: float) -> void:
@@ -549,7 +550,18 @@ func _pensar_no_golpe(delta: float) -> void:
     if ate.length() > ALCANCE_DA_AREA:
         return
     _proxima_area = randf_range(PAUSA_ENTRE_AREAS.x, PAUSA_ENTRE_AREAS.y)
-    _marcar_area(_jogador.global_position)
+
+    # TRES GOLPES, e nao um. Um bicho que repete a mesma marca vira metronomo:
+    # o jogador aprende o ritmo em dez segundos e nunca mais toma. Com tres
+    # formas diferentes ele precisa LER qual esta vindo — e e a leitura que faz
+    # a briga valer.
+    var sorte := randf()
+    if monster_type >= 2 and sorte < 0.34:
+        _raio_em_linha(ate.normalized())
+    elif sorte < 0.62:
+        _investida(ate.normalized())
+    else:
+        _marcar_area(_jogador.global_position)
 
 
 ## A marca no chao e o estouro depois dela.
@@ -604,8 +616,83 @@ func _estourar_area(onde: Vector3, raio: float, cor: Color) -> void:
     var hud := get_tree().get_first_node_in_group("player_hud")
     if hud == null:
         hud = get_node_or_null("/root/ZonedWorld/HUD/PlayerHUD")
+    _bater_no_heroi(_forca_da_area + 18.0 * float(monster_type))
+
+
+## O RAIO EM LINHA: uma faixa longa e estreita, que pega quem estiver no eixo.
+##
+## Diferente do circulo, aqui nao adianta correr para longe — tem de sair DE
+## LADO. Sao duas leituras diferentes com o mesmo aviso de um segundo, e e isso
+## que tira o combate do automatico.
+func _raio_em_linha(direcao: Vector3) -> void:
+    var comprimento := 17.0
+    var largura := 2.6
+    var origem := global_position + _centro_do_corpo + Vector3.UP * 0.06
+
+    var marca := MeshInstance3D.new()
+    var faixa := QuadMesh.new()
+    faixa.size = Vector2(largura, comprimento)
+    faixa.orientation = PlaneMesh.FACE_Y
+    faixa.center_offset = Vector3(0.0, 0.0, -comprimento * 0.5)
+    var material := StandardMaterial3D.new()
+    material.albedo_color = Color(0.55, 0.85, 1.0, 0.75)
+    material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    faixa.material = material
+    marca.mesh = faixa
+    marca.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    marca.top_level = true
+    marca.global_position = origem
+    marca.global_rotation.y = atan2(direcao.x, direcao.z) + PI
+    marca.scale = Vector3(0.25, 1.0, 1.0)
+    add_child(marca)
+
+    var tw := create_tween()
+    tw.tween_property(marca, "scale", Vector3.ONE, AVISO_DO_GOLPE)
+    tw.tween_callback(_estourar_linha.bind(origem, direcao, comprimento, largura))
+    tw.tween_property(marca, "modulate:a", 0.0, 0.2)
+    tw.tween_callback(marca.queue_free)
+    _rugir()
+
+
+func _estourar_linha(origem: Vector3, direcao: Vector3, comprimento: float, largura: float) -> void:
+    if _jogador == null or not is_instance_valid(_jogador):
+        return
+    var ate := _jogador.global_position - origem
+    ate.y = 0.0
+    var ao_longo := ate.dot(direcao)
+    if ao_longo < 0.0 or ao_longo > comprimento:
+        return
+    var de_lado := absf(ate.dot(Vector3(direcao.z, 0.0, -direcao.x)))
+    if de_lado > largura * 0.5:
+        return
+    _bater_no_heroi(_forca_da_area * 1.2)
+
+
+## A INVESTIDA: ele avisa e vem para cima, em vez de bater de longe.
+##
+## O terceiro golpe muda a distancia, e nao a forma: quem se acostumou a
+## respeitar as marcas no chao aprende que ficar longe tambem tem preco.
+func _investida(direcao: Vector3) -> void:
+    var alvo := global_position + direcao * 7.0
+    _marcar_area(alvo)
+    _atordoado_ate = Time.get_ticks_msec() / 1000.0 + AVISO_DO_GOLPE
+    var tw := create_tween()
+    tw.tween_interval(AVISO_DO_GOLPE)
+    tw.tween_callback(func():
+        if _morrendo:
+            return
+        velocity = direcao * 16.0 + Vector3.UP * 1.5)
+
+
+func _bater_no_heroi(quanto: float) -> void:
+    var hud := get_tree().get_first_node_in_group("player_hud")
+    if hud == null:
+        hud = get_node_or_null("/root/ZonedWorld/HUD/PlayerHUD")
     if hud and hud.has_method("tomar_dano"):
-        hud.tomar_dano(28.0 + 22.0 * float(monster_type))
+        hud.tomar_dano(quanto)
 
 
 ## O rugido do Anciao: uma onda que sobe do chao, so para anunciar quem chegou.
@@ -668,12 +755,27 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
 ## antes de o jogador aprender o ritmo dela — e chefe que morre na primeira
 ## investida nao e chefe, e um bicho grande. Com cinco mil de vida ele obriga a
 ## usar as skills, e nao so o golpe basico.
+## A dificuldade escolhida na porta da caverna.
+##
+## Multiplica a vida e a forca do golpe telegrafado. Nao mexe na velocidade: um
+## bicho mais rapido muda o jogo inteiro, e o que se quer aqui e o mesmo jogo
+## mais duro.
+func ajustar_por_dificuldade(fator: float) -> void:
+    vida_maxima *= fator
+    vida = vida_maxima
+    _forca_da_area *= fator
+    if _hp_label_3d:
+        _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+    _pintar_barra()
+
+
 func tornar_super_shiker() -> void:
     _nome_personalizado = "Super Shiker"
     vida_maxima = 5200.0
     vida = vida_maxima
     scale = Vector3.ONE * 1.75
     _velocidade = 4.8
+    _forca_da_area = 52.0
     # Aguenta mais empurrao: com o atordoamento padrao, uma sequencia de golpes
     # o prendia no lugar ate cair.
     _atordoamento_maximo = 0.18
