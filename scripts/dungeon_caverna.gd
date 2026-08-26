@@ -12,6 +12,9 @@ const CORREDOR := preload("res://assets/dungeon/kenney/corridor-wide.glb")
 const JUNCAO := preload("res://assets/dungeon/kenney/corridor-wide-junction.glb")
 const PORTAO := preload("res://assets/dungeon/kenney/gate.glb")
 const PORTA := preload("res://assets/dungeon/kenney/gate-door.glb")
+const SALA_GRANDE_B := preload("res://assets/dungeon/kenney/room-large-variation.glb")
+const CURVA := preload("res://assets/dungeon/kenney/corridor-wide-corner.glb")
+const FUNDO_DE_SACO := preload("res://assets/dungeon/kenney/corridor-wide-end.glb")
 const TOCHA_MESH := preload("res://assets/dungeon/quaternius/Torch.obj")
 const CAIXOTE_MESH := preload("res://assets/dungeon/quaternius/Crate.obj")
 const BARRIL_MESH := preload("res://assets/dungeon/quaternius/Barrel.obj")
@@ -39,6 +42,9 @@ var _camera_fov_anterior := 50.0
 var _inimigos: Array[Node3D] = []
 var _ate_atualizar_inimigos := 0.0
 var _material_rocha: StandardMaterial3D
+var _luz_da_caverna: DirectionalLight3D
+var _ciclo: Node
+var _ciclo_rodava := true
 
 
 func _ready() -> void:
@@ -46,6 +52,7 @@ func _ready() -> void:
     _zona = get_parent().get_node_or_null("ZoneBuilder") as Node3D
     _ambiente = get_parent().get_node_or_null("WorldEnvironment") as WorldEnvironment
     _sol = get_parent().get_node_or_null("Sunlight") as DirectionalLight3D
+    _ciclo = get_parent().get_node_or_null("CicloDiaNoite")
     _minimapa = get_parent().get_node_or_null("HUD/ZoneMinimap") as Control
     _barra_dia = get_parent().get_node_or_null("HUD/BarraDoDia") as Control
     _camera = get_parent().get_node_or_null("CameraRig/Camera3D") as Camera3D
@@ -90,6 +97,27 @@ func _construir_dungeon() -> void:
         _modulo(CORREDOR, Vector3(x, 0, -14), PI * 0.5)
     _modulo(SALA_PEQUENA, Vector3(-34, 0, -14), -PI * 0.5)
 
+    # Ala nordeste: curva e sala pequena, o primeiro desvio que o jogador
+    # encontra. Curta de proposito — ensina que ha desvios sem custar muito.
+    for x in [8.0, 16.0]:
+        _modulo(CORREDOR, Vector3(x, 0, 34), PI * 0.5)
+    _modulo(CURVA, Vector3(24, 0, 34), PI * 0.5)
+    for z in [26.0, 18.0]:
+        _modulo(CORREDOR, Vector3(24, 0, z))
+    _modulo(SALA_PEQUENA_B, Vector3(24, 0, 8), 0.0)
+
+    # Ala profunda a oeste, ja perto da arena: a sala grande alternativa, que e
+    # o ultimo lugar onde da para se preparar antes do chefe.
+    _modulo(JUNCAO, Vector3(0, 0, -30), PI * 0.5)
+    for x in [-8.0, -16.0, -24.0]:
+        _modulo(CORREDOR, Vector3(x, 0, -30), PI * 0.5)
+    _modulo(SALA_GRANDE_B, Vector3(-38, 0, -30), -PI * 0.5)
+
+    # Um beco sem saida ao leste da arena — recompensa quem procura.
+    for x in [8.0, 16.0]:
+        _modulo(CORREDOR, Vector3(x, 0, -30), PI * 0.5)
+    _modulo(FUNDO_DE_SACO, Vector3(24, 0, -30), PI * 0.5)
+
     _modulo(PORTAO, Vector3(0, 0, 54), 0.0)
     _modulo(PORTAO, Vector3(0, 0, -42), 0.0)
 
@@ -103,6 +131,12 @@ func _construir_dungeon() -> void:
     _piso(Vector3(38, -0.18, 10), Vector3(20, 0.36, 20))
     _piso(Vector3(-16, -0.18, -14), Vector3(24, 0.36, 8))
     _piso(Vector3(-34, -0.18, -14), Vector3(12, 0.36, 12))
+    _piso(Vector3(14, -0.18, 34), Vector3(20, 0.36, 8))
+    _piso(Vector3(24, -0.18, 22), Vector3(8, 0.36, 32))
+    _piso(Vector3(24, -0.18, 8), Vector3(12, 0.36, 12))
+    _piso(Vector3(-16, -0.18, -30), Vector3(24, 0.36, 8))
+    _piso(Vector3(-38, -0.18, -30), Vector3(20, 0.36, 20))
+    _piso(Vector3(14, -0.18, -30), Vector3(20, 0.36, 8))
     _paredes_de_colisao()
     _vazio_preto()
 
@@ -114,6 +148,10 @@ func _construir_dungeon() -> void:
         [-8.5, 0.0, -55.0, 0.0], [8.5, 0.0, -55.0, PI],
         [-21.0, 0.0, 37.0, 0.0], [35.0, 0.0, 18.0, PI],
         [45.0, 0.0, 5.0, 0.0], [-37.0, 0.0, -18.0, 0.0],
+        [21.0, 0.0, 30.0, 0.0], [27.0, 0.0, 18.0, PI],
+        [21.0, 0.0, 6.0, 0.0], [-31.0, 0.0, -27.0, 0.0],
+        [-45.0, 0.0, -33.0, 0.0], [-33.0, 0.0, -36.0, PI],
+        [19.0, 0.0, -27.0, 0.0],
     ]:
         _tocha(Vector3(dados[0], dados[1], dados[2]), dados[3])
 
@@ -122,15 +160,23 @@ func _construir_dungeon() -> void:
         [34.0, 0.0, 17.0, -0.25], [43.0, 0.0, 16.0, 0.1],
         [-37.0, 0.0, -10.0, 0.3], [-31.0, 0.0, -18.0, -0.3],
         [-8.2, 0.0, -58.0, 0.1],
+        [26.5, 0.0, 5.5, -0.3], [21.5, 0.0, 10.5, 0.25],
+        [-42.0, 0.0, -26.0, 0.15], [-35.0, 0.0, -35.0, -0.4],
+        [-44.0, 0.0, -34.5, 0.5], [22.5, 0.0, -32.0, -0.15],
     ]:
         _prop(CAIXOTE_MESH if int(absf(dados[0])) % 2 == 0 else BARRIL_MESH,
             Vector3(dados[0], dados[1], dados[2]), dados[3])
     _prop(CAVEIRA_MESH, Vector3(4.8, 0.04, -45.0), 0.4, 1.35)
+    _prop(CAVEIRA_MESH, Vector3(-40.5, 0.04, -31.0), -0.8, 1.2)
+    _prop(CAVEIRA_MESH, Vector3(25.5, 0.04, -31.5), 1.1, 1.1)
 
     _bau(Vector3(-27.0, 0.0, 34.0), 200, false)
     _bau(Vector3(41.0, 0.0, 10.0), 350, true)
     _bau(Vector3(-35.0, 0.0, -14.0), 300, true)
     _bau(Vector3(-6.8, 0.0, -58.0), 500, true)
+    _bau(Vector3(26.0, 0.0, 9.0), 260, false)
+    _bau(Vector3(-41.0, 0.0, -30.0), 450, true)
+    _bau(Vector3(25.5, 0.0, -30.0), 320, true)
 
     _shiker(Vector3(-1.8, 1.1, 43.0), 0)
     _shiker(Vector3(1.8, 1.1, 26.0), 0)
@@ -146,6 +192,14 @@ func _construir_dungeon() -> void:
     _shiker(Vector3(-34.0, 1.1, -11.0), 0)
     _shiker(Vector3(-4.5, 1.1, -49.0), 1)
     _shiker(Vector3(4.5, 1.1, -49.0), 1)
+    _shiker(Vector3(14.0, 1.1, 34.0), 0)
+    _shiker(Vector3(24.0, 1.1, 22.0), 1)
+    _shiker(Vector3(24.0, 1.1, 10.0), 0)
+    _shiker(Vector3(-14.0, 1.1, -30.0), 1)
+    _shiker(Vector3(-34.0, 1.1, -27.0), 0)
+    _shiker(Vector3(-40.0, 1.1, -34.0), 2)
+    _shiker(Vector3(15.0, 1.1, -30.0), 1)
+
     var chefe := _shiker(Vector3(0.0, 1.1, -56.0), 2)
     chefe.call_deferred("tornar_super_shiker")
 
@@ -154,12 +208,26 @@ func _modulo(cena: PackedScene, onde: Vector3, giro := 0.0) -> void:
     var no := cena.instantiate() as Node3D
     no.position = onde
     no.rotation.y = giro
-    for malha in no.find_children("*", "MeshInstance3D", true, false):
+    var malhas := no.find_children("*", "MeshInstance3D", true, false)
+    for malha in malhas:
         malha.material_override = _material_da_rocha()
         malha.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
         malha.visibility_range_end = 58.0
         malha.visibility_range_end_margin = 5.0
     _dungeon.add_child(no)
+
+    # A COLISAO SAI DA PROPRIA GEOMETRIA, e nao de caixas escritas a mao.
+    #
+    # A lista de caixas cobria os corredores e falhava nas salas: onde a parede
+    # do modelo nao coincidia com a caixa, o jogador atravessava e caia no vazio
+    # preto. Manter as duas listas em sincronia — uma no arquivo do artista,
+    # outra no codigo — e trabalho que sempre acaba desatualizado.
+    #
+    # Malha de colisao estatica e barata: o motor a constroi uma vez e nunca
+    # mais mexe nela, porque nada aqui se move. E, ao contrario da caixa, ela
+    # bate exatamente com o que o jogador ve.
+    for malha in malhas:
+        (malha as MeshInstance3D).create_trimesh_collision()
 
 
 func _material_da_rocha() -> StandardMaterial3D:
@@ -293,7 +361,7 @@ func _tocha(onde: Vector3, giro: float) -> void:
     _prop(TOCHA_MESH, onde + Vector3.UP * 1.2, giro, 1.25)
     var brilho := MeshInstance3D.new()
     var quadro := QuadMesh.new()
-    quadro.size = Vector2(2.3, 2.3)
+    quadro.size = Vector2(3.0, 3.0)
     var mat := StandardMaterial3D.new()
     mat.albedo_texture = BRILHO
     mat.albedo_color = Color(1.0, 0.42, 0.10, 0.85)
@@ -309,6 +377,18 @@ func _tocha(onde: Vector3, giro: float) -> void:
     brilho.position = onde + Vector3.UP * 2.0
     brilho.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     _dungeon.add_child(brilho)
+
+    # Uma luz pontual por tocha. Na caverna ela FAZ diferenca — diferente do
+    # mundo aberto, aqui nao ha sol competindo, e e a luz que da volume as
+    # paredes e diz onde o corredor vira.
+    var luz := OmniLight3D.new()
+    luz.light_color = Color(1.0, 0.72, 0.42)
+    luz.light_energy = 2.6
+    luz.omni_range = 13.0
+    luz.omni_attenuation = 1.1
+    luz.shadow_enabled = false
+    luz.position = onde + Vector3.UP * 2.1
+    _dungeon.add_child(luz)
 
 
 func _bau(onde: Vector3, recompensa: int, ouro: bool) -> void:
@@ -396,12 +476,29 @@ func _entrar() -> void:
     if _camera:
         _camera_transform_anterior = _camera.transform
         _camera_fov_anterior = _camera.fov
-        _camera.position = Vector3(0.0, 10.8, 11.8)
-        _camera.fov = 52.0
+        # MAIS LATERAL que a de cima do mundo aberto: a caverna e feita de
+        # paredes, e camera muito no alto so mostra o chao delas. Baixando o
+        # olho de 42 para 32 graus, a parede aparece e o corredor ganha
+        # profundidade.
+        _camera.position = Vector3(0.0, 8.6, 13.8)
+        _camera.fov = 55.0
+    # O RELOGIO PARA NA PORTA DA CAVERNA.
+    #
+    # Aqui estava o motivo de a caverna nao clarear por mais que eu subisse a
+    # energia do ambiente: o ciclo do dia reescreve cor, energia e nevoa do
+    # WorldEnvironment A CADA QUADRO. A caverna trocava o ambiente e, no quadro
+    # seguinte, levava a noite de volta por cima. Debaixo da terra nao ha
+    # amanhecer para simular, entao o relogio simplesmente descansa.
+    if _ciclo:
+        _ciclo_rodava = bool(_ciclo.get("rodando"))
+        _ciclo.set("rodando", false)
+
     _aplicar_ambiente_da_caverna()
     var destino := ENTRADA
     if OS.get_cmdline_user_args().has("--boss"):
         destino = Vector3(0.0, 1.15, -52.0)
+    if OS.get_cmdline_user_args().has("--parede"):
+        destino = Vector3(0.0, 1.15, 20.0)
     _jogador.global_position = ORIGEM + destino
     _jogador.velocity = Vector3.ZERO
     _botao.text = "SAIR\nDA DG"
@@ -418,6 +515,8 @@ func _sair() -> void:
         _zona.process_mode = Node.PROCESS_MODE_INHERIT
     if _sol:
         _sol.visible = true
+    if _luz_da_caverna:
+        _luz_da_caverna.visible = false
     if _minimapa:
         _minimapa.visible = true
     if _barra_dia:
@@ -427,6 +526,8 @@ func _sair() -> void:
         _camera.fov = _camera_fov_anterior
     if _ambiente and _ambiente_anterior:
         _ambiente.environment = _ambiente_anterior
+    if _ciclo:
+        _ciclo.set("rodando", _ciclo_rodava)
     _botao.text = "DG\nCAVERNA"
 
 
@@ -440,12 +541,39 @@ func _aplicar_ambiente_da_caverna() -> void:
     env.background_color = Color(0.001, 0.002, 0.008)
     env.background_energy_multiplier = 0.05
     env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    env.ambient_light_color = Color(0.20, 0.27, 0.42)
-    env.ambient_light_energy = 0.72
+    # SEM ISTO A COR NAO VALE NADA. O ambiente por cor so entra na conta quando
+    # a contribuicao do ceu vai a zero; com o padrao em 1, o motor continua
+    # tirando a luz do fundo — que aqui e quase preto. Foi por isso que subir a
+    # energia do ambiente nao clareou a caverna.
+    env.ambient_light_sky_contribution = 0.0
+    # CLAREOU. A caverna estava num escuro que nao e clima, e sim dificuldade de
+    # leitura: o jogador perdia parede, bau e bicho no mesmo breu. Caverna de
+    # jogo e convencao, nao fotometria — o preto fica nos cantos, e o caminho
+    # precisa ser visto.
+    env.ambient_light_color = Color(0.34, 0.40, 0.55)
+    env.ambient_light_energy = 1.25
     env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
     env.tonemap_exposure = 1.12
     env.fog_enabled = true
-    env.fog_light_color = Color(0.05, 0.08, 0.16)
-    env.fog_light_energy = 0.25
-    env.fog_density = 0.018
+    env.fog_light_color = Color(0.10, 0.14, 0.24)
+    env.fog_light_energy = 0.45
+    # Nevoa mais rala: a densidade antiga apagava a sala inteira a doze metros,
+    # e sala que nao se ve nao se explora.
+    env.fog_density = 0.009
     _ambiente.environment = env
+
+    # A LUZ DE PRESENCA da caverna.
+    #
+    # Ambiente sozinho chapa tudo: ilumina por igual e nao desenha volume, entao
+    # parede e chao viram a mesma mancha. Uma direcional fraca, vinda de cima e
+    # de lado, devolve sombra propria as pedras — e como o sol do mundo fica
+    # escondido enquanto se joga aqui, ela nao briga com nada.
+    if _luz_da_caverna == null:
+        _luz_da_caverna = DirectionalLight3D.new()
+        _luz_da_caverna.name = "LuzDaCaverna"
+        _luz_da_caverna.rotation_degrees = Vector3(-52.0, 38.0, 0.0)
+        _luz_da_caverna.light_color = Color(0.62, 0.70, 0.92)
+        _luz_da_caverna.light_energy = 0.85
+        _luz_da_caverna.shadow_enabled = false
+        add_child(_luz_da_caverna)
+    _luz_da_caverna.visible = true

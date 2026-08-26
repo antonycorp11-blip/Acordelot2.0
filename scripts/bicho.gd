@@ -65,6 +65,8 @@ var _barra_fundo: MeshInstance3D = null
 var _velocidade := VELOCIDADE
 var _morrendo := false
 var _colado_no_jogador := false
+## Quanto tempo o bicho fica parado depois de levar golpe. O chefe reduz o seu.
+var _atordoamento_maximo := ATORDOAMENTO
 var _ataque_ate := -1.0
 var _nome_personalizado := ""
 
@@ -537,7 +539,7 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
     var empurrao := direcao
     empurrao.y = 0.0
     velocity += empurrao.normalized() * EMPURRAO
-    _atordoado_ate = Time.get_ticks_msec() / 1000.0 + ATORDOAMENTO
+    _atordoado_ate = Time.get_ticks_msec() / 1000.0 + _atordoamento_maximo
     
     _piscar_dano()
     
@@ -547,12 +549,21 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
 
 ## Variante única da primeira dungeon. Reaproveita malha, rig, animações e
 ## materiais já aquecidos; só amplia escala e atributos, sem novo custo pesado.
+## O chefe da caverna.
+##
+## Dobrou de vida e ficou mais rapido que o heroi. A briga anterior acabava
+## antes de o jogador aprender o ritmo dela — e chefe que morre na primeira
+## investida nao e chefe, e um bicho grande. Com cinco mil de vida ele obriga a
+## usar as skills, e nao so o golpe basico.
 func tornar_super_shiker() -> void:
     _nome_personalizado = "Super Shiker"
-    vida_maxima = 2200.0
+    vida_maxima = 5200.0
     vida = vida_maxima
-    scale = Vector3.ONE * 1.42
-    _velocidade = 4.0
+    scale = Vector3.ONE * 1.75
+    _velocidade = 4.8
+    # Aguenta mais empurrao: com o atordoamento padrao, uma sequencia de golpes
+    # o prendia no lugar ate cair.
+    _atordoamento_maximo = 0.18
     if _name_label_3d:
         _name_label_3d.text = _nome_personalizado
         _name_label_3d.modulate = Color(1.0, 0.50, 0.92)

@@ -512,6 +512,44 @@ func _tirar_print() -> void:
         if dg and dg.has_method("_entrar"):
             dg._entrar()
             await get_tree().create_timer(1.0).timeout
+    # `-- --parede` entra na DG e empurra o heroi contra varias paredes,
+    # contando quantos metros ele anda antes de parar. Sem isso, "atravessa
+    # parede" e um relato sem lugar.
+    if OS.get_cmdline_user_args().has("--parede"):
+        await get_tree().create_timer(1.2).timeout
+        var dg: Node = null
+        for n in get_tree().root.find_children("*", "Node3D", true, false):
+            if n.get_script() and str(n.get_script().resource_path).ends_with("dungeon_caverna.gd"):
+                dg = n
+                break
+        if dg == null:
+            print("TESTE: nao achei o no da DG")
+        else:
+            dg.call("_entrar")
+            await get_tree().create_timer(0.6).timeout
+            var origem: Vector3 = dg.get("ORIGEM") if dg.get("ORIGEM") != null else Vector3(520, 0, 520)
+            var provas := [
+                ["corredor -> leste", Vector3(0, 1.2, 20), Vector3(1, 0, 0), 3.7],
+                ["sala do chefe -> leste", Vector3(0, 1.2, -52), Vector3(1, 0, 0), 9.7],
+                ["sala do chefe -> sul", Vector3(0, 1.2, -52), Vector3(0, 0, 1), 9.7],
+                ["sala leste -> leste", Vector3(38, 1.2, 10), Vector3(1, 0, 0), 9.7],
+                ["sala leste -> norte", Vector3(38, 1.2, 10), Vector3(0, 0, -1), 9.7],
+                ["entrada -> norte", Vector3(0, 1.2, 60), Vector3(0, 0, -1), 5.7],
+            ]
+            for prova in provas:
+                _player.global_position = origem + (prova[1] as Vector3)
+                _player.velocity = Vector3.ZERO
+                await get_tree().physics_frame
+                var antes: Vector3 = _player.global_position
+                for i in 110:
+                    await get_tree().physics_frame
+                    _player.velocity = (prova[2] as Vector3) * 9.0 + Vector3.DOWN * 2.0
+                    _player.move_and_slide()
+                var andou: float = (_player.global_position - antes).length()
+                var limite: float = float(prova[3])
+                print("TESTE %-24s andou %5.2f m (parede a %.1f) %s" % [
+                    prova[0], andou, limite, "OK" if andou < limite + 0.6 else "ATRAVESSOU"])
+
     if OS.get_cmdline_user_args().has("--norte"):
         var zm := find_child("ZoneManager", true, false)
         var total_de_saltos := 1 if OS.get_cmdline_user_args().has("--vila") else 2
