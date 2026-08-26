@@ -118,6 +118,16 @@ func _construir_dungeon() -> void:
         _modulo(CORREDOR, Vector3(x, 0, -30), PI * 0.5)
     _modulo(FUNDO_DE_SACO, Vector3(24, 0, -30), PI * 0.5)
 
+    # As portas das alas. O modelo com folha (gate-door) marca desvio; o vao
+    # aberto (gate) marca passagem obrigatoria. E o que diz ao jogador, de
+    # longe, se aquilo ali e caminho ou opcional.
+    _modulo(PORTA, Vector3(6.2, 0, 34), PI * 0.5)
+    _modulo(PORTA, Vector3(-6.2, 0, 34), PI * 0.5)
+    _modulo(PORTA, Vector3(6.2, 0, 10), PI * 0.5)
+    _modulo(PORTA, Vector3(-6.2, 0, -14), PI * 0.5)
+    _modulo(PORTA, Vector3(-6.2, 0, -30), PI * 0.5)
+    _modulo(PORTA, Vector3(6.2, 0, -30), PI * 0.5)
+
     _modulo(PORTAO, Vector3(0, 0, 54), 0.0)
     _modulo(PORTAO, Vector3(0, 0, -42), 0.0)
 
@@ -192,6 +202,8 @@ func _construir_dungeon() -> void:
     _shiker(Vector3(-34.0, 1.1, -11.0), 0)
     _shiker(Vector3(-4.5, 1.1, -49.0), 1)
     _shiker(Vector3(4.5, 1.1, -49.0), 1)
+    _construir_segundo_estagio()
+
     _shiker(Vector3(14.0, 1.1, 34.0), 0)
     _shiker(Vector3(24.0, 1.1, 22.0), 1)
     _shiker(Vector3(24.0, 1.1, 10.0), 0)
@@ -202,6 +214,123 @@ func _construir_dungeon() -> void:
 
     var chefe := _shiker(Vector3(0.0, 1.1, -56.0), 2)
     chefe.call_deferred("tornar_super_shiker")
+
+
+## O SEGUNDO ESTAGIO: o salao que a primeira caverna nao tem.
+##
+## A queixa era justa — o primeiro estagio e feito de corredores de oito metros
+## e salas de vinte, e isso le como tunel o tempo todo. Aqui o espaco vem de
+## EMENDAR modulos: cinco salas grandes em cruz dao sessenta metros de vao no
+## eixo maior, e o jogador sente que saiu do tunel.
+##
+## Fica no mesmo no da caverna, cem metros ao norte: sem carregar cena nova, sem
+## tela de espera, e o custo so aparece quando o alcance de visao alcanca.
+const ESTAGIO_2 := Vector3(0.0, 0.0, -140.0)
+const ENTRADA_ESTAGIO_2 := Vector3(0.0, 1.15, -108.0)
+
+func _construir_segundo_estagio() -> void:
+    var o := ESTAGIO_2
+
+    # Corredor de chegada, vindo da porta da arena.
+    for z in [28.0, 20.0, 12.0]:
+        _modulo(CORREDOR, o + Vector3(0, 0, z))
+
+    # O SALAO EM CRUZ: cinco salas grandes emendadas.
+    _modulo(SALA_GRANDE, o + Vector3(0, 0, -10))
+    _modulo(SALA_GRANDE_B, o + Vector3(-20, 0, -10), PI * 0.5)
+    _modulo(SALA_GRANDE_B, o + Vector3(20, 0, -10), -PI * 0.5)
+    _modulo(SALA_GRANDE, o + Vector3(0, 0, -30), PI)
+    _modulo(SALA_GRANDE_B, o + Vector3(0, 0, 10), PI)
+
+    # Galeria lateral: tres salas em fila, o braco longo do estagio.
+    for x in [-40.0, -60.0]:
+        _modulo(SALA_GRANDE, o + Vector3(x, 0, -10), PI * 0.5)
+
+    # Arena final ao norte, depois de um corredor curto.
+    for z in [-46.0, -54.0]:
+        _modulo(CORREDOR, o + Vector3(0, 0, z))
+    _modulo(SALA_GRANDE, o + Vector3(0, 0, -70), PI)
+
+    # Piso continuo por baixo de tudo: o salao e uma laje so, e nao nove.
+    _piso(o + Vector3(0, -0.18, 20), Vector3(8, 0.36, 40))
+    _piso(o + Vector3(0, -0.18, -10), Vector3(60, 0.36, 60))
+    _piso(o + Vector3(-50, -0.18, -10), Vector3(60, 0.36, 20))
+    _piso(o + Vector3(0, -0.18, -50), Vector3(8, 0.36, 24))
+    _piso(o + Vector3(0, -0.18, -70), Vector3(20, 0.36, 20))
+
+    for dados in [
+        [-8.0, 0.0, 24.0, 0.0], [8.0, 0.0, 16.0, PI],
+        [-18.0, 0.0, -2.0, 0.0], [18.0, 0.0, -2.0, PI],
+        [-18.0, 0.0, -20.0, 0.0], [18.0, 0.0, -20.0, PI],
+        [-38.0, 0.0, -4.0, 0.0], [-58.0, 0.0, -16.0, PI],
+        [-8.0, 0.0, -50.0, 0.0], [8.0, 0.0, -66.0, PI],
+    ]:
+        _tocha(o + Vector3(dados[0], dados[1], dados[2]), dados[3])
+
+    for dados in [
+        [-16.0, 0.0, -6.0, 0.2], [15.0, 0.0, -14.0, -0.3],
+        [-44.0, 0.0, -6.0, 0.4], [-56.0, 0.0, -14.0, -0.2],
+        [6.0, 0.0, -64.0, 0.1], [-7.0, 0.0, -74.0, 0.3],
+    ]:
+        _prop(CAIXOTE_MESH if int(absf(dados[0])) % 2 == 0 else BARRIL_MESH,
+            o + Vector3(dados[0], dados[1], dados[2]), dados[3])
+    _prop(CAVEIRA_MESH, o + Vector3(-2.5, 0.04, -66.0), 0.7, 1.4)
+
+    _bau(o + Vector3(-58.0, 0.0, -10.0), 600, true)
+    _bau(o + Vector3(19.0, 0.0, -28.0), 400, true)
+    _bau(o + Vector3(0.0, 0.0, -74.0), 900, true)
+
+    for onde in [Vector3(-12, 1.1, 4), Vector3(12, 1.1, 2), Vector3(-24, 1.1, -12),
+                 Vector3(24, 1.1, -8), Vector3(-2, 1.1, -26), Vector3(-44, 1.1, -8),
+                 Vector3(-58, 1.1, -14), Vector3(4, 1.1, -52)]:
+        _shiker(o + onde, 1)
+    for onde in [Vector3(-6, 1.1, -66), Vector3(6, 1.1, -66)]:
+        _shiker(o + onde, 2)
+    var guardiao := _shiker(o + Vector3(0.0, 1.1, -72.0), 2)
+    guardiao.call_deferred("tornar_super_shiker")
+
+    # A porta que leva da arena do chefe para ca, e a de volta.
+    _porta_de_estagio(Vector3(0.0, 0.0, -60.0), ORIGEM + ENTRADA_ESTAGIO_2, "Descer")
+    _porta_de_estagio(o + Vector3(0.0, 0.0, 32.0), ORIGEM + Vector3(0.0, 1.15, -52.0), "Subir")
+
+
+## Uma porta que leva de um estagio a outro.
+##
+## E um vao com folha, um brilho e uma area: encostou, muda de estagio. Nao ha
+## carregamento porque nao ha cena nova — o segundo estagio ja esta construido,
+## so longe. O que o jogador percebe e uma porta que finalmente leva a algum
+## lugar, que era o que faltava.
+func _porta_de_estagio(onde: Vector3, destino: Vector3, rotulo: String) -> void:
+    _modulo(PORTA, onde, 0.0)
+
+    var aviso := Label3D.new()
+    aviso.text = rotulo
+    aviso.font_size = 34
+    aviso.outline_size = 8
+    aviso.modulate = Color(1.0, 0.86, 0.45)
+    aviso.outline_modulate = Color(0.12, 0.06, 0.0, 0.95)
+    aviso.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    aviso.position = onde + Vector3.UP * 3.4
+    _dungeon.add_child(aviso)
+
+    var area := Area3D.new()
+    area.collision_layer = 0
+    area.collision_mask = 1
+    area.position = onde
+    var forma := CollisionShape3D.new()
+    var caixa := BoxShape3D.new()
+    caixa.size = Vector3(5.0, 4.0, 2.0)
+    forma.shape = caixa
+    forma.position.y = 2.0
+    area.add_child(forma)
+    area.body_entered.connect(func(corpo: Node3D):
+        if not (corpo.is_in_group("jogador") or corpo.is_in_group("player")):
+            return
+        if _jogador == null:
+            return
+        _jogador.global_position = destino
+        _jogador.velocity = Vector3.ZERO)
+    _dungeon.add_child(area)
 
 
 func _modulo(cena: PackedScene, onde: Vector3, giro := 0.0) -> void:

@@ -11,6 +11,7 @@ var _xp_v3: Label
 var _xp_barra_v3: ProgressBar
 var _marcos_v3: Label
 var _nome_notas_v3 := {}
+var _subtitulo_v3: Label
 var _contagem_notas_v3 := {}
 
 
@@ -74,13 +75,24 @@ func _cabecalho_v3() -> Control:
     titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     linha.add_child(titulo)
     titulo.add_child(_texto("♫  ATELIÊ DE SÍNTESE", 30, OURO, true))
-    titulo.add_child(_texto("NOTAS, PARTITURAS E ASCENSÃO HARMÔNICA", 12, Color(0.63, 0.69, 0.79)))
+    # O subtitulo NOMEIA A ABA ABERTA, como na referencia: quem entra sabe em
+    # que metade do atelie esta antes de ler os botoes.
+    _subtitulo_v3 = _texto("NOTAS E FRAGMENTOS", 12, Color(0.63, 0.69, 0.79))
+    titulo.add_child(_subtitulo_v3)
+
+    linha.add_theme_constant_override("separation", 18)
     _claves = _texto("", 18, OURO)
     _claves.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     linha.add_child(_claves)
     _resumo = _texto("", 14, Color(0.65, 0.80, 0.92))
     _resumo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     linha.add_child(_resumo)
+    # Um vao entre os numeros e o X. Sem ele o botao encostava em "Notas 0" e
+    # comia o ultimo contador.
+    var folga := Control.new()
+    folga.custom_minimum_size.x = 14
+    folga.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    linha.add_child(folga)
     _botao_fechar = _botao("×", 58)
     _botao_fechar.custom_minimum_size.y = 58
     _botao_fechar.add_theme_font_size_override("font_size", 30)
@@ -140,8 +152,10 @@ func _notas_v3() -> Control:
         var nome_nota := _texto(str(dados[1]), 14, OURO, true)
         nome_nota.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         conteudo.add_child(nome_nota)
-        var contagem := _texto("", 10, Color(0.67, 0.75, 0.84))
+        var contagem := _texto("", 9, Color(0.67, 0.75, 0.84))
         contagem.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        contagem.autowrap_mode = TextServer.AUTOWRAP_OFF
+        contagem.clip_text = true
         conteudo.add_child(contagem)
         _nome_notas_v3[id] = nome_nota
         _contagem_notas_v3[id] = contagem
@@ -159,7 +173,9 @@ func _notas_v3() -> Control:
     coluna.alignment = BoxContainer.ALIGNMENT_CENTER
     coluna.add_theme_constant_override("separation", 10)
     centro.add_child(coluna)
-    _titulo_nota = _texto("", 31, OURO, true)
+    # So o nome da nota, com ornamento dos dois lados — e o que a referencia
+    # mostra. "Sintese de Do" repetia o titulo da tela e roubava o destaque.
+    _titulo_nota = _texto("", 34, OURO, true)
     _titulo_nota.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     coluna.add_child(_titulo_nota)
     var explicacao := _texto("Purifique fragmentos corrompidos e estabilize a harmonia desta nota.", 14, Color(0.68, 0.75, 0.85))
@@ -189,13 +205,30 @@ func _notas_v3() -> Control:
     acoes.add_theme_constant_override("separation", 14)
     coluna.add_child(acoes)
     _botao_purificar = _botao("PURIFICAR  |  25 CLAVES", 285)
+    _tingir_desabilitado(_botao_purificar, Color(0.34, 0.20, 0.52))
     acoes.add_child(_botao_purificar)
     _botao_sintetizar = _botao("SINTETIZAR  |  100 CLAVES", 315, true)
+    _tingir_desabilitado(_botao_sintetizar, Color(0.42, 0.32, 0.12))
     acoes.add_child(_botao_sintetizar)
-    var ajuda := _texto("1 corrompido → 1 purificado     •     5 purificados → 1 nota", 13, Color(0.66, 0.72, 0.81))
+    var ajuda := _texto("Purificar custa 25 Claves.  Unir 5 fragmentos purificados em uma nota custa 100 Claves.", 13, Color(0.66, 0.72, 0.81))
     ajuda.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     coluna.add_child(ajuda)
     return corpo
+
+
+## Mantem a cor do botao quando ele esta indisponivel.
+##
+## O tema padrao pinta desabilitado de cinza, e dois retangulos cinza no meio da
+## tela leem como interface quebrada. Com a propria cor em meia luz, o jogador
+## entende que a acao existe e que falta recurso — que e a informacao certa.
+func _tingir_desabilitado(botao: Button, cor: Color) -> void:
+    var caixa := StyleBoxFlat.new()
+    caixa.bg_color = Color(cor.r, cor.g, cor.b, 0.55)
+    caixa.border_color = Color(cor.r + 0.18, cor.g + 0.16, cor.b + 0.12, 0.75)
+    caixa.set_border_width_all(1)
+    caixa.set_corner_radius_all(8)
+    botao.add_theme_stylebox_override("disabled", caixa)
+    botao.add_theme_color_override("font_disabled_color", Color(0.80, 0.78, 0.72))
 
 
 func _seta_v3() -> Label:
@@ -217,6 +250,25 @@ func _etapa_v3(nome: String, cor: Color) -> Array:
     icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     pedestal.add_child(icone)
+    # A BASE do pedestal. Sem ela o cristal flutua num circulo vazio; a
+    # referencia apoia cada um num disco, e e o disco que faz a peca parecer
+    # exposta em vez de solta.
+    var base := Panel.new()
+    var pedra := StyleBoxFlat.new()
+    pedra.bg_color = Color(cor.r * 0.30, cor.g * 0.30, cor.b * 0.34, 0.55)
+    pedra.border_color = Color(cor.r, cor.g, cor.b, 0.55)
+    pedra.set_border_width_all(1)
+    pedra.set_corner_radius_all(26)
+    base.add_theme_stylebox_override("panel", pedra)
+    base.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    base.offset_left = 26.0
+    base.offset_right = -26.0
+    base.offset_top = -34.0
+    base.offset_bottom = -8.0
+    base.show_behind_parent = true
+    base.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    pedestal.add_child(base)
+
     var qtd := _texto("Possui 0", 18, Color(0.96, 0.94, 0.86), true)
     qtd.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     coluna.add_child(qtd)
@@ -331,6 +383,12 @@ func _bonus_v3() -> Control:
 
 func _atualizar() -> void:
     super._atualizar()
+    # O nome da nota SOZINHO, com ornamento — o pai escreve "Sintese de Do", que
+    # repete o titulo da tela e tira o destaque de quem e o assunto ali.
+    if _titulo_nota:
+        _titulo_nota.text = "✦   %s   ✦" % _nome_da_nota(_nota_atual).to_upper()
+    if _subtitulo_v3:
+        _subtitulo_v3.text = "NOTAS E FRAGMENTOS" if _aba == "notas" else "PARTITURAS E NÍVEL"
     if _progresso == null or _nivel_v3 == null:
         return
     _nivel_v3.text = "NÍVEL ATUAL\n%d" % _progresso.nivel
@@ -340,10 +398,12 @@ func _atualizar() -> void:
     for dados in NOTAS:
         var id := str(dados[0])
         (_botoes_notas[id] as Button).text = ""
-        (_contagem_notas_v3[id] as Label).text = "CORR. %d  •  LIMPO %d  •  NOTA %d" % [
+        # DUAS LINHAS, e nao tres campos numa so. Na largura da celula a linha
+        # unica estourava e o terceiro numero saia cortado pela borda — o
+        # jogador via "NOTA" pela metade e nenhum valor.
+        (_contagem_notas_v3[id] as Label).text = "CORROMPIDO   %d\nLIMPO   %d" % [
             _progresso.quantidade("fragmento_corrompido_" + id),
-            _progresso.quantidade("fragmento_" + id),
-            _progresso.quantidade("nota_" + id)]
+            _progresso.quantidade("fragmento_" + id)]
 
 
 func mostrar(sim := true) -> void:

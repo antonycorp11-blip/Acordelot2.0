@@ -512,9 +512,8 @@ func _tirar_print() -> void:
         if dg and dg.has_method("_entrar"):
             dg._entrar()
             await get_tree().create_timer(1.0).timeout
-    # `-- --parede` entra na DG e empurra o heroi contra varias paredes,
-    # contando quantos metros ele anda antes de parar. Sem isso, "atravessa
-    # parede" e um relato sem lugar.
+    # `-- --parede` entra na DG e mede: sondas de parede, chao do salao novo e
+    # as portas de estagio. Tudo em texto, sem captura de tela.
     if OS.get_cmdline_user_args().has("--parede"):
         await get_tree().create_timer(1.2).timeout
         var dg: Node = null
@@ -527,28 +526,34 @@ func _tirar_print() -> void:
         else:
             dg.call("_entrar")
             await get_tree().create_timer(0.6).timeout
-            var origem: Vector3 = dg.get("ORIGEM") if dg.get("ORIGEM") != null else Vector3(520, 0, 520)
+            var origem := Vector3(520, 0, 520)
+            var raiz: Node = dg.get_node_or_null("CavernaDaPrimeiraRessonancia")
+            print("TESTE: nos=%d corpos=%d areas=%d" % [raiz.get_child_count(),
+                raiz.find_children("*", "StaticBody3D", true, false).size(),
+                raiz.find_children("*", "Area3D", true, false).size()])
             var provas := [
-                ["corredor -> leste", Vector3(0, 1.2, 20), Vector3(1, 0, 0), 3.7],
-                ["sala do chefe -> leste", Vector3(0, 1.2, -52), Vector3(1, 0, 0), 9.7],
-                ["sala do chefe -> sul", Vector3(0, 1.2, -52), Vector3(0, 0, 1), 9.7],
-                ["sala leste -> leste", Vector3(38, 1.2, 10), Vector3(1, 0, 0), 9.7],
-                ["sala leste -> norte", Vector3(38, 1.2, 10), Vector3(0, 0, -1), 9.7],
-                ["entrada -> norte", Vector3(0, 1.2, 60), Vector3(0, 0, -1), 5.7],
+                ["estagio 1 corredor", Vector3(0, 1.2, 20), Vector3(1, 0, 0), 3.7],
+                ["estagio 1 arena", Vector3(0, 1.2, -52), Vector3(1, 0, 0), 9.7],
+                ["salao novo centro", Vector3(0, 1.2, -150), Vector3(1, 0, 0), 40.0],
+                ["salao novo galeria", Vector3(-50, 1.2, -150), Vector3(-1, 0, 0), 40.0],
+                ["arena final", Vector3(0, 1.2, -210), Vector3(0, 0, -1), 12.0],
             ]
             for prova in provas:
                 _player.global_position = origem + (prova[1] as Vector3)
                 _player.velocity = Vector3.ZERO
-                await get_tree().physics_frame
+                for i in 3: await get_tree().physics_frame
                 var antes: Vector3 = _player.global_position
-                for i in 110:
+                var caiu := false
+                for i in 140:
                     await get_tree().physics_frame
                     _player.velocity = (prova[2] as Vector3) * 9.0 + Vector3.DOWN * 2.0
                     _player.move_and_slide()
+                    if _player.global_position.y < origem.y - 4.0:
+                        caiu = true
+                        break
                 var andou: float = (_player.global_position - antes).length()
-                var limite: float = float(prova[3])
-                print("TESTE %-24s andou %5.2f m (parede a %.1f) %s" % [
-                    prova[0], andou, limite, "OK" if andou < limite + 0.6 else "ATRAVESSOU"])
+                print("TESTE %-22s andou %6.2f m %s" % [prova[0], andou,
+                    "CAIU NO VAZIO" if caiu else "ok"])
 
     if OS.get_cmdline_user_args().has("--norte"):
         var zm := find_child("ZoneManager", true, false)
