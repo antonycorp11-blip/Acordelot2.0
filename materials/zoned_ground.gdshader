@@ -40,6 +40,17 @@ uniform vec4 vias_secundarias = vec4(999.0, 999.0, 0.0, 0.0);
 // serve as duas.
 uniform float via_de_pedra = 0.0;
 
+// Estradas do mapa regional. São segmentos em coordenadas locais (x,z), e a
+// mesma lista também é desenhada no mapa-múndi.
+uniform int quantidade_caminhos = 0;
+uniform float caminho_de_pedra = 0.0;
+uniform vec4 caminho_0 = vec4(999.0);
+uniform vec4 caminho_1 = vec4(999.0);
+uniform vec4 caminho_2 = vec4(999.0);
+uniform vec4 caminho_3 = vec4(999.0);
+uniform vec4 caminho_4 = vec4(999.0);
+uniform vec4 caminho_5 = vec4(999.0);
+
 varying vec3 world_pos;
 // A posicao DENTRO da zona, separada da posicao no mundo.
 //
@@ -75,6 +86,14 @@ float fbm(vec2 p) {
     return total;
 }
 
+float distancia_segmento(vec2 p, vec4 linha) {
+    vec2 a = linha.xy;
+    vec2 b = linha.zw;
+    vec2 ab = b - a;
+    float t = clamp(dot(p - a, ab) / max(dot(ab, ab), 0.0001), 0.0, 1.0);
+    return length(p - (a + ab * t));
+}
+
 void vertex() {
     world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
     pos_local = VERTEX;
@@ -100,6 +119,20 @@ void fragment() {
     // Caminhos orgânicos de terra batida
     float path_noise = smoothstep(0.48, 0.56, fbm(world_pos.xz / 18.0));
     vec3 base_color = mix(grass_varied, col_dirt, path_noise * 0.38);
+
+    float distancia_estrada = 999.0;
+    if (quantidade_caminhos > 0) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_0));
+    if (quantidade_caminhos > 1) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_1));
+    if (quantidade_caminhos > 2) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_2));
+    if (quantidade_caminhos > 3) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_3));
+    if (quantidade_caminhos > 4) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_4));
+    if (quantidade_caminhos > 5) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_5));
+    if (quantidade_caminhos > 0) {
+        float desgaste = (fbm(pos_local.xz / 4.0) - 0.5) * 1.2;
+        float mascara_estrada = 1.0 - smoothstep(4.2 + desgaste, 5.5 + desgaste, distancia_estrada);
+        vec3 material_estrada = mix(col_dirt * 0.80, col_stone * 0.92, caminho_de_pedra);
+        base_color = mix(base_color, material_estrada, mascara_estrada * 0.95);
+    }
 
     // A via da povoacao, por cima do chao natural.
     if (via_principal.x > 0.01) {

@@ -582,6 +582,32 @@ func _tirar_print() -> void:
         _player.global_position = onde + Vector3(6.0, 2.0, 26.0)
         await get_tree().create_timer(3.0).timeout
 
+    # Gancho genérico para conferir qualquer ponto do novo mapa regional:
+    # `--zona=zone_portoes --local=48,0`.
+    for argumento in OS.get_cmdline_user_args():
+        if not argumento.begins_with("--zona="):
+            continue
+        var zid := argumento.trim_prefix("--zona=")
+        var zb_regiao := find_child("ZoneBuilder", true, false)
+        if zb_regiao == null or not zb_regiao._celulas.has(zid):
+            continue
+        var zm_regiao := find_child("ZoneManager", true, false)
+        if zm_regiao:
+            await zm_regiao.carregar_zona(zid, "center")
+        var local := Vector2.ZERO
+        for local_arg in OS.get_cmdline_user_args():
+            if local_arg.begins_with("--local="):
+                var partes := local_arg.trim_prefix("--local=").split(",")
+                if partes.size() >= 2:
+                    local = Vector2(float(partes[0]), float(partes[1]))
+        var ponto: Vector3 = zb_regiao.deslocamento_da_celula(zb_regiao._celulas[zid]) + Vector3(local.x, 0.0, local.y)
+        ponto.y = zb_regiao.calcular_altura(ponto.x, ponto.z) + 1.2
+        _player.global_position = ponto
+        var rig_regiao := find_child("CameraRig", true, false) as Node3D
+        if rig_regiao:
+            rig_regiao.global_position = ponto
+        await get_tree().create_timer(5.0).timeout
+
     if OS.get_cmdline_user_args().has("--mundo"):
         var zb := find_child("ZoneBuilder", true, false)
         print("MUNDO grade:")
@@ -712,6 +738,11 @@ func _tirar_print() -> void:
         if inv:
             inv.toggle_inventory(true)
         await get_tree().create_timer(0.4).timeout
+    if OS.get_cmdline_user_args().has("--mapa"):
+        var mapa := find_child("ZoneMinimap", true, false)
+        if mapa and mapa.has_method("toggle_world_map"):
+            mapa.toggle_world_map(true)
+        await get_tree().create_timer(0.5).timeout
     if DisplayServer.get_name() == "headless":
         print("SHOT indisponível no renderizador headless; árvore validada.")
         get_tree().quit()

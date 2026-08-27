@@ -103,14 +103,16 @@ func _criar_estrelas() -> void:
     var multi := MultiMesh.new()
     multi.transform_format = MultiMesh.TRANSFORM_3D
     multi.mesh = ponto
-    multi.instance_count = 88
+    # Continua sendo uma única chamada de desenho: aumentar a quantidade de
+    # estrelas no MultiMesh quase não altera o custo, mas muda muito a noite.
+    multi.instance_count = 180
     var rng := RandomNumberGenerator.new()
     rng.seed = 12011997
     for i in multi.instance_count:
         var angulo := rng.randf_range(0.0, TAU)
         var raio := rng.randf_range(82.0, 101.0)
         var p := Vector3(cos(angulo) * raio, rng.randf_range(20.0, 58.0), sin(angulo) * raio)
-        var s := rng.randf_range(0.75, 1.8)
+        var s := rng.randf_range(0.65, 1.65)
         multi.set_instance_transform(i, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * s), p))
     _estrelas = MultiMeshInstance3D.new()
     _estrelas.name = "Estrelas"

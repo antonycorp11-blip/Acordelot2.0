@@ -35,6 +35,7 @@ const COR_AGUA := Color(0.16, 0.34, 0.52)
 ## Chao de cada bioma, para a carta nao sair toda da mesma cor.
 const CHAO_DO_BIOMA := {
 	"floresta": Color(0.24, 0.36, 0.20),
+	"campos": Color(0.43, 0.43, 0.21),
 	"cidade": Color(0.42, 0.41, 0.34),
 	"lago": Color(0.28, 0.38, 0.30),
 	"serra": Color(0.38, 0.36, 0.31),
@@ -77,11 +78,58 @@ static func desenhar(mundo: Node, zid: String, dados: Dictionary, regiao: Node) 
 				.darkened(maxf(-inclinacao, 0.0) + 0.06))
 			altura_anterior = altura
 
+	_riscar_rede_regional(imagem, dados, metros_por_pixel, meia)
 	_riscar_as_vias(imagem, mundo, dados, metros_por_pixel, meia)
 	if regiao != null and is_instance_valid(regiao):
 		_carimbar_as_pecas(imagem, regiao, metros_por_pixel, meia)
 
 	return ImageTexture.create_from_image(imagem)
+
+
+static func _distancia_segmento(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab := b - a
+	var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.0001), 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
+## Rios e estradas vêm do mesmo plano usado no mundo 3D. Assim a carta nunca
+## promete uma ponte, curva ou caminho que não existe debaixo dos pés.
+static func _riscar_rede_regional(imagem: Image, dados: Dictionary,
+		metros_por_pixel: float, meia: float) -> void:
+	var rios: Array = dados.get("river_paths", [])
+	var estradas: Array = dados.get("road_paths", [])
+	if rios.is_empty() and estradas.is_empty():
+		return
+	var largura_rio := float(dados.get("river_width", 5.0))
+	var cor_estrada := Color(0.58, 0.56, 0.52) if str(dados.get("road_surface", "terra")) == "pedra" else Color(0.52, 0.39, 0.25)
+	for py in PIXELS:
+		var z := -meia + (float(py) + 0.5) * metros_por_pixel
+		for px in PIXELS:
+			var x := -meia + (float(px) + 0.5) * metros_por_pixel
+			var p := Vector2(x, z)
+			var pintou := false
+			for rio in rios:
+				for i in range(rio.size() - 1):
+					var a := Vector2(float(rio[i][0]), float(rio[i][1]))
+					var b := Vector2(float(rio[i + 1][0]), float(rio[i + 1][1]))
+					if _distancia_segmento(p, a, b) <= largura_rio:
+						imagem.set_pixel(px, py, COR_AGUA)
+						pintou = true
+						break
+				if pintou:
+					break
+			if pintou:
+				continue
+			for caminho in estradas:
+				for i in range(caminho.size() - 1):
+					var a := Vector2(float(caminho[i][0]), float(caminho[i][1]))
+					var b := Vector2(float(caminho[i + 1][0]), float(caminho[i + 1][1]))
+					if _distancia_segmento(p, a, b) <= 5.0:
+						imagem.set_pixel(px, py, cor_estrada)
+						pintou = true
+						break
+				if pintou:
+					break
 
 
 ## As mesmas medidas que o shader do chao recebe, em coordenadas da zona.

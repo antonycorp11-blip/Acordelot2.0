@@ -13,7 +13,7 @@ var _tier_label: Label
 var _minimap_draw: Control
 var _modal_backdrop: ColorRect
 var _world_map_modal: PanelContainer
-var _grid_container: GridContainer
+var _world_map_draw: Control
 var _info_label: Label
 var _botao_personagem: Button
 
@@ -46,6 +46,13 @@ func toggle_world_map(force_state = null) -> void:
     var next_state: bool = (not _world_map_modal.visible) if force_state == null else force_state
     _world_map_modal.visible = next_state
     _modal_backdrop.visible = next_state
+    # O relógio circular e o banner pertencem a camadas diferentes do HUD; sem
+    # ocultá-los, atravessavam o mapa aberto no celular.
+    var relogio := get_tree().root.find_child("BarraDoDia", true, false) as Control
+    if relogio:
+        relogio.visible = not next_state
+    if zone_manager and zone_manager._banner_container:
+        zone_manager._banner_container.visible = not next_state
     if next_state:
         _atualizar_grid_mapa_mundi()
 
@@ -139,6 +146,7 @@ func _criar_modal_mapa_mundi() -> void:
     _modal_backdrop = ColorRect.new()
     _modal_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
     _modal_backdrop.color = Color(0.02, 0.03, 0.05, 0.75)
+    _modal_backdrop.z_index = 1000
     _modal_backdrop.visible = false
     _modal_backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
     _modal_backdrop.gui_input.connect(func(ev: InputEvent):
@@ -148,16 +156,15 @@ func _criar_modal_mapa_mundi() -> void:
     add_child(_modal_backdrop)
     
     _world_map_modal = PanelContainer.new()
-    _world_map_modal.anchor_left = 0.5
-    _world_map_modal.anchor_right = 0.5
-    _world_map_modal.anchor_top = 0.5
-    _world_map_modal.anchor_bottom = 0.5
-    _world_map_modal.offset_left = -310.0
-    _world_map_modal.offset_top = -240.0
-    _world_map_modal.offset_right = 310.0
-    _world_map_modal.offset_bottom = 240.0
+    # Margens proporcionais: cabe tanto em 1280x720 quanto em celulares mais
+    # estreitos sem vazar pelas laterais.
+    _world_map_modal.anchor_left = 0.06
+    _world_map_modal.anchor_right = 0.94
+    _world_map_modal.anchor_top = 0.06
+    _world_map_modal.anchor_bottom = 0.94
     _world_map_modal.visible = false
     _world_map_modal.mouse_filter = Control.MOUSE_FILTER_STOP
+    _world_map_modal.z_index = 1001
     
     var style := StyleBoxFlat.new()
     style.bg_color = Color(0.07, 0.09, 0.13, 0.98)
@@ -181,7 +188,7 @@ func _criar_modal_mapa_mundi() -> void:
     vbox.add_child(header)
     
     var lbl_title := Label.new()
-    lbl_title.text = "🗺️ Mapa do Reino de Acordelot"
+    lbl_title.text = "Mapa do Reino de Acordelot"
     lbl_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     lbl_title.add_theme_font_size_override("font_size", 16)
     lbl_title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
@@ -192,22 +199,17 @@ func _criar_modal_mapa_mundi() -> void:
     btn_close.pressed.connect(func(): toggle_world_map(false))
     header.add_child(btn_close)
     
-    var scroll := ScrollContainer.new()
-    scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    scroll.custom_minimum_size = Vector2(580, 310)
-    vbox.add_child(scroll)
-    
-    _grid_container = GridContainer.new()
-    _grid_container.columns = 3
-    _grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    _grid_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    _grid_container.add_theme_constant_override("h_separation", 10)
-    _grid_container.add_theme_constant_override("v_separation", 10)
-    scroll.add_child(_grid_container)
+    _world_map_draw = Control.new()
+    _world_map_draw.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _world_map_draw.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    _world_map_draw.custom_minimum_size = Vector2(560, 330)
+    _world_map_draw.mouse_filter = Control.MOUSE_FILTER_STOP
+    _world_map_draw.draw.connect(_desenhar_mapa_reino)
+    _world_map_draw.gui_input.connect(_clicar_mapa_reino)
+    vbox.add_child(_world_map_draw)
     
     _info_label = Label.new()
-    _info_label.text = "Atravesse os portais brilhantes ou clique em uma zona para viajar!"
+    _info_label.text = "O desenho é gerado das regiões, estradas e rios reais do mundo."
     _info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     _info_label.add_theme_font_size_override("font_size", 12)
     _info_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
@@ -318,18 +320,6 @@ func _on_minimap_draw() -> void:
         
     var radius := 62.0
     
-    # 2. Portais de Saída Cardinais com anel pulsante
-    var pulse: float = sin(Time.get_ticks_msec() * 0.005) * 1.2
-    var exits: Dictionary = _current_zone_data.get("exits", {})
-    if exits.get("north", "") != "":
-        _minimap_draw.draw_circle(center + Vector2(0, -radius + 6), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.95))
-    if exits.get("south", "") != "":
-        _minimap_draw.draw_circle(center + Vector2(0, radius - 6), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.95))
-    if exits.get("east", "") != "":
-        _minimap_draw.draw_circle(center + Vector2(radius - 6, 0), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.95))
-    if exits.get("west", "") != "":
-        _minimap_draw.draw_circle(center + Vector2(-radius + 6, 0), 4.5 + pulse, Color(0.2, 0.85, 1.0, 0.95))
-        
     # 3. Posição e Seta de Direção do Jogador
     if player:
         var px: float = player.global_position.x
@@ -345,49 +335,96 @@ func _on_minimap_draw() -> void:
         _minimap_draw.draw_line(p_radar, p_radar + dir * 8.5, Color(1.0, 0.98, 0.7), 2.2)
 
 func _atualizar_grid_mapa_mundi() -> void:
-    for c in _grid_container.get_children():
-        c.queue_free()
-        
-    var db: Dictionary = zone_manager._zones_db.get("zones", {}) if zone_manager else {}
-    var cur_id: String = _current_zone_data.get("id", "")
-    
-    for zid in db.keys():
-        var zid_str: String = str(zid)
-        var z: Dictionary = db[zid_str]
-        var btn := Button.new()
-        var is_current: bool = (zid_str == cur_id)
-        
-        var badge_text: String = "📍 VOCÊ ESTÁ AQUI" if is_current else str(z.get("tier", ""))
-        btn.text = "%s\n%s" % [str(z.get("name", "")), badge_text]
-        btn.custom_minimum_size = Vector2(175, 80)
-        
-        var style := StyleBoxFlat.new()
-        if is_current:
-            style.bg_color = Color(0.18, 0.38, 0.55, 0.95)
-            style.border_width_bottom = 2
-            style.border_width_left = 2
-            style.border_width_right = 2
-            style.border_width_top = 2
-            style.border_color = Color(1.0, 0.85, 0.3)
-        else:
-            style.bg_color = Color(0.12, 0.16, 0.22, 0.9)
-            style.border_width_bottom = 1
-            style.border_width_left = 1
-            style.border_width_right = 1
-            style.border_width_top = 1
-            style.border_color = Color(0.3, 0.4, 0.5, 0.6)
-            
-        style.corner_radius_bottom_left = 8
-        style.corner_radius_bottom_right = 8
-        style.corner_radius_top_left = 8
-        style.corner_radius_top_right = 8
-        btn.add_theme_stylebox_override("normal", style)
-        
-        var target_zid: String = zid_str
-        btn.pressed.connect(func():
-            if zone_manager and target_zid != cur_id:
-                toggle_world_map(false)
-                zone_manager.carregar_zona(target_zid, "center")
-        )
-        
-        _grid_container.add_child(btn)
+    if _world_map_draw:
+        _world_map_draw.queue_redraw()
+
+
+const CORES_MAPA := {
+    "floresta": Color(0.12, 0.28, 0.14), "campos": Color(0.42, 0.43, 0.19),
+    "cidade": Color(0.40, 0.34, 0.26), "serra": Color(0.30, 0.30, 0.27),
+    "sagrado": Color(0.18, 0.32, 0.30), "sombria": Color(0.12, 0.17, 0.19),
+    "ruina": Color(0.24, 0.21, 0.22)
+}
+
+
+func _limites_do_reino() -> Vector4:
+    var limites: Array = zone_manager._zones_db.get("world_bounds", [-2, -2, 1, 1])
+    return Vector4(float(limites[0]), float(limites[1]), float(limites[2]), float(limites[3]))
+
+
+func _retangulo_da_celula(celula: Vector2i) -> Rect2:
+    var limites := _limites_do_reino()
+    var colunas := limites.z - limites.x + 1.0
+    var linhas := limites.w - limites.y + 1.0
+    var tamanho := Vector2(_world_map_draw.size.x / colunas, _world_map_draw.size.y / linhas)
+    return Rect2(Vector2((float(celula.x) - limites.x) * tamanho.x,
+        (float(celula.y) - limites.y) * tamanho.y), tamanho)
+
+
+func _ponto_na_celula(retangulo: Rect2, ponto: Array) -> Vector2:
+    return retangulo.position + Vector2(
+        (float(ponto[0]) + 80.0) / 160.0 * retangulo.size.x,
+        (float(ponto[1]) + 80.0) / 160.0 * retangulo.size.y)
+
+
+func _desenhar_mapa_reino() -> void:
+    if zone_manager == null or _world_map_draw == null:
+        return
+    var fonte := ThemeDB.fallback_font
+    var zonas: Dictionary = zone_manager._zones_db.get("zones", {})
+    var atual := str(_current_zone_data.get("id", ""))
+    # Células sem terra são mar: a região começa na costa ocidental, como no
+    # conceito, sem inventar mais uma zona jogável para preencher o retângulo.
+    _world_map_draw.draw_rect(Rect2(Vector2.ZERO, _world_map_draw.size), Color(0.055, 0.16, 0.25), true)
+    for zid in zonas.keys():
+        var dados: Dictionary = zonas[zid]
+        var grade: Array = dados.get("grid_pos", [0, 0])
+        var celula := Vector2i(int(grade[0]), int(grade[1]))
+        var r := _retangulo_da_celula(celula).grow(-2.0)
+        var cor: Color = CORES_MAPA.get(str(dados.get("biome", "")), Color(0.25, 0.30, 0.22))
+        _world_map_draw.draw_rect(r, cor, true)
+
+        # O que aparece aqui é a mesma polilinha usada pelo shader do chão e
+        # pela malha de água do mundo 3D.
+        for rio in dados.get("river_paths", []):
+            var pontos := PackedVector2Array()
+            for p in rio:
+                pontos.append(_ponto_na_celula(r, p))
+            if pontos.size() > 1:
+                _world_map_draw.draw_polyline(pontos, Color(0.18, 0.62, 0.88), 3.5, true)
+        for estrada in dados.get("road_paths", []):
+            var pontos := PackedVector2Array()
+            for p in estrada:
+                pontos.append(_ponto_na_celula(r, p))
+            if pontos.size() > 1:
+                var cor_via := Color(0.72, 0.69, 0.60) if str(dados.get("road_surface", "terra")) == "pedra" else Color(0.58, 0.42, 0.25)
+                _world_map_draw.draw_polyline(pontos, cor_via, 2.5, true)
+
+        var borda := Color(1.0, 0.78, 0.28) if str(zid) == atual else Color(0.62, 0.52, 0.33, 0.65)
+        _world_map_draw.draw_rect(r, borda, false, 2.5 if str(zid) == atual else 1.0)
+        var nome := str(dados.get("name", zid))
+        _world_map_draw.draw_string(fonte, r.position + Vector2(7, 18), nome,
+            HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 14, 11, Color(0.97, 0.91, 0.72))
+
+    if player:
+        var limites := _limites_do_reino()
+        var origem := Vector2(limites.x * 160.0 - 80.0, limites.y * 160.0 - 80.0)
+        var total := Vector2((limites.z - limites.x + 1.0) * 160.0,
+            (limites.w - limites.y + 1.0) * 160.0)
+        var uv := (Vector2(player.global_position.x, player.global_position.z) - origem) / total
+        var p := Vector2(uv.x * _world_map_draw.size.x, uv.y * _world_map_draw.size.y)
+        _world_map_draw.draw_circle(p, 6.0, Color(1.0, 0.90, 0.20))
+        _world_map_draw.draw_circle(p, 9.0, Color(1.0, 0.90, 0.20), false, 2.0)
+
+
+func _clicar_mapa_reino(evento: InputEvent) -> void:
+    if not (evento is InputEventMouseButton and evento.pressed and evento.button_index == MOUSE_BUTTON_LEFT):
+        return
+    var limites := _limites_do_reino()
+    var pos: Vector2 = evento.position
+    var celula := Vector2i(int(floor(pos.x / _world_map_draw.size.x * (limites.z - limites.x + 1.0) + limites.x)),
+        int(floor(pos.y / _world_map_draw.size.y * (limites.w - limites.y + 1.0) + limites.y)))
+    var zid := str(zone_manager.zone_builder._por_celula.get("%d,%d" % [celula.x, celula.y], ""))
+    if zid != "":
+        toggle_world_map(false)
+        zone_manager.carregar_zona(zid, "center")

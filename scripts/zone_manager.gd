@@ -37,7 +37,11 @@ func _ready() -> void:
     zone_changed.emit(inicial)
 
 func _carregar_db() -> void:
-    var f := FileAccess.open("res://data/zones_db.json", FileAccess.READ)
+    # A primeira regiao tem planta geografica propria. O banco antigo fica no
+    # projeto como retorno seguro, mas nao manda mais na posicao das terras.
+    var f := FileAccess.open("res://data/acordelot_regiao_1.json", FileAccess.READ)
+    if f == null:
+        f = FileAccess.open("res://data/zones_db.json", FileAccess.READ)
     if f:
         _zones_db = JSON.parse_string(f.get_as_text())
 
@@ -132,9 +136,20 @@ func carregar_zona(zone_id: String, _entrada_dir: String = "center") -> void:
         return
     var destino: Vector3 = zone_builder.deslocamento_da_celula(
         zone_builder._celulas.get(zone_id, Vector2i.ZERO))
+    # Congela a física durante o streaming. Sem isso, a viagem pelo mapa punha
+    # o herói numa célula ainda vazia e ele caía antes do chão ficar pronto.
+    player.set_physics_process(false)
+    destino.y = zone_builder.calcular_altura(destino.x, destino.z) + 4.0
+    player.global_position = destino
+    player.velocity = Vector3.ZERO
+    var tentativas := 0
+    while not zone_builder._regioes.has(zone_id) and tentativas < 100:
+        await get_tree().create_timer(0.10).timeout
+        tentativas += 1
     destino.y = zone_builder.calcular_altura(destino.x, destino.z) + 1.2
     player.global_position = destino
     player.velocity = Vector3.ZERO
+    player.set_physics_process(true)
 
 func _posicionar_jogador(entrada_dir: String) -> void:
     if not player or not zone_builder:

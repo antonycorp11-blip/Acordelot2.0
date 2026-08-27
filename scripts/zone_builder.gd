@@ -120,6 +120,11 @@ func construir_zona(zone_data: Dictionary) -> void:
     add_child(_portals_node)
     
     _construir_terreno()
+
+    # Rios e estradas pertencem ao plano da região, portanto nascem antes dos
+    # edifícios. O leito já foi cavado pela mesma função de altura do terreno.
+    _construir_rios()
+    _construir_meio_fio()
     
     if _zone_data.get("water", false):
         _construir_agua()
@@ -129,6 +134,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _plantar_os_npcs()
     _espalhar_os_adornos()
     _construir_floresta_3d_real()
+    _plantar_vegetacao_baixa()
     _construir_barreiras_perimetro_arvores_reais()
     # Vila, cidade e santuario nao criam ninho. O jogador reclamou de Shiker
     # dentro da vila: parte vinha do gerador que segue o heroi, parte nascia
@@ -239,7 +245,35 @@ func _altura_local(x: float, z: float, dados: Dictionary) -> float:
     if beira > meia - MARGEM_DE_COSTURA:
         var t: float = clampf((meia - beira) / MARGEM_DE_COSTURA, 0.0, 1.0)
         bruto *= t * t * (3.0 - 2.0 * t)
-    return bruto
+    return bruto - _profundidade_do_rio(Vector2(x, z), dados)
+
+
+## Distância de um ponto ao segmento, usada tanto pelo leito quanto pela água.
+static func _distancia_ao_segmento(p: Vector2, a: Vector2, b: Vector2) -> float:
+    var ab := b - a
+    var tamanho2 := ab.length_squared()
+    if tamanho2 < 0.0001:
+        return p.distance_to(a)
+    var t := clampf((p - a).dot(ab) / tamanho2, 0.0, 1.0)
+    return p.distance_to(a + ab * t)
+
+
+func _profundidade_do_rio(p: Vector2, dados: Dictionary) -> float:
+    var caminhos: Array = dados.get("river_paths", [])
+    if caminhos.is_empty():
+        return 0.0
+    var largura: float = float(dados.get("river_width", 5.0))
+    var margem := 4.0
+    var menor := 99999.0
+    for caminho in caminhos:
+        for i in range(caminho.size() - 1):
+            var a := Vector2(float(caminho[i][0]), float(caminho[i][1]))
+            var b := Vector2(float(caminho[i + 1][0]), float(caminho[i + 1][1]))
+            menor = minf(menor, _distancia_ao_segmento(p, a, b))
+    if menor >= largura + margem:
+        return 0.0
+    var peso := 1.0 - smoothstep(largura, largura + margem, menor)
+    return float(dados.get("river_depth", 1.8)) * peso
 
 
 func _relevo_da_zona(x: float, z: float, dados: Dictionary) -> float:
@@ -361,6 +395,93 @@ func _construir_agua() -> void:
     _water_mesh.material_override = mat
     add_child(_water_mesh)
 
+
+## Rio real, estreito e seguindo o relevo. Cada faixa tem poucos vértices e
+## compartilha o shader de água; não há física nem luz dinâmica por trecho.
+func _construir_rios() -> void:
+    var caminhos: Array = _zone_data.get("river_paths", [])
+    if caminhos.is_empty():
+        return
+    var largura: float = float(_zone_data.get("river_width", 5.0))
+    var profundidade: float = float(_zone_data.get("river_depth", 1.8))
+    var material := ShaderMaterial.new()
+    material.shader = load("res://materials/agua.gdshader")
+    material.set_shader_parameter("cor_profunda", Color(0.055, 0.23, 0.36, 0.97))
+    material.set_shader_parameter("cor_superficie", Color(0.18, 0.58, 0.76, 0.88))
+
+    for caminho in caminhos:
+        if caminho.size() < 2:
+            continue
+        var amostras: Array[Vector2] = []
+        for indice in range(caminho.size() - 1):
+            var a := Vector2(float(caminho[indice][0]), float(caminho[indice][1]))
+            var b := Vector2(float(caminho[indice + 1][0]), float(caminho[indice + 1][1]))
+            var passos := maxi(1, int(ceil(a.distance_to(b) / 4.0)))
+            for passo in passos:
+                amostras.append(a.lerp(b, float(passo) / float(passos)))
+        amostras.append(Vector2(float(caminho[-1][0]), float(caminho[-1][1])))
+
+        var st := SurfaceTool.new()
+        st.begin(Mesh.PRIMITIVE_TRIANGLES)
+        for i in amostras.size():
+            var anterior: Vector2 = amostras[maxi(i - 1, 0)]
+            var seguinte: Vector2 = amostras[mini(i + 1, amostras.size() - 1)]
+            var direcao := (seguinte - anterior).normalized()
+            var lateral := Vector2(-direcao.y, direcao.x) * largura
+            var centro: Vector2 = amostras[i]
+            for lado in [-1.0, 1.0]:
+                var p: Vector2 = centro + lateral * float(lado)
+                var y := calcular_altura(p.x, p.y) + profundidade * 0.62 + 0.04
+                st.set_uv(Vector2(float(i) * 0.18, 0.0 if lado < 0.0 else 1.0))
+                st.add_vertex(Vector3(p.x, y, p.y))
+        for i in range(amostras.size() - 1):
+            var base := i * 2
+            st.add_index(base); st.add_index(base + 2); st.add_index(base + 1)
+            st.add_index(base + 1); st.add_index(base + 2); st.add_index(base + 3)
+        st.generate_normals()
+        var faixa := MeshInstance3D.new()
+        faixa.name = "Rio"
+        faixa.mesh = st.commit()
+        faixa.material_override = material
+        faixa.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        add_child(faixa)
+
+
+## Meio-fio baixo nas vias de pedra. É geometria simples e compartilhada,
+## suficiente para a rua deixar de parecer uma estampa pintada no gramado.
+func _construir_meio_fio() -> void:
+    if str(_zone_data.get("road_surface", "terra")) != "pedra":
+        return
+    var caminhos: Array = _zone_data.get("road_paths", [])
+    if caminhos.is_empty():
+        return
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = load("res://textures/flagstone_seamless.png")
+    material.roughness = 0.94
+    material.uv1_scale = Vector3(0.45, 0.45, 0.45)
+    var largura_da_rua := 5.2
+    for caminho in caminhos:
+        for i in range(caminho.size() - 1):
+            var a := Vector2(float(caminho[i][0]), float(caminho[i][1]))
+            var b := Vector2(float(caminho[i + 1][0]), float(caminho[i + 1][1]))
+            var delta := b - a
+            if delta.length_squared() < 0.01:
+                continue
+            var dir := delta.normalized()
+            var normal := Vector2(-dir.y, dir.x)
+            for lado in [-1.0, 1.0]:
+                var centro: Vector2 = (a + b) * 0.5 + normal * largura_da_rua * float(lado)
+                var bloco := MeshInstance3D.new()
+                bloco.name = "MeioFio"
+                var caixa := BoxMesh.new()
+                caixa.size = Vector3(0.34, 0.12, delta.length() + 0.35)
+                caixa.material = material
+                bloco.mesh = caixa
+                bloco.position = Vector3(centro.x, calcular_altura(centro.x, centro.y) + 0.04, centro.y)
+                bloco.rotation.y = atan2(dir.x, dir.y)
+                bloco.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+                add_child(bloco)
+
 # -------------------------------------------------------------
 # 3. Construções 3D da Cidade / Casas Medievais PBR
 # -------------------------------------------------------------
@@ -403,6 +524,7 @@ const ALTURA_PADRAO := 7.0
 ## esses numeros morriam no arquivo. E a diferenca entre uma vila e um punhado
 ## de casas num gramado: o jogador tem de VER por onde andar.
 func _pintar_as_vias(mat: ShaderMaterial) -> void:
+    _pintar_caminhos_regionais(mat)
     var vias: Dictionary = _dados_da_praca().get("vias", {})
     if vias.is_empty():
         return
@@ -419,6 +541,24 @@ func _pintar_as_vias(mat: ShaderMaterial) -> void:
         float(secundarias[0]), float(secundarias[1]),
         float(secundarias[2]), float(secundarias[3])))
     mat.set_shader_parameter("via_de_pedra", 1.0 if bool(vias.get("pedra", false)) else 0.0)
+
+
+func _pintar_caminhos_regionais(mat: ShaderMaterial) -> void:
+    var caminhos: Array = _zone_data.get("road_paths", [])
+    var segmentos: Array[Vector4] = []
+    for caminho in caminhos:
+        for i in range(caminho.size() - 1):
+            segmentos.append(Vector4(float(caminho[i][0]), float(caminho[i][1]),
+                float(caminho[i + 1][0]), float(caminho[i + 1][1])))
+            if segmentos.size() >= 6:
+                break
+        if segmentos.size() >= 6:
+            break
+    mat.set_shader_parameter("quantidade_caminhos", segmentos.size())
+    mat.set_shader_parameter("caminho_de_pedra", 1.0 if str(_zone_data.get("road_surface", "terra")) == "pedra" else 0.0)
+    for i in 6:
+        mat.set_shader_parameter("caminho_%d" % i,
+            segmentos[i] if i < segmentos.size() else Vector4(999.0, 999.0, 999.0, 999.0))
 
 
 ## Os nove modelos do acervo que tem UV e imagem de verdade.
@@ -792,16 +932,146 @@ func _construir_floresta_3d_real() -> void:
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zone"))) + 77
     
-    var biome: String = str(_zone_data.get("biome", "floresta"))
-    var lista_arvores: Array = ARVORES_MISTICAS_3D if (biome == "sagrado" or biome == "sombria") else ARVORES_FLORESTA_3D
-    
     var raio_min: float = 52.0 if is_cidade else 8.0
-    _espalhar_props_3d(rng, n_arvores, lista_arvores, 64.0, true, 1.0, 1.35, raio_min)
+    if n_arvores > 0:
+        # Quatro árvores grandes funcionam como marcos; a massa da floresta é
+        # pinheiro agrupado. Antes 82 árvores viravam mais de 160 desenhos.
+        var marcos: int = mini(4, maxi(2, int(n_arvores / 20)))
+        _espalhar_props_3d(rng, marcos, [ARVORES_FLORESTA_3D[0]],
+            62.0, true, 0.92, 1.12, raio_min)
+        var posicoes: Array[Vector3] = []
+        for i in range(n_arvores - marcos):
+            var p := Vector2.ZERO
+            var tentativas := 0
+            while tentativas < 10:
+                var ang := rng.randf_range(0.0, TAU)
+                var dist := rng.randf_range(raio_min, 67.0)
+                p = Vector2(cos(ang), sin(ang)) * dist
+                if not _perto_da_rede(p, "river_paths", float(_zone_data.get("river_width", 5.0)) + 2.5) \
+                        and not _perto_da_rede(p, "road_paths", 7.0):
+                    break
+                tentativas += 1
+            posicoes.append(Vector3(p.x, calcular_altura(p.x, p.y) - 0.5, p.y))
+        _plantar_pinheiros_em_lote(posicoes, hash(str(_zone_data.get("id", "zona"))))
     if not is_cidade:
-        var subbosque: int = maxi(16, int(round(float(n_arvores) * 0.28)))
+        var subbosque: int = clampi(int(round(float(n_arvores) * 0.20)), 10, 18)
         _espalhar_props_3d(rng, subbosque, SUBBOSQUE_FLORESTA_3D,
             66.0, false, 0.82, 1.22, 5.0)
     _espalhar_props_3d(rng, n_arbustos, ARBUSTOS_3D, 65.0, false, 0.9, 1.3, raio_min)
+
+
+## Todas as cópias de cada malha do pinheiro vão numa única chamada. Mantém a
+## textura original e só cria colisores cilíndricos baratos para os troncos.
+func _plantar_pinheiros_em_lote(posicoes: Array[Vector3], semente: int) -> void:
+    if posicoes.is_empty():
+        return
+    var cena := load("res://models/pine_tree.glb") as PackedScene
+    if cena == null:
+        return
+    var modelo := cena.instantiate() as Node3D
+    var caixa := _caixa_do_modelo(modelo)
+    if caixa.size.y < 0.001:
+        modelo.free()
+        return
+    var rng := RandomNumberGenerator.new()
+    rng.seed = semente
+    var giros: Array[float] = []
+    var fatores: Array[float] = []
+    for i in posicoes.size():
+        giros.append(rng.randf_range(0.0, TAU))
+        fatores.append(rng.randf_range(8.4, 10.8) / caixa.size.y)
+
+    for candidato in modelo.find_children("*", "MeshInstance3D", true, false):
+        var origem := candidato as MeshInstance3D
+        if origem.mesh == null:
+            continue
+        var local := _ate_a_raiz(origem, modelo)
+        var multi := MultiMesh.new()
+        multi.transform_format = MultiMesh.TRANSFORM_3D
+        multi.mesh = origem.mesh
+        multi.instance_count = posicoes.size()
+        for i in posicoes.size():
+            var fator := fatores[i]
+            var modelo_local := Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * fator),
+                Vector3(0.0, -caixa.position.y * fator, 0.0))
+            var suporte := Transform3D(Basis(Vector3.UP, giros[i]), posicoes[i])
+            multi.set_instance_transform(i, suporte * modelo_local * local)
+        var lote := MultiMeshInstance3D.new()
+        lote.name = "PinheirosEmLote"
+        lote.multimesh = multi
+        lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        lote.visibility_range_end = 96.0
+        lote.visibility_range_end_margin = 8.0
+        _props_node.add_child(lote)
+
+    # Colisor sem malha: não aumenta draw calls e mantém árvores como obstáculo.
+    for pos in posicoes:
+        var corpo := StaticBody3D.new()
+        corpo.position = pos
+        var col := CollisionShape3D.new()
+        var forma := CylinderShape3D.new()
+        forma.radius = 0.65
+        forma.height = 4.8
+        col.shape = forma
+        col.position.y = 2.4
+        corpo.add_child(col)
+        _props_node.add_child(corpo)
+    modelo.free()
+
+
+## Grama 3D agrupada: centenas de tufos custam uma malha, não centenas de nós.
+## Fica fora de rios e estradas para a composição continuar legível.
+func _plantar_vegetacao_baixa() -> void:
+    var cena := load("res://models/grass.glb") as PackedScene
+    if cena == null:
+        return
+    var amostra := cena.instantiate() as Node3D
+    var malha_no: MeshInstance3D = null
+    for candidato in amostra.find_children("*", "MeshInstance3D", true, false):
+        malha_no = candidato as MeshInstance3D
+        break
+    if malha_no == null or malha_no.mesh == null:
+        amostra.queue_free()
+        return
+    var quantidade := clampi(int(_zone_data.get("grass_density", 900)) / 5, 70, 360)
+    if str(_zone_data.get("biome", "")) == "cidade":
+        quantidade = mini(quantidade, 90)
+    var multi := MultiMesh.new()
+    multi.transform_format = MultiMesh.TRANSFORM_3D
+    multi.mesh = malha_no.mesh
+    multi.instance_count = quantidade
+    var rng := RandomNumberGenerator.new()
+    rng.seed = hash(str(_zone_data.get("id", "zona"))) + 1907
+    for i in quantidade:
+        var p := Vector2(rng.randf_range(-72.0, 72.0), rng.randf_range(-72.0, 72.0))
+        var tentativas := 0
+        while (_perto_da_rede(p, "river_paths", float(_zone_data.get("river_width", 5.0)) + 2.0)
+                or _perto_da_rede(p, "road_paths", 7.0)) and tentativas < 8:
+            p = Vector2(rng.randf_range(-72.0, 72.0), rng.randf_range(-72.0, 72.0))
+            tentativas += 1
+        var escala := rng.randf_range(0.34, 0.62)
+        var base := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * escala)
+        multi.set_instance_transform(i, Transform3D(base,
+            Vector3(p.x, calcular_altura(p.x, p.y) - 0.02, p.y)))
+    var tufos := MultiMeshInstance3D.new()
+    tufos.name = "Grama3D"
+    tufos.multimesh = multi
+    tufos.material_override = _material_de_cor
+    tufos.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    tufos.visibility_range_end = 34.0
+    tufos.visibility_range_end_margin = 5.0
+    _props_node.add_child(tufos)
+    amostra.queue_free()
+
+
+func _perto_da_rede(p: Vector2, chave: String, largura: float) -> bool:
+    for caminho in _zone_data.get(chave, []):
+        for i in range(caminho.size() - 1):
+            var a := Vector2(float(caminho[i][0]), float(caminho[i][1]))
+            var b := Vector2(float(caminho[i + 1][0]), float(caminho[i + 1][1]))
+            if _distancia_ao_segmento(p, a, b) < largura:
+                return true
+    return false
 
 func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio_max: float, solido: bool, sc_min: float, sc_max: float, dist_min: float) -> void:
     # Lista vazia e uma resposta valida agora: quando todos os modelos de um
@@ -857,6 +1127,7 @@ func _construir_barreiras_perimetro_arvores_reais() -> void:
     # metade, e como cada arvore agora e maior e o giro e sorteado, a parede de
     # copa continua fechada — o jogador nao ve o fim do mundo por causa disso.
     var num_passos: int = int(ceil((half * 2.0) / 12.0)) + 1
+    var borda: Array[Vector3] = []
     for step in range(num_passos):
         # Distribui do primeiro ao ultimo canto. Antes havia dez passos de 8,5
         # m: a conta terminava no MEIO da borda e deixava a outra metade nua.
@@ -868,16 +1139,17 @@ func _construir_barreiras_perimetro_arvores_reais() -> void:
 
         # Norte
         if exits.get("north", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
-            _criar_arvore_borda_3d(Vector3(pos_along, calcular_altura(pos_along, -half), -half), step + 1)
+            borda.append(Vector3(pos_along, calcular_altura(pos_along, -half) - 0.5, -half))
         # Sul
         if exits.get("south", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
-            _criar_arvore_borda_3d(Vector3(pos_along, calcular_altura(pos_along, half), half), step + 2)
+            borda.append(Vector3(pos_along, calcular_altura(pos_along, half) - 0.5, half))
         # Oeste
         if exits.get("west", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
-            _criar_arvore_borda_3d(Vector3(-half, calcular_altura(-half, pos_along), pos_along), step + 3)
+            borda.append(Vector3(-half, calcular_altura(-half, pos_along) - 0.5, pos_along))
         # Leste
         if exits.get("east", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
-            _criar_arvore_borda_3d(Vector3(half, calcular_altura(half, pos_along), pos_along), step + 4)
+            borda.append(Vector3(half, calcular_altura(half, pos_along) - 0.5, pos_along))
+    _plantar_pinheiros_em_lote(borda, hash(str(_zone_data.get("id", "borda"))) + 991)
 
 ## As arvores BARATAS ficam no cinturao.
 ##
@@ -1285,6 +1557,30 @@ func montar_mundo(db: Dictionary, quem_joga: Node3D) -> void:
     if not zonas.has(inicio):
         return
 
+    # A planta nova declara a coordenada de cada região explicitamente. Isso é
+    # o que permite desenhar Acordelot como no conceito, em vez de reconstruir
+    # um corredor vertical a partir do antigo grafo de portais.
+    var tem_planta := true
+    for zid in zonas.keys():
+        var dados: Dictionary = zonas[zid]
+        var grade: Array = dados.get("grid_pos", [])
+        if grade.size() < 2:
+            tem_planta = false
+            break
+        var celula := Vector2i(int(grade[0]), int(grade[1]))
+        if _por_celula.has(_chave(celula)):
+            push_warning("Duas regiões ocupam a célula " + _chave(celula))
+            continue
+        _celulas[String(zid)] = celula
+        _por_celula[_chave(celula)] = String(zid)
+
+    if tem_planta:
+        _arrumar_vizinhanca()
+        return
+
+    # Compatibilidade com mapas antigos sem grid_pos.
+    _celulas.clear()
+    _por_celula.clear()
     const PASSO := {"north": Vector2i(0, -1), "south": Vector2i(0, 1),
         "east": Vector2i(1, 0), "west": Vector2i(-1, 0)}
 
