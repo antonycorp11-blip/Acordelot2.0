@@ -22,9 +22,18 @@ class_name IsometricCamera
 const POUSO_GTA := Vector3(0.7, 2.35, 6.0)
 const INCLINACAO_GTA := -11.0
 const FOV_GTA := 68.0
-## A camera gira para o lado que o heroi olha, mas devagar: acompanhar o giro no
-## mesmo quadro embrulha o estomago e tira a leitura do movimento.
-const GIRO_DA_CAMERA := 4.5
+## O giro da camera de ombro e do JOGADOR, nao do heroi. Fazer a camera perseguir
+## para onde o heroi olha parece obvio e e uma armadilha: o movimento e medido
+## pelos eixos da camera (player.gd:121), o heroi vira para onde anda
+## (player.gd:150) e a camera viria atras dele — os tres fecham um ciclo que se
+## realimenta e a camera roda sozinha enquanto o analogico estiver de lado. Por
+## isso aqui ela so obedece ao dedo, e o ciclo nunca se forma.
+const SENSIBILIDADE := 0.006
+const SUAVIDADE_DO_GIRO := 12.0
+## Parado nao ha ciclo possivel, entao ai sim ela pode voltar sozinha para tras
+## do ombro — depois de um instante, para nao corrigir cada pausa entre passos.
+const ESPERA_PARA_RECENTRAR := 1.1
+const RECENTRAGEM := 2.2
 @export var velocidade_do_zoom := 8.0
 
 var _camera: Camera3D
@@ -34,6 +43,8 @@ var _zoom_desejado := 1.0
 var _distancia_da_pinca := 0.0
 var _giro_pouso := Vector3.ZERO
 var _fov_pouso := 50.0
+var _giro_desejado := 0.0
+var _quieto := 0.0
 
 
 ## Volta a camera de cima ao lugar dela quando o jogador desliga o modo ombro.
@@ -41,7 +52,12 @@ func usar_modo_gta(sim: bool) -> void:
     modo_gta = sim
     if _camera == null:
         return
-    if not sim:
+    if sim:
+        if target and is_instance_valid(target):
+            _giro_desejado = target.rotation.y
+            rotation.y = _giro_desejado
+        _quieto = 0.0
+    else:
         rotation.y = 0.0
         _camera.rotation_degrees = _giro_pouso
         _camera.fov = _fov_pouso
@@ -64,6 +80,9 @@ func _unhandled_input(event: InputEvent) -> void:
             _mudar_zoom(-0.10)
         elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
             _mudar_zoom(0.10)
+    elif event is InputEventMouseMotion and modo_gta:
+        if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+            _giro_desejado -= event.relative.x * SENSIBILIDADE
     elif event is InputEventScreenTouch:
         if event.pressed:
             _toques[event.index] = event.position
@@ -71,7 +90,10 @@ func _unhandled_input(event: InputEvent) -> void:
             _toques.erase(event.index)
             _distancia_da_pinca = 0.0
     elif event is InputEventScreenDrag:
+        var antes: Vector2 = _toques.get(event.index, event.position)
         _toques[event.index] = event.position
+        if modo_gta and _toques.size() == 1:
+            _giro_desejado -= (event.position.x - antes.x) * SENSIBILIDADE
         if _toques.size() >= 2:
             var pontos: Array = _toques.values()
             var distancia: float = pontos[0].distance_to(pontos[1])
@@ -97,8 +119,8 @@ func _process(delta: float) -> void:
     global_position = global_position.lerp(desired, 1.0 - exp(-follow_speed * delta))
 
     if modo_gta and _camera:
-        # O rig gira junto com o heroi; a camera fica parada atras dele.
-        rotation.y = rotate_toward(rotation.y, target.rotation.y, GIRO_DA_CAMERA * delta)
+        _recentrar_se_parado(delta)
+        rotation.y = lerp_angle(rotation.y, _giro_desejado, 1.0 - exp(-SUAVIDADE_DO_GIRO * delta))
         _camera.position = POUSO_GTA * lerpf(0.85, 1.25, (_zoom - zoom_minimo) / maxf(zoom_maximo - zoom_minimo, 0.01))
         _camera.rotation_degrees.x = INCLINACAO_GTA
         _camera.rotation_degrees.y = 0.0
@@ -108,3 +130,20 @@ func _process(delta: float) -> void:
     if _camera:
         _zoom = lerpf(_zoom, _zoom_desejado, 1.0 - exp(-velocidade_do_zoom * delta))
         _camera.position = _pouso * _zoom
+
+
+## So mexe no giro desejado quando o heroi esta parado. Enquanto ele anda, quem
+## manda na camera e o dedo — ver a nota em SENSIBILIDADE.
+func _recentrar_se_parado(delta: float) -> void:
+    var parado := true
+    if target is CharacterBody3D:
+        var v: Vector3 = target.velocity
+        v.y = 0.0
+        parado = v.length() < 0.4
+    if not parado:
+        _quieto = 0.0
+        return
+    _quieto += delta
+    if _quieto < ESPERA_PARA_RECENTRAR:
+        return
+    _giro_desejado = lerp_angle(_giro_desejado, target.rotation.y, 1.0 - exp(-RECENTRAGEM * delta))

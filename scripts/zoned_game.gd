@@ -533,6 +533,31 @@ func _tirar_print() -> void:
                 aj.call("_alternar_medidor")
         await get_tree().create_timer(0.8).timeout
 
+    # `-- --giro` segura o analogico DE LADO com a camera de ombro ligada e le o
+    # giro dela quadro a quadro. E o teste do ciclo de realimentacao: se o giro
+    # crescer sem parar, a camera esta se perseguindo de novo.
+    if OS.get_cmdline_user_args().has("--giro"):
+        var aj2 := find_child("Ajustes", true, false)
+        if aj2:
+            aj2.call("_escolher_camera", true)
+        await get_tree().create_timer(0.5).timeout
+        var cam := find_child("IsometricCamera", true, false)
+        if cam == null:
+            for n in get_tree().root.find_children("*", "Node3D", true, false):
+                if n.get_script() and str(n.get_script().resource_path).ends_with("isometric_camera.gd"):
+                    cam = n
+                    break
+        Input.action_press("ui_right")
+        for i in 5:
+            await get_tree().create_timer(0.5).timeout
+            print("GIRO andando %.1fs: camera %+.1f graus | heroi %+.1f graus" % [
+                (i + 1) * 0.5, rad_to_deg(cam.rotation.y), rad_to_deg(_player.rotation.y)])
+        Input.action_release("ui_right")
+        for i in 4:
+            await get_tree().create_timer(0.6).timeout
+            print("GIRO parado  %.1fs: camera %+.1f graus | heroi %+.1f graus" % [
+                (i + 1) * 0.6, rad_to_deg(cam.rotation.y), rad_to_deg(_player.rotation.y)])
+
     if OS.get_cmdline_user_args().has("--dg2"):
         await get_tree().create_timer(1.0).timeout
         for n in get_tree().root.find_children("*", "Node3D", true, false):
