@@ -148,7 +148,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _espalhar_os_adornos()
     _construir_floresta_3d_real()
     _plantar_vegetacao_baixa()
-    _plantar_arbustos_texturizados()
+    _plantar_mato_pbr()
     _plantar_grama_texturizada_nova()
     _construir_detalhes_floresta_inicial()
     _construir_barreiras_perimetro_arvores_reais()
@@ -1029,34 +1029,66 @@ func _plantar_pinheiros_em_lote(posicoes: Array[Vector3], semente: int) -> void:
 ##
 ## O GLB anterior tinha 900 triângulos por tufo. Mesmo limitado a 460 cópias,
 ## custava 414 mil triângulos por região e ainda deixava grandes áreas lisas.
-## Esta malha tem dez triângulos por tufo: podemos cobrir o terreno inteiro com
-## milhares de cópias e continuar bem abaixo do custo antigo.
+## Esta malha tem quinze triângulos por tufo: podemos cobrir o terreno inteiro
+## com milhares de cópias e continuar bem abaixo do custo antigo.
+##
+## O sorteio NÃO é uniforme. Espalhar tufos iguais por 152 metros dava um campo
+## de confete: pontinhos escuros de espaçamento constante até o horizonte. Grama
+## de verdade cresce em manchas, com falhas entre elas, e é assim que a gente
+## planta aqui — a maior parte em touceiras, o resto solto para fechar o tapete.
 func _plantar_vegetacao_baixa() -> void:
     _preparar_grama_leve()
     if _malha_grama_leve == null:
         return
-    var quantidade := clampi(int(_zone_data.get("grass_density", 900)) * 3, 1200, 7800)
+    # Longe, o shader recolhe a lâmina até ela sumir; então densidade alta não
+    # custa preenchimento, só o tapete perto do jogador ficar cheio de verdade.
+    var quantidade := clampi(int(_zone_data.get("grass_density", 900)) * 2, 1500, 5000)
     if str(_zone_data.get("biome", "")) == "cidade":
         quantidade = mini(quantidade, 350)
     var multi := MultiMesh.new()
     multi.transform_format = MultiMesh.TRANSFORM_3D
+    multi.use_colors = true
     multi.mesh = _malha_grama_leve
     multi.instance_count = quantidade
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zona"))) + 1907
+    # Uma touceira a cada doze tufos: manchas de uns três metros, densas por
+    # dentro, com chao aparecendo entre elas.
+    var manchas := maxi(quantidade / 16, 8)
+    var centros: Array[Vector2] = []
+    for _m in manchas:
+        centros.append(Vector2(rng.randf_range(-76.0, 76.0), rng.randf_range(-76.0, 76.0)))
+    var largura_rio := float(_zone_data.get("river_width", 5.0)) + 2.0
     for i in quantidade:
-        # Uniforme de propósito: clareiras também são gramadas. Árvores usam
-        # maciços, mas o tapete vegetal precisa unir visualmente todo o chão.
-        var p := Vector2(rng.randf_range(-76.0, 76.0), rng.randf_range(-76.0, 76.0))
+        var p := Vector2.ZERO
         var tentativas := 0
-        while (_perto_da_rede(p, "river_paths", float(_zone_data.get("river_width", 5.0)) + 2.0)
-                or _perto_da_rede(p, "road_paths", 7.0)) and tentativas < 8:
-            p = Vector2(rng.randf_range(-76.0, 76.0), rng.randf_range(-76.0, 76.0))
+        while tentativas < 8:
+            if i % 4 == 3:
+                # Um quarto solto no campo: sem ele as manchas viram ilhas.
+                p = Vector2(rng.randf_range(-76.0, 76.0), rng.randf_range(-76.0, 76.0))
+            else:
+                var centro: Vector2 = centros[rng.randi_range(0, centros.size() - 1)]
+                var raio := 2.6 * sqrt(rng.randf())
+                var giro := rng.randf_range(0.0, TAU)
+                p = centro + Vector2(cos(giro), sin(giro)) * raio
+                p.x = clampf(p.x, -76.0, 76.0)
+                p.y = clampf(p.y, -76.0, 76.0)
+            if not (_perto_da_rede(p, "river_paths", largura_rio)
+                    or _perto_da_rede(p, "road_paths", 7.0)):
+                break
             tentativas += 1
-        var escala := rng.randf_range(0.72, 1.26)
-        var base := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * escala)
+        var escala := rng.randf_range(0.68, 1.34)
+        var inclinacao := Basis(Vector3(rng.randf_range(-1.0, 1.0), 0.0, rng.randf_range(-1.0, 1.0)).normalized(),
+            rng.randf_range(0.0, 0.16))
+        var base := inclinacao * Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(
+            Vector3(escala, escala * rng.randf_range(0.82, 1.22), escala))
         multi.set_instance_transform(i, Transform3D(base,
             Vector3(p.x, calcular_altura(p.x, p.y) - 0.015, p.y)))
+        # Matiz por tufo: nenhum gramado real tem um verde só, e a variação é o
+        # que impede o tapete de virar uma estampa repetida.
+        var tom := rng.randf_range(0.82, 1.15)
+        multi.set_instance_color(i, Color(tom * rng.randf_range(0.92, 1.06), tom,
+            tom * rng.randf_range(0.86, 1.02)))
     var tufos := MultiMeshInstance3D.new()
     tufos.name = "TapeteDeGrama3D"
     tufos.multimesh = multi
@@ -1064,10 +1096,16 @@ func _plantar_vegetacao_baixa() -> void:
     tufos.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     # Um MultiMesh ocupa a zona toda; limitar pela distância do NÓ fazia todo
     # o gramado desaparecer quando o jogador se afastava do centro da região.
+    # Quem cuida da distância agora é o shader, lâmina por lâmina.
     tufos.visibility_range_end = 0.0
     _props_node.add_child(tufos)
 
 
+## A lâmina em si: base larga, curvada para frente e terminando em ponta.
+##
+## O quadrilátero reto de antes lia como espinho, não como folha — e cinco
+## espinhos juntos liam como um arbusto seco em miniatura. Dois segmentos e uma
+## curva custam um triângulo a mais por lâmina e mudam a silhueta inteira.
 static func _preparar_grama_leve() -> void:
     if _malha_grama_leve != null:
         return
@@ -1079,71 +1117,148 @@ static func _preparar_grama_leve() -> void:
     for i in centros.size():
         var angulo := float(i) * 1.256637
         var lateral := Vector3(cos(angulo), 0.0, sin(angulo))
+        # A folha tomba para o lado oposto ao da largura: assim a curva aparece
+        # de perfil, que é como a câmera de ombro vê o gramado.
+        var tombo := Vector3(-lateral.z, 0.0, lateral.x)
         var centro := Vector3(centros[i].x, 0.0, centros[i].y)
-        var meia_base := 0.105
-        var meia_ponta := 0.018
-        var altura := 0.34 + float(i % 3) * 0.055
-        var a := centro - lateral * meia_base
-        var b := centro + lateral * meia_base
-        var c := centro + lateral * meia_ponta + Vector3.UP * altura
-        var d := centro - lateral * meia_ponta + Vector3.UP * altura
-        st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(a)
-        st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(b)
-        st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(c)
-        st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(a)
-        st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(c)
-        st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(d)
+        var altura := 0.28 + float(i % 3) * 0.05
+        var curva := altura * (0.30 + float(i % 2) * 0.12)
+        var meia_base := 0.052
+        var meia_meio := 0.036
+        # Nível 0 (chão), nível 1 (meio, já inclinado) e a ponta.
+        var a0 := centro - lateral * meia_base
+        var b0 := centro + lateral * meia_base
+        var meio := centro + Vector3.UP * (altura * 0.55) + tombo * (curva * 0.28)
+        var a1 := meio - lateral * meia_meio
+        var b1 := meio + lateral * meia_meio
+        var ponta := centro + Vector3.UP * altura + tombo * curva
+        st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(a0)
+        st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(b0)
+        st.set_uv(Vector2(1.0, 0.55)); st.add_vertex(b1)
+        st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(a0)
+        st.set_uv(Vector2(1.0, 0.55)); st.add_vertex(b1)
+        st.set_uv(Vector2(0.0, 0.55)); st.add_vertex(a1)
+        st.set_uv(Vector2(0.0, 0.55)); st.add_vertex(a1)
+        st.set_uv(Vector2(1.0, 0.55)); st.add_vertex(b1)
+        st.set_uv(Vector2(0.5, 1.0)); st.add_vertex(ponta)
     st.generate_normals()
     _malha_grama_leve = st.commit()
     _material_grama_leve = ShaderMaterial.new()
     _material_grama_leve.shader = load("res://materials/grama_leve.gdshader")
 
 
-## O acervo não possui um arbusto 3D texturizado: o arquivo com esse nome não
-## tem UV nem imagem. Para não voltar às massas brancas, reutilizamos somente a
-## malha de FOLHAS texturizadas do pinheiro, pequena e assentada como moita.
-## Todas as moitas continuam custando uma única chamada de desenho.
-func _plantar_arbustos_texturizados() -> void:
-    var quantidade := int(_zone_data.get("bush_count", 0))
-    if quantidade <= 0 or str(_zone_data.get("biome", "")) == "cidade":
+## Mato de verdade, do pacote novo em models/vegetacao/mato_pbr.glb.
+##
+## Até aqui o "arbusto texturizado" era um remendo: o acervo não tinha arbusto
+## com UV, então a moita era a malha de FOLHAS do pinheiro deitada no chão —
+## agulha de conífera fazendo papel de mato. O pacote novo trouxe duas peças
+## fotografadas e recortadas em alfa: um tufo de capim alto e uma erva de folha
+## larga com flor amarela. Cada peça custa menos de 400 triângulos e vem com
+## recorte por limiar, que no celular não paga ordenação de transparência.
+##
+## A erva entra duas vezes, em escalas diferentes: pequena ela é o mato rasteiro
+## que quebra o tapete verde; grande ela é o arbusto que o mundo não tinha.
+func _plantar_mato_pbr() -> void:
+    if str(_zone_data.get("biome", "")) == "cidade":
         return
-    var cena := load("res://models/pine_tree.glb") as PackedScene
+    var cena := load("res://models/vegetacao/mato_pbr.glb") as PackedScene
     if cena == null:
         return
     var amostra := cena.instantiate() as Node3D
-    var folhas: MeshInstance3D = null
-    for candidato in amostra.find_children("*", "MeshInstance3D", true, false):
-        if str(candidato.name).to_lower().contains("leav"):
-            folhas = candidato as MeshInstance3D
-            break
-    if folhas == null or folhas.mesh == null:
-        amostra.queue_free()
+    var rng := RandomNumberGenerator.new()
+    rng.seed = hash(str(_zone_data.get("id", "zona"))) + 5507
+    var arbustos := int(_zone_data.get("bush_count", 22))
+    _semear_mato(amostra, "tufo_alto", 600, 0.55, 0.95, 34.0, rng)
+    # A erva é uma roseta de folha larga: medida pela altura ela viraria um
+    # disco de dois metros e meio de diâmetro. Esta é medida pela largura.
+    _semear_mato(amostra, "erva_flor", 320, 0.45, 0.75, 26.0, rng, true)
+    _semear_mato(amostra, "erva_flor", arbustos * 2, 1.10, 1.70, 44.0, rng, true)
+    amostra.queue_free()
+
+
+## Uma espécie, uma chamada de desenho.
+##
+## `alcance` é onde a peça termina de encolher: quem cuida da distância é o
+## shader, instância por instância, e não o nó — limitar o NÓ apagava o lote
+## inteiro de uma vez quando o jogador andava para a beira da região.
+func _semear_mato(amostra: Node3D, nome: String, quantidade: int,
+        medida_min: float, medida_max: float, alcance: float,
+        rng: RandomNumberGenerator, pela_largura: bool = false) -> void:
+    if quantidade <= 0:
         return
-    var caixa := _caixa_do_modelo(amostra)
-    var local := _ate_a_raiz(folhas, amostra)
+    var origem: MeshInstance3D = null
+    for candidato in amostra.find_children("*", "MeshInstance3D", true, false):
+        if str(candidato.name).to_lower().begins_with(nome):
+            origem = candidato as MeshInstance3D
+            break
+    if origem == null or origem.mesh == null:
+        return
+    var local := _ate_a_raiz(origem, amostra)
+    var caixa_mundo: AABB = local * origem.mesh.get_aabb()
+    if caixa_mundo.size.y < 0.001:
+        return
+    var medida_media := (medida_min + medida_max) * 0.5
+    var referencia_base := maxf(caixa_mundo.size.x, caixa_mundo.size.z) if pela_largura \
+        else caixa_mundo.size.y
+    var altura_tipica := caixa_mundo.size.y * medida_media / maxf(referencia_base, 0.001)
+
     var multi := MultiMesh.new()
     multi.transform_format = MultiMesh.TRANSFORM_3D
-    multi.mesh = folhas.mesh
+    multi.mesh = origem.mesh
     multi.instance_count = quantidade
-    var rng := RandomNumberGenerator.new()
-    rng.seed = hash(str(_zone_data.get("id", "zona"))) + 4821
+    var largura_rio := float(_zone_data.get("river_width", 5.0)) + 2.5
     for i in quantidade:
-        var p := _sortear_ponto_de_floresta(rng, 4.0)
-        var altura := rng.randf_range(0.75, 1.35)
-        var fator := altura / maxf(caixa.size.y, 0.01)
-        var deformacao := Vector3(rng.randf_range(1.15, 1.65), rng.randf_range(0.72, 0.95), rng.randf_range(1.15, 1.65))
-        var base := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * fator * deformacao)
+        # Metade nos maciços, metade no campo aberto: o mato do plano regional
+        # nasce junto com as árvores, mas clareira sem mato nenhum lê como
+        # gramado de jardim, não como floresta.
+        var p := _ponto_de_mato(rng, i % 2 == 0)
+        var tentativas := 0
+        while (_perto_da_rede(p, "road_paths", 5.0)
+                or _perto_da_rede(p, "river_paths", largura_rio)) and tentativas < 6:
+            p = _ponto_de_mato(rng, i % 2 == 0)
+            tentativas += 1
+        var medida := rng.randf_range(medida_min, medida_max)
+        var fator := medida / maxf(referencia_base, 0.001)
+        var largura := fator * rng.randf_range(0.85, 1.25)
+        var base := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(
+            Vector3(largura, fator, largura))
         var suporte := Transform3D(base,
-            Vector3(p.x, calcular_altura(p.x, p.y) - caixa.position.y * fator * deformacao.y, p.y))
+            Vector3(p.x, calcular_altura(p.x, p.y) - caixa_mundo.position.y * fator, p.y))
         multi.set_instance_transform(i, suporte * local)
+
     var lote := MultiMeshInstance3D.new()
-    lote.name = "ArbustosTexturizados"
+    lote.name = "Mato_" + nome
     lote.multimesh = multi
+    lote.material_override = _material_do_mato(origem, altura_tipica, alcance)
     lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-    lote.visibility_range_end = 42.0
-    lote.visibility_range_end_margin = 5.0
+    lote.visibility_range_end = 0.0
     _props_node.add_child(lote)
-    amostra.queue_free()
+
+
+## Onde uma peça de mato pode nascer: no maciço planejado ou solta no campo.
+func _ponto_de_mato(rng: RandomNumberGenerator, no_macico: bool) -> Vector2:
+    if no_macico:
+        return _sortear_ponto_de_floresta(rng, 3.5)
+    return Vector2(rng.randf_range(-74.0, 74.0), rng.randf_range(-74.0, 74.0))
+
+
+## O shader do mato, alimentado pela textura que veio no próprio GLB.
+##
+## O material importado já traz recorte por limiar e face dupla; o que ele não
+## tem é vento nem encolhimento por distância, e é só isso que trocamos.
+func _material_do_mato(origem: MeshInstance3D, altura_tipica: float,
+        alcance: float) -> ShaderMaterial:
+    var mat := ShaderMaterial.new()
+    mat.shader = load("res://materials/mato_pbr.gdshader")
+    var importado := origem.mesh.surface_get_material(0)
+    if importado is BaseMaterial3D:
+        var padrao := importado as BaseMaterial3D
+        mat.set_shader_parameter("textura", padrao.albedo_texture)
+        mat.set_shader_parameter("corte", maxf(padrao.alpha_scissor_threshold, 0.25))
+    mat.set_shader_parameter("altura_mundo", altura_tipica)
+    mat.set_shader_parameter("distancia_cheia", alcance * 0.62)
+    mat.set_shader_parameter("distancia_nula", alcance)
+    return mat
 
 
 ## Touceiras PBR do pacote novo. O cenário completo de floresta recebido tem
