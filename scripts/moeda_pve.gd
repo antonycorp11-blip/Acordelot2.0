@@ -13,10 +13,8 @@ class_name MoedaPve
 
 const CENA := preload("res://models/clave_moeda.glb")
 const ALTURA := 0.85
-## Distancia em que ela comeca a ser puxada, e a que conta como coletada.
+## Distancia em que a coleta automatica comeca.
 const RAIO_DO_IMA := 3.4
-const RAIO_DE_COLETA := 0.7
-const VELOCIDADE_DO_IMA := 7.0
 ## Some sozinha se ninguem pegar: moeda esquecida no mapa vira lixo de memoria.
 const TEMPO_DE_VIDA := 20.0
 
@@ -131,19 +129,21 @@ func _process(delta: float) -> void:
         if _jogador == null:
             return
 
-    var ate := _jogador.global_position + Vector3.UP * 0.9 - global_position
+    var alvo := _jogador.global_position + Vector3.UP * 0.75
+    var ate := alvo - global_position
     var dist := ate.length()
     if dist > RAIO_DO_IMA:
         return
-    if dist <= RAIO_DE_COLETA:
-        _coletar()
-        return
-    # Quanto mais perto, mais rapido: da a sensacao de ser sugada.
-    global_position += ate.normalized() * VELOCIDADE_DO_IMA * delta * (1.0 + (1.0 - dist / RAIO_DO_IMA))
+    # Credita imediatamente e faz um unico voo curto ate a posicao que o heroi
+    # ocupava neste instante. Antes a moeda perseguia um alvo em movimento e
+    # ainda tinha o Y recolocado pela flutuacao: grudava no corpo, orbitava e
+    # so depois conseguia cruzar o raio de coleta.
+    _coletar(alvo)
 
 
-func _coletar() -> void:
+func _coletar(alvo_visual := Vector3.ZERO) -> void:
     _coletada = true
+    set_process(false)
     var progresso := get_node_or_null("/root/Progresso")
     if progresso:
         progresso.adicionar_recurso("claves", valor)
@@ -161,11 +161,14 @@ func _coletar() -> void:
     aviso.modulate = Color(1.0, 0.88, 0.45)
     aviso.outline_modulate = Color(0.25, 0.16, 0.0, 1.0)
     aviso.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    aviso.position.y = 0.4
+    aviso.top_level = true
     add_child(aviso)
+    aviso.global_position = global_position + Vector3.UP * 0.4
 
     var tw := create_tween()
-    tw.tween_property(aviso, "position:y", 1.5, 0.5)
-    tw.parallel().tween_property(self, "scale", Vector3.ZERO, 0.35)
-    tw.parallel().tween_property(aviso, "modulate:a", 0.0, 0.5)
+    if alvo_visual != Vector3.ZERO:
+        tw.tween_property(self, "global_position", alvo_visual, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tw.parallel().tween_property(self, "scale", Vector3.ZERO, 0.18)
+    tw.parallel().tween_property(aviso, "global_position:y", aviso.global_position.y + 1.1, 0.48)
+    tw.parallel().tween_property(aviso, "modulate:a", 0.0, 0.48)
     tw.tween_callback(queue_free)
