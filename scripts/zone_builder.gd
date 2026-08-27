@@ -96,6 +96,17 @@ func carregar_dados() -> void:
         var f_lay := FileAccess.open("res://data/city_layouts.json", FileAccess.READ)
         if f_lay:
             _city_layouts = JSON.parse_string(f_lay.get_as_text())
+        # Plantas revisadas ficam separadas do arquivo histórico de 9 mil
+        # linhas. Elas substituem somente os bairros redesenhados e tornam a
+        # remoção dos assets antigos verificável e reversível.
+        var f_novo := FileAccess.open("res://data/urban_refinement.json", FileAccess.READ)
+        if f_novo:
+            var revisao: Dictionary = JSON.parse_string(f_novo.get_as_text())
+            for secao in ["pracas", "layouts"]:
+                if not _city_layouts.has(secao):
+                    _city_layouts[secao] = {}
+                for id in revisao.get(secao, {}):
+                    _city_layouts[secao][id] = revisao[secao][id]
 
 func construir_zona(zone_data: Dictionary) -> void:
     _zone_data = zone_data
@@ -606,9 +617,6 @@ func _construir_layout_urbano() -> void:
         return
     var pecas: Array = todas[layout_id]
 
-    # A planta diz se foi desenhada so com modelos texturizados.
-    var so_com_textura: bool = bool(_dados_da_praca().get("so_com_textura", false))
-
     for p in pecas:
         var tag: String = str(p.get("tag", ""))
 
@@ -622,8 +630,10 @@ func _construir_layout_urbano() -> void:
         var modelo_path: String = str(p.get("model", ""))
         if modelo_path == "" or not ResourceLoader.exists(modelo_path):
             continue
-        # Sem textura nao entra — nas plantas que pedem essa regra.
-        if so_com_textura and not _tem_textura(modelo_path):
+        # Construção ou prop urbano sem textura nunca entra. As plantas novas
+        # já só usam o acervo aprovado; a segunda guarda impede regressões se
+        # um layout antigo for ligado por engano.
+        if not _tem_textura(modelo_path):
             continue
 
         var altura_alvo: float = float(ALTURA_POR_TAG.get(tag, ALTURA_PADRAO))
