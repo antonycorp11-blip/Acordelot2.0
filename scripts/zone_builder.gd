@@ -371,16 +371,16 @@ func _construir_agua() -> void:
 ## mede a caixa do modelo e o estica ate a altura de verdade. Sem ela a cidade
 ## sai com casas de trinta metros ao lado de moinhos de dois.
 const ALTURA_POR_TAG := {
-    "casa": 7.5, "casa_enxaimel_1": 8.0, "casa_enxaimel_2": 7.5,
+    "casa": 8.8, "casa_enxaimel_1": 9.4, "casa_enxaimel_2": 8.8,
     # As cinco casas da Vila do Caminho. Os numeros NAO sao livres: a planta
     # alinha fachada e mede vao entre lotes com a pegada que a casa tem DEPOIS
     # de normalizada por esta altura. Mexer aqui sem mexer em CASAS, no
     # planejar_cidades.py, poe casa dentro de casa.
-    "casa_alta": 8.5, "casa_larga": 7.5,
-    "casa_pedra": 7.0, "casarao": 8.5, "solar": 9.5,
+    "casa_alta": 9.8, "casa_larga": 8.8,
+    "casa_pedra": 8.4, "casarao": 10.0, "solar": 11.0,
     # As tres de Acordelot. A torre e a mais alta da cidade de proposito: ela
     # faz o portao e fecha a praca, e marco precisa ser visto de longe.
-    "casa_taipa": 8.0, "casa_torre": 12.0, "taverna": 11.5,
+    "casa_taipa": 9.4, "casa_torre": 13.5, "taverna": 13.0,
     # Os props da rua. Medidos pelo que a coisa mede no mundo: um barril tem
     # um metro de altura, um caixote oitenta centimetros, um saco meio metro.
     # Prop fora de escala e o erro que mais denuncia cenario montado as pressas.
@@ -495,7 +495,9 @@ func _construir_layout_urbano() -> void:
         var pos: Array = p.get("position", [0.0, 0.0])
         var px: float = float(pos[0]) if pos.size() > 0 else 0.0
         var pz: float = float(pos[1]) if pos.size() > 1 else 0.0
-        var py: float = calcular_altura(px, pz) + float(p.get("y", 0.0)) - 0.25
+        # _instanciar_prop_3d ja desloca a base real da malha para y=0. Um
+        # segundo desconto enterrava bancos, caixas e outros props baixos.
+        var py: float = calcular_altura(px, pz) + float(p.get("y", 0.0))
 
         suporte.position = Vector3(px, py, pz)
         suporte.rotation.y = deg_to_rad(float(p.get("rotation", 0.0)))
@@ -695,6 +697,10 @@ func _espalhar_os_adornos() -> void:
         if a.size() < 6:
             continue
         var caminho: String = "res://textures/" + str(a[0]) + ".png"
+        # As cercas antigas sao cartoes planos e nao combinam com as casas 3D.
+        # Retira todas sem tocar nos demais adornos planejados.
+        if caminho.to_lower().contains("cerca"):
+            continue
         if not ResourceLoader.exists(caminho):
             continue
         var chave: String = caminho + ("|fixo" if bool(a[5]) else "|gira")

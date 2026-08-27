@@ -219,11 +219,11 @@ def ajardinar(pecas, ruas, aneis, marca="quarteirao"):
 #
 #            etiqueta          modelo              altura  frente  fundo
 CASAS = {
-    "casa_alta":   ("medieval_house_1",  8.5,  2.85,  4.17),
-    "casa_larga":  ("medieval_house_3",  7.5,  8.31,  3.64),
-    "casa_pedra":  ("casa_pedra",        7.0,  7.04,  5.16),
-    "casarao":     ("casarao_madeira",   8.5,  6.08, 11.01),
-    "solar":       ("casa_solar",        9.5, 10.73, 10.52),
+    "casa_alta":   ("medieval_house_1",  9.8,  3.29,  4.81),
+    "casa_larga":  ("medieval_house_3",  8.8,  9.75,  4.27),
+    "casa_pedra":  ("casa_pedra",        8.4,  8.45,  6.19),
+    "casarao":     ("casarao_madeira",  10.0,  7.15, 12.95),
+    "solar":       ("casa_solar",       11.0, 12.42, 12.18),
 }
 
 # Para que lado o modelo olha, em graus, quando chega do disco.
@@ -750,14 +750,16 @@ def _adornos_da_vila():
 #
 #            etiqueta          modelo          altura  frente  fundo
 CASAS_DA_CIDADE = {
-    "casa_alta":   ("medieval_house_1",  8.5,  2.85,  4.17),
-    "casa_larga":  ("medieval_house_3",  7.5,  8.31,  3.64),
-    "casa_pedra":  ("casa_pedra",        7.0,  7.04,  5.16),
-    "casarao":     ("casarao_madeira",   8.5,  6.08, 11.01),
-    "solar":       ("casa_solar",        9.5, 10.73, 10.52),
-    "casa_taipa":  ("casa_taipa",        8.0,  4.31, 10.16),
-    "casa_torre":  ("casa_torre",       12.0,  7.67,  9.84),
-    "taverna":     ("taverna",          11.5,  6.86,  9.01),
+    # Alturas e pegadas ampliadas juntas: a porta volta a ler como passagem
+    # para um personagem de 1,75 m, sem o planejador deixar casas se cruzarem.
+    "casa_alta":   ("medieval_house_1",  9.8,  3.29,  4.81),
+    "casa_larga":  ("medieval_house_3",  8.8,  9.75,  4.27),
+    "casa_pedra":  ("casa_pedra",        8.4,  8.45,  6.19),
+    "casarao":     ("casarao_madeira",  10.0,  7.15, 12.95),
+    "solar":       ("casa_solar",       11.0, 12.42, 12.18),
+    "casa_taipa":  ("casa_taipa",        9.4,  5.06, 11.94),
+    "casa_torre":  ("casa_torre",       13.5,  8.63, 11.07),
+    "taverna":     ("taverna",          13.0,  7.75, 10.19),
 }
 
 # A rua da cidade e mais larga que a da vila — dez metros contra oito. A
@@ -841,6 +843,20 @@ def cidade_de_acordelot():
                 etiqueta = padrao[(i + linha_i * 2 + int(abs(rua_z))) % len(padrao)]
                 giro = 180.0 if casa_z > rua_z else 0.0
                 por(f"bairro_{faixa}_{linha_i}_{i}", etiqueta, x, casa_z, giro=giro)
+
+    # Oito lotes de borda fecham os quatro grandes vazios entre os bairros e a
+    # muralha. Continuam orientados para as ruas internas e deixam os três
+    # portões completamente livres.
+    for nome, etiqueta, x, z, giro in (
+            ("borda_sul_o", "casa_pedra", -20.5, 51.5, 180.0),
+            ("borda_sul_l", "casa_alta", 20.5, 52.0, 180.0),
+            ("borda_norte_o", "casa_larga", -21.0, -52.0, 0.0),
+            ("borda_norte_l", "casa_pedra", 21.0, -51.5, 0.0),
+            ("borda_oeste_s", "casa_taipa", -54.0, 32.0, 90.0),
+            ("borda_oeste_n", "casa_alta", -54.0, -32.0, 90.0),
+            ("borda_leste_s", "casa_larga", 54.0, 31.5, 270.0),
+            ("borda_leste_n", "casarao", 53.5, -32.0, 270.0)):
+        por(nome, etiqueta, x, z, giro=giro)
 
     # 5. PRACA IMPERIAL. Ela e o coracao da MESMA Acordelot, nao outra zona.
     # O eixo x=0 continua livre de sul a norte: quem entra pelo portao enxerga

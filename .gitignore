@@ -19,6 +19,11 @@ personagem/heroi_mixamo.zip
 # ficam fora do repositorio.
 personagem/animacoes/
 
+# FBX temporarios da Wins: oito arquivos de 30 MB usados apenas para assar
+# personagem/wins_anims.res. Os originais continuam na pasta-fonte externa.
+personagem/wins_animacoes/
+personagem/wins_modelo/
+
 # Arte reprovada esperando ser regerada no Flow: os tres sprites vieram com o
 # contorno branco de adesivo pintado POR DENTRO do desenho, entre as folhas, e
 # recorte nenhum tira sem esburacar a moita.

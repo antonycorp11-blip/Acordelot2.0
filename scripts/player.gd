@@ -1,6 +1,13 @@
 extends CharacterBody3D
 
-@onready var _hero: Hero = $Hero
+const WinsScript := preload("res://scripts/wins.gd")
+
+signal personagem_trocado(id: String, nome: String)
+
+@onready var _hero = $Hero
+@onready var _akles: Node3D = $Hero
+var _wins: Node3D
+var _personagem_atual := "akles"
 
 @export var move_speed := 6.0
 @export var fly_speed := 18.0
@@ -101,6 +108,36 @@ func _ready() -> void:
     # Os portais procuram por este nome em ingles; manter os dois evita depender
     # de qual dos dois quem escreveu o portal usou.
     add_to_group("player")
+    # A Wins nasce escondida no carregamento. Assim modelo, materiais e
+    # animações já estão preparados quando o jogador toca em trocar.
+    _wins = WinsScript.new()
+    _wins.name = "Wins"
+    _wins.position = _akles.position
+    _wins.visible = false
+    _wins.process_mode = Node.PROCESS_MODE_DISABLED
+    add_child(_wins)
+
+
+func trocar_personagem(id := "") -> void:
+    var destino := id
+    if destino.is_empty():
+        destino = "wins" if _personagem_atual == "akles" else "akles"
+    if destino == _personagem_atual or not destino in ["akles", "wins"]:
+        return
+    if _hero and _hero.has_method("atacando") and _hero.atacando():
+        return
+    _akles.visible = destino == "akles"
+    _akles.process_mode = Node.PROCESS_MODE_INHERIT if destino == "akles" else Node.PROCESS_MODE_DISABLED
+    _wins.visible = destino == "wins"
+    _wins.process_mode = Node.PROCESS_MODE_INHERIT if destino == "wins" else Node.PROCESS_MODE_DISABLED
+    _hero = _wins if destino == "wins" else _akles
+    _personagem_atual = destino
+    _hero.atualizar_movimento(Vector2(velocity.x, velocity.z).length(), _voando)
+    personagem_trocado.emit(destino, "Wins" if destino == "wins" else "Akles")
+
+
+func personagem_atual() -> String:
+    return _personagem_atual
 
 func _physics_process(delta: float) -> void:
     var input_vector := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
@@ -118,13 +155,17 @@ func _physics_process(delta: float) -> void:
         input_vector = wasd_vector.normalized()
 
     var joystick := get_tree().get_first_node_in_group("virtual_joystick")
+    var joystick_pressionado := joystick != null and int(joystick.touch_index) >= 0
     if joystick and joystick.movement_vector.length() > 0.01:
         input_vector = joystick.movement_vector
 
     var camera := get_viewport().get_camera_3d()
     var move_direction := Vector3.ZERO
 
-    if input_vector.length() <= 0.01:
+    # Um segundo dedo girando a camera pode zerar o vetor do analogico por um
+    # unico quadro. O toque, porem, continua preso ao joystick. Destravar os
+    # eixos nesse quadro recapturava a camera ja girada e mudava a caminhada.
+    if input_vector.length() <= 0.01 and not joystick_pressionado:
         _eixos_de_movimento_travados = false
 
     if camera and input_vector.length() > 0.0:

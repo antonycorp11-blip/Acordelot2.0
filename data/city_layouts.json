@@ -5429,7 +5429,7 @@
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     -11.58,
+     -12.1,
      38.0
     ],
     "rotation": 90.0,
@@ -5441,7 +5441,7 @@
     "tag": "casa_taipa",
     "model": "res://models/casa_taipa.glb",
     "position": [
-     -14.08,
+     -14.97,
      16.0
     ],
     "rotation": 90.0,
@@ -5453,7 +5453,7 @@
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     -10.82,
+     -11.13,
      -17.0
     ],
     "rotation": 90.0,
@@ -5465,7 +5465,7 @@
     "tag": "casarao",
     "model": "res://models/casarao_madeira.glb",
     "position": [
-     -14.5,
+     -15.47,
      -38.0
     ],
     "rotation": 90.0,
@@ -5477,7 +5477,7 @@
     "tag": "taverna",
     "model": "res://models/taverna.glb",
     "position": [
-     13.5,
+     14.09,
      38.0
     ],
     "rotation": 270.0,
@@ -5489,7 +5489,7 @@
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     10.82,
+     11.13,
      16.0
     ],
     "rotation": 270.0,
@@ -5501,7 +5501,7 @@
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     11.58,
+     12.1,
      -17.0
     ],
     "rotation": 270.0,
@@ -5513,7 +5513,7 @@
     "tag": "solar",
     "model": "res://models/casa_solar.glb",
     "position": [
-     14.26,
+     15.09,
      -38.0
     ],
     "rotation": 270.0,
@@ -5781,6 +5781,102 @@
      -40.5
     ],
     "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "borda_sul_o",
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     -20.5,
+     51.5
+    ],
+    "rotation": 180.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "borda_sul_l",
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     20.5,
+     52.0
+    ],
+    "rotation": 180.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "borda_norte_o",
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     -21.0,
+     -52.0
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "borda_norte_l",
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     21.0,
+     -51.5
+    ],
+    "rotation": 0.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "borda_oeste_s",
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -54.0,
+     32.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "borda_oeste_n",
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -54.0,
+     -32.0
+    ],
+    "rotation": 90.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "borda_leste_s",
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     54.0,
+     31.5
+    ],
+    "rotation": 270.0,
+    "scale": 1.0,
+    "y": 0.0
+   },
+   {
+    "id": "borda_leste_n",
+    "tag": "casarao",
+    "model": "res://models/casarao_madeira.glb",
+    "position": [
+     53.5,
+     -32.0
+    ],
+    "rotation": 270.0,
     "scale": 1.0,
     "y": 0.0
    },
@@ -7147,7 +7243,7 @@
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     -9.58,
+     -10.1,
      28.0
     ],
     "rotation": 90.0,
@@ -7159,7 +7255,7 @@
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     -8.82,
+     -9.13,
      8.0
     ],
     "rotation": 90.0,
@@ -7171,7 +7267,7 @@
     "tag": "casa_alta",
     "model": "res://models/medieval_house_1.glb",
     "position": [
-     -9.09,
+     -9.4,
      -16.0
     ],
     "rotation": 90.0,
@@ -7183,7 +7279,7 @@
     "tag": "casarao",
     "model": "res://models/casarao_madeira.glb",
     "position": [
-     -12.5,
+     -13.47,
      -29.0
     ],
     "rotation": 90.0,
@@ -7195,7 +7291,7 @@
     "tag": "casa_alta",
     "model": "res://models/medieval_house_1.glb",
     "position": [
-     9.09,
+     9.4,
      28.0
     ],
     "rotation": 270.0,
@@ -7207,7 +7303,7 @@
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     9.58,
+     10.1,
      5.0
     ],
     "rotation": 270.0,
@@ -7219,7 +7315,7 @@
     "tag": "solar",
     "model": "res://models/casa_solar.glb",
     "position": [
-     12.26,
+     13.09,
      -20.0
     ],
     "rotation": 270.0,

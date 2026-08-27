@@ -609,6 +609,17 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
         _morrer()
 
 
+## Controle de grupo leve usado pela classe da Voz. Reusa o mesmo relógio de
+## atordoamento da IA e a velocidade existente; não cria estado ou física nova.
+func aplicar_controle(duracao: float, direcao := Vector3.ZERO, forca := 0.0) -> void:
+    _atordoado_ate = maxf(_atordoado_ate,
+        Time.get_ticks_msec() / 1000.0 + maxf(duracao, 0.0))
+    if direcao.length_squared() > 0.01 and forca > 0.0:
+        var plano := direcao
+        plano.y = 0.0
+        velocity += plano.normalized() * forca
+
+
 func ajustar_por_dificuldade(fator: float) -> void:
     vida_maxima *= fator
     vida = vida_maxima

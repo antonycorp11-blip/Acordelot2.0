@@ -17,6 +17,7 @@ const RessonanciaHUDScript := preload("res://scripts/ressonancia_hud.gd")
 const DesempenhoAdaptativoScript := preload("res://scripts/desempenho_adaptativo.gd")
 const DungeonCavernaScript := preload("res://scripts/dungeon_caverna.gd")
 const GeradorDeBichosScript := preload("res://scripts/gerador_de_bichos.gd")
+const CeuCompatibilidadeScript := preload("res://scripts/ceu_compatibilidade.gd")
 var _gerador_bichos: GeradorDeBichos = null
 const FRAMES_ECOS := {
     "do": preload("res://resources/eco_do_nascente_frames.tres"),
@@ -57,6 +58,13 @@ var _sorte_captura := RandomNumberGenerator.new()
 func _ready() -> void:
     var hud_vida: Node = find_child("PlayerHUD", true, false)
     var inv_ui: Node = find_child("InventoryUI", true, false)
+
+    # Detalhe visível também no Web/Compatibility: duas MultiMeshes para
+    # nuvens/estrelas e uma lua, sem shader de céu incompatível.
+    var ceu := CeuCompatibilidadeScript.new()
+    ceu.name = "CeuVivoCompatibilidade"
+    ceu.ciclo = $CicloDiaNoite
+    add_child(ceu)
 
     # A DG é isolada do mapa por zonas e acessada por um único botão no HUD.
     # Nasce uma vez no carregamento para não montar modelos durante a partida.
