@@ -36,7 +36,7 @@ var vida_maxima: float = 200.0
 var vida: float = 200.0
 
 const VELOCIDADE := 3.2
-const RAIO_DE_ATENCAO := 16.0
+const RAIO_DE_ATENCAO := 10.5
 const DISTANCIA_DE_PARADA := 2.2
 const GRAVIDADE := 24.0
 const ATORDOAMENTO := 0.35
@@ -415,7 +415,7 @@ func _physics_process(delta: float) -> void:
 
 const AVISO_DO_GOLPE := 1.05
 const PAUSA_ENTRE_AREAS := Vector2(3.5, 6.5)
-const ALCANCE_DA_AREA := 18.0
+const ALCANCE_DA_AREA := 10.0
 
 var _proxima_area := 3.0
 var _raio_da_area := 3.2

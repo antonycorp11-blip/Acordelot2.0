@@ -72,12 +72,10 @@ func _ready() -> void:
     dungeon.name = "DungeonCaverna"
     add_child(dungeon)
 
-    # O gerador de bichos mantem o mundo aberto vivo (Shikers e Golems ao redor do heroi)
-    _gerador_bichos = GeradorDeBichosScript.new()
-    _gerador_bichos.name = "GeradorDeBichos"
-    _gerador_bichos.jogador = _player
-    _gerador_bichos.quantidade = 6
-    add_child(_gerador_bichos)
+    # Os monstros agora pertencem a ninhos planejados em cada região.
+    # O antigo gerador móvel criava seis Shikers ao redor do herói além dos
+    # ninhos já carregados, fazendo uma horda reaparecer e perseguir sem parar.
+    _gerador_bichos = null
     
     _btn_ataque = find_child("BtnAtaque", true, false)
     if _btn_ataque:

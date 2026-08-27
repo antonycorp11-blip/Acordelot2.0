@@ -135,6 +135,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _espalhar_os_adornos()
     _construir_floresta_3d_real()
     _plantar_vegetacao_baixa()
+    _plantar_arbustos_texturizados()
     _construir_detalhes_floresta_inicial()
     _construir_barreiras_perimetro_arvores_reais()
     # Vila, cidade e santuario nao criam ninho. O jogador reclamou de Shiker
@@ -1025,6 +1026,14 @@ func _plantar_vegetacao_baixa() -> void:
     if malha_no == null or malha_no.mesh == null:
         amostra.queue_free()
         return
+    var caixa := _caixa_do_modelo(amostra)
+    if caixa.size.y < 0.001:
+        amostra.queue_free()
+        return
+    # O GLB tem transformação no nó filho. Usar apenas a Mesh descartava essa
+    # rotação e deixava o capim deitado; além disso, 0,34 era fator de escala,
+    # não altura em metros, resultando em tufos de poucos centímetros.
+    var local := _ate_a_raiz(malha_no, amostra)
     var quantidade := clampi(int(_zone_data.get("grass_density", 900)) / 5, 70, 460)
     if str(_zone_data.get("biome", "")) == "cidade":
         quantidade = mini(quantidade, 90)
@@ -1042,10 +1051,12 @@ func _plantar_vegetacao_baixa() -> void:
                 or _perto_da_rede(p, "road_paths", 7.0)) and tentativas < 8:
             p = Vector2(rng.randf_range(-72.0, 72.0), rng.randf_range(-72.0, 72.0))
             tentativas += 1
-        var escala := rng.randf_range(0.34, 0.62)
+        var altura_alvo := rng.randf_range(0.32, 0.62)
+        var escala := altura_alvo / caixa.size.y
         var base := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * escala)
-        multi.set_instance_transform(i, Transform3D(base,
-            Vector3(p.x, calcular_altura(p.x, p.y) - 0.02, p.y)))
+        var suporte := Transform3D(base,
+            Vector3(p.x, calcular_altura(p.x, p.y) - caixa.position.y * escala, p.y))
+        multi.set_instance_transform(i, suporte * local)
     var tufos := MultiMeshInstance3D.new()
     tufos.name = "Grama3D"
     tufos.multimesh = multi
@@ -1054,6 +1065,53 @@ func _plantar_vegetacao_baixa() -> void:
     tufos.visibility_range_end = 34.0
     tufos.visibility_range_end_margin = 5.0
     _props_node.add_child(tufos)
+    amostra.queue_free()
+
+
+## O acervo não possui um arbusto 3D texturizado: o arquivo com esse nome não
+## tem UV nem imagem. Para não voltar às massas brancas, reutilizamos somente a
+## malha de FOLHAS texturizadas do pinheiro, pequena e assentada como moita.
+## Todas as moitas continuam custando uma única chamada de desenho.
+func _plantar_arbustos_texturizados() -> void:
+    var quantidade := int(_zone_data.get("bush_count", 0))
+    if quantidade <= 0 or str(_zone_data.get("biome", "")) == "cidade":
+        return
+    var cena := load("res://models/pine_tree.glb") as PackedScene
+    if cena == null:
+        return
+    var amostra := cena.instantiate() as Node3D
+    var folhas: MeshInstance3D = null
+    for candidato in amostra.find_children("*", "MeshInstance3D", true, false):
+        if str(candidato.name).to_lower().contains("leav"):
+            folhas = candidato as MeshInstance3D
+            break
+    if folhas == null or folhas.mesh == null:
+        amostra.queue_free()
+        return
+    var caixa := _caixa_do_modelo(amostra)
+    var local := _ate_a_raiz(folhas, amostra)
+    var multi := MultiMesh.new()
+    multi.transform_format = MultiMesh.TRANSFORM_3D
+    multi.mesh = folhas.mesh
+    multi.instance_count = quantidade
+    var rng := RandomNumberGenerator.new()
+    rng.seed = hash(str(_zone_data.get("id", "zona"))) + 4821
+    for i in quantidade:
+        var p := _sortear_ponto_de_floresta(rng, 4.0)
+        var altura := rng.randf_range(0.75, 1.35)
+        var fator := altura / maxf(caixa.size.y, 0.01)
+        var deformacao := Vector3(rng.randf_range(1.15, 1.65), rng.randf_range(0.72, 0.95), rng.randf_range(1.15, 1.65))
+        var base := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * fator * deformacao)
+        var suporte := Transform3D(base,
+            Vector3(p.x, calcular_altura(p.x, p.y) - caixa.position.y * fator * deformacao.y, p.y))
+        multi.set_instance_transform(i, suporte * local)
+    var lote := MultiMeshInstance3D.new()
+    lote.name = "ArbustosTexturizados"
+    lote.multimesh = multi
+    lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    lote.visibility_range_end = 42.0
+    lote.visibility_range_end_margin = 5.0
+    _props_node.add_child(lote)
     amostra.queue_free()
 
 
@@ -1507,7 +1565,7 @@ var _ninhos: Array = []
 ## Quanto tempo o ninho fica vazio antes de repor. Meio minuto e o bastante para
 ## o jogador sentir que limpou a area, e curto o bastante para a zona nao virar
 ## um campo morto quando ele voltar.
-const ESPERA_DO_RENASCIMENTO := 30.0
+const ESPERA_DO_RENASCIMENTO := 90.0
 ## Nao nasce em cima de quem esta jogando: vinte metros e alem do raio em que o
 ## bicho enxerga, entao ele aparece longe e caminha ate la.
 const LONGE_DO_JOGADOR := 20.0
@@ -1563,19 +1621,20 @@ func _construir_monstros() -> void:
     if is_cidade:
         return
         
-    # Dez mantêm o mapa vivo sem somar dezesseis esqueletos animados ao mesmo
-    # tempo que a vitrine inicial dos onze Ecos.
-    var qtd_monstros := 10
+    # Poucos ninhos intencionais por região. As vizinhas também ficam
+    # carregadas no mundo aberto; dez por célula viravam uma horda invisível.
+    var qtd_monstros := clampi(int(_zone_data.get("monster_count", 3)), 0, 5)
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zone"))) + 555
     
     for i in range(qtd_monstros):
         var bicho = BichoScript.new()
-        bicho.monster_type = i % 4
+        # Floresta comum recebe Shikers: maioria comum, um forte e elite rara.
+        bicho.monster_type = 1 if i == qtd_monstros - 1 and qtd_monstros >= 4 else 0
         bicho.name = "Bicho_%d" % i
         
         var ang: float = rng.randf_range(0.0, TAU)
-        var dist: float = rng.randf_range(14.0, 65.0)
+        var dist: float = rng.randf_range(30.0, 65.0)
         var px: float = cos(ang) * dist
         var pz: float = sin(ang) * dist
         var py: float = calcular_altura(px, pz)
