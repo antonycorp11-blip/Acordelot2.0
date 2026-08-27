@@ -16,9 +16,6 @@ var _personagem_atual := "akles"
 @export var gravity := 24.0
 
 var _voando := false
-var _eixos_de_movimento_travados := false
-var _frente_do_inicio := Vector3.FORWARD
-var _direita_do_inicio := Vector3.RIGHT
 
 func alternar_voo() -> void:
     _voando = not _voando
@@ -155,39 +152,30 @@ func _physics_process(delta: float) -> void:
         input_vector = wasd_vector.normalized()
 
     var joystick := get_tree().get_first_node_in_group("virtual_joystick")
-    var joystick_pressionado := joystick != null and int(joystick.touch_index) >= 0
     if joystick and joystick.movement_vector.length() > 0.01:
         input_vector = joystick.movement_vector
 
     var camera := get_viewport().get_camera_3d()
     var move_direction := Vector3.ZERO
 
-    # Um segundo dedo girando a camera pode zerar o vetor do analogico por um
-    # unico quadro. O toque, porem, continua preso ao joystick. Destravar os
-    # eixos nesse quadro recapturava a camera ja girada e mudava a caminhada.
-    if input_vector.length() <= 0.01 and not joystick_pressionado:
-        _eixos_de_movimento_travados = false
-
     if camera and input_vector.length() > 0.0:
-        # A direcao da camera e capturada quando o jogador COMECA a andar.
-        # Enquanto o analogico continua pressionado, girar a camera nao curva
-        # sozinho o caminho de Akles. Ao soltar e tocar de novo, o novo angulo
-        # passa a ser a referencia normalmente.
-        if not _eixos_de_movimento_travados:
-            _frente_do_inicio = -camera.global_basis.z
-            _frente_do_inicio.y = 0.0
-            _frente_do_inicio = _frente_do_inicio.normalized()
-            _direita_do_inicio = camera.global_basis.x
-            _direita_do_inicio.y = 0.0
-            _direita_do_inicio = _direita_do_inicio.normalized()
-            _eixos_de_movimento_travados = true
+        # Movimento sempre relativo ao quadro ATUAL da tela. Congelar estes
+        # eixos ao primeiro toque fazia o joystick continuar preso ao ângulo
+        # antigo enquanto o segundo dedo girava a câmera — "cima" deixava de
+        # ser o alto da tela e parecia inverter a direção do personagem.
+        var frente_da_camera := -camera.global_basis.z
+        frente_da_camera.y = 0.0
+        frente_da_camera = frente_da_camera.normalized()
+        var direita_da_camera := camera.global_basis.x
+        direita_da_camera.y = 0.0
+        direita_da_camera = direita_da_camera.normalized()
         # A INTENSIDADE do empurrao sobrevive ate a velocidade.
         #
         # Antes o vetor era normalizado aqui, e com isso qualquer toque alem da
         # zona morta virava velocidade cheia: nao havia andar devagar, so parado
         # ou disparado. Num polegar sobre vidro isso e o que faz o controle
         # parecer escorregadio e dificil de mirar.
-        var bruto := _direita_do_inicio * input_vector.x - _frente_do_inicio * input_vector.y
+        var bruto := direita_da_camera * input_vector.x - frente_da_camera * input_vector.y
         var forca: float = clampf(input_vector.length(), 0.0, 1.0)
         move_direction = bruto.normalized() * forca
 
