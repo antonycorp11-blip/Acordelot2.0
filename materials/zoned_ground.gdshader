@@ -7,7 +7,7 @@ uniform sampler2D stone_texture : source_color, filter_linear_mipmap_anisotropic
 uniform sampler2D rock_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 
 uniform vec2 zone_size = vec2(160.0, 160.0);
-uniform float meters_per_tile = 4.0;
+uniform float meters_per_tile = 3.2;
 
 // Tinturas suaves para manter verde vibrante
 uniform vec3 tint_lush : source_color = vec3(0.55, 0.72, 0.45);
@@ -86,16 +86,20 @@ void fragment() {
     
     vec3 col_grass = texture(grass_texture, uv).rgb;
     vec3 col_dirt  = texture(dirt_texture, uv).rgb;
-    vec3 col_stone = texture(stone_texture, uv * 0.8).rgb;
+    vec3 col_stone = texture(stone_texture, uv * 1.12).rgb;
     vec3 col_rock  = texture(rock_texture, uv * 0.65).rgb;
     
     // Variação suave de tom verdejante
     float macro = fbm(world_pos.xz / 42.0);
     vec3 grass_varied = mix(col_grass * tint_lush * 1.15, col_grass * tint_dry * 1.05, macro * 0.4);
+    // Detalhe pequeno devolve leitura ao gramado sem textura maior. Usa uma
+    // unica amostra de ruido e continua barato no Web.
+    float detalhe = noise(world_pos.xz / 2.4);
+    grass_varied *= mix(0.91, 1.09, detalhe);
     
     // Caminhos orgânicos de terra batida
     float path_noise = smoothstep(0.48, 0.56, fbm(world_pos.xz / 18.0));
-    vec3 base_color = mix(grass_varied, col_dirt, path_noise * 0.65);
+    vec3 base_color = mix(grass_varied, col_dirt, path_noise * 0.38);
 
     // A via da povoacao, por cima do chao natural.
     if (via_principal.x > 0.01) {

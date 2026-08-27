@@ -865,6 +865,48 @@ def cidade_de_acordelot():
             ("abastecimento_caixas", CAIXOTES, 15.2, 8.2, 115.0, 0.78)):
         prop(nome, alvo, x, z, giro=giro, escala=escala)
 
+    # 5b. Fundos habitados dos quarteiroes. O mapa ja tinha trinta predios,
+    # mas entre uma fachada e a seguinte ainda havia grandes tapetes vazios.
+    # Estes grupos ficam encostados nas construcoes e fora das vias: deposito
+    # atras da taverna, carga junto das casas e carroca nos patios. Sao pontos
+    # deliberados, nao distribuicao procedural.
+    for nome, alvo, x, z, giro, escala in (
+            ("patio_sul_o_carroca", CARROCA, -47.0, 47.0, 175.0, 0.88),
+            ("patio_sul_o_caixas", CAIXOTES, -44.5, 46.2, 80.0, 0.82),
+            ("patio_sul_o_sacos", SACO, -42.8, 46.8, 25.0, 0.78),
+            ("patio_sul_l_barris", BARRIS, 46.5, 47.0, 205.0, 0.84),
+            ("patio_sul_l_caixas", CAIXOTES, 43.8, 46.5, 105.0, 0.80),
+            ("patio_sul_l_saco", SACO, 42.0, 47.2, 310.0, 0.76),
+            ("patio_norte_o_barris", BARRIS, -47.0, -47.5, 30.0, 0.84),
+            ("patio_norte_o_caixas", CAIXOTES, -44.3, -47.0, 135.0, 0.80),
+            ("patio_norte_l_carroca", CARROCA, 47.0, -47.5, 350.0, 0.88),
+            ("patio_norte_l_sacos", SACO, 44.0, -47.0, 70.0, 0.78),
+            ("fundo_eixo_so_barris", BARRIS, -18.0, 38.5, 260.0, 0.82),
+            ("fundo_eixo_so_caixas", CAIXOTES, -19.8, 39.5, 145.0, 0.78),
+            ("fundo_eixo_sl_carroca", CARROCA, 19.0, 38.5, 185.0, 0.86),
+            ("fundo_eixo_sl_saco", SACO, 21.0, 39.5, 20.0, 0.76),
+            ("fundo_eixo_no_caixas", CAIXOTES, -18.5, -39.0, 55.0, 0.80),
+            ("fundo_eixo_no_barris", BARRIS, -20.5, -38.5, 285.0, 0.82),
+            ("fundo_eixo_nl_caixas", CAIXOTES, 19.0, -39.0, 220.0, 0.80),
+            ("fundo_eixo_nl_sacos", SACO, 21.0, -38.0, 95.0, 0.76),
+            ("beco_o_carroca", CARROCA, -54.0, 0.0, 90.0, 0.84),
+            ("beco_o_caixotes", CAIXOTES, -53.0, 3.0, 15.0, 0.78),
+            ("beco_l_barris", BARRIS, 53.0, 0.0, 180.0, 0.82),
+            ("beco_l_sacos", SACO, 53.5, -2.2, 260.0, 0.76)):
+        prop(nome, alvo, x, z, giro=giro, escala=escala)
+
+    # Pequenos jardins internos quebram os grandes vazios entre telhado e
+    # muralha. Pinheiro e usado porque tem textura, duas malhas e custo baixo.
+    for i, (x, z) in enumerate(((-22.0, 48.5), (22.0, 48.5),
+                                (-22.0, -49.0), (22.0, -49.0),
+                                (-54.0, 18.0), (-54.0, -18.0),
+                                (54.0, 18.0), (54.0, -18.0),
+                                (-22.0, 18.0), (22.0, 18.0),
+                                (-22.0, -18.0), (22.0, -18.0))):
+        pecas.append(peca(f"jardim_interno_{i:02d}", "pinheiro", PINHEIRO,
+                          x, z, giro=(i * 67) % 360,
+                          escala=0.72 + (i % 3) * 0.07))
+
     # Props de trabalho agrupados por bairro, nao espalhados no gramado.
     for nome, alvo, x, z, giro in (
             ("oficina_barris", BARRIS, 37.0, -25.5, 210.0),

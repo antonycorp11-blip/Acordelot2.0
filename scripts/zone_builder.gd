@@ -65,12 +65,22 @@ const ARVORES_FLORESTA_3D := [
     {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 10.5, "enterrar": 0.65},
     {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.0, "enterrar": 0.50},
     {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.5, "enterrar": 0.50},
-    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo", "altura": 2.2, "enterrar": 0.20}
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 10.0, "enterrar": 0.52},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 10.8, "enterrar": 0.55},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 8.4, "enterrar": 0.46}
+]
+
+const SUBBOSQUE_FLORESTA_3D := [
+    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo", "altura": 2.0, "enterrar": 0.18},
+    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo", "altura": 2.5, "enterrar": 0.22}
 ]
 
 const ARVORES_MISTICAS_3D := [
     {"path": "res://models/tree_gn.glb", "tag": "arvore_gigante", "altura": 10.5, "enterrar": 0.65},
-    {"path": "res://models/mushroom_tree.glb", "tag": "cogumelo", "altura": 2.2, "enterrar": 0.20}
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.2, "enterrar": 0.50},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 9.8, "enterrar": 0.52},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 10.4, "enterrar": 0.55},
+    {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 8.6, "enterrar": 0.47}
 ]
 
 ## Vazio de proposito.
@@ -767,8 +777,10 @@ func _dados_da_praca() -> Dictionary:
 func _construir_floresta_3d_real() -> void:
     var is_cidade: bool = (_zone_data.get("biome") == "cidade" or str(_zone_data.get("layout_id", "")) != "")
     
-    # Cidades ficam bem limpas para planejamento urbano (apenas 3 a 5 árvores decorativas no perímetro)
-    var n_arvores: int = 4 if is_cidade else int(_zone_data.get("tree_count", 38))
+    # Na floresta a maioria agora e pinheiro texturizado e leve. Isso permite
+    # ter muito mais silhuetas sem multiplicar a arvore gigante de 22 mil
+    # triangulos. Cidade recebe apenas verde planejado na planta.
+    var n_arvores: int = 0 if is_cidade else int(_zone_data.get("tree_count", 64))
     var n_arbustos: int = 4 if is_cidade else int(_zone_data.get("bush_count", 22))
     
     var rng := RandomNumberGenerator.new()
@@ -779,6 +791,10 @@ func _construir_floresta_3d_real() -> void:
     
     var raio_min: float = 52.0 if is_cidade else 8.0
     _espalhar_props_3d(rng, n_arvores, lista_arvores, 64.0, true, 1.0, 1.35, raio_min)
+    if not is_cidade:
+        var subbosque: int = maxi(16, int(round(float(n_arvores) * 0.28)))
+        _espalhar_props_3d(rng, subbosque, SUBBOSQUE_FLORESTA_3D,
+            66.0, false, 0.82, 1.22, 5.0)
     _espalhar_props_3d(rng, n_arbustos, ARBUSTOS_3D, 65.0, false, 0.9, 1.3, raio_min)
 
 func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio_max: float, solido: bool, sc_min: float, sc_max: float, dist_min: float) -> void:
@@ -834,9 +850,11 @@ func _construir_barreiras_perimetro_arvores_reais() -> void:
     # a borda sozinha pesava mais que tudo dentro da zona. A 15 m sao menos da
     # metade, e como cada arvore agora e maior e o giro e sorteado, a parede de
     # copa continua fechada — o jogador nao ve o fim do mundo por causa disso.
-    var num_passos: int = int(TAMANHO_ZONA / 15.0)
+    var num_passos: int = int(ceil((half * 2.0) / 12.0)) + 1
     for step in range(num_passos):
-        var pos_along: float = -half + float(step) * 8.5
+        # Distribui do primeiro ao ultimo canto. Antes havia dez passos de 8,5
+        # m: a conta terminava no MEIO da borda e deixava a outra metade nua.
+        var pos_along: float = lerpf(-half, half, float(step) / float(num_passos - 1))
         
         # No mundo continuo o lado com vizinha fica ABERTO: a fresta de 16 m
         # servia para caber um portal, e portal nao existe mais.
@@ -1075,18 +1093,16 @@ func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
 ##
 ## Isto ja existia e foi perdido numa alteracao posterior. Com a cidade cheia
 ## passando a ter 187 pecas, e o que segura o quadro no celular fraco.
-static func _limitar_alcance(no: Node3D) -> void:
-    var caixa := AABB()
-    var achou := false
-    for malha in no.find_children("*", "MeshInstance3D", true, false):
-        var m := malha as MeshInstance3D
-        var local: AABB = m.get_aabb()
-        caixa = local if not achou else caixa.merge(local)
-        achou = true
-    if not achou:
+func _limitar_alcance(no: Node3D) -> void:
+    # Mede depois de aplicar a escala do filho. A versao anterior lia a caixa
+    # normalizada do GLB (quase 1 m), concluia que toda casa era um objeto
+    # pequeno e a apagava a 28 m. A cidade existia, mas sumia antes de entrar
+    # no quadro — exatamente a aparencia de grandes areas vazias.
+    var caixa := _caixa_do_modelo(no)
+    if caixa.size.length_squared() < 0.001:
         return
-    var altura: float = caixa.size.y * no.scale.y
-    var alcance: float = clampf(altura * 6.0, 28.0, 95.0)
+    var maior_dimensao: float = maxf(caixa.size.y, maxf(caixa.size.x, caixa.size.z))
+    var alcance: float = clampf(maior_dimensao * 7.5, 36.0, 110.0)
     for malha in no.find_children("*", "MeshInstance3D", true, false):
         malha.visibility_range_end = alcance
         malha.visibility_range_end_margin = alcance * 0.14

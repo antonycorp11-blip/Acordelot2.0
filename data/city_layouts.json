@@ -5905,6 +5905,414 @@
     "y": 0.0
    },
    {
+    "id": "patio_sul_o_carroca",
+    "tag": "carroca",
+    "model": "res://models/carroca_vila.glb",
+    "position": [
+     -47.0,
+     47.0
+    ],
+    "rotation": 175.0,
+    "scale": 0.88,
+    "y": 0.0
+   },
+   {
+    "id": "patio_sul_o_caixas",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     -44.5,
+     46.2
+    ],
+    "rotation": 80.0,
+    "scale": 0.82,
+    "y": 0.0
+   },
+   {
+    "id": "patio_sul_o_sacos",
+    "tag": "saco",
+    "model": "res://models/saco_vila.glb",
+    "position": [
+     -42.8,
+     46.8
+    ],
+    "rotation": 25.0,
+    "scale": 0.78,
+    "y": 0.0
+   },
+   {
+    "id": "patio_sul_l_barris",
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
+    "position": [
+     46.5,
+     47.0
+    ],
+    "rotation": 205.0,
+    "scale": 0.84,
+    "y": 0.0
+   },
+   {
+    "id": "patio_sul_l_caixas",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     43.8,
+     46.5
+    ],
+    "rotation": 105.0,
+    "scale": 0.8,
+    "y": 0.0
+   },
+   {
+    "id": "patio_sul_l_saco",
+    "tag": "saco",
+    "model": "res://models/saco_vila.glb",
+    "position": [
+     42.0,
+     47.2
+    ],
+    "rotation": 310.0,
+    "scale": 0.76,
+    "y": 0.0
+   },
+   {
+    "id": "patio_norte_o_barris",
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
+    "position": [
+     -47.0,
+     -47.5
+    ],
+    "rotation": 30.0,
+    "scale": 0.84,
+    "y": 0.0
+   },
+   {
+    "id": "patio_norte_o_caixas",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     -44.3,
+     -47.0
+    ],
+    "rotation": 135.0,
+    "scale": 0.8,
+    "y": 0.0
+   },
+   {
+    "id": "patio_norte_l_carroca",
+    "tag": "carroca",
+    "model": "res://models/carroca_vila.glb",
+    "position": [
+     47.0,
+     -47.5
+    ],
+    "rotation": 350.0,
+    "scale": 0.88,
+    "y": 0.0
+   },
+   {
+    "id": "patio_norte_l_sacos",
+    "tag": "saco",
+    "model": "res://models/saco_vila.glb",
+    "position": [
+     44.0,
+     -47.0
+    ],
+    "rotation": 70.0,
+    "scale": 0.78,
+    "y": 0.0
+   },
+   {
+    "id": "fundo_eixo_so_barris",
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
+    "position": [
+     -18.0,
+     38.5
+    ],
+    "rotation": 260.0,
+    "scale": 0.82,
+    "y": 0.0
+   },
+   {
+    "id": "fundo_eixo_so_caixas",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     -19.8,
+     39.5
+    ],
+    "rotation": 145.0,
+    "scale": 0.78,
+    "y": 0.0
+   },
+   {
+    "id": "fundo_eixo_sl_carroca",
+    "tag": "carroca",
+    "model": "res://models/carroca_vila.glb",
+    "position": [
+     19.0,
+     38.5
+    ],
+    "rotation": 185.0,
+    "scale": 0.86,
+    "y": 0.0
+   },
+   {
+    "id": "fundo_eixo_sl_saco",
+    "tag": "saco",
+    "model": "res://models/saco_vila.glb",
+    "position": [
+     21.0,
+     39.5
+    ],
+    "rotation": 20.0,
+    "scale": 0.76,
+    "y": 0.0
+   },
+   {
+    "id": "fundo_eixo_no_caixas",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     -18.5,
+     -39.0
+    ],
+    "rotation": 55.0,
+    "scale": 0.8,
+    "y": 0.0
+   },
+   {
+    "id": "fundo_eixo_no_barris",
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
+    "position": [
+     -20.5,
+     -38.5
+    ],
+    "rotation": 285.0,
+    "scale": 0.82,
+    "y": 0.0
+   },
+   {
+    "id": "fundo_eixo_nl_caixas",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     19.0,
+     -39.0
+    ],
+    "rotation": 220.0,
+    "scale": 0.8,
+    "y": 0.0
+   },
+   {
+    "id": "fundo_eixo_nl_sacos",
+    "tag": "saco",
+    "model": "res://models/saco_vila.glb",
+    "position": [
+     21.0,
+     -38.0
+    ],
+    "rotation": 95.0,
+    "scale": 0.76,
+    "y": 0.0
+   },
+   {
+    "id": "beco_o_carroca",
+    "tag": "carroca",
+    "model": "res://models/carroca_vila.glb",
+    "position": [
+     -54.0,
+     0.0
+    ],
+    "rotation": 90.0,
+    "scale": 0.84,
+    "y": 0.0
+   },
+   {
+    "id": "beco_o_caixotes",
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     -53.0,
+     3.0
+    ],
+    "rotation": 15.0,
+    "scale": 0.78,
+    "y": 0.0
+   },
+   {
+    "id": "beco_l_barris",
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
+    "position": [
+     53.0,
+     0.0
+    ],
+    "rotation": 180.0,
+    "scale": 0.82,
+    "y": 0.0
+   },
+   {
+    "id": "beco_l_sacos",
+    "tag": "saco",
+    "model": "res://models/saco_vila.glb",
+    "position": [
+     53.5,
+     -2.2
+    ],
+    "rotation": 260.0,
+    "scale": 0.76,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_00",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     -22.0,
+     48.5
+    ],
+    "rotation": 0.0,
+    "scale": 0.72,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_01",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     22.0,
+     48.5
+    ],
+    "rotation": 67.0,
+    "scale": 0.79,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_02",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     -22.0,
+     -49.0
+    ],
+    "rotation": 134.0,
+    "scale": 0.86,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_03",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     22.0,
+     -49.0
+    ],
+    "rotation": 201.0,
+    "scale": 0.72,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_04",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     -54.0,
+     18.0
+    ],
+    "rotation": 268.0,
+    "scale": 0.79,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_05",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     -54.0,
+     -18.0
+    ],
+    "rotation": 335.0,
+    "scale": 0.86,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_06",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     54.0,
+     18.0
+    ],
+    "rotation": 42.0,
+    "scale": 0.72,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_07",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     54.0,
+     -18.0
+    ],
+    "rotation": 109.0,
+    "scale": 0.79,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_08",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     -22.0,
+     18.0
+    ],
+    "rotation": 176.0,
+    "scale": 0.86,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_09",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     22.0,
+     18.0
+    ],
+    "rotation": 243.0,
+    "scale": 0.72,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_10",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     -22.0,
+     -18.0
+    ],
+    "rotation": 310.0,
+    "scale": 0.79,
+    "y": 0.0
+   },
+   {
+    "id": "jardim_interno_11",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     22.0,
+     -18.0
+    ],
+    "rotation": 17.0,
+    "scale": 0.86,
+    "y": 0.0
+   },
+   {
     "id": "oficina_barris",
     "tag": "barris",
     "model": "res://models/barris_vila.glb",

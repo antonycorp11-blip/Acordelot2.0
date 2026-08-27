@@ -112,14 +112,19 @@ func _ready() -> void:
     _mundo = ambiente
     if _mundo and _mundo.environment and _mundo.environment.sky:
         _ceu = _mundo.environment.sky.sky_material as ProceduralSkyMaterial
-        var desenho: Shader = load("res://materials/ceu.gdshader")
-        if desenho:
-            _ceu_pintado = ShaderMaterial.new()
-            _ceu_pintado.shader = desenho
-            # Um valor seguro ja no primeiro frame evita que o horizonte vire
-            # uma camada inteira de nuvem antes de Ajustes aplicar a qualidade.
-            _ceu_pintado.set_shader_parameter("forca_das_nuvens", 0.62)
-            _mundo.environment.sky.sky_material = _ceu_pintado
+        # Ceu customizado por shader nao e suportado de forma confiavel pelo
+        # renderizador Compatibility usado no navegador. O resultado era o
+        # fallback cinza visto no celular. Nesse renderer mantemos o
+        # ProceduralSkyMaterial nativo (azul, horizonte e disco do astro), que
+        # e implementado pelo proprio Godot. O shader detalhado fica disponivel
+        # apenas se um futuro build usar Mobile/Forward+.
+        if RenderingServer.get_current_rendering_method() != "gl_compatibility":
+            var desenho: Shader = load("res://materials/ceu.gdshader")
+            if desenho:
+                _ceu_pintado = ShaderMaterial.new()
+                _ceu_pintado.shader = desenho
+                _ceu_pintado.set_shader_parameter("forca_das_nuvens", 0.62)
+                _mundo.environment.sky.sky_material = _ceu_pintado
     if _luz == null:
         push_warning("Ciclo sem sol: o mundo fica na luz que veio da cena")
     _aplicar()
@@ -184,8 +189,14 @@ func _aplicar() -> void:
     var env := _mundo.environment
     env.ambient_light_color = cor[2]
     env.ambient_light_energy = forca[1]
-    env.fog_light_color = cor[3]
-    env.fog_light_energy = forca[2]
+    # A camera baixa enxerga muito terreno distante e pouco domo. A nevoa
+    # sobre esse terreno era cinza e acabava ocupando justamente a faixa que o
+    # jogador chama de ceu. Ela agora se dissolve na cor do horizonte: azul de
+    # dia, quente no amanhecer e azul-escuro a noite, nunca uma chapa cinza.
+    env.fog_light_color = cor[1]
+    env.fog_light_energy = minf(forca[2], 0.72)
+    env.fog_density = 0.003
+    env.fog_height_density = 0.008
 
     if _ceu_pintado:
         _ceu_pintado.set_shader_parameter("cor_topo", cor[0])
