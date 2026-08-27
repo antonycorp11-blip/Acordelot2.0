@@ -51,6 +51,8 @@ var _terrain_body: StaticBody3D
 var _water_mesh: MeshInstance3D
 var _portals_node: Node3D
 var _props_node: Node3D
+static var _malha_grama_leve: ArrayMesh
+static var _material_grama_leve: ShaderMaterial
 
 # Banco de modelos, escolhidos tambem pelo CUSTO e nao so pela aparencia.
 #
@@ -1023,60 +1025,78 @@ func _plantar_pinheiros_em_lote(posicoes: Array[Vector3], semente: int) -> void:
     modelo.free()
 
 
-## Grama 3D agrupada: centenas de tufos custam uma malha, não centenas de nós.
-## Fica fora de rios e estradas para a composição continuar legível.
+## Cobertura de grama 3D de verdade, mas desenhada para celular.
+##
+## O GLB anterior tinha 900 triângulos por tufo. Mesmo limitado a 460 cópias,
+## custava 414 mil triângulos por região e ainda deixava grandes áreas lisas.
+## Esta malha tem dez triângulos por tufo: podemos cobrir o terreno inteiro com
+## milhares de cópias e continuar bem abaixo do custo antigo.
 func _plantar_vegetacao_baixa() -> void:
-    var cena := load("res://models/grass.glb") as PackedScene
-    if cena == null:
+    _preparar_grama_leve()
+    if _malha_grama_leve == null:
         return
-    var amostra := cena.instantiate() as Node3D
-    var malha_no: MeshInstance3D = null
-    for candidato in amostra.find_children("*", "MeshInstance3D", true, false):
-        malha_no = candidato as MeshInstance3D
-        break
-    if malha_no == null or malha_no.mesh == null:
-        amostra.queue_free()
-        return
-    var caixa := _caixa_do_modelo(amostra)
-    if caixa.size.y < 0.001:
-        amostra.queue_free()
-        return
-    # O GLB tem transformação no nó filho. Usar apenas a Mesh descartava essa
-    # rotação e deixava o capim deitado; além disso, 0,34 era fator de escala,
-    # não altura em metros, resultando em tufos de poucos centímetros.
-    var local := _ate_a_raiz(malha_no, amostra)
-    var quantidade := clampi(int(_zone_data.get("grass_density", 900)) / 5, 70, 460)
+    var quantidade := clampi(int(_zone_data.get("grass_density", 900)) * 3, 1200, 7800)
     if str(_zone_data.get("biome", "")) == "cidade":
-        quantidade = mini(quantidade, 90)
+        quantidade = mini(quantidade, 350)
     var multi := MultiMesh.new()
     multi.transform_format = MultiMesh.TRANSFORM_3D
-    multi.mesh = malha_no.mesh
+    multi.mesh = _malha_grama_leve
     multi.instance_count = quantidade
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zona"))) + 1907
     for i in quantidade:
-        var p := _sortear_ponto_de_floresta(rng, 0.0) if not _zone_data.get("forest_clusters", []).is_empty() \
-            else Vector2(rng.randf_range(-72.0, 72.0), rng.randf_range(-72.0, 72.0))
+        # Uniforme de propósito: clareiras também são gramadas. Árvores usam
+        # maciços, mas o tapete vegetal precisa unir visualmente todo o chão.
+        var p := Vector2(rng.randf_range(-76.0, 76.0), rng.randf_range(-76.0, 76.0))
         var tentativas := 0
         while (_perto_da_rede(p, "river_paths", float(_zone_data.get("river_width", 5.0)) + 2.0)
                 or _perto_da_rede(p, "road_paths", 7.0)) and tentativas < 8:
-            p = Vector2(rng.randf_range(-72.0, 72.0), rng.randf_range(-72.0, 72.0))
+            p = Vector2(rng.randf_range(-76.0, 76.0), rng.randf_range(-76.0, 76.0))
             tentativas += 1
-        var altura_alvo := rng.randf_range(0.32, 0.62)
-        var escala := altura_alvo / caixa.size.y
+        var escala := rng.randf_range(0.72, 1.26)
         var base := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * escala)
-        var suporte := Transform3D(base,
-            Vector3(p.x, calcular_altura(p.x, p.y) - caixa.position.y * escala, p.y))
-        multi.set_instance_transform(i, suporte * local)
+        multi.set_instance_transform(i, Transform3D(base,
+            Vector3(p.x, calcular_altura(p.x, p.y) - 0.015, p.y)))
     var tufos := MultiMeshInstance3D.new()
-    tufos.name = "Grama3D"
+    tufos.name = "TapeteDeGrama3D"
     tufos.multimesh = multi
-    tufos.material_override = _material_de_cor
+    tufos.material_override = _material_grama_leve
     tufos.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-    tufos.visibility_range_end = 34.0
-    tufos.visibility_range_end_margin = 5.0
+    # Um MultiMesh ocupa a zona toda; limitar pela distância do NÓ fazia todo
+    # o gramado desaparecer quando o jogador se afastava do centro da região.
+    tufos.visibility_range_end = 0.0
     _props_node.add_child(tufos)
-    amostra.queue_free()
+
+
+static func _preparar_grama_leve() -> void:
+    if _malha_grama_leve != null:
+        return
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var centros := [
+        Vector2(0.0, 0.0), Vector2(0.23, 0.18), Vector2(-0.25, 0.14),
+        Vector2(0.18, -0.24), Vector2(-0.18, -0.22)]
+    for i in centros.size():
+        var angulo := float(i) * 1.256637
+        var lateral := Vector3(cos(angulo), 0.0, sin(angulo))
+        var centro := Vector3(centros[i].x, 0.0, centros[i].y)
+        var meia_base := 0.105
+        var meia_ponta := 0.018
+        var altura := 0.34 + float(i % 3) * 0.055
+        var a := centro - lateral * meia_base
+        var b := centro + lateral * meia_base
+        var c := centro + lateral * meia_ponta + Vector3.UP * altura
+        var d := centro - lateral * meia_ponta + Vector3.UP * altura
+        st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(a)
+        st.set_uv(Vector2(1.0, 0.0)); st.add_vertex(b)
+        st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(c)
+        st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(a)
+        st.set_uv(Vector2(1.0, 1.0)); st.add_vertex(c)
+        st.set_uv(Vector2(0.0, 1.0)); st.add_vertex(d)
+    st.generate_normals()
+    _malha_grama_leve = st.commit()
+    _material_grama_leve = ShaderMaterial.new()
+    _material_grama_leve.shader = load("res://materials/grama_leve.gdshader")
 
 
 ## O acervo não possui um arbusto 3D texturizado: o arquivo com esse nome não
@@ -1186,8 +1206,7 @@ func _plantar_grama_texturizada_nova() -> void:
         lote.name = "GramaPBRNova"
         lote.multimesh = multi
         lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-        lote.visibility_range_end = 44.0
-        lote.visibility_range_end_margin = 5.0
+        lote.visibility_range_end = 0.0
         _props_node.add_child(lote)
     amostra.queue_free()
 
