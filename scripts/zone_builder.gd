@@ -147,6 +147,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _construir_floresta_3d_real()
     _plantar_vegetacao_baixa()
     _plantar_arbustos_texturizados()
+    _plantar_grama_texturizada_nova()
     _construir_detalhes_floresta_inicial()
     _construir_barreiras_perimetro_arvores_reais()
     # Vila, cidade e santuario nao criam ninho. O jogador reclamou de Shiker
@@ -1122,6 +1123,72 @@ func _plantar_arbustos_texturizados() -> void:
     lote.visibility_range_end = 42.0
     lote.visibility_range_end_margin = 5.0
     _props_node.add_child(lote)
+    amostra.queue_free()
+
+
+## Touceiras PBR do pacote novo. O cenário completo de floresta recebido tem
+## milhares de malhas e não pode entrar inteiro no Web; esta peça tem só duas
+## superfícies e é repetida em lotes, preservando as texturas originais.
+func _plantar_grama_texturizada_nova() -> void:
+    if str(_zone_data.get("id", "")) != "zone_floresta_despertar":
+        return
+    var cena := load("res://models/vegetacao/grama_reeds.glb") as PackedScene
+    if cena == null:
+        return
+    var amostra := cena.instantiate() as Node3D
+    var caixa := _caixa_do_modelo(amostra)
+    if caixa.size.y < 0.001:
+        amostra.queue_free()
+        return
+    var quantidade := 84
+    var rng := RandomNumberGenerator.new()
+    rng.seed = 948271
+    var posicoes: Array[Vector3] = []
+    var escalas: Array[float] = []
+    var giros: Array[float] = []
+    var rios: Array = _zone_data.get("river_paths", [])
+    for i in quantidade:
+        var p := Vector2.ZERO
+        if i < 52 and not rios.is_empty():
+            # Vegetação úmida acompanha as margens, mas não nasce dentro d'água.
+            var rio: Array = rios[0]
+            var trecho := rng.randi_range(0, rio.size() - 2)
+            var a := Vector2(float(rio[trecho][0]), float(rio[trecho][1]))
+            var b := Vector2(float(rio[trecho + 1][0]), float(rio[trecho + 1][1]))
+            var dir := (b - a).normalized()
+            var normal := Vector2(-dir.y, dir.x)
+            var lado := -1.0 if i % 2 == 0 else 1.0
+            p = a.lerp(b, rng.randf()) + normal * lado * rng.randf_range(5.2, 8.5)
+        else:
+            p = _sortear_ponto_de_floresta(rng, 5.0)
+        if _perto_da_rede(p, "road_paths", 5.8):
+            p = _sortear_ponto_de_floresta(rng, 5.0)
+        posicoes.append(Vector3(p.x, calcular_altura(p.x, p.y), p.y))
+        escalas.append(rng.randf_range(0.38, 0.72) / caixa.size.y)
+        giros.append(rng.randf_range(0.0, TAU))
+
+    for candidato in amostra.find_children("*", "MeshInstance3D", true, false):
+        var origem := candidato as MeshInstance3D
+        if origem.mesh == null:
+            continue
+        var local := _ate_a_raiz(origem, amostra)
+        var multi := MultiMesh.new()
+        multi.transform_format = MultiMesh.TRANSFORM_3D
+        multi.mesh = origem.mesh
+        multi.instance_count = quantidade
+        for i in quantidade:
+            var fator := escalas[i]
+            var modelo_local := Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * fator),
+                Vector3(0.0, -caixa.position.y * fator, 0.0))
+            var suporte := Transform3D(Basis(Vector3.UP, giros[i]), posicoes[i])
+            multi.set_instance_transform(i, suporte * modelo_local * local)
+        var lote := MultiMeshInstance3D.new()
+        lote.name = "GramaPBRNova"
+        lote.multimesh = multi
+        lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        lote.visibility_range_end = 44.0
+        lote.visibility_range_end_margin = 5.0
+        _props_node.add_child(lote)
     amostra.queue_free()
 
 
