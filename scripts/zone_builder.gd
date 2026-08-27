@@ -20,10 +20,30 @@ const ECOS_NOVOS := [
 
 signal portal_triggered(dest_zone_id: String, from_direction: String)
 
+const BIOMAS_SEM_NINHO := ["cidade", "sagrado"]
 const TAMANHO_ZONA: float = 160.0 # 160m x 160m cluster
 const SUBDIVISOES: int = 64        # Resolução de malha suave
 
 var _zone_data: Dictionary = {}
+
+## MUNDO ABERTO — sem portais, sem tela de carregamento.
+##
+## O no da cena vira COORDENADOR: nao constroi nada, so decide que regioes
+## existem. Cada regiao e uma copia deste mesmo script, plantada no
+## deslocamento da sua celula, construindo a zona dela em coordenadas locais
+## exatamente como antes. Nenhuma das 1100 linhas de construcao precisou saber
+## da mudanca.
+var _e_regiao := false
+var _celulas: Dictionary = {}
+var _por_celula: Dictionary = {}
+var _regioes: Dictionary = {}
+var _zonas_db: Dictionary = {}
+var jogador: Node3D
+## Carrega a vizinha quando a divisa esta perto, e so descarrega bem depois:
+## sem essa folga, andar em cima da linha ficaria montando e desmontando zona.
+const PERTO_PARA_CARREGAR := 60.0
+const LONGE_PARA_SOLTAR := 110.0
+var _ate_arrumar := 0.0
 var _city_layouts: Dictionary = {}
 
 var _terrain_mesh: MeshInstance3D
@@ -100,10 +120,15 @@ func construir_zona(zone_data: Dictionary) -> void:
     _espalhar_os_adornos()
     _construir_floresta_3d_real()
     _construir_barreiras_perimetro_arvores_reais()
-    _construir_monstros()
+    # Vila, cidade e santuario nao criam ninho. O jogador reclamou de Shiker
+    # dentro da vila: parte vinha do gerador que segue o heroi, parte nascia
+    # aqui mesmo, plantada junto com as casas.
+    if not BIOMAS_SEM_NINHO.has(String(_zone_data.get("biome", ""))):
+        _construir_monstros()
     _construir_recursos_coletaveis()
     _plantar_ecos_musicais()
-    _construir_portais()
+    if not _e_regiao:
+        _construir_portais()
 
 
 ## Poucos pontos reutilizaveis em zonas naturais. Cidades ficam sem madeira,
@@ -173,8 +198,42 @@ func _instanciar_eco(id: String, frames: SpriteFrames, ponto: Vector2, altura: f
 # -------------------------------------------------------------
 # 1. Terreno com Altura e Shader Zoned
 # -------------------------------------------------------------
+## Altura no MUNDO. Numa regiao, x e z ja sao locais e a conta e direta; no
+## coordenador, o ponto e trazido para dentro da celula antes de medir — assim
+## quem pergunta (bicho nascendo, NPC assentando, eco pousando) nao precisa
+## saber que o mundo virou grade.
 func calcular_altura(x: float, z: float) -> float:
-    var tipo_terreno: String = str(_zone_data.get("terrain_type", "colinas_suaves"))
+    if _e_regiao or _celulas.is_empty():
+        return _altura_local(x, z, _zone_data)
+    var celula := celula_do_ponto(x, z)
+    var zid := String(_por_celula.get(_chave(celula), ""))
+    if zid == "":
+        return 0.0
+    var dados: Dictionary = _zonas_db.get("zones", {}).get(zid, {})
+    return _altura_local(x - float(celula.x) * TAMANHO_ZONA, z - float(celula.y) * TAMANHO_ZONA, dados)
+
+
+## As bordas de toda zona sao rebaixadas ate zero.
+##
+## Cada zona desenha o relevo em volta do proprio centro, entao duas vizinhas
+## chegavam na divisa com alturas diferentes e o encontro virava degrau — no
+## mundo por portais isso nunca aparecia, porque nunca existiam duas ao mesmo
+## tempo. Zerando os ultimos metros, qualquer par de zonas se encontra no mesmo
+## nivel e o jogador atravessa sem ver a emenda.
+const MARGEM_DE_COSTURA := 22.0
+
+func _altura_local(x: float, z: float, dados: Dictionary) -> float:
+    var bruto := _relevo_da_zona(x, z, dados)
+    var meia := TAMANHO_ZONA * 0.5
+    var beira: float = maxf(absf(x), absf(z))
+    if beira > meia - MARGEM_DE_COSTURA:
+        var t: float = clampf((meia - beira) / MARGEM_DE_COSTURA, 0.0, 1.0)
+        bruto *= t * t * (3.0 - 2.0 * t)
+    return bruto
+
+
+func _relevo_da_zona(x: float, z: float, dados: Dictionary) -> float:
+    var tipo_terreno: String = str(dados.get("terrain_type", "colinas_suaves"))
     var d_centro: float = Vector2(x, z).length()
     
     match tipo_terreno:
@@ -182,7 +241,7 @@ func calcular_altura(x: float, z: float) -> float:
             # Acordelot ocupa quase toda a zona. O plato antigo acabava em
             # 45 m e punha os bairros novos e a muralha numa ladeira. So a
             # cidade principal ganha o raio maior; a vila continua compacta.
-            var acorde_lot := str(_zone_data.get("id", "")) == "zone_portoes"
+            var acorde_lot := str(dados.get("id", "")) == "zone_portoes"
             var raio_plano := 70.0 if acorde_lot else 45.0
             # A muralha e retangular. Medir pelo raio de um circulo deixaria
             # justamente os quatro cantos fora do plato, com segmentos
@@ -779,17 +838,21 @@ func _construir_barreiras_perimetro_arvores_reais() -> void:
     for step in range(num_passos):
         var pos_along: float = -half + float(step) * 8.5
         
+        # No mundo continuo o lado com vizinha fica ABERTO: a fresta de 16 m
+        # servia para caber um portal, e portal nao existe mais.
+        var so_o_fim_do_mundo := _e_regiao
+
         # Norte
-        if exits.get("north", "") == "" or abs(pos_along) > portal_gap:
+        if exits.get("north", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
             _criar_arvore_borda_3d(Vector3(pos_along, calcular_altura(pos_along, -half), -half), step + 1)
         # Sul
-        if exits.get("south", "") == "" or abs(pos_along) > portal_gap:
+        if exits.get("south", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
             _criar_arvore_borda_3d(Vector3(pos_along, calcular_altura(pos_along, half), half), step + 2)
         # Oeste
-        if exits.get("west", "") == "" or abs(pos_along) > portal_gap:
+        if exits.get("west", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
             _criar_arvore_borda_3d(Vector3(-half, calcular_altura(-half, pos_along), pos_along), step + 3)
         # Leste
-        if exits.get("east", "") == "" or abs(pos_along) > portal_gap:
+        if exits.get("east", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
             _criar_arvore_borda_3d(Vector3(half, calcular_altura(half, pos_along), pos_along), step + 4)
 
 ## As arvores BARATAS ficam no cinturao.
@@ -1085,6 +1148,12 @@ var _ate_conferir := RITMO_DA_CONFERENCIA
 
 
 func _process(delta: float) -> void:
+    if not _e_regiao and not _celulas.is_empty():
+        _ate_arrumar -= delta
+        if _ate_arrumar <= 0.0:
+            _ate_arrumar = 0.4
+            _arrumar_vizinhanca()
+
     if _ninhos.is_empty():
         return
     _ate_conferir -= delta
@@ -1150,3 +1219,119 @@ func _construir_monstros() -> void:
         # uma vez, na construcao, e nunca mais.
         _ninhos.append({"onde": bicho.position, "tipo": bicho.monster_type,
                         "bicho": bicho, "volta_em": 0.0})
+
+
+# ---------------------------------------------------------------------------
+# COORDENACAO DO MUNDO ABERTO
+#
+# Nada aqui constroi cenario. Isto decide QUAIS zonas existem agora, e quem
+# constroi continua sendo o mesmo codigo de sempre, uma copia por regiao.
+# ---------------------------------------------------------------------------
+
+func _chave(c: Vector2i) -> String:
+    return "%d,%d" % [c.x, c.y]
+
+
+## De ponto do mundo para celula. Cada celula ocupa TAMANHO_ZONA e e centrada
+## no multiplo, por isso arredonda em vez de truncar.
+func celula_do_ponto(x: float, z: float) -> Vector2i:
+    return Vector2i(int(round(x / TAMANHO_ZONA)), int(round(z / TAMANHO_ZONA)))
+
+
+func deslocamento_da_celula(c: Vector2i) -> Vector3:
+    return Vector3(float(c.x) * TAMANHO_ZONA, 0.0, float(c.y) * TAMANHO_ZONA)
+
+
+func zona_no_ponto(x: float, z: float) -> String:
+    return String(_por_celula.get(_chave(celula_do_ponto(x, z)), ""))
+
+
+## Deriva o mapa a partir das SAIDAS que ja existiam.
+##
+## Cada zona ja declarava quem fica ao norte, ao sul, a leste e a oeste — era
+## isso que o portal consultava. Percorrendo esse grafo em largura a partir da
+## zona inicial, cada zona ganha uma coordenada de grade, e o mundo aberto sai
+## do desenho que o jogo ja tinha. Nenhuma zona foi movida ou redesenhada.
+func montar_mundo(db: Dictionary, quem_joga: Node3D) -> void:
+    _zonas_db = db
+    jogador = quem_joga
+    _celulas.clear()
+    _por_celula.clear()
+
+    var zonas: Dictionary = db.get("zones", {})
+    var inicio := String(db.get("start_zone", ""))
+    if not zonas.has(inicio):
+        return
+
+    const PASSO := {"north": Vector2i(0, -1), "south": Vector2i(0, 1),
+        "east": Vector2i(1, 0), "west": Vector2i(-1, 0)}
+
+    var fila: Array = [inicio]
+    _celulas[inicio] = Vector2i.ZERO
+    _por_celula[_chave(Vector2i.ZERO)] = inicio
+    while not fila.is_empty():
+        var atual: String = fila.pop_front()
+        var saidas: Dictionary = zonas.get(atual, {}).get("exits", {})
+        for lado in PASSO.keys():
+            var vizinha := String(saidas.get(lado, ""))
+            if vizinha == "" or _celulas.has(vizinha) or not zonas.has(vizinha):
+                continue
+            var celula: Vector2i = _celulas[atual] + PASSO[lado]
+            # Duas zonas apontando para o mesmo lugar: fica a primeira. O grafo
+            # nasceu para portais, onde ninguem via as duas ao mesmo tempo, e
+            # tem uma contradicao dessas.
+            if _por_celula.has(_chave(celula)):
+                continue
+            _celulas[vizinha] = celula
+            _por_celula[_chave(celula)] = vizinha
+            fila.push_back(vizinha)
+
+    _arrumar_vizinhanca()
+
+
+## Distancia do ponto ate o RETANGULO da celula, nao ate o centro dela: quem
+## esta encostado na divisa de uma zona grande esta perto dela, mesmo que o
+## centro fique a cem metros.
+func _distancia_ate_celula(ponto: Vector3, c: Vector2i) -> float:
+    var meia := TAMANHO_ZONA * 0.5
+    var centro := deslocamento_da_celula(c)
+    var dx: float = maxf(absf(ponto.x - centro.x) - meia, 0.0)
+    var dz: float = maxf(absf(ponto.z - centro.z) - meia, 0.0)
+    return sqrt(dx * dx + dz * dz)
+
+
+func _arrumar_vizinhanca() -> void:
+    if jogador == null or not is_instance_valid(jogador):
+        return
+    var onde := jogador.global_position
+
+    for zid in _celulas.keys():
+        var perto := _distancia_ate_celula(onde, _celulas[zid])
+        if perto <= PERTO_PARA_CARREGAR and not _regioes.has(zid):
+            # Uma por vez. Montar duas zonas no mesmo quadro e justamente o
+            # tranco que o mundo por portais escondia atras da tela preta.
+            _construir_regiao(zid)
+            return
+        if perto > LONGE_PARA_SOLTAR and _regioes.has(zid):
+            _soltar_regiao(zid)
+            return
+
+
+func _construir_regiao(zid: String) -> void:
+    var dados: Dictionary = _zonas_db.get("zones", {}).get(zid, {})
+    if dados.is_empty():
+        return
+    var regiao := ZoneBuilder.new()
+    regiao.name = zid
+    regiao._e_regiao = true
+    regiao.position = deslocamento_da_celula(_celulas[zid])
+    add_child(regiao)
+    regiao.construir_zona(dados)
+    _regioes[zid] = regiao
+
+
+func _soltar_regiao(zid: String) -> void:
+    var regiao: Node = _regioes.get(zid)
+    if is_instance_valid(regiao):
+        regiao.queue_free()
+    _regioes.erase(zid)

@@ -43,7 +43,7 @@ tonemap_exposure = 1.15
 fog_enabled = true
 fog_light_color = Color(0.74, 0.82, 0.88, 1)
 fog_light_energy = 0.20
-fog_density = 0.0025
+fog_density = 0.008
 fog_height = 2.0
 fog_height_density = 0.03
 

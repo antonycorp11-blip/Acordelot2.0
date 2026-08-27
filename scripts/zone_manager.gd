@@ -22,12 +22,19 @@ func _ready() -> void:
     _carregar_db()
     _criar_ui_transicao()
     
+    # MUNDO ABERTO: nao existe mais "carregar a zona atual". O construtor monta a
+    # grade inteira a partir das saidas que ja estavam no banco e mantem viva a
+    # vizinhanca de quem joga. Aqui so sobra perceber em que zona o jogador
+    # esta, para anunciar o nome e avisar quem depende disso (minimapa, NPCs,
+    # gerador de bichos).
     if zone_builder:
-        zone_builder.portal_triggered.connect(_on_portal_triggered)
-        
-    # Inicializa na zona inicial
-    var start_id: String = _zones_db.get("start_zone", "zone_floresta_despertar")
-    carregar_zona(start_id, "center")
+        zone_builder.montar_mundo(_zones_db, player)
+
+    _current_zone_id = String(_zones_db.get("start_zone", "zone_floresta_despertar"))
+    _posicionar_jogador("center")
+    var inicial: Dictionary = _zones_db.get("zones", {}).get(_current_zone_id, {})
+    _animar_banner_zona(inicial)
+    zone_changed.emit(inicial)
 
 func _carregar_db() -> void:
     var f := FileAccess.open("res://data/zones_db.json", FileAccess.READ)
@@ -96,21 +103,38 @@ func _criar_ui_transicao() -> void:
     _zone_tier_label.add_theme_constant_override("outline_size", 6)
     _banner_container.add_child(_zone_tier_label)
 
-func carregar_zona(zone_id: String, entrada_dir: String = "center") -> void:
-    var zones: Dictionary = _zones_db.get("zones", {})
-    if not zones.has(zone_id):
-        print("Erro: Zona não encontrada:", zone_id)
+## A zona inicial e carregada no _ready do proprio ZoneManager, que roda ANTES
+## do _ready de quem o contem — quem se conecta ao sinal depois perde a primeira
+## emissao. Este getter e como o resto do jogo alcanca o estado que ja passou.
+func zona_atual() -> Dictionary:
+    return _zones_db.get("zones", {}).get(_current_zone_id, {})
+
+
+## Andar de uma zona para outra nao chama ninguem: o chao ja esta la. Este
+## _process so olha em que celula o jogador esta e, quando muda, anuncia.
+func _process(_delta: float) -> void:
+    if player == null or zone_builder == null or not zone_builder.has_method("zona_no_ponto"):
         return
-        
-    _current_zone_id = zone_id
-    var z_data: Dictionary = zones[zone_id]
-    
-    if zone_builder:
-        zone_builder.construir_zona(z_data)
-        
-    _posicionar_jogador(entrada_dir)
+    var aqui := String(zone_builder.zona_no_ponto(player.global_position.x, player.global_position.z))
+    if aqui == "" or aqui == _current_zone_id:
+        return
+    _current_zone_id = aqui
+    var z_data: Dictionary = _zones_db.get("zones", {}).get(aqui, {})
     _animar_banner_zona(z_data)
     zone_changed.emit(z_data)
+
+
+## Viagem rapida pelo mapa-mundi. Nao reconstroi nada: leva o jogador ate a
+## celula da zona pedida e deixa o proprio mundo carregar o que estiver perto.
+func carregar_zona(zone_id: String, _entrada_dir: String = "center") -> void:
+    var zones: Dictionary = _zones_db.get("zones", {})
+    if not zones.has(zone_id) or player == null or zone_builder == null:
+        return
+    var destino: Vector3 = zone_builder.deslocamento_da_celula(
+        zone_builder._celulas.get(zone_id, Vector2i.ZERO))
+    destino.y = zone_builder.calcular_altura(destino.x, destino.z) + 1.2
+    player.global_position = destino
+    player.velocity = Vector3.ZERO
 
 func _posicionar_jogador(entrada_dir: String) -> void:
     if not player or not zone_builder:
@@ -136,38 +160,11 @@ func _posicionar_jogador(entrada_dir: String) -> void:
             # Centro da zona
             target_pos = Vector3(0.0, 0.0, 0.0)
             
+    target_pos += zone_builder.deslocamento_da_celula(
+        zone_builder._celulas.get(_current_zone_id, Vector2i.ZERO))
     target_pos.y = zone_builder.calcular_altura(target_pos.x, target_pos.z) + 1.2
     player.global_position = target_pos
     player.velocity = Vector3.ZERO
-
-func _on_portal_triggered(dest_zone_id: String, from_direction: String) -> void:
-    if _is_transitioning:
-        return
-    _is_transitioning = true
-    
-    # A tela do meio da travessia NAO fica vazia.
-    #
-    # Preto puro por meio segundo le como falha: o jogador nao sabe se travou,
-    # se saiu do jogo ou se esta carregando. Escrever para onde ele esta indo
-    # transforma o vazio em informacao, e e o que todo jogo com carregamento
-    # entre areas faz. Nao custa nada: e o mesmo retangulo com um texto por cima.
-    var zonas: Dictionary = _zones_db.get("zones", {})
-    var destino: Dictionary = zonas.get(dest_zone_id, {})
-    _cartao_titulo.text = String(destino.get("name", "Viajando..."))
-    _cartao_tier.text = String(destino.get("tier", ""))
-
-    var tween := create_tween()
-    tween.tween_property(_fade_rect, "color:a", 1.0, 0.35).set_trans(Tween.TRANS_SINE)
-    tween.parallel().tween_property(_cartao, "modulate:a", 1.0, 0.35)
-    await tween.finished
-
-    carregar_zona(dest_zone_id, from_direction)
-
-    var tween_in := create_tween()
-    tween_in.tween_property(_cartao, "modulate:a", 0.0, 0.25)
-    tween_in.tween_property(_fade_rect, "color:a", 0.0, 0.45).set_trans(Tween.TRANS_SINE)
-    await tween_in.finished
-    _is_transitioning = false
 
 func _animar_banner_zona(z_data: Dictionary) -> void:
     _zone_title_label.text = z_data.get("name", "Nova Região")

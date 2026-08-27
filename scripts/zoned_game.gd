@@ -95,11 +95,15 @@ func _ready() -> void:
 
     # Cada zona nova traz os seus moradores: reconecta a cada troca.
     if _zone_manager:
-        _zone_manager.zone_changed.connect(func(_z):
+        _zone_manager.zone_changed.connect(func(z):
+            if _gerador_bichos:
+                _gerador_bichos.definir_zona(z)
             registrar_npcs()
             _sincronizar_eco_companheiro(true)
             _eco_captura = null
             _progresso_ressonancia = 0.0)
+        if _gerador_bichos:
+            _gerador_bichos.definir_zona(_zone_manager.zona_atual())
 
     # A caixa de conversa nasce com o mundo, escondida.
     _dialogo = DialogoScript.new()
@@ -557,6 +561,26 @@ func _tirar_print() -> void:
             await get_tree().create_timer(0.6).timeout
             print("GIRO parado  %.1fs: camera %+.1f graus | heroi %+.1f graus" % [
                 (i + 1) * 0.6, rad_to_deg(cam.rotation.y), rad_to_deg(_player.rotation.y)])
+
+    # `-- --mundo` desenha a grade que saiu das saidas e ATRAVESSA uma divisa a
+    # pe, medindo o chao a cada passo. Degrau na costura e queda no vazio sao os
+    # dois jeitos de o mundo continuo falhar, e ambos aparecem no numero.
+    if OS.get_cmdline_user_args().has("--mundo"):
+        var zb := find_child("ZoneBuilder", true, false)
+        print("MUNDO grade:")
+        for zid in zb._celulas.keys():
+            print("   %s em %s" % [zid, zb._celulas[zid]])
+        var passo := 0.0
+        while passo <= 220.0:
+            var z := 80.0 - passo
+            _player.global_position = Vector3(0.0, zb.calcular_altura(0.0, z) + 1.0, z)
+            await get_tree().physics_frame
+            await get_tree().physics_frame
+            if int(passo) % 20 == 0:
+                print("MUNDO z=%+7.1f | zona %-24s | chao %+6.2f | heroi %+6.2f | regioes %d" % [
+                    z, zb.zona_no_ponto(0.0, z), zb.calcular_altura(0.0, z),
+                    _player.global_position.y, zb._regioes.size()])
+            passo += 5.0
 
     if OS.get_cmdline_user_args().has("--dg2"):
         await get_tree().create_timer(1.0).timeout

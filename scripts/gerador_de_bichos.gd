@@ -32,11 +32,41 @@ const RELEVO := preload("res://scripts/relevo.gd")
 ## 3: Golem de Pedra (20%), 4: Golem Cristalino (10%)
 const RARIDADE := [35, 25, 10, 20, 10]
 
+## Biomas onde NAO nasce nada. A vila e a cidade sao onde o jogador conversa,
+## compra e respira; bicho ali nao e desafio, e mobilia hostil no unico lugar
+## seguro do mapa. O gerador nao sabia disso — nascia em volta do jogador, e o
+## jogador as vezes esta dentro de casa.
+const BIOMAS_SEM_BICHO := ["cidade", "sagrado"]
+## A masmorra fica longe do mapa por zonas, em 520,520, e tem gerador proprio.
+## Sem esta guarda o gerador do mundo continuava povoando por cima dele.
+const MASMORRA := Vector3(520.0, 0.0, 520.0)
+const RAIO_DA_MASMORRA := 260.0
+
 var _vivos: Array[Node3D] = []
 var _proximo := 0.0
+var _zona_segura := false
+
+
+## Chamado pelo ZoneManager a cada troca de zona.
+func definir_zona(z_data: Dictionary) -> void:
+    var bioma := String(z_data.get("biome", z_data.get("bioma", "")))
+    _zona_segura = BIOMAS_SEM_BICHO.has(bioma)
+
+
+func _limpar_tudo() -> void:
+    for bicho in _vivos:
+        if is_instance_valid(bicho):
+            bicho.queue_free()
+    _vivos.clear()
 
 func _process(delta: float) -> void:
     if jogador == null:
+        return
+
+    if _zona_segura or jogador.global_position.distance_to(MASMORRA) < RAIO_DA_MASMORRA:
+        # Some com quem ja estava vivo tambem: entrar na vila com tres Shikers
+        # na cola nao e diferente de eles nascerem la.
+        _limpar_tudo()
         return
 
     _vivos = _vivos.filter(func(b): return is_instance_valid(b))
