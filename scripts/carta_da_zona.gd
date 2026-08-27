@@ -78,12 +78,38 @@ static func desenhar(mundo: Node, zid: String, dados: Dictionary, regiao: Node) 
 				.darkened(maxf(-inclinacao, 0.0) + 0.06))
 			altura_anterior = altura
 
+	_pintar_composicao_natural(imagem, dados, metros_por_pixel, meia)
 	_riscar_rede_regional(imagem, dados, metros_por_pixel, meia)
 	_riscar_as_vias(imagem, mundo, dados, metros_por_pixel, meia)
 	if regiao != null and is_instance_valid(regiao):
 		_carimbar_as_pecas(imagem, regiao, metros_por_pixel, meia)
 
 	return ImageTexture.create_from_image(imagem)
+
+
+## Os maciços e clareiras do mapa são os mesmos usados para plantar as árvores.
+## Assim o minimapa representa a floresta real, inclusive seus corredores.
+static func _pintar_composicao_natural(imagem: Image, dados: Dictionary,
+		metros_por_pixel: float, meia: float) -> void:
+	var macicos: Array = dados.get("forest_clusters", [])
+	var clareiras: Array = dados.get("clearings", [])
+	if macicos.is_empty() and clareiras.is_empty():
+		return
+	for py in PIXELS:
+		var z := -meia + (float(py) + 0.5) * metros_por_pixel
+		for px in PIXELS:
+			var x := -meia + (float(px) + 0.5) * metros_por_pixel
+			var p := Vector2(x, z)
+			for macico in macicos:
+				var centro := Vector2(float(macico[0]), float(macico[1]))
+				if p.distance_to(centro) < float(macico[2]):
+					imagem.set_pixel(px, py, imagem.get_pixel(px, py).darkened(0.15))
+					break
+			for clareira in clareiras:
+				var centro := Vector2(float(clareira[0]), float(clareira[1]))
+				if p.distance_to(centro) < float(clareira[2]):
+					imagem.set_pixel(px, py, Color(0.36, 0.43, 0.22))
+					break
 
 
 static func _distancia_segmento(p: Vector2, a: Vector2, b: Vector2) -> float:

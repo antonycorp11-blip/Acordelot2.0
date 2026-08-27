@@ -135,6 +135,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _espalhar_os_adornos()
     _construir_floresta_3d_real()
     _plantar_vegetacao_baixa()
+    _construir_detalhes_floresta_inicial()
     _construir_barreiras_perimetro_arvores_reais()
     # Vila, cidade e santuario nao criam ninho. O jogador reclamou de Shiker
     # dentro da vila: parte vinha do gerador que segue o heroi, parte nascia
@@ -941,16 +942,7 @@ func _construir_floresta_3d_real() -> void:
             62.0, true, 0.92, 1.12, raio_min)
         var posicoes: Array[Vector3] = []
         for i in range(n_arvores - marcos):
-            var p := Vector2.ZERO
-            var tentativas := 0
-            while tentativas < 10:
-                var ang := rng.randf_range(0.0, TAU)
-                var dist := rng.randf_range(raio_min, 67.0)
-                p = Vector2(cos(ang), sin(ang)) * dist
-                if not _perto_da_rede(p, "river_paths", float(_zone_data.get("river_width", 5.0)) + 2.5) \
-                        and not _perto_da_rede(p, "road_paths", 7.0):
-                    break
-                tentativas += 1
+            var p := _sortear_ponto_de_floresta(rng, raio_min)
             posicoes.append(Vector3(p.x, calcular_altura(p.x, p.y) - 0.5, p.y))
         _plantar_pinheiros_em_lote(posicoes, hash(str(_zone_data.get("id", "zona"))))
     if not is_cidade:
@@ -1033,7 +1025,7 @@ func _plantar_vegetacao_baixa() -> void:
     if malha_no == null or malha_no.mesh == null:
         amostra.queue_free()
         return
-    var quantidade := clampi(int(_zone_data.get("grass_density", 900)) / 5, 70, 360)
+    var quantidade := clampi(int(_zone_data.get("grass_density", 900)) / 5, 70, 460)
     if str(_zone_data.get("biome", "")) == "cidade":
         quantidade = mini(quantidade, 90)
     var multi := MultiMesh.new()
@@ -1043,7 +1035,8 @@ func _plantar_vegetacao_baixa() -> void:
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zona"))) + 1907
     for i in quantidade:
-        var p := Vector2(rng.randf_range(-72.0, 72.0), rng.randf_range(-72.0, 72.0))
+        var p := _sortear_ponto_de_floresta(rng, 0.0) if not _zone_data.get("forest_clusters", []).is_empty() \
+            else Vector2(rng.randf_range(-72.0, 72.0), rng.randf_range(-72.0, 72.0))
         var tentativas := 0
         while (_perto_da_rede(p, "river_paths", float(_zone_data.get("river_width", 5.0)) + 2.0)
                 or _perto_da_rede(p, "road_paths", 7.0)) and tentativas < 8:
@@ -1062,6 +1055,90 @@ func _plantar_vegetacao_baixa() -> void:
     tufos.visibility_range_end_margin = 5.0
     _props_node.add_child(tufos)
     amostra.queue_free()
+
+
+## A Floresta Inicial não é uma distribuição circular aleatória. Os maciços,
+## clareiras e trilhas vêm do plano regional e permanecem iguais em toda carga.
+func _sortear_ponto_de_floresta(rng: RandomNumberGenerator, dist_min: float) -> Vector2:
+    var macicos: Array = _zone_data.get("forest_clusters", [])
+    for tentativa in 24:
+        var p := Vector2.ZERO
+        if macicos.is_empty():
+            var angulo := rng.randf_range(0.0, TAU)
+            var distancia := rng.randf_range(dist_min, 68.0)
+            p = Vector2(cos(angulo), sin(angulo)) * distancia
+        else:
+            var escolhido: Array = macicos[rng.randi_range(0, macicos.size() - 1)]
+            var raio := float(escolhido[2]) * sqrt(rng.randf())
+            var angulo := rng.randf_range(0.0, TAU)
+            p = Vector2(float(escolhido[0]), float(escolhido[1])) \
+                + Vector2(cos(angulo), sin(angulo)) * raio
+        if absf(p.x) > 72.0 or absf(p.y) > 72.0:
+            continue
+        if _perto_da_rede(p, "river_paths", float(_zone_data.get("river_width", 5.0)) + 3.0):
+            continue
+        if _perto_da_rede(p, "road_paths", 7.0):
+            continue
+        if _dentro_de_clareira(p, 2.0):
+            continue
+        return p
+    return Vector2(rng.randf_range(-68.0, 68.0), rng.randf_range(-68.0, 68.0))
+
+
+func _dentro_de_clareira(p: Vector2, margem: float = 0.0) -> bool:
+    for item in _zone_data.get("clearings", []):
+        var centro := Vector2(float(item[0]), float(item[1]))
+        if p.distance_to(centro) < float(item[2]) + margem:
+            return true
+    return false
+
+
+## Pedras com textura real, todas em um único lote. Elas marcam o riacho e as
+## bordas das clareiras sem adicionar dezenas de nós ou materiais exclusivos.
+func _construir_detalhes_floresta_inicial() -> void:
+    if str(_zone_data.get("id", "")) != "zone_floresta_despertar":
+        return
+    var quantidade := int(_zone_data.get("rock_count", 28))
+    var pedra := SphereMesh.new()
+    pedra.radius = 0.75
+    pedra.height = 1.15
+    pedra.radial_segments = 8
+    pedra.rings = 4
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = load("res://textures/stone_seamless.png")
+    material.roughness = 0.94
+    material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+    pedra.material = material
+    var multi := MultiMesh.new()
+    multi.transform_format = MultiMesh.TRANSFORM_3D
+    multi.mesh = pedra
+    multi.instance_count = quantidade
+    var rng := RandomNumberGenerator.new()
+    rng.seed = 741903
+    for i in quantidade:
+        var p := Vector2.ZERO
+        for tentativa in 18:
+            if i < int(quantidade * 0.55):
+                var caminhos: Array = _zone_data.get("river_paths", [])
+                var rio: Array = caminhos[0]
+                var trecho := rng.randi_range(0, rio.size() - 2)
+                var a := Vector2(float(rio[trecho][0]), float(rio[trecho][1]))
+                var b := Vector2(float(rio[trecho + 1][0]), float(rio[trecho + 1][1]))
+                p = a.lerp(b, rng.randf()) + Vector2(rng.randf_range(-7.0, 7.0), rng.randf_range(-7.0, 7.0))
+            else:
+                p = Vector2(rng.randf_range(-68.0, 68.0), rng.randf_range(-68.0, 68.0))
+            if not _perto_da_rede(p, "road_paths", 6.5) and not _dentro_de_clareira(p, 1.5):
+                break
+        var escala := Vector3(rng.randf_range(0.55, 1.25), rng.randf_range(0.38, 0.82), rng.randf_range(0.60, 1.35))
+        var base := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(escala)
+        multi.set_instance_transform(i, Transform3D(base, Vector3(p.x, calcular_altura(p.x, p.y) + 0.10, p.y)))
+    var lote := MultiMeshInstance3D.new()
+    lote.name = "PedrasDaFloresta"
+    lote.multimesh = multi
+    lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    lote.visibility_range_end = 52.0
+    lote.visibility_range_end_margin = 6.0
+    _props_node.add_child(lote)
 
 
 func _perto_da_rede(p: Vector2, chave: String, largura: float) -> bool:
