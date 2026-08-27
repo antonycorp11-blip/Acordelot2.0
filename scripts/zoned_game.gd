@@ -16,6 +16,8 @@ const EcoDoNascenteCena := preload("res://scenes/ecos/EcoDoNascente.tscn")
 const RessonanciaHUDScript := preload("res://scripts/ressonancia_hud.gd")
 const DesempenhoAdaptativoScript := preload("res://scripts/desempenho_adaptativo.gd")
 const DungeonCavernaScript := preload("res://scripts/dungeon_caverna.gd")
+const GeradorDeBichosScript := preload("res://scripts/gerador_de_bichos.gd")
+var _gerador_bichos: GeradorDeBichos = null
 const FRAMES_ECOS := {
     "do": preload("res://resources/eco_do_nascente_frames.tres"),
     "do_sustenido": preload("res://resources/eco_ambar_frames.tres"),
@@ -61,6 +63,13 @@ func _ready() -> void:
     var dungeon := DungeonCavernaScript.new()
     dungeon.name = "DungeonCaverna"
     add_child(dungeon)
+
+    # O gerador de bichos mantem o mundo aberto vivo (Shikers e Golems ao redor do heroi)
+    _gerador_bichos = GeradorDeBichosScript.new()
+    _gerador_bichos.name = "GeradorDeBichos"
+    _gerador_bichos.jogador = _player
+    _gerador_bichos.quantidade = 6
+    add_child(_gerador_bichos)
     
     _btn_ataque = find_child("BtnAtaque", true, false)
     if _btn_ataque:
@@ -515,6 +524,15 @@ func _tirar_print() -> void:
     # `-- --parede` percorre a DG de ponta a ponta e diz ATE ONDE deu para ir.
     # O teste antigo media "parou na parede" e chamava isso de sucesso — sem
     # perceber que parar era o problema, porque a sala estava lacrada.
+    # `-- --gta` liga a camera de ombro e o medidor para a captura de conferencia.
+    if OS.get_cmdline_user_args().has("--gta"):
+        var aj := find_child("Ajustes", true, false)
+        if aj:
+            aj.call("_escolher_camera", true)
+            if not bool(aj.get("_medidor_ligado")):
+                aj.call("_alternar_medidor")
+        await get_tree().create_timer(0.8).timeout
+
     if OS.get_cmdline_user_args().has("--dg2"):
         await get_tree().create_timer(1.0).timeout
         for n in get_tree().root.find_children("*", "Node3D", true, false):

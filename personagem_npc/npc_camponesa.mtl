@@ -1,0 +1,5 @@
+newmtl npc_camponesa
+Kd 1.0 1.0 1.0
+d 1.0
+illum 2
+map_Kd npc_camponesa_albedo.png

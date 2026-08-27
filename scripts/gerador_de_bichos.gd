@@ -10,7 +10,7 @@ class_name GeradorDeBichos
 
 ## Quantos ao mesmo tempo. Poucos de proposito: sao para testar o combate, e
 ## uma horda esconderia se o alcance da espada esta bom.
-@export var quantidade := 4
+@export var quantidade := 6
 ## Nascem fora da tela e caminham para dentro. Nascer na frente do jogador
 ## denuncia o truque.
 @export var distancia_de_nascimento := 16.0
@@ -27,13 +27,10 @@ class_name GeradorDeBichos
 const BICHO := preload("res://scripts/bicho.gd")
 const RELEVO := preload("res://scripts/relevo.gd")
 
-## Quantos de cada forma nascem, em cem.
-##
-## O comum tem de ser MESMO comum: e ele que ensina o jogador quanto vale um
-## golpe, e so contra esse pano de fundo o forte parece forte. Elite raro o
-## bastante para virar acontecimento — encontrar um tem de dar aquele frio na
-## barriga de "esse aqui eu aguento?".
-const RARIDADE := [78, 18, 4]   # comum, forte, elite
+## Distribuicao de formas:
+## 0: Shiker Comum (35%), 1: Shiker Voraz (25%), 2: Shiker Ancião (10%)
+## 3: Golem de Pedra (20%), 4: Golem Cristalino (10%)
+const RARIDADE := [35, 25, 10, 20, 10]
 
 var _vivos: Array[Node3D] = []
 var _proximo := 0.0

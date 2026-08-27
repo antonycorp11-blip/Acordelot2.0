@@ -181,6 +181,10 @@ func _construir_dungeon() -> void:
     _bau(Vector3(0.0, 0.0, -74.0), 600, true)
 
     # --- MONSTROS DO ESTÁGIO 1 (SHIKERS & GOLEMS) ---
+    # Golems de guarda logo no corredor de entrada (o jogador encontra imediatamente ao descer!)
+    _shiker(Vector3(0.0, 1.1, 56.0), 3)
+    _shiker(Vector3(0.0, 1.1, 40.0), 3)
+
     var salas_estagio_1 := [
         Vector3(-20, 0, 28), Vector3(0, 0, 28), Vector3(20, 0, 28),
         Vector3(-20, 0, 8), Vector3(20, 0, 8),
@@ -191,8 +195,8 @@ func _construir_dungeon() -> void:
     ]
     for i in salas_estagio_1.size():
         var canto := Vector3(cos(float(i) * 1.7) * 4.0, 1.1, sin(float(i) * 2.3) * 4.0)
-        # Nas alas laterais e antes do chefe nascem Golems de Pedra (tipo 3)
-        var tipo_bicho := 3 if (i in [5, 6, 7, 8, 11]) else (0 if i % 2 == 0 else 1)
+        # Nas salas centrais, alas laterais e antes do chefe
+        var tipo_bicho := 3 if (i in [1, 5, 6, 7, 8, 11]) else (0 if i % 2 == 0 else 1)
         _shiker(salas_estagio_1[i] + canto, tipo_bicho)
     _vestir_salas(salas_estagio_1)
 
