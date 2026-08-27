@@ -1,6 +1,10 @@
 extends Control
 class_name ZoneMinimap
 
+## Pelo caminho, nao pelo nome da classe: nome global so existe depois que o
+## editor varre o projeto, e some numa exportacao limpa.
+const CartaDaZona := preload("res://scripts/carta_da_zona.gd")
+
 @export var zone_manager: ZoneManager
 @export var player: CharacterBody3D
 
@@ -180,17 +184,62 @@ func _criar_modal_mapa_mundi() -> void:
     _info_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
     vbox.add_child(_info_label)
 
+## Guardada por zona: a carta e cara de desenhar e nao muda enquanto a zona for
+## a mesma. Trocar de zona e voltar reaproveita a que ja existe.
+var _cartas: Dictionary = {}
+var _carta_atual: ImageTexture
+var _zid_atual := ""
+## Quantos metros cabem no disco. Menos que isto vira lupa e o jogador perde a
+## nocao de onde esta; mais que isto e um borrao.
+const JANELA := 34.0
+
+
+func _preparar_carta(zid: String, z_data: Dictionary) -> void:
+    _zid_atual = zid
+    if _cartas.has(zid):
+        _carta_atual = _cartas[zid]
+        return
+    _carta_atual = null
+    var construtor: Node = zone_manager.zone_builder if zone_manager else null
+    if construtor == null or not construtor.has_method("deslocamento_da_celula"):
+        return
+    # Sem a regiao construida a carta sairia com relevo e ruas mas sem uma casa
+    # sequer, e ficaria guardada assim. Melhor nao desenhar e tentar de novo.
+    var regiao: Node3D = construtor._regioes.get(zid)
+    if regiao == null or not is_instance_valid(regiao):
+        return
+    _carta_atual = CartaDaZona.desenhar(construtor, zid, z_data, regiao)
+    _cartas[zid] = _carta_atual
+
+
 func _on_zone_changed(z_data: Dictionary) -> void:
     _current_zone_data = z_data
+    _preparar_carta(String(z_data.get("id", "")), z_data)
     _title_label.text = z_data.get("name", "Zona")
     _tier_label.text = z_data.get("tier", "")
     _minimap_draw.queue_redraw()
     if _world_map_modal.visible:
         _atualizar_grid_mapa_mundi()
 
-func _process(_delta: float) -> void:
+var _ate_tentar_carta := 0.0
+
+func _process(delta: float) -> void:
     if _minimap_draw and _minimap_draw.is_visible_in_tree():
         _minimap_draw.queue_redraw()
+
+    # A primeira zona ja esta carregada quando este no acorda, entao o sinal de
+    # troca dela nunca chega — e a regiao pode ainda estar se montando. Insiste
+    # de meio em meio segundo ate ter o que desenhar.
+    if _carta_atual != null or zone_manager == null:
+        return
+    _ate_tentar_carta -= delta
+    if _ate_tentar_carta > 0.0:
+        return
+    _ate_tentar_carta = 0.5
+    var atual: Dictionary = zone_manager.zona_atual()
+    if not atual.is_empty():
+        _current_zone_data = atual
+        _preparar_carta(String(atual.get("id", "")), atual)
 
 func _on_minimap_draw() -> void:
     var rect := _minimap_draw.get_rect()
@@ -201,6 +250,38 @@ func _on_minimap_draw() -> void:
     # 1. O disco escuro por baixo. A moldura nova e so um anel — sem este fundo
     # o radar flutuaria solto sobre o mapa 3D e os pontos sumiriam na grama.
     _minimap_draw.draw_circle(center, frame_size * 0.5 - 4.0, Color(0.05, 0.07, 0.06, 0.82))
+
+    # 1b. A CARTA DA REGIAO dentro do disco.
+    #
+    # Desenhada como poligono com coordenadas de textura em vez de retangulo:
+    # retangulo deixaria as quinas para fora do anel, e recortar em circulo por
+    # cima custaria outra passada. O poligono JA e o circulo.
+    var desvio := Vector2.ZERO
+    if _carta_atual and player and zone_manager and zone_manager.zone_builder:
+        var construtor = zone_manager.zone_builder
+        var lado: float = float(construtor.TAMANHO_ZONA)
+        var origem: Vector3 = construtor.deslocamento_da_celula(
+            construtor._celulas.get(_zid_atual, Vector2i.ZERO))
+        var local := player.global_position - origem
+        var alvo := Vector2((local.x + lado * 0.5) / lado, (local.z + lado * 0.5) / lado)
+        var meia_janela := JANELA / lado
+        # Encostado na divisa, a janela para de acompanhar e quem anda e a seta:
+        # seguir alem da borda mostraria a textura esticada, que e mentira.
+        var centro_uv := Vector2(
+            clampf(alvo.x, meia_janela, 1.0 - meia_janela),
+            clampf(alvo.y, meia_janela, 1.0 - meia_janela))
+        desvio = (alvo - centro_uv) / meia_janela * (frame_size * 0.5 - 8.0)
+
+        var raio_mapa := frame_size * 0.5 - 5.0
+        var pontos := PackedVector2Array()
+        var uvs := PackedVector2Array()
+        for i in 30:
+            var a := TAU * float(i) / 30.0
+            var d := Vector2(cos(a), sin(a))
+            pontos.append(center + d * raio_mapa)
+            uvs.append(centro_uv + d * meia_janela)
+        _minimap_draw.draw_colored_polygon(pontos, Color(1, 1, 1, 0.93), uvs, _carta_atual)
+
     
     # 2. O anel dourado com o "N" da bussola, por cima da borda do disco.
     if _minimap_frame_tex:
@@ -224,10 +305,9 @@ func _on_minimap_draw() -> void:
     if player:
         var px: float = player.global_position.x
         var pz: float = player.global_position.z
-        var half_zone: float = 80.0
-        var norm_x: float = clampf(px / half_zone, -0.85, 0.85)
-        var norm_z: float = clampf(pz / half_zone, -0.85, 0.85)
-        var p_radar := center + Vector2(norm_x, norm_z) * (radius - 8.0)
+        # A carta se move sob a seta, entao a seta mora no centro. So sai de la
+        # quando a janela bate na borda da zona e trava.
+        var p_radar := center + desvio
         
         _minimap_draw.draw_circle(p_radar, 4.5, Color(1.0, 0.95, 0.2))
         

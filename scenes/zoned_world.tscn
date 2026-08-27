@@ -44,6 +44,9 @@ fog_enabled = true
 fog_light_color = Color(0.74, 0.82, 0.88, 1)
 fog_light_energy = 0.20
 fog_density = 0.008
+# A nevoa continua no mundo 3D, mas nao pinta o fundo do ceu. Na camera de
+# ombro ate 0.18 ainda transformava todo o horizonte numa chapa cinza.
+fog_sky_affect = 0.0
 fog_height = 2.0
 fog_height_density = 0.03
 

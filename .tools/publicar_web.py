@@ -26,6 +26,33 @@ SUFIXOS = (".js", ".pck", ".wasm", ".audio.worklet.js",
            ".audio.position.worklet.js", ".side.wasm")
 
 
+## O GitHub recusa arquivo acima de 100 MB, e o pacote do jogo ja bate nos 94.
+## Cortar conteudo para caber nao e caminho: o jogo so cresce. Entao o pacote
+## sobe PARTIDO, e o navegador remonta antes de entregar ao motor — nenhum
+## arquivo passa do limite, e o jogador nao percebe diferenca.
+LIMITE_DA_PARTE = 45 * 1024 * 1024
+
+
+def _partir(caminho):
+    tamanho = os.path.getsize(caminho)
+    if tamanho <= LIMITE_DA_PARTE:
+        return []
+    partes = []
+    with open(caminho, "rb") as f:
+        indice = 1
+        while True:
+            pedaco = f.read(LIMITE_DA_PARTE)
+            if not pedaco:
+                break
+            nome = "%s.p%d" % (caminho, indice)
+            with open(nome, "wb") as saida:
+                saida.write(pedaco)
+            partes.append(os.path.basename(nome))
+            indice += 1
+    os.remove(caminho)
+    return partes
+
+
 def _digital(caminho):
     h = hashlib.sha256()
     with open(caminho, "rb") as f:
@@ -58,6 +85,8 @@ def main():
         if sufixo in (".pck", ".wasm"):
             tamanhos[marca + sufixo] = os.path.getsize(destino)
 
+    partes = _partir(os.path.join(PASTA, marca + ".pck"))
+
     caminho_html = os.path.join(PASTA, "index.html")
     html = open(caminho_html, encoding="utf-8").read()
 
@@ -76,11 +105,53 @@ def main():
     if quantas != 1:
         print("AVISO: nao achei o GODOT_CONFIG no index.html")
 
+    # O motor recebe o pacote ja remontado, como endereco de memoria. Ele nunca
+    # sabe que o arquivo estava em pedacos.
+    if partes:
+        remontagem = """
+	async function juntarOPacote() {
+		const partes = %s;
+		const pedacos = [];
+		for (const nome of partes) {
+			const resposta = await fetch(nome);
+			if (!resposta.ok) {
+				throw new Error('faltou uma parte do pacote: ' + nome);
+			}
+			pedacos.push(await resposta.arrayBuffer());
+		}
+		// Blob costura os pedacos sem copiar tudo para um buffer unico antes:
+		// num celular, a copia dobraria a memoria no pior instante da carga.
+		return URL.createObjectURL(new Blob(pedacos, {type: 'application/octet-stream'}));
+	}
+""" % json.dumps(partes)
+        html = html.replace("const engine = new Engine(GODOT_CONFIG);",
+                            "const engine = new Engine(GODOT_CONFIG);\n" + remontagem, 1)
+
+        abertura = """		engine.startGame({
+			'onProgress': function (current, total) {"""
+        nova_abertura = """		juntarOPacote().then((pacote) => engine.startGame({
+			'mainPack': pacote,
+			'onProgress': function (current, total) {"""
+        fechamento = """		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);"""
+        novo_fechamento = """		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice)).catch(displayFailureNotice);"""
+        if abertura not in html or fechamento not in html:
+            print("AVISO: o index.html mudou de forma; o pacote NAO foi religado")
+        else:
+            html = html.replace(abertura, nova_abertura, 1)
+            html = html.replace(fechamento, novo_fechamento, 1)
+
     open(caminho_html, "w", encoding="utf-8").write(html)
 
     print("carimbo: %s" % marca)
     for nome, tam in tamanhos.items():
         print("  %-26s %6.1f MB" % (nome, tam / 1048576))
+    for nome in partes:
+        print("  %-26s %6.1f MB (parte)" % (
+            nome, os.path.getsize(os.path.join(PASTA, nome)) / 1048576))
 
 
 main()

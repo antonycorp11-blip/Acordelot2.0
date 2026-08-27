@@ -565,6 +565,15 @@ func _tirar_print() -> void:
     # `-- --mundo` desenha a grade que saiu das saidas e ATRAVESSA uma divisa a
     # pe, medindo o chao a cada passo. Degrau na costura e queda no vazio sao os
     # dois jeitos de o mundo continuo falhar, e ambos aparecem no numero.
+    # `-- --vila` poe o heroi no centro da Vila do Caminho e espera a regiao
+    # montar. Conferir rua, casa e minimapa la exigia caminhar 160 m.
+    if OS.get_cmdline_user_args().has("--vila"):
+        var zbv := find_child("ZoneBuilder", true, false)
+        var onde: Vector3 = zbv.deslocamento_da_celula(
+            zbv._celulas.get("zone_vila_caminho", Vector2i.ZERO))
+        _player.global_position = onde + Vector3(6.0, 2.0, 26.0)
+        await get_tree().create_timer(3.0).timeout
+
     if OS.get_cmdline_user_args().has("--mundo"):
         var zb := find_child("ZoneBuilder", true, false)
         print("MUNDO grade:")

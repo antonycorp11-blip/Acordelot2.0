@@ -9,6 +9,9 @@ extends CharacterBody3D
 @export var gravity := 24.0
 
 var _voando := false
+var _eixos_de_movimento_travados := false
+var _frente_do_inicio := Vector3.FORWARD
+var _direita_do_inicio := Vector3.RIGHT
 
 func alternar_voo() -> void:
     _voando = not _voando
@@ -121,20 +124,29 @@ func _physics_process(delta: float) -> void:
     var camera := get_viewport().get_camera_3d()
     var move_direction := Vector3.ZERO
 
+    if input_vector.length() <= 0.01:
+        _eixos_de_movimento_travados = false
+
     if camera and input_vector.length() > 0.0:
-        var camera_forward := -camera.global_basis.z
-        camera_forward.y = 0.0
-        camera_forward = camera_forward.normalized()
-        var camera_right := camera.global_basis.x
-        camera_right.y = 0.0
-        camera_right = camera_right.normalized()
+        # A direcao da camera e capturada quando o jogador COMECA a andar.
+        # Enquanto o analogico continua pressionado, girar a camera nao curva
+        # sozinho o caminho de Akles. Ao soltar e tocar de novo, o novo angulo
+        # passa a ser a referencia normalmente.
+        if not _eixos_de_movimento_travados:
+            _frente_do_inicio = -camera.global_basis.z
+            _frente_do_inicio.y = 0.0
+            _frente_do_inicio = _frente_do_inicio.normalized()
+            _direita_do_inicio = camera.global_basis.x
+            _direita_do_inicio.y = 0.0
+            _direita_do_inicio = _direita_do_inicio.normalized()
+            _eixos_de_movimento_travados = true
         # A INTENSIDADE do empurrao sobrevive ate a velocidade.
         #
         # Antes o vetor era normalizado aqui, e com isso qualquer toque alem da
         # zona morta virava velocidade cheia: nao havia andar devagar, so parado
         # ou disparado. Num polegar sobre vidro isso e o que faz o controle
         # parecer escorregadio e dificil de mirar.
-        var bruto := camera_right * input_vector.x - camera_forward * input_vector.y
+        var bruto := _direita_do_inicio * input_vector.x - _frente_do_inicio * input_vector.y
         var forca: float = clampf(input_vector.length(), 0.0, 1.0)
         move_direction = bruto.normalized() * forca
 

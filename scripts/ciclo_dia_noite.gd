@@ -31,6 +31,10 @@ var _lampadas_acesas := false
 var _luz: DirectionalLight3D
 var _mundo: WorldEnvironment
 var _ceu: ProceduralSkyMaterial
+## O ceu desenhado (nuvens, estrelas, disco do sol). Substitui o degrade liso
+## em tempo de execucao para nao mexer no arquivo de cena; se o shader faltar,
+## o degrade antigo continua valendo e o jogo nao quebra.
+var _ceu_pintado: ShaderMaterial
 
 ## hora -> [ceu_topo, ceu_horizonte, ambiente, nevoa, luz]
 ##
@@ -42,9 +46,9 @@ const CORES := [
     [0.0,  Color(0.03, 0.05, 0.14), Color(0.08, 0.11, 0.22), Color(0.40, 0.48, 0.72), Color(0.11, 0.14, 0.26), Color(0.56, 0.67, 0.96)],
     [4.5,  Color(0.05, 0.08, 0.18), Color(0.16, 0.15, 0.26), Color(0.43, 0.49, 0.72), Color(0.14, 0.16, 0.28), Color(0.60, 0.70, 0.97)],
     [6.0,  Color(0.18, 0.22, 0.42), Color(0.72, 0.42, 0.34), Color(0.44, 0.38, 0.42), Color(0.52, 0.40, 0.40), Color(1.00, 0.62, 0.38)],
-    [7.5,  Color(0.20, 0.42, 0.70), Color(0.92, 0.72, 0.55), Color(0.62, 0.62, 0.60), Color(0.78, 0.74, 0.70), Color(1.00, 0.86, 0.68)],
-    [12.0, Color(0.16, 0.42, 0.72), Color(0.72, 0.84, 0.92), Color(0.66, 0.70, 0.66), Color(0.72, 0.80, 0.82), Color(1.00, 0.94, 0.82)],
-    [16.5, Color(0.18, 0.40, 0.70), Color(0.80, 0.80, 0.84), Color(0.68, 0.66, 0.60), Color(0.76, 0.76, 0.74), Color(1.00, 0.90, 0.74)],
+    [7.5,  Color(0.10, 0.30, 0.66), Color(0.52, 0.66, 0.86), Color(0.62, 0.62, 0.60), Color(0.78, 0.74, 0.70), Color(1.00, 0.86, 0.68)],
+    [12.0, Color(0.06, 0.28, 0.68), Color(0.20, 0.50, 0.86), Color(0.66, 0.70, 0.66), Color(0.72, 0.80, 0.82), Color(1.00, 0.94, 0.82)],
+    [16.5, Color(0.10, 0.30, 0.66), Color(0.28, 0.52, 0.82), Color(0.68, 0.66, 0.60), Color(0.76, 0.76, 0.74), Color(1.00, 0.90, 0.74)],
     [18.5, Color(0.16, 0.24, 0.48), Color(0.94, 0.48, 0.26), Color(0.50, 0.40, 0.40), Color(0.62, 0.42, 0.36), Color(1.00, 0.54, 0.28)],
     [20.0, Color(0.07, 0.10, 0.24), Color(0.30, 0.20, 0.30), Color(0.46, 0.46, 0.66), Color(0.19, 0.19, 0.30), Color(0.74, 0.68, 0.92)],
     [21.5, Color(0.03, 0.05, 0.14), Color(0.08, 0.11, 0.22), Color(0.41, 0.48, 0.72), Color(0.12, 0.15, 0.26), Color(0.57, 0.68, 0.96)],
@@ -106,8 +110,16 @@ func _ready() -> void:
             rodando = false
     _luz = sol
     _mundo = ambiente
-    if _mundo and _mundo.environment:
+    if _mundo and _mundo.environment and _mundo.environment.sky:
         _ceu = _mundo.environment.sky.sky_material as ProceduralSkyMaterial
+        var desenho: Shader = load("res://materials/ceu.gdshader")
+        if desenho:
+            _ceu_pintado = ShaderMaterial.new()
+            _ceu_pintado.shader = desenho
+            # Um valor seguro ja no primeiro frame evita que o horizonte vire
+            # uma camada inteira de nuvem antes de Ajustes aplicar a qualidade.
+            _ceu_pintado.set_shader_parameter("forca_das_nuvens", 0.62)
+            _mundo.environment.sky.sky_material = _ceu_pintado
     if _luz == null:
         push_warning("Ciclo sem sol: o mundo fica na luz que veio da cena")
     _aplicar()
@@ -175,7 +187,14 @@ func _aplicar() -> void:
     env.fog_light_color = cor[3]
     env.fog_light_energy = forca[2]
 
-    if _ceu:
+    if _ceu_pintado:
+        _ceu_pintado.set_shader_parameter("cor_topo", cor[0])
+        _ceu_pintado.set_shader_parameter("cor_horizonte", cor[1])
+        # As estrelas acendem pela LUZ, nao pelo relogio: assim o ceu escurece
+        # junto com o mundo, inclusive nos minutos em que o sol ja se foi mas
+        # ainda ha claridade.
+        _ceu_pintado.set_shader_parameter("noite", clampf((1.18 - forca[0]) / 0.34, 0.0, 1.0))
+    elif _ceu:
         _ceu.sky_top_color = cor[0]
         _ceu.sky_horizon_color = cor[1]
         # O chao do ceu acompanha o horizonte, so que abafado: e o que se ve

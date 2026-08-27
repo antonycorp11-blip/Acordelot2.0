@@ -41,6 +41,15 @@ uniform vec4 vias_secundarias = vec4(999.0, 999.0, 0.0, 0.0);
 uniform float via_de_pedra = 0.0;
 
 varying vec3 world_pos;
+// A posicao DENTRO da zona, separada da posicao no mundo.
+//
+// Grama e ruido usam a de mundo, e e o certo: assim o padrao atravessa a divisa
+// entre duas zonas sem emenda. Rua e largo, nao — vem do planejador em
+// coordenadas da propria zona. Enquanto so existia uma zona, no centro do
+// mundo, as duas eram a mesma coisa; com o mundo aberto, a vila foi para 160 m
+// ao norte e as ruas dela continuaram sendo desenhadas na origem, isto e, em
+// lugar nenhum.
+varying vec3 pos_local;
 varying vec3 world_normal;
 
 float hash(vec2 p) {
@@ -68,6 +77,7 @@ float fbm(vec2 p) {
 
 void vertex() {
     world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+    pos_local = VERTEX;
     world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 
@@ -91,31 +101,31 @@ void fragment() {
     if (via_principal.x > 0.01) {
         // A borda nao e reta: um metro de ruido come a linha do asfalto e a
         // deixa gasta. Rua de terra com borda de regua le como pista pintada.
-        float franja = (fbm(world_pos.xz / 3.5) - 0.5) * 1.6;
+        float franja = (fbm(pos_local.xz / 3.5) - 0.5) * 1.6;
 
         float meia = via_principal.x + franja;
-        float rua = (1.0 - smoothstep(meia - 0.9, meia + 0.5, abs(world_pos.x)))
-                  * (1.0 - smoothstep(via_principal.y - 3.0, via_principal.y, abs(world_pos.z)));
+        float rua = (1.0 - smoothstep(meia - 0.9, meia + 0.5, abs(pos_local.x)))
+                  * (1.0 - smoothstep(via_principal.y - 3.0, via_principal.y, abs(pos_local.z)));
 
         float largo = 1.0 - smoothstep(via_principal.z - 2.5 + franja,
                                        via_principal.z + 0.6 + franja,
-                                       length(world_pos.xz));
+                                       length(pos_local.xz));
 
         float meia_t = via_principal.w + franja;
         float travessa = (1.0 - smoothstep(meia_t - 0.7, meia_t + 0.5,
-                                           abs(world_pos.z - via_travessa.x)))
+                                           abs(pos_local.z - via_travessa.x)))
                        * (1.0 - smoothstep(via_travessa.y - 3.0, via_travessa.y,
-                                           abs(world_pos.x)));
+                                           abs(pos_local.x)));
 
         float meia_s = vias_secundarias.z + franja;
         float secundaria_1 = (1.0 - smoothstep(meia_s - 0.7, meia_s + 0.5,
-                                                abs(world_pos.z - vias_secundarias.x)))
+                                                abs(pos_local.z - vias_secundarias.x)))
                            * (1.0 - smoothstep(vias_secundarias.w - 3.0,
-                                               vias_secundarias.w, abs(world_pos.x)));
+                                               vias_secundarias.w, abs(pos_local.x)));
         float secundaria_2 = (1.0 - smoothstep(meia_s - 0.7, meia_s + 0.5,
-                                                abs(world_pos.z - vias_secundarias.y)))
+                                                abs(pos_local.z - vias_secundarias.y)))
                            * (1.0 - smoothstep(vias_secundarias.w - 3.0,
-                                               vias_secundarias.w, abs(world_pos.x)));
+                                               vias_secundarias.w, abs(pos_local.x)));
 
         float via = clamp(max(max(max(rua, largo), travessa),
                               max(secundaria_1, secundaria_2)), 0.0, 1.0);

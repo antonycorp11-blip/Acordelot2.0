@@ -45,6 +45,7 @@ static func aplicar_guardado(arvore: SceneTree) -> void:
     var vp := arvore.root
     vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
     vp.scaling_3d_scale = float(NIVEIS[nivel][1])
+    _ajustar_ceu(arvore.root.world_3d, nivel)
 
 
 func _ready() -> void:
@@ -132,6 +133,9 @@ func _montar() -> void:
 
 
 func _aplicar_guardado_na_cena() -> void:
+    # O ceu so troca de material quando o ciclo dia/noite acorda, depois do
+    # ajuste inicial — por isso a preferencia de nuvem e reaplicada aqui.
+    _ajustar_ceu(get_viewport().world_3d, _escolhido)
     if _camera_gta:
         _escolher_camera(true)
     if _medidor_ligado:
@@ -269,6 +273,7 @@ func _escolher(i: int) -> void:
     _escolhido = i
     get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
     get_viewport().scaling_3d_scale = float(NIVEIS[i][1])
+    _ajustar_ceu(get_viewport().world_3d, i)
 
     for k in _botoes.size():
         for filho in _botoes[k].get_children():
@@ -282,3 +287,16 @@ func _escolher(i: int) -> void:
 
 func mostrar(sim := true) -> void:
     visible = sim
+
+
+## Os modos leves reduzem as nuvens, mas nunca deixam o ceu vazio. A camera nao
+## olha para cima, então o pouco horizonte visível precisa continuar parecendo
+## céu mesmo no celular simples.
+static func _ajustar_ceu(mundo: World3D, nivel: int) -> void:
+    if mundo == null or mundo.environment == null or mundo.environment.sky == null:
+        return
+    var ceu := mundo.environment.sky.sky_material as ShaderMaterial
+    if ceu == null:
+        return
+    var forcas := [0.78, 0.62, 0.42, 0.28]
+    ceu.set_shader_parameter("forca_das_nuvens", forcas[clampi(nivel, 0, forcas.size() - 1)])
