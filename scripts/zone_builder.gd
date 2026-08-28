@@ -59,6 +59,10 @@ var _terrain_body: StaticBody3D
 var _water_mesh: MeshInstance3D
 var _portals_node: Node3D
 var _props_node: Node3D
+## Cruzamentos calculados uma vez antes da malha. O mesmo plano nivela o
+## terreno, posiciona a ponte e cria sua colisao; assim as tres coisas nunca
+## discordam sobre altura, direcao ou comprimento.
+var _pontes_planejadas: Array = []
 static var _malha_grama_leve: ArrayMesh
 static var _material_grama_leve: ShaderMaterial
 
@@ -165,8 +169,14 @@ func construir_zona(zone_data: Dictionary) -> void:
     _portals_node = Node3D.new()
     _portals_node.name = "Portals"
     add_child(_portals_node)
-    
+
+    _planejar_pontes()
     _construir_terreno()
+    # Montar uma regiao inteira no mesmo quadro era o tranco sentido ao entrar
+    # na cidade. O terreno nasce primeiro para o jogador nunca cair; o visual
+    # restante e distribuido em poucos quadros.
+    if is_inside_tree():
+        await get_tree().process_frame
 
     # Rios e estradas pertencem ao plano da região, portanto nascem antes dos
     # edifícios. O leito já foi cavado pela mesma função de altura do terreno.
@@ -176,12 +186,14 @@ func construir_zona(zone_data: Dictionary) -> void:
     
     if _zone_data.get("water", false):
         _construir_agua()
-        
-    _construir_layout_urbano()
+
+    await _construir_layout_urbano()
     _construir_marco_central()
-    _acender_a_povoacao()
+    await _acender_a_povoacao()
     _plantar_os_npcs()
     _espalhar_os_adornos()
+    if is_inside_tree():
+        await get_tree().process_frame
     _construir_floresta_3d_real()
     _bloquear_macicos_densos()
     _plantar_vegetacao_baixa()
@@ -299,6 +311,15 @@ func _altura_local(x: float, z: float, dados: Dictionary) -> float:
 ## se consultasse calcular_altura(), cada margem receberia uma altura diferente
 ## do próprio buraco e a lâmina acompanharia o fundo como uma fita luminosa.
 func _altura_sem_rio_local(x: float, z: float, dados: Dictionary) -> float:
+    var bruto := _altura_natural_costurada(x, z, dados)
+    # O coordenador consulta zonas que ainda nao foram construidas; nelas nao
+    # existe plano local de ponte. Cada regiao construida usa seu proprio plano.
+    if not _pontes_planejadas.is_empty():
+        bruto = _nivelar_acessos_das_pontes(Vector2(x, z), bruto)
+    return bruto
+
+
+func _altura_natural_costurada(x: float, z: float, dados: Dictionary) -> float:
     var bruto := _relevo_da_zona(x, z, dados)
     var meia := TAMANHO_ZONA * 0.5
     var beira: float = maxf(absf(x), absf(z))
@@ -306,6 +327,25 @@ func _altura_sem_rio_local(x: float, z: float, dados: Dictionary) -> float:
         var t: float = clampf((meia - beira) / MARGEM_DE_COSTURA, 0.0, 1.0)
         bruto *= t * t * (3.0 - 2.0 * t)
     return bruto
+
+
+## Achata somente a pista e os acessos imediatos. O leito continua cavado em
+## _altura_local(), portanto nivelar a estrada nao tampa o rio.
+func _nivelar_acessos_das_pontes(p: Vector2, altura: float) -> float:
+    var resultado := altura
+    for ficha in _pontes_planejadas:
+        var centro: Vector2 = ficha["ponto"]
+        var direcao: Vector2 = ficha["direcao"]
+        var relativo := p - centro
+        var longitudinal := absf(relativo.dot(direcao))
+        var lateral := absf(relativo.cross(direcao))
+        var meio: float = float(ficha["comprimento"]) * 0.5
+        if longitudinal > meio + 10.0 or lateral > 6.4:
+            continue
+        var peso_longo := 1.0 - smoothstep(meio + 4.0, meio + 10.0, longitudinal)
+        var peso_lado := 1.0 - smoothstep(4.2, 6.4, lateral)
+        resultado = lerpf(resultado, float(ficha["nivel"]), peso_longo * peso_lado)
+    return resultado
 
 
 ## Distância de um ponto ao segmento, usada tanto pelo leito quanto pela água.
@@ -529,10 +569,46 @@ static func _cruzamento_2d(a: Vector2, b: Vector2, c: Vector2, d: Vector2):
     return a + r * t
 
 
+func _planejar_pontes() -> void:
+    _pontes_planejadas.clear()
+    var feitos := {}
+    var largura: float = float(_zone_data.get("river_width", 5.0))
+    # O canal cavado termina em largura + 4 m. A ponte precisa ultrapassar as
+    # duas margens, senao suas pontas ficam suspensas sobre a parte inclinada.
+    var comprimento := (largura + 4.0) * 2.0 + 2.0
+    for rua in _zone_data.get("road_paths", []):
+        for i in range(rua.size() - 1):
+            var a := Vector2(float(rua[i][0]), float(rua[i][1]))
+            var b := Vector2(float(rua[i + 1][0]), float(rua[i + 1][1]))
+            var direcao := (b - a).normalized()
+            for rio in _zone_data.get("river_paths", []):
+                for j in range(rio.size() - 1):
+                    var c := Vector2(float(rio[j][0]), float(rio[j][1]))
+                    var d := Vector2(float(rio[j + 1][0]), float(rio[j + 1][1]))
+                    var cruzamento = _cruzamento_2d(a, b, c, d)
+                    if cruzamento == null:
+                        continue
+                    var ponto: Vector2 = cruzamento
+                    var chave := "%d,%d" % [roundi(ponto.x), roundi(ponto.y)]
+                    if feitos.has(chave):
+                        continue
+                    feitos[chave] = true
+                    var amostra := comprimento * 0.5 + 6.0
+                    var nivel := (
+                        _altura_natural_costurada(ponto.x, ponto.y, _zone_data)
+                        + _altura_natural_costurada(ponto.x + direcao.x * amostra,
+                            ponto.y + direcao.y * amostra, _zone_data)
+                        + _altura_natural_costurada(ponto.x - direcao.x * amostra,
+                            ponto.y - direcao.y * amostra, _zone_data)
+                    ) / 3.0
+                    _pontes_planejadas.append({
+                        "ponto": ponto, "direcao": direcao,
+                        "nivel": nivel, "comprimento": comprimento,
+                    })
+
+
 func _construir_pontes_da_rede() -> void:
-    var ruas: Array = _zone_data.get("road_paths", [])
-    var rios: Array = _zone_data.get("river_paths", [])
-    if ruas.is_empty() or rios.is_empty():
+    if _pontes_planejadas.is_empty():
         return
 
     var de_pedra := str(_zone_data.get("road_surface", "terra")) == "pedra"
@@ -546,37 +622,24 @@ func _construir_pontes_da_rede() -> void:
         material.albedo_color = Color(0.64, 0.52, 0.38)
         material.uv1_scale = Vector3(0.8, 0.8, 0.8)
     material.roughness = 0.96
-    var feitos := {}
-    for rua in ruas:
-        for i in range(rua.size() - 1):
-            var a := Vector2(float(rua[i][0]), float(rua[i][1]))
-            var b := Vector2(float(rua[i + 1][0]), float(rua[i + 1][1]))
-            for rio in rios:
-                for j in range(rio.size() - 1):
-                    var c := Vector2(float(rio[j][0]), float(rio[j][1]))
-                    var d := Vector2(float(rio[j + 1][0]), float(rio[j + 1][1]))
-                    var cruzamento = _cruzamento_2d(a, b, c, d)
-                    if cruzamento == null:
-                        continue
-                    var ponto: Vector2 = cruzamento
-                    var chave := "%d,%d" % [roundi(ponto.x), roundi(ponto.y)]
-                    if feitos.has(chave):
-                        continue
-                    feitos[chave] = true
-                    _criar_ponte(ponto, (b - a).normalized(), material, de_pedra)
+    for ficha in _pontes_planejadas:
+        _criar_ponte(ficha, material, de_pedra)
 
 
-func _criar_ponte(ponto: Vector2, direcao_rua: Vector2,
-        material: StandardMaterial3D, de_pedra: bool) -> void:
+func _criar_ponte(ficha: Dictionary, material: StandardMaterial3D,
+        de_pedra: bool) -> void:
     # A ponte anterior tinha 10,8 m de largura, 42 cm de espessura e paredes
     # macicas. No celular lia como uma plataforma suspensa. Esta acompanha a
     # largura visivel da estrada e repousa quase no nivel das margens.
     var largura_rua := 9.0 if de_pedra else 8.0
-    var comprimento := float(_zone_data.get("river_width", 5.0)) * 2.0 + 5.5
+    var comprimento: float = float(ficha["comprimento"])
+    var ponto: Vector2 = ficha["ponto"]
+    var direcao_rua: Vector2 = ficha["direcao"]
     var ponte := Node3D.new()
     ponte.name = "ponte"
-    ponte.position = Vector3(ponto.x,
-        _altura_sem_rio_local(ponto.x, ponto.y, _zone_data) + 0.04, ponto.y)
+    # O topo fica dois centimetros acima do acesso, nao dezoito. A colisao e a
+    # malha compartilham esta mesma raiz, eliminando degrau invisivel.
+    ponte.position = Vector3(ponto.x, float(ficha["nivel"]) - 0.07, ponto.y)
     ponte.rotation.y = atan2(direcao_rua.x, direcao_rua.y)
 
     var tabuleiro := MeshInstance3D.new()
@@ -839,6 +902,19 @@ static func _tem_textura(caminho: String) -> bool:
     return caminho.get_file().get_basename() in COM_TEXTURA
 
 
+const PROPS_DE_CALCADA := [
+    "barris", "caixotes", "saco", "banco", "carroca", "banca",
+    "barril_cc0", "caixote_cc0", "banco_cc0", "banca_cc0",
+    "carroca_cc0", "balde_cc0", "bau_cc0", "mesa_cc0", "oficina_cc0",
+]
+## O distrito antigo tinha entulho suficiente para bloquear a avenida. Ficam
+## exemplares para contar que a cidade e habitada, mas nao dezesseis pilhas do
+## mesmo objeto ocupando a faixa de circulacao.
+const LIMITE_ENTULHO_PORTOES := {
+    "carroca": 4, "barris": 5, "caixotes": 5, "saco": 4, "cogumelo": 0,
+}
+
+
 func _construir_layout_urbano() -> void:
     var layout_id: String = str(_zone_data.get("layout_id", ""))
     if layout_id == "":
@@ -854,9 +930,18 @@ func _construir_layout_urbano() -> void:
     if not todas.has(layout_id):
         return
     var pecas: Array = todas[layout_id]
+    var pinheiros_planejados: Array[Vector3] = []
+    var contagem_entulho := {}
+    var construidas := 0
 
     for p in pecas:
         var tag: String = str(p.get("tag", ""))
+        if str(_zone_data.get("id", "")) == "zone_portoes" \
+                and LIMITE_ENTULHO_PORTOES.has(tag):
+            var usados := int(contagem_entulho.get(tag, 0))
+            if usados >= int(LIMITE_ENTULHO_PORTOES[tag]):
+                continue
+            contagem_entulho[tag] = usados + 1
 
         # O MODELO VEM DA PLANTA, nao de um sorteio aqui dentro.
         #
@@ -874,6 +959,15 @@ func _construir_layout_urbano() -> void:
         if not _tem_textura(modelo_path):
             continue
 
+        # Pinheiros repetidos usam MultiMesh. No distrito dos Portoes eram 52
+        # cenas completas, com centenas de nos surgindo no mesmo quadro.
+        var pos: Array = p.get("position", [0.0, 0.0])
+        var px: float = float(pos[0]) if pos.size() > 0 else 0.0
+        var pz: float = float(pos[1]) if pos.size() > 1 else 0.0
+        if tag == "pinheiro":
+            pinheiros_planejados.append(Vector3(px, calcular_altura(px, pz), pz))
+            continue
+
         var altura_alvo: float = float(ALTURA_POR_TAG.get(tag, ALTURA_PADRAO))
         var escala_layout: float = float(p.get("scale", 1.0))
 
@@ -882,9 +976,6 @@ func _construir_layout_urbano() -> void:
             continue
 
         # A planta grava a posicao como [x, z] num par, e o giro em "rotation".
-        var pos: Array = p.get("position", [0.0, 0.0])
-        var px: float = float(pos[0]) if pos.size() > 0 else 0.0
-        var pz: float = float(pos[1]) if pos.size() > 1 else 0.0
         # _instanciar_prop_3d ja desloca a base real da malha para y=0. Um
         # segundo desconto enterrava bancos, caixas e outros props baixos.
         var py: float = calcular_altura(px, pz) + float(p.get("y", 0.0))
@@ -924,6 +1015,14 @@ func _construir_layout_urbano() -> void:
         # Mede a ocupação já girada e rejeita qualquer peça que invada o canal.
         var ocupacao: AABB = Transform3D(Basis(Vector3.UP, suporte.rotation.y),
             Vector3.ZERO) * _caixa_do_modelo(suporte)
+        if tag in PROPS_DE_CALCADA:
+            var raio_prop := maxf(ocupacao.size.x, ocupacao.size.z) * 0.5
+            var fora_da_rua := _afastar_da_faixa_viaria(Vector2(px, pz), raio_prop)
+            if fora_da_rua != Vector2(px, pz):
+                px = fora_da_rua.x
+                pz = fora_da_rua.y
+                py = calcular_altura(px, pz) + float(p.get("y", 0.0))
+                suporte.position = Vector3(px, py, pz)
         var folga_rio := maxf(ocupacao.size.x, ocupacao.size.z) * 0.52 + 1.5
         if _perto_da_rede(Vector2(px, pz), "river_paths",
                 float(_zone_data.get("river_width", 5.0)) + folga_rio):
@@ -935,9 +1034,48 @@ func _construir_layout_urbano() -> void:
         # Grama e mato nao ganham colisor: sao dezenas por cidade, e parar o
         # jogador num tufo de capim e o tipo de tropeco que ninguem entende.
         if tag not in ["folhagem", "barril_cc0", "caixote_cc0", "banco_cc0",
-                "estandarte_cc0", "balde_cc0", "videira_cc0"]:
+                "estandarte_cc0", "balde_cc0", "videira_cc0", "banca_cc0",
+                "carroca_cc0", "bau_cc0", "mesa_cc0", "oficina_cc0"]:
             _adicionar_colisor_prop(suporte, tag, 1.0)
         _props_node.add_child(suporte)
+        construidas += 1
+        if construidas % 6 == 0 and is_inside_tree():
+            await get_tree().process_frame
+
+    if not pinheiros_planejados.is_empty():
+        _plantar_pinheiros_em_lote(pinheiros_planejados,
+            hash(str(_zone_data.get("id", "cidade"))) + 319)
+
+
+## Move apenas props pequenos para a calcada. Casas, muralhas, fontes e postes
+## permanecem exatamente onde o plano urbano os colocou.
+func _afastar_da_faixa_viaria(p: Vector2, raio_prop: float) -> Vector2:
+    var melhor_distancia := INF
+    var melhor_ponto := Vector2.ZERO
+    var melhor_direcao := Vector2.RIGHT
+    for caminho in _zone_data.get("road_paths", []):
+        for i in range(caminho.size() - 1):
+            var a := Vector2(float(caminho[i][0]), float(caminho[i][1]))
+            var b := Vector2(float(caminho[i + 1][0]), float(caminho[i + 1][1]))
+            var ab := b - a
+            if ab.length_squared() < 0.001:
+                continue
+            var t := clampf((p - a).dot(ab) / ab.length_squared(), 0.0, 1.0)
+            var proximo := a + ab * t
+            var distancia := p.distance_to(proximo)
+            if distancia < melhor_distancia:
+                melhor_distancia = distancia
+                melhor_ponto = proximo
+                melhor_direcao = ab.normalized()
+    var distancia_segura := 6.2 + raio_prop + 0.7
+    if melhor_distancia >= distancia_segura or melhor_distancia == INF:
+        return p
+    var normal := (p - melhor_ponto).normalized()
+    if normal.length_squared() < 0.01:
+        normal = Vector2(-melhor_direcao.y, melhor_direcao.x)
+        if (roundi(p.x) + roundi(p.y)) % 2 == 0:
+            normal = -normal
+    return melhor_ponto + normal * distancia_segura
 
 # -------------------------------------------------------------
 # 3b. A noite da povoacao e o que enfeita a rua
@@ -956,6 +1094,7 @@ func _acender_a_povoacao() -> void:
     var luzes: Array = _dados_da_praca().get("luzes", [])
     if luzes.is_empty():
         return
+    var feitas := 0
     for ponto in luzes:
         var px: float = float(ponto[0])
         var pz: float = float(ponto[1])
@@ -966,6 +1105,9 @@ func _acender_a_povoacao() -> void:
         # O bracco da luminaria aponta para a rua, nao para a casa.
         poste.rotation.y = deg_to_rad(90.0 if px < 0.0 else 270.0)
         _props_node.add_child(poste)
+        feitas += 1
+        if feitas % 6 == 0 and is_inside_tree():
+            await get_tree().process_frame
 
     # As tochas de parede, que iluminam a PORTA e nao a via.
     for t in _dados_da_praca().get("tochas", []):
@@ -979,6 +1121,9 @@ func _acender_a_povoacao() -> void:
         tocha.position = Vector3(tx, calcular_altura(tx, tz) - 0.05, tz)
         tocha.rotation.y = deg_to_rad(float(t[2]))
         _props_node.add_child(tocha)
+        feitas += 1
+        if feitas % 6 == 0 and is_inside_tree():
+            await get_tree().process_frame
 
 
 ## O poste da rua: o modelo, a lampada no alto e a poca de luz no chao.
@@ -1273,8 +1418,14 @@ func _plantar_arvores_cc0_em_lotes(posicoes: Array[Vector3], semente: int) -> vo
     var rng := RandomNumberGenerator.new()
     rng.seed = semente
     var grupos: Dictionary = {}
+    var floresta_inicial := str(_zone_data.get("id", "")) == "zone_floresta_despertar"
+    # Mais pinheiros e arvores comuns baratas no macico principal: a copa fica
+    # fechada sem multiplicar a variante retorcida de quase 10 mil triangulos.
+    var variantes_leves := [4, 5, 6, 4, 5, 6, 2, 3, 0, 1, 7]
     for i in posicoes.size():
-        var variante := rng.randi_range(0, ARVORES_CC0.size() - 1)
+        var variante: int = int(variantes_leves[
+            rng.randi_range(0, variantes_leves.size() - 1)]) \
+            if floresta_inicial else rng.randi_range(0, ARVORES_CC0.size() - 1)
         var p := posicoes[i]
         var cx := int(floor((p.x + TAMANHO_ZONA * 0.5) / TAMANHO_LOTE_NATUREZA))
         var cz := int(floor((p.z + TAMANHO_ZONA * 0.5) / TAMANHO_LOTE_NATUREZA))
@@ -1324,8 +1475,8 @@ func _plantar_arvores_cc0_em_lotes(posicoes: Array[Vector3], semente: int) -> vo
             lote.name = "BosqueCC0"
             lote.multimesh = multi
             lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-            lote.visibility_range_end = 78.0
-            lote.visibility_range_end_margin = 7.0
+            lote.visibility_range_end = 68.0
+            lote.visibility_range_end_margin = 6.0
             _props_node.add_child(lote)
 
         # Um colisor a cada três árvores mantém o maciço difícil de atravessar
@@ -1386,12 +1537,17 @@ func _plantar_pinheiros_em_lote(posicoes: Array[Vector3], semente: int) -> void:
         lote.name = "PinheirosEmLote"
         lote.multimesh = multi
         lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-        lote.visibility_range_end = 96.0
-        lote.visibility_range_end_margin = 8.0
+        lote.visibility_range_end = 78.0
+        lote.visibility_range_end_margin = 7.0
         _props_node.add_child(lote)
 
     # Colisor sem malha: não aumenta draw calls e mantém árvores como obstáculo.
-    for pos in posicoes:
+    for i in posicoes.size():
+        # Um colisor a cada quatro, somado aos nucleos macicos, preserva a
+        # leitura de mata/limite sem criar cinquenta corpos numa unica cidade.
+        if i % 4 != 0:
+            continue
+        var pos := posicoes[i]
         var corpo := StaticBody3D.new()
         corpo.position = pos
         var col := CollisionShape3D.new()
@@ -1766,7 +1922,8 @@ func _plantar_grama_texturizada_nova() -> void:
         lote.name = "GramaPBRNova"
         lote.multimesh = multi
         lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-        lote.visibility_range_end = 0.0
+        lote.visibility_range_end = 50.0
+        lote.visibility_range_end_margin = 5.0
         _props_node.add_child(lote)
     amostra.queue_free()
 
@@ -1783,7 +1940,10 @@ func _sortear_ponto_de_floresta(rng: RandomNumberGenerator, dist_min: float) -> 
             p = Vector2(cos(angulo), sin(angulo)) * distancia
         else:
             var escolhido: Array = macicos[rng.randi_range(0, macicos.size() - 1)]
-            var raio := float(escolhido[2]) * sqrt(rng.randf())
+            # Concentra as copas no nucleo planejado. Antes o raio inteiro
+            # espalhava pouco mais de cem arvores por sete manchas enormes e o
+            # resultado ainda parecia campo aberto.
+            var raio := float(escolhido[2]) * 0.76 * sqrt(rng.randf())
             var angulo := rng.randf_range(0.0, TAU)
             p = Vector2(float(escolhido[0]), float(escolhido[1])) \
                 + Vector2(cos(angulo), sin(angulo)) * raio

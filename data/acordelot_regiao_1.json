@@ -6,13 +6,13 @@
     "zone_campos_reino": {
       "id":"zone_campos_reino", "name":"Campos do Reino", "tier":"Região agrícola", "biome":"campos", "grid_pos":[-1,-2], "terrain_type":"colinas_suaves",
       "grass_density":1150, "tree_count":22, "bush_count":28, "flower_count":42, "rock_count":8, "layout_id":"", "road_surface":"terra",
-      "road_paths":[[[-18,80],[-12,28],[4,-24],[22,-80]]], "river_width":5.0, "river_depth":1.8, "river_paths":[[[48,-80],[42,-24],[56,30],[50,80]]],
+      "road_paths":[[[0,80],[-12,28],[4,-24],[22,-80]],[[-12,28],[30,30],[80,30]]], "river_width":5.0, "river_depth":1.8, "river_paths":[[[48,-80],[42,-24],[56,30],[50,80]]],
       "exits":{"north":"","south":"zone_vila_caminho","east":"zone_forjador","west":""}
     },
     "zone_forjador": {
       "id":"zone_forjador", "name":"Altar de Escalas", "tier":"Terras altas da Harmonia", "biome":"serra", "grid_pos":[0,-2], "terrain_type":"plato_montanha",
       "grass_density":700, "tree_count":28, "bush_count":16, "flower_count":18, "rock_count":30, "layout_id":"custom_1786501580114_289", "road_surface":"pedra",
-      "road_paths":[[[-80,30],[-35,18],[0,4],[28,80]]], "river_width":5.5, "river_depth":2.1, "river_paths":[[[56,-80],[48,-20],[52,34],[45,80]]],
+      "road_paths":[[[-80,30],[-35,18],[0,4],[0,80]]], "river_width":5.5, "river_depth":2.1, "river_paths":[[[56,-80],[48,-20],[52,34],[45,80]]],
       "exits":{"north":"","south":"zone_capital","east":"","west":"zone_campos_reino"}
     },
     "zone_estrada_acordelot": {
@@ -36,13 +36,13 @@
     "zone_santuario": {
       "id":"zone_santuario", "name":"Santuário dos Ecos", "tier":"Solo sagrado", "biome":"sagrado", "grid_pos":[1,-1], "terrain_type":"clareira_sagrada",
       "grass_density":1550, "tree_count":38, "bush_count":26, "flower_count":64, "rock_count":18, "layout_id":"notas_sagradas", "road_surface":"pedra",
-      "road_paths":[[[-80,14],[-24,8],[2,0],[12,80]]], "river_width":5.0, "river_depth":1.8, "river_paths":[[[-52,-80],[-60,-18],[-48,36],[-55,80]]],
+      "road_paths":[[[-80,0],[-24,8],[2,0],[12,80]]], "river_width":5.0, "river_depth":1.8, "river_paths":[[[-52,-80],[-60,-18],[-48,36],[-55,80]]],
       "exits":{"north":"","south":"zone_floresta_sombria","east":"","west":"zone_capital"}
     },
     "zone_floresta_despertar": {
       "id":"zone_floresta_despertar", "name":"Floresta Inicial", "tier":"Região inicial", "biome":"floresta", "grid_pos":[-2,0], "terrain_type":"colinas_suaves",
-      "grass_density":2600, "tree_count":112, "bush_count":46, "flower_count":0, "rock_count":34, "monster_count":4, "layout_id":"", "road_surface":"terra",
-      "road_paths":[[[10,-80],[7,-46],[12,-18],[24,5],[49,14],[80,18]],[[-2,-30],[-25,-16],[-42,5],[-35,29]],[[-35,29],[-12,38],[10,55],[16,80]]],
+      "grass_density":2600, "tree_count":176, "bush_count":58, "flower_count":0, "rock_count":34, "monster_count":4, "layout_id":"", "road_surface":"terra",
+      "road_paths":[[[8,-80],[7,-46],[12,-18],[24,5],[49,14],[80,0]],[[-2,-30],[-25,-16],[-42,5],[-35,29]],[[-35,29],[-12,38],[10,55],[16,80]]],
       "river_width":4.2, "river_depth":1.5, "river_paths":[[[-70,-80],[-58,-48],[-63,-12],[-50,20],[-61,52],[-55,80]]],
       "clearings":[[20,3,15],[-35,29,11],[8,-46,9]],
       "forest_clusters":[[-55,-48,24,1.0],[-25,-55,22,0.9],[43,-48,26,1.0],[-49,-8,22,1.0],[-8,6,19,0.75],[58,42,27,1.0],[-20,61,24,0.9]],
@@ -63,7 +63,7 @@
     "zone_floresta_sombria": {
       "id":"zone_floresta_sombria", "name":"Floresta dos Ecos", "tier":"Reserva de ressonância", "biome":"sombria", "grid_pos":[1,0], "terrain_type":"colinas_sombrias",
       "grass_density":1700, "tree_count":88, "bush_count":34, "flower_count":36, "rock_count":30, "layout_id":"", "road_surface":"terra",
-      "road_paths":[[[-80,12],[-36,8],[0,0],[8,80]]], "river_width":5.2, "river_depth":1.9, "river_paths":[[[-55,-80],[-48,-28],[-60,24],[-52,80]]],
+      "road_paths":[[[-80,0],[-36,8],[0,0],[8,80]],[[12,-80],[8,-36],[0,0]]], "river_width":5.2, "river_depth":1.9, "river_paths":[[[-55,-80],[-48,-28],[-60,24],[-52,80]]],
       "exits":{"north":"zone_santuario","south":"zone_caverna_murkdeep","east":"","west":"zone_portoes"}
     },
     "zone_arredores": {
@@ -75,13 +75,13 @@
     "zone_masmorra": {
       "id":"zone_masmorra", "name":"Masmorra da Primeira Ressonância", "tier":"Terras corrompidas", "biome":"ruina", "grid_pos":[0,1], "terrain_type":"colinas_sombrias",
       "grass_density":700, "tree_count":24, "bush_count":14, "flower_count":8, "rock_count":46, "layout_id":"custom_1786572340509_998", "road_surface":"pedra",
-      "road_paths":[[[8,-80],[4,-30],[0,0],[80,16]]], "river_width":6.2, "river_depth":2.2, "river_paths":[[[58,-80],[50,-20],[64,32],[55,80]]],
+      "road_paths":[[[0,-80],[4,-30],[0,0],[80,8]],[[-80,8],[-34,5],[0,0]]], "river_width":6.2, "river_depth":2.2, "river_paths":[[[58,-80],[50,-20],[64,32],[55,80]]],
       "exits":{"north":"zone_portoes","south":"","east":"zone_caverna_murkdeep","west":"zone_arredores"}
     },
     "zone_caverna_murkdeep": {
       "id":"zone_caverna_murkdeep", "name":"Caverna Murkdeep", "tier":"Fronteira subterrânea", "biome":"serra", "grid_pos":[1,1], "terrain_type":"plato_montanha",
       "grass_density":520, "tree_count":32, "bush_count":12, "flower_count":6, "rock_count":58, "layout_id":"", "road_surface":"terra",
-      "road_paths":[[[-80,16],[-32,10],[4,0],[26,72]]], "river_width":6.0, "river_depth":2.3, "river_paths":[[[-52,-80],[-58,-28],[-46,28],[-55,80]]],
+      "road_paths":[[[-80,8],[-32,10],[4,0],[26,72]],[[8,-80],[6,-36],[4,0]]], "river_width":6.0, "river_depth":2.3, "river_paths":[[[-52,-80],[-58,-28],[-46,28],[-55,80]]],
       "exits":{"north":"zone_floresta_sombria","south":"","east":"","west":"zone_masmorra"}
     }
   }
