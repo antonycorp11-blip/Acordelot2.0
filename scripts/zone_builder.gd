@@ -535,11 +535,17 @@ func _construir_pontes_da_rede() -> void:
     if ruas.is_empty() or rios.is_empty():
         return
 
+    var de_pedra := str(_zone_data.get("road_surface", "terra")) == "pedra"
     var material := StandardMaterial3D.new()
-    material.albedo_texture = load("res://textures/flagstone_seamless.png")
-    material.albedo_color = Color(0.58, 0.56, 0.51)
+    if de_pedra:
+        material.albedo_texture = load("res://textures/flagstone_seamless.png")
+        material.albedo_color = Color(0.48, 0.47, 0.44)
+        material.uv1_scale = Vector3(0.55, 0.55, 0.55)
+    else:
+        material.albedo_texture = load("res://models/cc0/village/T_WoodTrim_BaseColor.png")
+        material.albedo_color = Color(0.64, 0.52, 0.38)
+        material.uv1_scale = Vector3(0.8, 0.8, 0.8)
     material.roughness = 0.96
-    material.uv1_scale = Vector3(0.55, 0.55, 0.55)
     var feitos := {}
     for rua in ruas:
         for i in range(rua.size() - 1):
@@ -557,33 +563,39 @@ func _construir_pontes_da_rede() -> void:
                     if feitos.has(chave):
                         continue
                     feitos[chave] = true
-                    _criar_ponte(ponto, (b - a).normalized(), material)
+                    _criar_ponte(ponto, (b - a).normalized(), material, de_pedra)
 
 
 func _criar_ponte(ponto: Vector2, direcao_rua: Vector2,
-        material: StandardMaterial3D) -> void:
-    var largura_rua := 10.8
-    var comprimento := float(_zone_data.get("river_width", 5.0)) * 2.0 + 7.0
+        material: StandardMaterial3D, de_pedra: bool) -> void:
+    # A ponte anterior tinha 10,8 m de largura, 42 cm de espessura e paredes
+    # macicas. No celular lia como uma plataforma suspensa. Esta acompanha a
+    # largura visivel da estrada e repousa quase no nivel das margens.
+    var largura_rua := 9.0 if de_pedra else 8.0
+    var comprimento := float(_zone_data.get("river_width", 5.0)) * 2.0 + 5.5
     var ponte := Node3D.new()
     ponte.name = "ponte"
     ponte.position = Vector3(ponto.x,
-        _altura_sem_rio_local(ponto.x, ponto.y, _zone_data) + 0.12, ponto.y)
+        _altura_sem_rio_local(ponto.x, ponto.y, _zone_data) + 0.04, ponto.y)
     ponte.rotation.y = atan2(direcao_rua.x, direcao_rua.y)
 
     var tabuleiro := MeshInstance3D.new()
     var caixa := BoxMesh.new()
-    caixa.size = Vector3(largura_rua, 0.42, comprimento)
+    caixa.size = Vector3(largura_rua, 0.18, comprimento)
     tabuleiro.mesh = caixa
     tabuleiro.material_override = material
+    tabuleiro.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     ponte.add_child(tabuleiro)
 
+    # Guias baixas marcam a borda sem esconder rio, cidade e personagem.
     for lado in [-1.0, 1.0]:
         var parapeito := MeshInstance3D.new()
         var viga := BoxMesh.new()
-        viga.size = Vector3(0.30, 0.72, comprimento + 0.2)
+        viga.size = Vector3(0.16, 0.22, comprimento + 0.1)
         parapeito.mesh = viga
-        parapeito.position = Vector3(lado * (largura_rua * 0.5 - 0.2), 0.52, 0.0)
+        parapeito.position = Vector3(lado * (largura_rua * 0.5 - 0.12), 0.16, 0.0)
         parapeito.material_override = material
+        parapeito.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
         ponte.add_child(parapeito)
 
     var corpo := StaticBody3D.new()

@@ -9,9 +9,11 @@ uniform sampler2D rock_texture : source_color, filter_linear_mipmap_anisotropic,
 uniform vec2 zone_size = vec2(160.0, 160.0);
 uniform float meters_per_tile = 3.2;
 
-// Tinturas suaves para manter verde vibrante
-uniform vec3 tint_lush : source_color = vec3(0.55, 0.72, 0.45);
-uniform vec3 tint_dry : source_color = vec3(0.68, 0.65, 0.48);
+// O navegador mobile deixava o verde quase fluorescente. As tinturas ficam
+// naturais aqui, antes da luz e do tonemap, para preservar detalhe sem formar
+// a chapa verde-clara vista no celular.
+uniform vec3 tint_lush : source_color = vec3(0.38, 0.52, 0.32);
+uniform vec3 tint_dry : source_color = vec3(0.48, 0.45, 0.30);
 
 uniform float water_level = -2.0;
 uniform float shore_blend = 0.8;
@@ -116,11 +118,11 @@ void fragment() {
     
     // Variação suave de tom verdejante
     float macro = fbm(world_pos.xz / 42.0);
-    vec3 grass_varied = mix(col_grass * tint_lush * 1.15, col_grass * tint_dry * 1.05, macro * 0.4);
+    vec3 grass_varied = mix(col_grass * tint_lush * 1.02, col_grass * tint_dry * 0.98, macro * 0.4);
     // Detalhe pequeno devolve leitura ao gramado sem textura maior. Usa uma
     // unica amostra de ruido e continua barato no Web.
     float detalhe = noise(world_pos.xz / 2.4);
-    grass_varied *= mix(0.91, 1.09, detalhe);
+    grass_varied *= mix(0.95, 1.04, detalhe);
     
     // Caminhos orgânicos de terra batida
     float path_noise = smoothstep(0.48, 0.56, fbm(world_pos.xz / 18.0));

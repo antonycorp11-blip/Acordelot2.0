@@ -70,11 +70,11 @@ const CORES := [
 const FORCAS := [
     [0.0, 0.98, 0.66, 0.14],
     [4.5, 1.00, 0.68, 0.16],
-    [6.0, 1.25, 0.64, 0.30],
-    [7.5, 1.30, 0.68, 0.26],
-    [12.0, 1.50, 0.74, 0.25],
-    [16.5, 1.40, 0.72, 0.26],
-    [18.5, 1.28, 0.64, 0.34],
+    [6.0, 1.15, 0.60, 0.26],
+    [7.5, 1.18, 0.60, 0.23],
+    [12.0, 1.28, 0.62, 0.22],
+    [16.5, 1.22, 0.61, 0.23],
+    [18.5, 1.15, 0.59, 0.29],
     [20.0, 1.00, 0.62, 0.18],
     [21.5, 0.98, 0.66, 0.15],
 ]
@@ -189,6 +189,11 @@ func _aplicar() -> void:
     var env := _mundo.environment
     env.ambient_light_color = cor[2]
     env.ambient_light_energy = forca[1]
+    # O WebGL de alguns celulares entrega os meios-tons mais claros que o
+    # desktop. Baixamos a exposicao somente quando o sol esta forte; de noite
+    # ela volta a subir para nao apagar ruas, NPCs e postes.
+    var claridade_do_dia: float = clampf((forca[0] - 1.05) / 0.18, 0.0, 1.0)
+    env.tonemap_exposure = lerpf(1.08, 0.92, claridade_do_dia)
     # A camera baixa enxerga muito terreno distante e pouco domo. A nevoa
     # sobre esse terreno era cinza e acabava ocupando justamente a faixa que o
     # jogador chama de ceu. Ela agora se dissolve na cor do horizonte: azul de
