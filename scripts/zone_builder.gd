@@ -656,6 +656,34 @@ func _construir_layout_urbano() -> void:
 
         suporte.position = Vector3(px, py, pz)
         suporte.rotation.y = deg_to_rad(float(p.get("rotation", 0.0)))
+
+        # A LINHA DE FACHADA é medida na casa, não na tabela.
+        #
+        # O planejador sempre quis alinhar a parede da frente, e para isso
+        # subtraía o "fundo" anotado no catálogo. Só que o giro da casa troca
+        # os eixos: uma casa virada 90° apresenta para a rua a LARGURA dela, e
+        # o número subtraído continuava sendo o fundo. Daí a rua de Acordelot —
+        # fachadas na mesma linha no papel, casas a distâncias diferentes do
+        # calçamento na tela, com buracos de grama entre uma e outra.
+        #
+        # Aqui a medida sai da malha já girada, que é a única que sabe quanto a
+        # casa realmente ocupa naquele ângulo. A planta só diz onde é a linha e
+        # de que lado da rua o lote está.
+        var fachada: Array = p.get("fachada", [])
+        if fachada.size() >= 3:
+            var girada: AABB = Transform3D(Basis(Vector3.UP, suporte.rotation.y),
+                Vector3.ZERO) * _caixa_do_modelo(suporte)
+            var linha := float(fachada[1])
+            var lado := float(fachada[2])
+            if str(fachada[0]) == "x":
+                px = linha - (girada.position.x + girada.size.x) if lado < 0.0 \
+                    else linha - girada.position.x
+            else:
+                pz = linha - (girada.position.z + girada.size.z) if lado < 0.0 \
+                    else linha - girada.position.z
+            py = calcular_altura(px, pz) + float(p.get("y", 0.0))
+            suporte.position = Vector3(px, py, pz)
+
         _limitar_alcance(suporte)
 
         # Grama e mato nao ganham colisor: sao dezenas por cidade, e parar o
@@ -1168,12 +1196,26 @@ func _plantar_mato_pbr() -> void:
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zona"))) + 5507
     var arbustos := int(_zone_data.get("bush_count", 22))
-    _semear_mato(amostra, "tufo_alto", 600, 0.55, 0.95, 34.0, rng)
+    _semear_mato(amostra, "tufo_alto", 700, 0.55, 0.95, 34.0, rng)
     # A erva é uma roseta de folha larga: medida pela altura ela viraria um
     # disco de dois metros e meio de diâmetro. Esta é medida pela largura.
-    _semear_mato(amostra, "erva_flor", 320, 0.45, 0.75, 26.0, rng, true)
+    _semear_mato(amostra, "erva_flor", 400, 0.45, 0.75, 26.0, rng, true)
     _semear_mato(amostra, "erva_flor", arbustos * 2, 1.10, 1.70, 44.0, rng, true)
+    _semear_moita_na_trilha(amostra, rng)
     amostra.queue_free()
+
+
+## A moita densa, só na beira das trilhas.
+##
+## É a peça mais bonita do pacote e a mais cara: 4.130 triângulos, dez vezes o
+## tufo. Espalhada pela região ela sozinha custaria mais que toda a grama. Mas
+## a trilha é onde o jogador anda e onde ele olha de perto — vinte e seis moitas
+## ladeando o caminho aparecem mais do que trezentas perdidas no meio do mato.
+func _semear_moita_na_trilha(amostra: Node3D, rng: RandomNumberGenerator) -> void:
+    var trilhas: Array = _zone_data.get("road_paths", [])
+    if trilhas.is_empty():
+        return
+    _semear_mato(amostra, "moita_baixa", 26, 0.70, 1.15, 30.0, rng, true, true)
 
 
 ## Uma espécie, uma chamada de desenho.
@@ -1183,7 +1225,8 @@ func _plantar_mato_pbr() -> void:
 ## inteiro de uma vez quando o jogador andava para a beira da região.
 func _semear_mato(amostra: Node3D, nome: String, quantidade: int,
         medida_min: float, medida_max: float, alcance: float,
-        rng: RandomNumberGenerator, pela_largura: bool = false) -> void:
+        rng: RandomNumberGenerator, pela_largura: bool = false,
+        na_trilha: bool = false) -> void:
     if quantidade <= 0:
         return
     var origem: MeshInstance3D = null
@@ -1211,10 +1254,13 @@ func _semear_mato(amostra: Node3D, nome: String, quantidade: int,
         # Metade nos maciços, metade no campo aberto: o mato do plano regional
         # nasce junto com as árvores, mas clareira sem mato nenhum lê como
         # gramado de jardim, não como floresta.
-        var p := _ponto_de_mato(rng, i % 2 == 0)
+        var p := _ponto_na_beira_da_trilha(rng) if na_trilha \
+            else _ponto_de_mato(rng, i % 2 == 0)
         var tentativas := 0
-        while (_perto_da_rede(p, "road_paths", 5.0)
-                or _perto_da_rede(p, "river_paths", largura_rio)) and tentativas < 6:
+        while (not na_trilha
+                and (_perto_da_rede(p, "road_paths", 5.0)
+                    or _perto_da_rede(p, "river_paths", largura_rio))
+                and tentativas < 6):
             p = _ponto_de_mato(rng, i % 2 == 0)
             tentativas += 1
         var medida := rng.randf_range(medida_min, medida_max)
@@ -1233,6 +1279,30 @@ func _semear_mato(amostra: Node3D, nome: String, quantidade: int,
     lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     lote.visibility_range_end = 0.0
     _props_node.add_child(lote)
+
+
+## Um ponto na margem da trilha, do lado de fora da terra batida.
+##
+## O chão pinta a estrada até uns cinco metros e meio do eixo, com uma franja de
+## ruído por cima. A moita começa depois disso: dentro da faixa ela nasceria no
+## meio da passagem, e é a passagem que faz a trilha ser trilha.
+func _ponto_na_beira_da_trilha(rng: RandomNumberGenerator) -> Vector2:
+    var trilhas: Array = _zone_data.get("road_paths", [])
+    if trilhas.is_empty():
+        return _ponto_de_mato(rng, false)
+    var trilha: Array = trilhas[rng.randi_range(0, trilhas.size() - 1)]
+    if trilha.size() < 2:
+        return _ponto_de_mato(rng, false)
+    var trecho := rng.randi_range(0, trilha.size() - 2)
+    var a := Vector2(float(trilha[trecho][0]), float(trilha[trecho][1]))
+    var b := Vector2(float(trilha[trecho + 1][0]), float(trilha[trecho + 1][1]))
+    var direcao := (b - a).normalized()
+    var normal := Vector2(-direcao.y, direcao.x)
+    var lado := -1.0 if rng.randi() % 2 == 0 else 1.0
+    var p := a.lerp(b, rng.randf()) + normal * lado * rng.randf_range(5.8, 8.6)
+    p.x = clampf(p.x, -76.0, 76.0)
+    p.y = clampf(p.y, -76.0, 76.0)
+    return p
 
 
 ## Onde uma peça de mato pode nascer: no maciço planejado ou solta no campo.

@@ -62,8 +62,18 @@ MATO_DE_JARDIM = ["grass", "grass", "grass",
                   "fantasy_bush_1787078968444", "grass", "grass"]
 
 
-def peca(ident, tag, modelo, x, z, giro=0.0, escala=1.0, y=0.0):
-    return {
+def peca(ident, tag, modelo, x, z, giro=0.0, escala=1.0, y=0.0, fachada=None):
+    """Uma construcao da planta.
+
+    `fachada` e a linha de parede da frente: ["x", coordenada, lado], onde lado
+    e -1 para o lote do lado negativo do eixo e +1 para o positivo. Quando ela
+    existe, o construtor IGNORA a coordenada daquele eixo e recalcula a posicao
+    pela caixa real da malha ja girada — que e a unica medida que sabe quanto a
+    casa ocupa naquele angulo. A tabela aqui embaixo guarda largura e fundo,
+    mas uma casa virada 90 graus apresenta para a rua a largura, nao o fundo, e
+    e dai que vinham as fachadas fora de linha em Acordelot.
+    """
+    saida = {
         "id": ident,
         "tag": tag,
         "model": M + modelo + ".glb",
@@ -72,6 +82,9 @@ def peca(ident, tag, modelo, x, z, giro=0.0, escala=1.0, y=0.0):
         "scale": escala,
         "y": y
     }
+    if fachada is not None:
+        saida["fachada"] = [fachada[0], round(float(fachada[1]), 2), float(fachada[2])]
+    return saida
 
 
 def _diferenca(a, b):
@@ -331,7 +344,8 @@ def vila_da_estrada():
         mao = "s" if z > 0 else "n"
         giro = (90.0 if sinal < 0 else 270.0) + GIRO_DA_FACHADA[etiqueta]
         pecas.append(peca(f"casa_{lado}_{mao}{abs(int(z)):02d}", etiqueta, modelo,
-                          x, z, giro=giro))
+                          x, z, giro=giro,
+                          fachada=("x", sinal * FACHADA_X, sinal)))
 
     # --- o portal do sul: duas arvores grandes fazendo porta
     #
@@ -766,6 +780,8 @@ CASAS_DA_CIDADE = {
 # diferenca de escala e o que diz "aqui e maior" sem precisar de placa.
 MEIA_RUA_CIDADE = 5.0
 FACHADA_CIDADE = 9.0
+# A rua de bairro e mais estreita que a avenida: a fachada encosta mais perto.
+FACHADA_BAIRRO = 7.5
 PRACA_Z = 0.0
 PRACA_RAIO = 17.0
 LANE_CIDADE = 3.5
@@ -782,9 +798,10 @@ def cidade_de_acordelot():
     """
     pecas = []
 
-    def por(nome, etiqueta, x, z, giro=0.0, escala=1.0):
+    def por(nome, etiqueta, x, z, giro=0.0, escala=1.0, fachada=None):
         modelo = CASAS_DA_CIDADE[etiqueta][0]
-        pecas.append(peca(nome, etiqueta, modelo, x, z, giro=giro, escala=escala))
+        pecas.append(peca(nome, etiqueta, modelo, x, z, giro=giro, escala=escala,
+                          fachada=fachada))
 
     def prop(nome, alvo, x, z, giro=0.0, escala=1.0):
         tag, modelo = alvo
@@ -824,7 +841,8 @@ def cidade_de_acordelot():
             fundo = CASAS_DA_CIDADE[etiqueta][3]
             por(f"eixo_{lado}_{i}", etiqueta,
                 sinal * (FACHADA_CIDADE + fundo * 0.5), z,
-                giro=(90.0 if sinal < 0 else 270.0))
+                giro=(90.0 if sinal < 0 else 270.0),
+                fachada=("x", sinal * FACHADA_CIDADE, sinal))
 
     # 4. Tres avenidas horizontais. Duas formam bairros completos; a central
     # liga a praca ao portao oeste. As casas olham para a rua, nunca ao acaso.
@@ -841,8 +859,15 @@ def cidade_de_acordelot():
                 if faixa == "centro" and x == -47.0:
                     continue
                 etiqueta = padrao[(i + linha_i * 2 + int(abs(rua_z))) % len(padrao)]
-                giro = 180.0 if casa_z > rua_z else 0.0
-                por(f"bairro_{faixa}_{linha_i}_{i}", etiqueta, x, casa_z, giro=giro)
+                de_frente_para_o_sul = casa_z > rua_z
+                giro = 180.0 if de_frente_para_o_sul else 0.0
+                # A fachada encosta na rua do bairro; o corpo cresce para o
+                # fundo do quarteirao. Lado +1 quando a casa esta ao sul da
+                # rua (parede de frente e a borda de menor z) e -1 ao norte.
+                linha = rua_z + (FACHADA_BAIRRO if de_frente_para_o_sul
+                                 else -FACHADA_BAIRRO)
+                por(f"bairro_{faixa}_{linha_i}_{i}", etiqueta, x, casa_z, giro=giro,
+                    fachada=("z", linha, 1.0 if de_frente_para_o_sul else -1.0))
 
     # Oito lotes de borda fecham os quatro grandes vazios entre os bairros e a
     # muralha. Continuam orientados para as ruas internas e deixam os três

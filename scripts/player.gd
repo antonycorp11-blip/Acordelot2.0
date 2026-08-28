@@ -17,6 +17,16 @@ var _personagem_atual := "akles"
 
 var _voando := false
 
+## O quadro de referência do direcional: para onde ficam "frente" e "direita"
+## na tela no instante em que o polegar escolheu a direção. Ver
+## `_physics_process`, que é onde ele é renovado.
+var _frente_do_dedo := Vector3.ZERO
+var _direita_do_dedo := Vector3.ZERO
+var _direcional_anterior := Vector2.ZERO
+## Quanto o polegar precisa andar no círculo para o quadro ser renovado. Abaixo
+## disso é tremor de dedo sobre vidro, não intenção de mudar de rumo.
+const RENOVAR_QUADRO := 0.06
+
 func alternar_voo() -> void:
     _voando = not _voando
     if _voando:
@@ -152,32 +162,53 @@ func _physics_process(delta: float) -> void:
         input_vector = wasd_vector.normalized()
 
     var joystick := get_tree().get_first_node_in_group("virtual_joystick")
+    var veio_do_dedo := false
     if joystick and joystick.movement_vector.length() > 0.01:
         input_vector = joystick.movement_vector
+        veio_do_dedo = true
 
     var camera := get_viewport().get_camera_3d()
     var move_direction := Vector3.ZERO
 
     if camera and input_vector.length() > 0.0:
-        # Movimento sempre relativo ao quadro ATUAL da tela. Congelar estes
-        # eixos ao primeiro toque fazia o joystick continuar preso ao ângulo
-        # antigo enquanto o segundo dedo girava a câmera — "cima" deixava de
-        # ser o alto da tela e parecia inverter a direção do personagem.
-        var frente_da_camera := -camera.global_basis.z
-        frente_da_camera.y = 0.0
-        frente_da_camera = frente_da_camera.normalized()
-        var direita_da_camera := camera.global_basis.x
-        direita_da_camera.y = 0.0
-        direita_da_camera = direita_da_camera.normalized()
+        # Girar a câmera NÃO desvia quem já está andando.
+        #
+        # O movimento é relativo à tela, e tem de ser: "para cima no círculo" é
+        # "para longe na tela". Mas ler os eixos da câmera a cada quadro
+        # amarrava as duas coisas — o segundo dedo girava a câmera e o herói
+        # fazia a curva junto, sem ninguém ter tocado no direcional.
+        #
+        # Congelar os eixos no primeiro toque também não serve: foi o que havia
+        # antes, e depois de meia volta de câmera o "cima" do círculo apontava
+        # para as costas do jogador.
+        #
+        # Então o quadro é renovado quando o POLEGAR se mexe, não quando a
+        # câmera se mexe: com o dedo parado o rumo no mundo não muda, e basta
+        # corrigir a direção no círculo para ele voltar a ser o alto da tela.
+        # No teclado nada disso vale — lá o quadro é sempre o atual, que é o
+        # que se espera de mouse com WASD.
+        if (not veio_do_dedo or _frente_do_dedo == Vector3.ZERO
+                or input_vector.distance_to(_direcional_anterior) > RENOVAR_QUADRO):
+            _frente_do_dedo = -camera.global_basis.z
+            _frente_do_dedo.y = 0.0
+            _frente_do_dedo = _frente_do_dedo.normalized()
+            _direita_do_dedo = camera.global_basis.x
+            _direita_do_dedo.y = 0.0
+            _direita_do_dedo = _direita_do_dedo.normalized()
+        _direcional_anterior = input_vector
         # A INTENSIDADE do empurrao sobrevive ate a velocidade.
         #
         # Antes o vetor era normalizado aqui, e com isso qualquer toque alem da
         # zona morta virava velocidade cheia: nao havia andar devagar, so parado
         # ou disparado. Num polegar sobre vidro isso e o que faz o controle
         # parecer escorregadio e dificil de mirar.
-        var bruto := direita_da_camera * input_vector.x - frente_da_camera * input_vector.y
+        var bruto := _direita_do_dedo * input_vector.x - _frente_do_dedo * input_vector.y
         var forca: float = clampf(input_vector.length(), 0.0, 1.0)
         move_direction = bruto.normalized() * forca
+    else:
+        # Dedo fora do círculo: o próximo toque começa do quadro atual da tela.
+        _frente_do_dedo = Vector3.ZERO
+        _direcional_anterior = Vector2.ZERO
 
     if _voando:
         velocity.x = move_toward(velocity.x, move_direction.x * fly_speed, acceleration * 1.5 * delta)
