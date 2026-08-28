@@ -85,6 +85,22 @@ const ARVORES_MISTICAS_3D := [
     {"path": "res://models/pine_tree.glb", "tag": "pinheiro_real", "altura": 8.6, "enterrar": 0.47}
 ]
 
+## Natureza CC0 curada do Stylized Nature MegaKit, reduzida para texturas de
+## 1K. Cada modelo tem UV e imagens reais; as variações deixam a floresta de
+## parecer uma plantação de uma única espécie sem recorrer a árvores pesadas.
+const ARVORES_CC0 := [
+    {"path": "res://models/cc0/nature/CommonTree_1.gltf", "altura_min": 7.8, "altura_max": 10.2},
+    {"path": "res://models/cc0/nature/CommonTree_2.gltf", "altura_min": 7.4, "altura_max": 9.8},
+    {"path": "res://models/cc0/nature/CommonTree_3.gltf", "altura_min": 6.8, "altura_max": 9.0},
+    {"path": "res://models/cc0/nature/CommonTree_4.gltf", "altura_min": 7.0, "altura_max": 9.4},
+    {"path": "res://models/cc0/nature/Pine_1.gltf", "altura_min": 8.2, "altura_max": 11.4},
+    {"path": "res://models/cc0/nature/Pine_2.gltf", "altura_min": 8.0, "altura_max": 10.8},
+    {"path": "res://models/cc0/nature/Pine_3.gltf", "altura_min": 8.8, "altura_max": 12.0},
+    {"path": "res://models/cc0/nature/TwistedTree_1.gltf", "altura_min": 7.4, "altura_max": 9.6},
+]
+const TAMANHO_LOTE_NATUREZA := 32.0
+static var _cenas_natureza_cc0: Dictionary = {}
+
 ## Vazio de proposito.
 ##
 ## O unico arbusto do acervo (fantasy_bush) nao tem textura, e o cristal das
@@ -109,6 +125,16 @@ func carregar_dados() -> void:
                     _city_layouts[secao] = {}
                 for id in revisao.get(secao, {}):
                     _city_layouts[secao][id] = revisao[secao][id]
+        # Pequenos adereços CC0 têm posições desenhadas à mão num arquivo
+        # separado. Assim a cidade continua planejada e o pacote externo pode
+        # ser retirado sem tocar na planta estrutural das casas.
+        var f_cc0 := FileAccess.open("res://data/urban_cc0_details.json", FileAccess.READ)
+        if f_cc0:
+            var detalhes = JSON.parse_string(f_cc0.get_as_text())
+            if detalhes is Dictionary:
+                for id in detalhes:
+                    if _city_layouts.get("layouts", {}).has(id):
+                        _city_layouts["layouts"][id].append_array(detalhes[id])
 
 func construir_zona(zone_data: Dictionary) -> void:
     _zone_data = zone_data
@@ -147,6 +173,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _plantar_os_npcs()
     _espalhar_os_adornos()
     _construir_floresta_3d_real()
+    _bloquear_macicos_densos()
     _plantar_vegetacao_baixa()
     _plantar_mato_pbr()
     _plantar_grama_texturizada_nova()
@@ -530,6 +557,10 @@ const ALTURA_POR_TAG := {
     "banca": 2.6, "mobilia": 1.6, "estatua": 2.8, "estandarte": 5.0,
     "ponte": 2.0, "cristal": 4.5,
     "arvore_de_rua": 7.0, "folhagem": 0.75,
+    "barril_cc0": 1.05, "caixote_cc0": 0.85, "banco_cc0": 0.95,
+    "banca_cc0": 2.45, "carroca_cc0": 2.0, "cerca_cc0": 1.15,
+    "oficina_cc0": 1.55, "estandarte_cc0": 3.8, "balde_cc0": 0.65,
+    "bau_cc0": 0.9, "mesa_cc0": 0.9, "videira_cc0": 2.3,
 }
 const ALTURA_PADRAO := 7.0
 
@@ -601,6 +632,8 @@ const COM_TEXTURA := [
 
 
 static func _tem_textura(caminho: String) -> bool:
+    if caminho.begins_with("res://models/cc0/"):
+        return true
     return caminho.get_file().get_basename() in COM_TEXTURA
 
 
@@ -688,7 +721,8 @@ func _construir_layout_urbano() -> void:
 
         # Grama e mato nao ganham colisor: sao dezenas por cidade, e parar o
         # jogador num tufo de capim e o tipo de tropeco que ninguem entende.
-        if tag != "folhagem":
+        if tag not in ["folhagem", "barril_cc0", "caixote_cc0", "banco_cc0",
+                "estandarte_cc0", "balde_cc0", "videira_cc0"]:
             _adicionar_colisor_prop(suporte, tag, 1.0)
         _props_node.add_child(suporte)
 
@@ -977,21 +1011,126 @@ func _construir_floresta_3d_real() -> void:
     
     var raio_min: float = 52.0 if is_cidade else 8.0
     if n_arvores > 0:
-        # Quatro árvores grandes funcionam como marcos; a massa da floresta é
-        # pinheiro agrupado. Antes 82 árvores viravam mais de 160 desenhos.
-        var marcos: int = mini(4, maxi(2, int(n_arvores / 20)))
-        _espalhar_props_3d(rng, marcos, [ARVORES_FLORESTA_3D[0]],
-            62.0, true, 0.92, 1.12, raio_min)
         var posicoes: Array[Vector3] = []
-        for i in range(n_arvores - marcos):
+        for i in range(n_arvores):
             var p := _sortear_ponto_de_floresta(rng, raio_min)
-            posicoes.append(Vector3(p.x, calcular_altura(p.x, p.y) - 0.5, p.y))
-        _plantar_pinheiros_em_lote(posicoes, hash(str(_zone_data.get("id", "zona"))))
+            posicoes.append(Vector3(p.x, calcular_altura(p.x, p.y), p.y))
+        _plantar_arvores_cc0_em_lotes(posicoes, hash(str(_zone_data.get("id", "zona"))))
     if not is_cidade:
         var subbosque: int = clampi(int(round(float(n_arvores) * 0.20)), 10, 18)
         _espalhar_props_3d(rng, subbosque, SUBBOSQUE_FLORESTA_3D,
             66.0, false, 0.82, 1.22, 5.0)
     _espalhar_props_3d(rng, n_arbustos, ARBUSTOS_3D, 65.0, false, 0.9, 1.3, raio_min)
+
+
+## O centro dos maciços é mata fechada, não um campo com árvores decorativas.
+## Um cilindro por núcleo custa muito menos que colisão em cada galho e impede
+## atravessar os cantos que não levam a lugar algum. Trilhas e clareiras ficam
+## livres porque seus centros já são excluídos pelo desenho regional.
+func _bloquear_macicos_densos() -> void:
+    if str(_zone_data.get("biome", "")) not in ["floresta", "sombria"]:
+        return
+    for item in _zone_data.get("forest_clusters", []):
+        if item.size() < 3:
+            continue
+        var p := Vector2(float(item[0]), float(item[1]))
+        var raio := clampf(float(item[2]) * 0.34, 5.0, 9.0)
+        if _perto_da_rede(p, "road_paths", raio + 2.5) or _dentro_de_clareira(p, raio):
+            continue
+        var corpo := StaticBody3D.new()
+        corpo.name = "MataFechada"
+        corpo.position = Vector3(p.x, calcular_altura(p.x, p.y), p.y)
+        var col := CollisionShape3D.new()
+        var forma := CylinderShape3D.new()
+        forma.radius = raio
+        forma.height = 5.0
+        col.shape = forma
+        col.position.y = 2.5
+        corpo.add_child(col)
+        _props_node.add_child(corpo)
+
+
+## Árvores divididas por espécie E por pedaço espacial. Um MultiMesh único
+## atravessando 160 m nunca sai da tela: se uma árvore estiver visível, o lote
+## inteiro é enviado à GPU. Em lotes de 32 m só a vizinhança da câmera desenha,
+## que é o que permite aumentar variedade mantendo o alvo móvel.
+func _plantar_arvores_cc0_em_lotes(posicoes: Array[Vector3], semente: int) -> void:
+    if posicoes.is_empty():
+        return
+    var rng := RandomNumberGenerator.new()
+    rng.seed = semente
+    var grupos: Dictionary = {}
+    for i in posicoes.size():
+        var variante := rng.randi_range(0, ARVORES_CC0.size() - 1)
+        var p := posicoes[i]
+        var cx := int(floor((p.x + TAMANHO_ZONA * 0.5) / TAMANHO_LOTE_NATUREZA))
+        var cz := int(floor((p.z + TAMANHO_ZONA * 0.5) / TAMANHO_LOTE_NATUREZA))
+        var chave := "%d:%d:%d" % [cx, cz, variante]
+        if not grupos.has(chave):
+            grupos[chave] = {"variante": variante, "copias": []}
+        var ficha: Dictionary = ARVORES_CC0[variante]
+        grupos[chave]["copias"].append({
+            "pos": p,
+            "giro": rng.randf_range(0.0, TAU),
+            "altura": rng.randf_range(float(ficha["altura_min"]), float(ficha["altura_max"])),
+        })
+
+    var colisao_indice := 0
+    for chave in grupos:
+        var grupo: Dictionary = grupos[chave]
+        var ficha: Dictionary = ARVORES_CC0[int(grupo["variante"])]
+        var caminho := str(ficha["path"])
+        if not _cenas_natureza_cc0.has(caminho):
+            _cenas_natureza_cc0[caminho] = load(caminho)
+        var cena := _cenas_natureza_cc0[caminho] as PackedScene
+        if cena == null:
+            continue
+        var modelo := cena.instantiate() as Node3D
+        var caixa := _caixa_do_modelo(modelo)
+        if caixa.size.y < 0.001:
+            modelo.free()
+            continue
+        var copias: Array = grupo["copias"]
+        for candidato in modelo.find_children("*", "MeshInstance3D", true, false):
+            var origem := candidato as MeshInstance3D
+            if origem.mesh == null:
+                continue
+            var local := _ate_a_raiz(origem, modelo)
+            var multi := MultiMesh.new()
+            multi.transform_format = MultiMesh.TRANSFORM_3D
+            multi.mesh = origem.mesh
+            multi.instance_count = copias.size()
+            for j in copias.size():
+                var copia: Dictionary = copias[j]
+                var fator: float = float(copia["altura"]) / caixa.size.y
+                var base_modelo := Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * fator),
+                    Vector3(0.0, -caixa.position.y * fator - 0.06, 0.0))
+                var suporte := Transform3D(Basis(Vector3.UP, float(copia["giro"])), copia["pos"])
+                multi.set_instance_transform(j, suporte * base_modelo * local)
+            var lote := MultiMeshInstance3D.new()
+            lote.name = "BosqueCC0"
+            lote.multimesh = multi
+            lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+            lote.visibility_range_end = 78.0
+            lote.visibility_range_end_margin = 7.0
+            _props_node.add_child(lote)
+
+        # Um colisor a cada três árvores mantém o maciço difícil de atravessar
+        # sem criar centenas de corpos físicos em todas as zonas carregadas.
+        for copia in copias:
+            if colisao_indice % 3 == 0:
+                var corpo := StaticBody3D.new()
+                corpo.position = copia["pos"]
+                var col := CollisionShape3D.new()
+                var forma := CylinderShape3D.new()
+                forma.radius = 0.72
+                forma.height = 4.5
+                col.shape = forma
+                col.position.y = 2.25
+                corpo.add_child(col)
+                _props_node.add_child(corpo)
+            colisao_indice += 1
+        modelo.free()
 
 
 ## Todas as cópias de cada malha do pinheiro vão numa única chamada. Mantém a
@@ -1073,11 +1212,7 @@ func _plantar_vegetacao_baixa() -> void:
     var quantidade := clampi(int(_zone_data.get("grass_density", 900)) * 2, 1500, 5000)
     if str(_zone_data.get("biome", "")) == "cidade":
         quantidade = mini(quantidade, 350)
-    var multi := MultiMesh.new()
-    multi.transform_format = MultiMesh.TRANSFORM_3D
-    multi.use_colors = true
-    multi.mesh = _malha_grama_leve
-    multi.instance_count = quantidade
+    var lotes: Dictionary = {}
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zona"))) + 1907
     # Uma touceira a cada doze tufos: manchas de uns três metros, densas por
@@ -1110,23 +1245,38 @@ func _plantar_vegetacao_baixa() -> void:
             rng.randf_range(0.0, 0.16))
         var base := inclinacao * Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(
             Vector3(escala, escala * rng.randf_range(0.82, 1.22), escala))
-        multi.set_instance_transform(i, Transform3D(base,
-            Vector3(p.x, calcular_altura(p.x, p.y) - 0.015, p.y)))
+        var transformacao := Transform3D(base,
+            Vector3(p.x, calcular_altura(p.x, p.y) - 0.015, p.y))
         # Matiz por tufo: nenhum gramado real tem um verde só, e a variação é o
         # que impede o tapete de virar uma estampa repetida.
         var tom := rng.randf_range(0.82, 1.15)
-        multi.set_instance_color(i, Color(tom * rng.randf_range(0.92, 1.06), tom,
-            tom * rng.randf_range(0.86, 1.02)))
-    var tufos := MultiMeshInstance3D.new()
-    tufos.name = "TapeteDeGrama3D"
-    tufos.multimesh = multi
-    tufos.material_override = _material_grama_leve
-    tufos.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-    # Um MultiMesh ocupa a zona toda; limitar pela distância do NÓ fazia todo
-    # o gramado desaparecer quando o jogador se afastava do centro da região.
-    # Quem cuida da distância agora é o shader, lâmina por lâmina.
-    tufos.visibility_range_end = 0.0
-    _props_node.add_child(tufos)
+        var cor := Color(tom * rng.randf_range(0.92, 1.06), tom,
+            tom * rng.randf_range(0.86, 1.02))
+        var cx := int(floor((p.x + TAMANHO_ZONA * 0.5) / TAMANHO_LOTE_NATUREZA))
+        var cz := int(floor((p.y + TAMANHO_ZONA * 0.5) / TAMANHO_LOTE_NATUREZA))
+        var chave := "%d:%d" % [cx, cz]
+        if not lotes.has(chave):
+            lotes[chave] = []
+        lotes[chave].append([transformacao, cor])
+
+    for chave in lotes:
+        var instancias: Array = lotes[chave]
+        var multi := MultiMesh.new()
+        multi.transform_format = MultiMesh.TRANSFORM_3D
+        multi.use_colors = true
+        multi.mesh = _malha_grama_leve
+        multi.instance_count = instancias.size()
+        for i in instancias.size():
+            multi.set_instance_transform(i, instancias[i][0])
+            multi.set_instance_color(i, instancias[i][1])
+        var tufos := MultiMeshInstance3D.new()
+        tufos.name = "TapeteDeGrama3D"
+        tufos.multimesh = multi
+        tufos.material_override = _material_grama_leve
+        tufos.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        tufos.visibility_range_end = 42.0
+        tufos.visibility_range_end_margin = 5.0
+        _props_node.add_child(tufos)
 
 
 ## A lâmina em si: base larga, curvada para frente e terminando em ponta.
@@ -1245,10 +1395,7 @@ func _semear_mato(amostra: Node3D, nome: String, quantidade: int,
         else caixa_mundo.size.y
     var altura_tipica := caixa_mundo.size.y * medida_media / maxf(referencia_base, 0.001)
 
-    var multi := MultiMesh.new()
-    multi.transform_format = MultiMesh.TRANSFORM_3D
-    multi.mesh = origem.mesh
-    multi.instance_count = quantidade
+    var lotes: Dictionary = {}
     var largura_rio := float(_zone_data.get("river_width", 5.0)) + 2.5
     for i in quantidade:
         # Metade nos maciços, metade no campo aberto: o mato do plano regional
@@ -1270,15 +1417,30 @@ func _semear_mato(amostra: Node3D, nome: String, quantidade: int,
             Vector3(largura, fator, largura))
         var suporte := Transform3D(base,
             Vector3(p.x, calcular_altura(p.x, p.y) - caixa_mundo.position.y * fator, p.y))
-        multi.set_instance_transform(i, suporte * local)
+        var cx := int(floor((p.x + TAMANHO_ZONA * 0.5) / TAMANHO_LOTE_NATUREZA))
+        var cz := int(floor((p.y + TAMANHO_ZONA * 0.5) / TAMANHO_LOTE_NATUREZA))
+        var chave := "%d:%d" % [cx, cz]
+        if not lotes.has(chave):
+            lotes[chave] = []
+        lotes[chave].append(suporte * local)
 
-    var lote := MultiMeshInstance3D.new()
-    lote.name = "Mato_" + nome
-    lote.multimesh = multi
-    lote.material_override = _material_do_mato(origem, altura_tipica, alcance)
-    lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-    lote.visibility_range_end = 0.0
-    _props_node.add_child(lote)
+    var material := _material_do_mato(origem, altura_tipica, alcance)
+    for chave in lotes:
+        var instancias: Array = lotes[chave]
+        var multi := MultiMesh.new()
+        multi.transform_format = MultiMesh.TRANSFORM_3D
+        multi.mesh = origem.mesh
+        multi.instance_count = instancias.size()
+        for i in instancias.size():
+            multi.set_instance_transform(i, instancias[i])
+        var lote := MultiMeshInstance3D.new()
+        lote.name = "Mato_" + nome
+        lote.multimesh = multi
+        lote.material_override = material
+        lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        lote.visibility_range_end = alcance + 8.0
+        lote.visibility_range_end_margin = 4.0
+        _props_node.add_child(lote)
 
 
 ## Um ponto na margem da trilha, do lado de fora da terra batida.
@@ -1555,17 +1717,17 @@ func _construir_barreiras_perimetro_arvores_reais() -> void:
 
         # Norte
         if exits.get("north", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
-            borda.append(Vector3(pos_along, calcular_altura(pos_along, -half) - 0.5, -half))
+            borda.append(Vector3(pos_along, calcular_altura(pos_along, -half), -half))
         # Sul
         if exits.get("south", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
-            borda.append(Vector3(pos_along, calcular_altura(pos_along, half) - 0.5, half))
+            borda.append(Vector3(pos_along, calcular_altura(pos_along, half), half))
         # Oeste
         if exits.get("west", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
-            borda.append(Vector3(-half, calcular_altura(-half, pos_along) - 0.5, pos_along))
+            borda.append(Vector3(-half, calcular_altura(-half, pos_along), pos_along))
         # Leste
         if exits.get("east", "") == "" or (not so_o_fim_do_mundo and abs(pos_along) > portal_gap):
-            borda.append(Vector3(half, calcular_altura(half, pos_along) - 0.5, pos_along))
-    _plantar_pinheiros_em_lote(borda, hash(str(_zone_data.get("id", "borda"))) + 991)
+            borda.append(Vector3(half, calcular_altura(half, pos_along), pos_along))
+    _plantar_arvores_cc0_em_lotes(borda, hash(str(_zone_data.get("id", "borda"))) + 991)
 
 ## As arvores BARATAS ficam no cinturao.
 ##

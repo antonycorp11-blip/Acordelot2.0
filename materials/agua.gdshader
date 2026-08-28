@@ -12,9 +12,9 @@ render_mode cull_disabled, diffuse_burley, depth_draw_never;
 // velocidades diferentes. Uma camada so daria a superficie inteira deslizando
 // para o mesmo lado, que le como esteira, nao como agua.
 
-uniform vec3 cor_rasa : source_color = vec3(0.36, 0.66, 0.62);
-uniform vec3 cor_funda : source_color = vec3(0.05, 0.19, 0.33);
-uniform vec3 cor_espuma : source_color = vec3(0.90, 0.96, 0.96);
+uniform vec3 cor_rasa : source_color = vec3(0.20, 0.63, 0.68);
+uniform vec3 cor_funda : source_color = vec3(0.025, 0.16, 0.31);
+uniform vec3 cor_espuma : source_color = vec3(0.88, 0.98, 1.00);
 
 uniform float velocidade = 0.055;
 uniform float escala_da_onda = 0.42;
@@ -56,12 +56,20 @@ void fragment() {
     float a = ruido(uv + vec2(TIME * velocidade, TIME * velocidade * 0.6));
     float b = ruido(uv * 1.7 - vec2(TIME * velocidade * 0.8, TIME * velocidade * 1.3));
     float brilho = a * 0.6 + b * 0.4;
+    // Ondas direcionais quebram o aspecto de ruído borrado. São apenas senos,
+    // sem mapa de reflexão ou leitura da tela, portanto continuam baratas no
+    // renderizador Web de compatibilidade.
+    float onda_a = sin(uv.x * 2.1 + uv.y * 0.7 + TIME * 0.75);
+    float onda_b = sin(uv.y * 2.7 - uv.x * 0.45 - TIME * 0.62);
+    float crista = pow(clamp(onda_a * 0.5 + onda_b * 0.5, 0.0, 1.0), 5.0);
 
     // Quanto mais funda, mais escura e mais opaca: e o que da leitura de volume
     // a uma superficie que e um plano so.
     float funda = clamp(profundidade / 2.2, 0.0, 1.0);
     vec3 cor = mix(cor_rasa, cor_funda, funda);
-    cor += brilho * 0.14;
+    cor += brilho * 0.09 + crista * vec3(0.16, 0.23, 0.27);
+    float fresnel = pow(1.0 - clamp(dot(normalize(NORMAL), normalize(VIEW)), 0.0, 1.0), 3.0);
+    cor = mix(cor, vec3(0.34, 0.58, 0.72), fresnel * 0.28);
 
     // Espuma na margem, onde a agua encosta no barranco. Sem ela a lagoa termina
     // num corte reto sobre a grama e parece vidro apoiado no chao.
@@ -73,7 +81,7 @@ void fragment() {
     // A borda rasa e quase transparente: e o que deixa o fundo aparecer perto da
     // margem e faz a agua parecer entrar no terreno em vez de encostar nele.
     ALPHA = mix(0.30, opacidade_maxima, funda) + na_margem * renda * 0.25;
-    ROUGHNESS = 0.08;
-    SPECULAR = 0.6;
+    ROUGHNESS = mix(0.16, 0.07, crista);
+    SPECULAR = 0.72;
     METALLIC = 0.0;
 }

@@ -4,6 +4,7 @@ extends Node
 
 const INTERVALO := 1.5
 const ESCALA_MINIMA := 0.50
+const FPS_ALVO := 35
 
 var _tempo := 0.0
 var _baixos := 0
@@ -14,7 +15,12 @@ var _escala_maxima := 1.0
 
 func _ready() -> void:
     _escala_maxima = get_viewport().scaling_3d_scale
-    set_process(OS.has_feature("web"))
+    var web := OS.has_feature("web")
+    if web:
+        # 35 quadros estáveis são melhores que alternar entre 50 e 20. O teto
+        # também deixa CPU/GPU respirarem para carregar uma zona vizinha.
+        Engine.max_fps = FPS_ALVO
+    set_process(web)
 
 
 func _process(delta: float) -> void:
@@ -24,8 +30,8 @@ func _process(delta: float) -> void:
         return
     _tempo = 0.0
     var fps := Engine.get_frames_per_second()
-    _baixos = _baixos + 1 if fps > 0 and fps < 36 else 0
-    _altos = _altos + 1 if fps > 53 else 0
+    _baixos = _baixos + 1 if fps > 0 and fps < 31 else 0
+    _altos = _altos + 1 if fps >= 34 else 0
     if _espera > 0.0:
         return
     var viewport := get_viewport()
