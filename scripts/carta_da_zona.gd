@@ -27,16 +27,16 @@ const PAREDES := ["casa", "casa_enxaimel_1", "casa_enxaimel_2", "casa_alta",
 	"oficina_ferreiro", "loja_toldo", "torre", "muralha", "muro", "ponte"]
 const MARCOS := ["fonte", "poco", "estatua", "cristal", "banca", "estandarte"]
 
-const COR_COPA := Color(0.13, 0.30, 0.16)
-const COR_PAREDE := Color(0.62, 0.50, 0.38)
+const COR_COPA := Color(0.08, 0.24, 0.12)
+const COR_PAREDE := Color(0.66, 0.43, 0.24)
 const COR_MARCO := Color(0.85, 0.72, 0.35)
-const COR_AGUA := Color(0.16, 0.34, 0.52)
+const COR_AGUA := Color(0.07, 0.30, 0.49)
 
 ## Chao de cada bioma, para a carta nao sair toda da mesma cor.
 const CHAO_DO_BIOMA := {
 	"floresta": Color(0.24, 0.36, 0.20),
 	"campos": Color(0.43, 0.43, 0.21),
-	"cidade": Color(0.42, 0.41, 0.34),
+	"cidade": Color(0.34, 0.38, 0.29),
 	"lago": Color(0.28, 0.38, 0.30),
 	"serra": Color(0.38, 0.36, 0.31),
 	"sagrado": Color(0.34, 0.38, 0.36),
@@ -127,7 +127,9 @@ static func _riscar_rede_regional(imagem: Image, dados: Dictionary,
 	if rios.is_empty() and estradas.is_empty():
 		return
 	var largura_rio := float(dados.get("river_width", 5.0))
-	var cor_estrada := Color(0.58, 0.56, 0.52) if str(dados.get("road_surface", "terra")) == "pedra" else Color(0.52, 0.39, 0.25)
+	var pedra := str(dados.get("road_surface", "terra")) == "pedra"
+	var cor_estrada := Color(0.52, 0.50, 0.46) if pedra else Color(0.50, 0.35, 0.20)
+	var borda_estrada := Color(0.20, 0.20, 0.18) if pedra else Color(0.27, 0.20, 0.13)
 	for py in PIXELS:
 		var z := -meia + (float(py) + 0.5) * metros_por_pixel
 		for px in PIXELS:
@@ -138,20 +140,21 @@ static func _riscar_rede_regional(imagem: Image, dados: Dictionary,
 				for i in range(rio.size() - 1):
 					var a := Vector2(float(rio[i][0]), float(rio[i][1]))
 					var b := Vector2(float(rio[i + 1][0]), float(rio[i + 1][1]))
-					if _distancia_segmento(p, a, b) <= largura_rio:
-						imagem.set_pixel(px, py, COR_AGUA)
+					var distancia_rio := _distancia_segmento(p, a, b)
+					if distancia_rio <= largura_rio + 1.1:
+						var centro := 1.0 - clampf(distancia_rio / maxf(largura_rio, 0.1), 0.0, 1.0)
+						imagem.set_pixel(px, py, COR_AGUA.darkened(centro * 0.20))
 						pintou = true
 						break
 				if pintou:
 					break
-			if pintou:
-				continue
 			for caminho in estradas:
 				for i in range(caminho.size() - 1):
 					var a := Vector2(float(caminho[i][0]), float(caminho[i][1]))
 					var b := Vector2(float(caminho[i + 1][0]), float(caminho[i + 1][1]))
-					if _distancia_segmento(p, a, b) <= 5.0:
-						imagem.set_pixel(px, py, cor_estrada)
+					var distancia_via := _distancia_segmento(p, a, b)
+					if distancia_via <= 5.8:
+						imagem.set_pixel(px, py, cor_estrada if distancia_via <= 4.7 else borda_estrada)
 						pintou = true
 						break
 				if pintou:
@@ -207,12 +210,13 @@ static func _carimbar_as_pecas(imagem: Image, regiao: Node3D,
 		var nome := String(peca.name)
 		var cor: Color
 		var largura := 2.0
+		var edificio := false
 		if COPAS.has(nome):
 			cor = COR_COPA
 			largura = 2.6
 		elif PAREDES.has(nome):
 			cor = COR_PAREDE
-			largura = 4.2
+			edificio = true
 		elif MARCOS.has(nome):
 			cor = COR_MARCO
 			largura = 2.0
@@ -222,6 +226,19 @@ static func _carimbar_as_pecas(imagem: Image, regiao: Node3D,
 		var onde: Vector3 = peca.global_position - regiao.global_position
 		var px := int((onde.x + meia) / metros_por_pixel)
 		var py := int((onde.z + meia) / metros_por_pixel)
+		if edificio:
+			var ocupacao := _ocupacao_da_peca(peca)
+			var metade_x := maxi(int(ocupacao.x / metros_por_pixel * 0.5), 2)
+			var metade_y := maxi(int(ocupacao.y / metros_por_pixel * 0.5), 2)
+			for dy in range(-metade_y, metade_y + 1):
+				for dx in range(-metade_x, metade_x + 1):
+					var ax := px + dx
+					var ay := py + dy
+					if ax < 0 or ay < 0 or ax >= PIXELS or ay >= PIXELS:
+						continue
+					var borda: bool = abs(dx) == metade_x or abs(dy) == metade_y
+					imagem.set_pixel(ax, ay, cor.darkened(0.45) if borda else cor)
+			continue
 		var raio := int(maxf(largura / metros_por_pixel, 1.0))
 		for dy in range(-raio, raio + 1):
 			for dx in range(-raio, raio + 1):
@@ -232,3 +249,23 @@ static func _carimbar_as_pecas(imagem: Image, regiao: Node3D,
 				if dx * dx + dy * dy > raio * raio:
 					continue
 				imagem.set_pixel(ax, ay, cor)
+
+
+static func _ocupacao_da_peca(peca: Node3D) -> Vector2:
+	var caixa := AABB()
+	var encontrou := false
+	var para_local := peca.global_transform.affine_inverse()
+	for filho in peca.find_children("*", "MeshInstance3D", true, false):
+		var malha := filho as MeshInstance3D
+		if malha.mesh == null:
+			continue
+		var local: AABB = (para_local * malha.global_transform) * malha.get_aabb()
+		caixa = local if not encontrou else caixa.merge(local)
+		encontrou = true
+	if not encontrou:
+		return Vector2(4.0, 4.0)
+	var giro := peca.global_rotation.y
+	var c := absf(cos(giro))
+	var s := absf(sin(giro))
+	return Vector2(maxf(caixa.size.x * c + caixa.size.z * s, 2.0),
+		maxf(caixa.size.x * s + caixa.size.z * c, 2.0))

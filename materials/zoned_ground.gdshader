@@ -50,6 +50,12 @@ uniform vec4 caminho_2 = vec4(999.0);
 uniform vec4 caminho_3 = vec4(999.0);
 uniform vec4 caminho_4 = vec4(999.0);
 uniform vec4 caminho_5 = vec4(999.0);
+uniform vec4 caminho_6 = vec4(999.0);
+uniform vec4 caminho_7 = vec4(999.0);
+uniform vec4 caminho_8 = vec4(999.0);
+uniform vec4 caminho_9 = vec4(999.0);
+uniform vec4 caminho_10 = vec4(999.0);
+uniform vec4 caminho_11 = vec4(999.0);
 
 varying vec3 world_pos;
 // A posicao DENTRO da zona, separada da posicao no mundo.
@@ -127,10 +133,16 @@ void fragment() {
     if (quantidade_caminhos > 3) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_3));
     if (quantidade_caminhos > 4) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_4));
     if (quantidade_caminhos > 5) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_5));
+    if (quantidade_caminhos > 6) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_6));
+    if (quantidade_caminhos > 7) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_7));
+    if (quantidade_caminhos > 8) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_8));
+    if (quantidade_caminhos > 9) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_9));
+    if (quantidade_caminhos > 10) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_10));
+    if (quantidade_caminhos > 11) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_11));
     if (quantidade_caminhos > 0) {
         float desgaste = (fbm(pos_local.xz / 4.0) - 0.5) * 1.2;
         float mascara_estrada = 1.0 - smoothstep(4.2 + desgaste, 5.5 + desgaste, distancia_estrada);
-        vec3 material_estrada = mix(col_dirt * 0.80, col_stone * 0.92, caminho_de_pedra);
+        vec3 material_estrada = mix(col_dirt * 0.80, col_stone * 0.70, caminho_de_pedra);
         base_color = mix(base_color, material_estrada, mascara_estrada * 0.95);
     }
 
@@ -168,7 +180,7 @@ void fragment() {
                               max(secundaria_1, secundaria_2)), 0.0, 1.0);
         // Terra batida, um tom mais escura que a de fora: chao pisado escurece.
         // Ou pedra, quando a zona pede calcamento.
-        vec3 cor_da_via = mix(col_dirt * 0.82, col_stone * 0.92, via_de_pedra);
+        vec3 cor_da_via = mix(col_dirt * 0.82, col_stone * 0.70, via_de_pedra);
         base_color = mix(base_color, cor_da_via, via * 0.92);
     }
     

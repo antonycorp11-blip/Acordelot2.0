@@ -222,7 +222,7 @@ var _carta_atual: ImageTexture
 var _zid_atual := ""
 ## Quantos metros cabem no disco. Menos que isto vira lupa e o jogador perde a
 ## nocao de onde esta; mais que isto e um borrao.
-const JANELA := 34.0
+const JANELA := 52.0
 
 
 func _preparar_carta(zid: String, z_data: Dictionary) -> void:
@@ -346,6 +346,10 @@ const CORES_MAPA := {
     "ruina": Color(0.24, 0.21, 0.22)
 }
 
+const EDIFICIOS_MAPA := ["casa", "casa_alta", "casa_larga", "casa_pedra",
+    "casarao", "solar", "casa_taipa", "casa_torre", "taverna", "celeiro",
+    "moinho", "oficina_ferreiro", "loja_toldo", "torre", "muralha", "muro"]
+
 
 func _limites_do_reino() -> Vector4:
     var limites: Array = zone_manager._zones_db.get("world_bounds", [-2, -2, 1, 1])
@@ -367,6 +371,42 @@ func _ponto_na_celula(retangulo: Rect2, ponto: Array) -> Vector2:
         (float(ponto[1]) + 80.0) / 160.0 * retangulo.size.y)
 
 
+func _desenhar_composicao_regional(r: Rect2, zid: String, dados: Dictionary) -> void:
+    # Maciços reais quando a zona os declara; pontos determinísticos nas demais
+    # florestas. É cartografia, não uma câmera extra renderizando o mundo.
+    var macicos: Array = dados.get("forest_clusters", [])
+    for macico in macicos:
+        var centro := _ponto_na_celula(r, [macico[0], macico[1]])
+        var raio := float(macico[2]) / 160.0 * minf(r.size.x, r.size.y) * 1.45
+        _world_map_draw.draw_circle(centro, maxf(raio, 2.0), Color(0.06, 0.20, 0.10, 0.72))
+    if macicos.is_empty() and str(dados.get("biome", "")) in ["floresta", "sombria"]:
+        var rng := RandomNumberGenerator.new()
+        rng.seed = hash(zid)
+        for i in 14:
+            var p := r.position + Vector2(rng.randf_range(5.0, r.size.x - 5.0),
+                rng.randf_range(5.0, r.size.y - 5.0))
+            _world_map_draw.draw_circle(p, rng.randf_range(1.4, 2.7), Color(0.05, 0.18, 0.09, 0.75))
+
+
+func _desenhar_edificios_regiao(r: Rect2, dados: Dictionary) -> void:
+    if zone_manager == null or zone_manager.zone_builder == null:
+        return
+    var layout_id := str(dados.get("layout_id", ""))
+    var layouts: Dictionary = zone_manager.zone_builder._city_layouts.get("layouts", {})
+    for item in layouts.get(layout_id, []):
+        var tag := str(item.get("tag", ""))
+        if tag not in EDIFICIOS_MAPA:
+            continue
+        var pos: Array = item.get("position", [])
+        if pos.size() < 2:
+            continue
+        var centro := _ponto_na_celula(r, pos)
+        var tamanho := Vector2(maxf(r.size.x / 36.0, 2.4), maxf(r.size.y / 23.0, 2.4))
+        var bloco := Rect2(centro - tamanho * 0.5, tamanho)
+        _world_map_draw.draw_rect(bloco.grow(0.8), Color(0.13, 0.09, 0.06, 0.95), true)
+        _world_map_draw.draw_rect(bloco, Color(0.67, 0.42, 0.22), true)
+
+
 func _desenhar_mapa_reino() -> void:
     if zone_manager == null or _world_map_draw == null:
         return
@@ -380,9 +420,11 @@ func _desenhar_mapa_reino() -> void:
         var dados: Dictionary = zonas[zid]
         var grade: Array = dados.get("grid_pos", [0, 0])
         var celula := Vector2i(int(grade[0]), int(grade[1]))
-        var r := _retangulo_da_celula(celula).grow(-2.0)
+        var r := _retangulo_da_celula(celula).grow(-0.5)
         var cor: Color = CORES_MAPA.get(str(dados.get("biome", "")), Color(0.25, 0.30, 0.22))
         _world_map_draw.draw_rect(r, cor, true)
+        _world_map_draw.draw_rect(r.grow(-3.0), cor.lightened(0.10), false, 1.0)
+        _desenhar_composicao_regional(r, str(zid), dados)
 
         # O que aparece aqui é a mesma polilinha usada pelo shader do chão e
         # pela malha de água do mundo 3D.
@@ -391,20 +433,26 @@ func _desenhar_mapa_reino() -> void:
             for p in rio:
                 pontos.append(_ponto_na_celula(r, p))
             if pontos.size() > 1:
-                _world_map_draw.draw_polyline(pontos, Color(0.18, 0.62, 0.88), 3.5, true)
+                _world_map_draw.draw_polyline(pontos, Color(0.025, 0.12, 0.22), 7.0, true)
+                _world_map_draw.draw_polyline(pontos, Color(0.10, 0.48, 0.72), 4.2, true)
         for estrada in dados.get("road_paths", []):
             var pontos := PackedVector2Array()
             for p in estrada:
                 pontos.append(_ponto_na_celula(r, p))
             if pontos.size() > 1:
                 var cor_via := Color(0.72, 0.69, 0.60) if str(dados.get("road_surface", "terra")) == "pedra" else Color(0.58, 0.42, 0.25)
-                _world_map_draw.draw_polyline(pontos, cor_via, 2.5, true)
+                _world_map_draw.draw_polyline(pontos, Color(0.16, 0.12, 0.08), 5.0, true)
+                _world_map_draw.draw_polyline(pontos, cor_via, 2.7, true)
+
+        _desenhar_edificios_regiao(r, dados)
 
         var borda := Color(1.0, 0.78, 0.28) if str(zid) == atual else Color(0.62, 0.52, 0.33, 0.65)
         _world_map_draw.draw_rect(r, borda, false, 2.5 if str(zid) == atual else 1.0)
         var nome := str(dados.get("name", zid))
-        _world_map_draw.draw_string(fonte, r.position + Vector2(7, 18), nome,
-            HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 14, 11, Color(0.97, 0.91, 0.72))
+        var faixa := Rect2(r.position + Vector2(3.0, r.size.y - 18.0), Vector2(r.size.x - 6.0, 15.0))
+        _world_map_draw.draw_rect(faixa, Color(0.025, 0.035, 0.05, 0.82), true)
+        _world_map_draw.draw_string(fonte, faixa.position + Vector2(4, 12), nome,
+            HORIZONTAL_ALIGNMENT_LEFT, faixa.size.x - 8, 10, Color(0.98, 0.91, 0.70))
 
     if player:
         var limites := _limites_do_reino()

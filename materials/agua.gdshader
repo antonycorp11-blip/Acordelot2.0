@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_disabled, diffuse_burley, depth_draw_never;
+render_mode cull_disabled, diffuse_burley, specular_schlick_ggx, depth_draw_opaque;
 
 // A agua do Acordelot: lagoa de fundo de vale.
 //
@@ -20,7 +20,6 @@ uniform float velocidade = 0.055;
 uniform float escala_da_onda = 0.42;
 // Ate onde a margem faz espuma, em metros de profundidade.
 uniform float margem = 0.55;
-uniform float opacidade_maxima = 0.86;
 
 // Profundidade em metros, gravada por vertice quando a malha e montada. Ler a
 // profundidade do buffer de profundidade da tela seria mais exato e custa uma
@@ -78,10 +77,10 @@ void fragment() {
     cor = mix(cor, cor_espuma, na_margem * (0.35 + renda * 0.5));
 
     ALBEDO = cor;
-    // A borda rasa e quase transparente: e o que deixa o fundo aparecer perto da
-    // margem e faz a agua parecer entrar no terreno em vez de encostar nele.
-    ALPHA = mix(0.30, opacidade_maxima, funda) + na_margem * renda * 0.25;
-    ROUGHNESS = mix(0.16, 0.07, crista);
-    SPECULAR = 0.72;
+    // A água é opaca de propósito. No Compatibility/Web, transparência sobre o
+    // terreno revelava o leito inteiro e transformava o rio numa faixa de luz
+    // apoiada sobre terra. A própria margem entra no barranco e esconde a borda.
+    ROUGHNESS = mix(0.24, 0.10, crista);
+    SPECULAR = 0.58;
     METALLIC = 0.0;
 }

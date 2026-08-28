@@ -45,6 +45,14 @@ const PERTO_PARA_CARREGAR := 60.0
 const LONGE_PARA_SOLTAR := 110.0
 var _ate_arrumar := 0.0
 var _city_layouts: Dictionary = {}
+var _fila_de_recursos: Array[String] = []
+var _recurso_em_carga := ""
+static var _recursos_aquecidos: Dictionary = {}
+
+## O desenho regional pode ter até doze segmentos visíveis. A capital usa os
+## dois eixos principais e duas ruas de bairro; seis segmentos cortavam as
+## últimas vias e faziam o mapa e o chão discordarem.
+const MAX_SEGMENTOS_DE_VIA := 12
 
 var _terrain_mesh: MeshInstance3D
 var _terrain_body: StaticBody3D
@@ -163,12 +171,14 @@ func construir_zona(zone_data: Dictionary) -> void:
     # Rios e estradas pertencem ao plano da região, portanto nascem antes dos
     # edifícios. O leito já foi cavado pela mesma função de altura do terreno.
     _construir_rios()
+    _construir_pontes_da_rede()
     _construir_meio_fio()
     
     if _zone_data.get("water", false):
         _construir_agua()
         
     _construir_layout_urbano()
+    _construir_marco_central()
     _acender_a_povoacao()
     _plantar_os_npcs()
     _espalhar_os_adornos()
@@ -282,13 +292,20 @@ func calcular_altura(x: float, z: float) -> float:
 const MARGEM_DE_COSTURA := 22.0
 
 func _altura_local(x: float, z: float, dados: Dictionary) -> float:
+    return _altura_sem_rio_local(x, z, dados) - _profundidade_do_rio(Vector2(x, z), dados)
+
+
+## Altura natural antes de cavar o canal. O rio usa esta linha como superfície;
+## se consultasse calcular_altura(), cada margem receberia uma altura diferente
+## do próprio buraco e a lâmina acompanharia o fundo como uma fita luminosa.
+func _altura_sem_rio_local(x: float, z: float, dados: Dictionary) -> float:
     var bruto := _relevo_da_zona(x, z, dados)
     var meia := TAMANHO_ZONA * 0.5
     var beira: float = maxf(absf(x), absf(z))
     if beira > meia - MARGEM_DE_COSTURA:
         var t: float = clampf((meia - beira) / MARGEM_DE_COSTURA, 0.0, 1.0)
         bruto *= t * t * (3.0 - 2.0 * t)
-    return bruto - _profundidade_do_rio(Vector2(x, z), dados)
+    return bruto
 
 
 ## Distância de um ponto ao segmento, usada tanto pelo leito quanto pela água.
@@ -433,8 +450,8 @@ func _construir_agua() -> void:
     
     var mat := ShaderMaterial.new()
     mat.shader = load("res://materials/agua.gdshader")
-    mat.set_shader_parameter("cor_profunda", Color(0.14, 0.32, 0.5, 0.95))
-    mat.set_shader_parameter("cor_superficie", Color(0.28, 0.68, 0.8, 0.8))
+    mat.set_shader_parameter("cor_funda", Color(0.025, 0.13, 0.26))
+    mat.set_shader_parameter("cor_rasa", Color(0.10, 0.42, 0.58))
     _water_mesh.material_override = mat
     add_child(_water_mesh)
 
@@ -447,10 +464,13 @@ func _construir_rios() -> void:
         return
     var largura: float = float(_zone_data.get("river_width", 5.0))
     var profundidade: float = float(_zone_data.get("river_depth", 1.8))
+    # A malha entra alguns metros no barranco. O próprio terreno recorta essa
+    # sobra e a água termina numa margem orgânica, nunca numa régua luminosa.
+    var largura_superficie := largura + 2.8
     var material := ShaderMaterial.new()
     material.shader = load("res://materials/agua.gdshader")
-    material.set_shader_parameter("cor_profunda", Color(0.055, 0.23, 0.36, 0.97))
-    material.set_shader_parameter("cor_superficie", Color(0.18, 0.58, 0.76, 0.88))
+    material.set_shader_parameter("cor_funda", Color(0.018, 0.11, 0.23))
+    material.set_shader_parameter("cor_rasa", Color(0.075, 0.35, 0.50))
 
     for caminho in caminhos:
         if caminho.size() < 2:
@@ -470,11 +490,15 @@ func _construir_rios() -> void:
             var anterior: Vector2 = amostras[maxi(i - 1, 0)]
             var seguinte: Vector2 = amostras[mini(i + 1, amostras.size() - 1)]
             var direcao := (seguinte - anterior).normalized()
-            var lateral := Vector2(-direcao.y, direcao.x) * largura
+            var lateral := Vector2(-direcao.y, direcao.x) * largura_superficie
             var centro: Vector2 = amostras[i]
             for lado in [-1.0, 1.0]:
                 var p: Vector2 = centro + lateral * float(lado)
-                var y := calcular_altura(p.x, p.y) + profundidade * 0.62 + 0.04
+                # Uma seção do rio tem uma só cota. Antes cada borda seguia o
+                # próprio fundo cavado, produzindo uma fita torta e rasa.
+                var y := _altura_sem_rio_local(centro.x, centro.y, _zone_data) \
+                    - profundidade * 0.22
+                st.set_color(Color(profundidade, 0.0, 0.0, 1.0))
                 st.set_uv(Vector2(float(i) * 0.18, 0.0 if lado < 0.0 else 1.0))
                 st.add_vertex(Vector3(p.x, y, p.y))
         for i in range(amostras.size() - 1):
@@ -490,6 +514,88 @@ func _construir_rios() -> void:
         add_child(faixa)
 
 
+## Pontes nascem da interseção real entre rua e rio. Assim uma mudança no
+## traçado não deixa meio-fio flutuando nem exige coordenada duplicada à mão.
+static func _cruzamento_2d(a: Vector2, b: Vector2, c: Vector2, d: Vector2):
+    var r := b - a
+    var s := d - c
+    var denominador := r.cross(s)
+    if absf(denominador) < 0.0001:
+        return null
+    var t := (c - a).cross(s) / denominador
+    var u := (c - a).cross(r) / denominador
+    if t < 0.0 or t > 1.0 or u < 0.0 or u > 1.0:
+        return null
+    return a + r * t
+
+
+func _construir_pontes_da_rede() -> void:
+    var ruas: Array = _zone_data.get("road_paths", [])
+    var rios: Array = _zone_data.get("river_paths", [])
+    if ruas.is_empty() or rios.is_empty():
+        return
+
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = load("res://textures/flagstone_seamless.png")
+    material.albedo_color = Color(0.58, 0.56, 0.51)
+    material.roughness = 0.96
+    material.uv1_scale = Vector3(0.55, 0.55, 0.55)
+    var feitos := {}
+    for rua in ruas:
+        for i in range(rua.size() - 1):
+            var a := Vector2(float(rua[i][0]), float(rua[i][1]))
+            var b := Vector2(float(rua[i + 1][0]), float(rua[i + 1][1]))
+            for rio in rios:
+                for j in range(rio.size() - 1):
+                    var c := Vector2(float(rio[j][0]), float(rio[j][1]))
+                    var d := Vector2(float(rio[j + 1][0]), float(rio[j + 1][1]))
+                    var cruzamento = _cruzamento_2d(a, b, c, d)
+                    if cruzamento == null:
+                        continue
+                    var ponto: Vector2 = cruzamento
+                    var chave := "%d,%d" % [roundi(ponto.x), roundi(ponto.y)]
+                    if feitos.has(chave):
+                        continue
+                    feitos[chave] = true
+                    _criar_ponte(ponto, (b - a).normalized(), material)
+
+
+func _criar_ponte(ponto: Vector2, direcao_rua: Vector2,
+        material: StandardMaterial3D) -> void:
+    var largura_rua := 10.8
+    var comprimento := float(_zone_data.get("river_width", 5.0)) * 2.0 + 7.0
+    var ponte := Node3D.new()
+    ponte.name = "ponte"
+    ponte.position = Vector3(ponto.x,
+        _altura_sem_rio_local(ponto.x, ponto.y, _zone_data) + 0.12, ponto.y)
+    ponte.rotation.y = atan2(direcao_rua.x, direcao_rua.y)
+
+    var tabuleiro := MeshInstance3D.new()
+    var caixa := BoxMesh.new()
+    caixa.size = Vector3(largura_rua, 0.42, comprimento)
+    tabuleiro.mesh = caixa
+    tabuleiro.material_override = material
+    ponte.add_child(tabuleiro)
+
+    for lado in [-1.0, 1.0]:
+        var parapeito := MeshInstance3D.new()
+        var viga := BoxMesh.new()
+        viga.size = Vector3(0.30, 0.72, comprimento + 0.2)
+        parapeito.mesh = viga
+        parapeito.position = Vector3(lado * (largura_rua * 0.5 - 0.2), 0.52, 0.0)
+        parapeito.material_override = material
+        ponte.add_child(parapeito)
+
+    var corpo := StaticBody3D.new()
+    var colisao := CollisionShape3D.new()
+    var forma := BoxShape3D.new()
+    forma.size = caixa.size
+    colisao.shape = forma
+    corpo.add_child(colisao)
+    ponte.add_child(corpo)
+    _props_node.add_child(ponte)
+
+
 ## Meio-fio baixo nas vias de pedra. É geometria simples e compartilhada,
 ## suficiente para a rua deixar de parecer uma estampa pintada no gramado.
 func _construir_meio_fio() -> void:
@@ -500,6 +606,7 @@ func _construir_meio_fio() -> void:
         return
     var material := StandardMaterial3D.new()
     material.albedo_texture = load("res://textures/flagstone_seamless.png")
+    material.albedo_color = Color(0.50, 0.49, 0.46)
     material.roughness = 0.94
     material.uv1_scale = Vector3(0.45, 0.45, 0.45)
     var largura_da_rua := 5.2
@@ -524,6 +631,89 @@ func _construir_meio_fio() -> void:
                 bloco.rotation.y = atan2(dir.x, dir.y)
                 bloco.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
                 add_child(bloco)
+
+
+## Marco legível para o coração da capital. O poço rural antigo funcionava na
+## vila, mas diminuía a praça imperial; esta fonte usa só geometrias baratas e
+## a mesma pedra das ruas, portanto combina sem introduzir outro asset pesado.
+func _construir_marco_central() -> void:
+    if not bool(_dados_da_praca().get("fonte_central", false)):
+        return
+    var fonte := Node3D.new()
+    fonte.name = "fonte"
+    fonte.position = Vector3(0.0, calcular_altura(0.0, 0.0), 0.0)
+
+    var pedra := StandardMaterial3D.new()
+    pedra.albedo_texture = load("res://textures/flagstone_seamless.png")
+    pedra.albedo_color = Color(0.50, 0.49, 0.47)
+    pedra.roughness = 0.96
+    pedra.uv1_scale = Vector3(0.7, 0.7, 0.7)
+
+    _anel_da_fonte(fonte, 5.2, 4.35, 0.55, 0.28, pedra)
+    _anel_da_fonte(fonte, 2.2, 1.55, 0.34, 2.55, pedra)
+    _cilindro_da_fonte(fonte, 0.82, 2.35, 1.45, pedra)
+    _cilindro_da_fonte(fonte, 0.34, 1.05, 3.24, pedra)
+
+    var agua := ShaderMaterial.new()
+    agua.shader = load("res://materials/agua.gdshader")
+    agua.set_shader_parameter("cor_funda", Color(0.025, 0.17, 0.31))
+    agua.set_shader_parameter("cor_rasa", Color(0.11, 0.48, 0.64))
+    _cilindro_da_fonte(fonte, 4.22, 0.07, 0.62, agua)
+    _cilindro_da_fonte(fonte, 1.48, 0.06, 2.77, agua)
+
+    var queda_material := StandardMaterial3D.new()
+    queda_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    queda_material.albedo_color = Color(0.20, 0.68, 0.88)
+    for x in [-0.42, 0.42]:
+        _cilindro_da_fonte(fonte, 0.055, 1.45, 1.74, queda_material, Vector3(x, 0.0, 0.0))
+
+    var corpo := StaticBody3D.new()
+    var col := CollisionShape3D.new()
+    var forma := CylinderShape3D.new()
+    forma.radius = 5.1
+    forma.height = 0.75
+    col.shape = forma
+    col.position.y = 0.38
+    corpo.add_child(col)
+    fonte.add_child(corpo)
+    _props_node.add_child(fonte)
+
+
+func _cilindro_da_fonte(raiz: Node3D, raio: float, altura: float, y: float,
+        material: Material, deslocamento := Vector3.ZERO) -> void:
+    var no := MeshInstance3D.new()
+    var cilindro := CylinderMesh.new()
+    cilindro.top_radius = raio
+    cilindro.bottom_radius = raio
+    cilindro.height = altura
+    cilindro.radial_segments = 24
+    no.mesh = cilindro
+    no.position = Vector3(deslocamento.x, y, deslocamento.z)
+    no.material_override = material
+    raiz.add_child(no)
+
+
+func _anel_da_fonte(raiz: Node3D, externo: float, interno: float, altura: float,
+        y: float, material: Material) -> void:
+    # Vinte e quatro blocos em UMA MultiMesh formam um anel aberto. A fonte
+    # inteira não pode custar cinquenta chamadas só por ser redonda.
+    var segmentos := 24
+    var raio := (externo + interno) * 0.5
+    var espessura := externo - interno
+    var caixa := BoxMesh.new()
+    caixa.size = Vector3(espessura, altura, TAU * raio / float(segmentos) * 1.08)
+    caixa.material = material
+    var multi := MultiMesh.new()
+    multi.transform_format = MultiMesh.TRANSFORM_3D
+    multi.mesh = caixa
+    multi.instance_count = segmentos
+    for i in segmentos:
+        var angulo := TAU * float(i) / float(segmentos)
+        multi.set_instance_transform(i, Transform3D(Basis(Vector3.UP, -angulo),
+            Vector3(cos(angulo) * raio, y, sin(angulo) * raio)))
+    var no := MultiMeshInstance3D.new()
+    no.multimesh = multi
+    raiz.add_child(no)
 
 # -------------------------------------------------------------
 # 3. Construções 3D da Cidade / Casas Medievais PBR
@@ -597,13 +787,13 @@ func _pintar_caminhos_regionais(mat: ShaderMaterial) -> void:
         for i in range(caminho.size() - 1):
             segmentos.append(Vector4(float(caminho[i][0]), float(caminho[i][1]),
                 float(caminho[i + 1][0]), float(caminho[i + 1][1])))
-            if segmentos.size() >= 6:
+            if segmentos.size() >= MAX_SEGMENTOS_DE_VIA:
                 break
-        if segmentos.size() >= 6:
+        if segmentos.size() >= MAX_SEGMENTOS_DE_VIA:
             break
     mat.set_shader_parameter("quantidade_caminhos", segmentos.size())
     mat.set_shader_parameter("caminho_de_pedra", 1.0 if str(_zone_data.get("road_surface", "terra")) == "pedra" else 0.0)
-    for i in 6:
+    for i in MAX_SEGMENTOS_DE_VIA:
         mat.set_shader_parameter("caminho_%d" % i,
             segmentos[i] if i < segmentos.size() else Vector4(999.0, 999.0, 999.0, 999.0))
 
@@ -716,6 +906,17 @@ func _construir_layout_urbano() -> void:
                     else linha - girada.position.z
             py = calcular_altura(px, pz) + float(p.get("y", 0.0))
             suporte.position = Vector3(px, py, pz)
+
+        # Reserva física das margens. A posição do centro não basta: uma casa
+        # larga a onze metros do rio ainda podia pôr metade do telhado na água.
+        # Mede a ocupação já girada e rejeita qualquer peça que invada o canal.
+        var ocupacao: AABB = Transform3D(Basis(Vector3.UP, suporte.rotation.y),
+            Vector3.ZERO) * _caixa_do_modelo(suporte)
+        var folga_rio := maxf(ocupacao.size.x, ocupacao.size.z) * 0.52 + 1.5
+        if _perto_da_rede(Vector2(px, pz), "river_paths",
+                float(_zone_data.get("river_width", 5.0)) + folga_rio):
+            suporte.free()
+            continue
 
         _limitar_alcance(suporte)
 
@@ -2021,6 +2222,7 @@ var _ate_conferir := RITMO_DA_CONFERENCIA
 
 func _process(delta: float) -> void:
     if not _e_regiao and not _celulas.is_empty():
+        _aquecer_proximo_recurso()
         _ate_arrumar -= delta
         if _ate_arrumar <= 0.0:
             _ate_arrumar = 0.4
@@ -2130,6 +2332,11 @@ func montar_mundo(db: Dictionary, quem_joga: Node3D) -> void:
     jogador = quem_joga
     _celulas.clear()
     _por_celula.clear()
+    # O coordenador também precisa conhecer as plantas: o minimapa consulta
+    # esta instância, não as cópias regionais. Aproveitamos a mesma leitura para
+    # iniciar o carregamento assíncrono dos modelos antes de eles entrarem na tela.
+    carregar_dados()
+    _preparar_fila_de_recursos()
 
     var zonas: Dictionary = db.get("zones", {})
     var inicio := String(db.get("start_zone", ""))
@@ -2195,6 +2402,54 @@ func _distancia_ate_celula(ponto: Vector3, c: Vector2i) -> float:
     var dx: float = maxf(absf(ponto.x - centro.x) - meia, 0.0)
     var dz: float = maxf(absf(ponto.z - centro.z) - meia, 0.0)
     return sqrt(dx * dx + dz * dz)
+
+
+## Lê malhas e texturas em segundo plano enquanto o jogador ainda explora a
+## primeira floresta. Quando a cidade entra no alcance, load() encontra tudo no
+## cache e não congela o quadro na primeira casa, banca ou carroça.
+func _preparar_fila_de_recursos() -> void:
+    _fila_de_recursos.clear()
+    var vistos := {}
+    var layouts: Dictionary = _city_layouts.get("layouts", {})
+    var prioridade := ["vila_caminho_v2", "acordelot_centro_v2",
+        "mercado_caminho_v2", "arredores_v2"]
+    for id in prioridade:
+        for item in layouts.get(id, []):
+            var caminho := str(item.get("model", ""))
+            if caminho == "" or vistos.has(caminho) or not ResourceLoader.exists(caminho):
+                continue
+            if not _tem_textura(caminho):
+                continue
+            vistos[caminho] = true
+            if not ResourceLoader.has_cached(caminho):
+                _fila_de_recursos.append(caminho)
+    for arvore in ARVORES_CC0:
+        var caminho := str(arvore.get("path", ""))
+        if caminho != "" and not vistos.has(caminho) and ResourceLoader.exists(caminho):
+            vistos[caminho] = true
+            if not ResourceLoader.has_cached(caminho):
+                _fila_de_recursos.append(caminho)
+
+
+func _aquecer_proximo_recurso() -> void:
+    if _recurso_em_carga == "":
+        while not _fila_de_recursos.is_empty():
+            var caminho: String = _fila_de_recursos.pop_front()
+            if ResourceLoader.has_cached(caminho):
+                continue
+            if ResourceLoader.load_threaded_request(caminho, "", true) == OK:
+                _recurso_em_carga = caminho
+            break
+        return
+
+    var progresso := []
+    var estado := ResourceLoader.load_threaded_get_status(_recurso_em_carga, progresso)
+    if estado == ResourceLoader.THREAD_LOAD_LOADED:
+        _recursos_aquecidos[_recurso_em_carga] = ResourceLoader.load_threaded_get(_recurso_em_carga)
+        _recurso_em_carga = ""
+    elif estado in [ResourceLoader.THREAD_LOAD_FAILED,
+            ResourceLoader.THREAD_LOAD_INVALID_RESOURCE]:
+        _recurso_em_carga = ""
 
 
 func _arrumar_vizinhanca() -> void:

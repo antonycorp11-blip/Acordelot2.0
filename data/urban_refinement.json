@@ -81,6 +81,7 @@
   "acordelot_centro_v2": {
    "raio": 70.0,
    "so_com_textura": true,
+   "fonte_central": true,
    "vias": {
     "principal": [
      6.0,
@@ -1003,15 +1004,6 @@
      10.0,
      1.0
     ]
-   },
-   {
-    "tag": "poco",
-    "model": "res://models/poco_vila.glb",
-    "position": [
-     0.0,
-     0.0
-    ],
-    "rotation": 0
    },
    {
     "tag": "banco",

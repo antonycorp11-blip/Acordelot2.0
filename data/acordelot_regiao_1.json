@@ -30,7 +30,7 @@
     "zone_capital": {
       "id":"zone_capital", "name":"Centro de Acordelot", "tier":"Capital Real", "biome":"cidade", "grid_pos":[0,-1], "terrain_type":"plato_urbano",
       "grass_density":360, "tree_count":8, "bush_count":10, "flower_count":18, "rock_count":4, "layout_id":"acordelot_centro_v2", "road_surface":"pedra",
-      "road_paths":[[[0,-80],[0,-40],[0,0],[0,80]],[[-80,0],[-40,0],[0,0],[80,0]]], "river_width":6.2, "river_depth":2.2, "river_paths":[[[68,-80],[66,-30],[69,22],[66,80]]],
+      "road_paths":[[[0,-80],[0,-40],[0,0],[0,80]],[[-80,0],[-40,0],[0,0],[80,0]],[[-64,-46],[64,-46]],[[-64,46],[64,46]]], "river_width":6.2, "river_depth":2.2, "river_paths":[[[73,-80],[72,-30],[74,22],[73,80]]],
       "exits":{"north":"zone_forjador","south":"zone_portoes","east":"zone_santuario","west":"zone_vila_caminho"}
     },
     "zone_santuario": {
