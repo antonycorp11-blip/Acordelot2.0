@@ -88,42 +88,83 @@ func _process(delta: float) -> void:
             set_process(false)
     queue_redraw()
 
+## QUEM PEGA DECIDE O `_gui_input`; QUEM SEGUE O DEDO E O `_input`.
+##
+## Os dois existem por motivos diferentes e nenhum dos dois sozinho funciona.
+##
+## `_gui_input` so entrega evento cuja POSICAO cai dentro do controle, e nao
+## captura: o polegar sai da caixa de 210 px assim que encosta na borda do
+## circulo, e a partir dali nem o arrasto nem o SOLTAR voltam para ca. Foi o que
+## eu quebrei na tentativa anterior — o direcional pegava o dedo, perdia o
+## soltar, ficava com dono para sempre e morria depois do primeiro toque.
+##
+## `_input` recebe tudo, de qualquer lugar da tela — mas se ele tambem decidisse
+## quem pega o controle, um toque num painel aberto POR CIMA do direcional seria
+## roubado por ele, porque `_input` corre antes da interface.
+##
+## Entao: o PRESS passa pelo `_gui_input`, que respeita ordem de camada e painel
+## modal; e o ARRASTO e o SOLTAR do dedo que ja e nosso passam pelo `_input`,
+## que enxerga a tela inteira. E marcado como tratado, para a camera nao girar
+## com o mesmo dedo que esta andando.
 func _gui_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
         _viu_toque = true
-        if event.pressed:
-            if _dono == SEM_DONO:
-                _dono = event.index
-                touch_index = event.index
-                _is_dragging = true
-                _update_joystick(event.position)
-            accept_event()
-        else:
-            # So o dono solta o controle. Sem esta guarda, levantar o dedo da
-            # camera zerava o direcional de quem continuava andando.
-            if _dono == event.index:
-                _release_joystick()
-            accept_event()
-    elif event is InputEventScreenDrag:
-        if _dono == event.index:
-            _update_joystick(event.position)
-            accept_event()
+        if event.pressed and _dono == SEM_DONO:
+            _tomar_posse(event.index, event.position)
+        accept_event()
     elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+        # No computador o projeto liga `emulate_touch_from_mouse`, entao o rato
+        # ja entra pelo caminho do toque acima. Isto e so a rede de seguranca.
         if _viu_toque:
             return
-        if event.pressed:
-            if _dono == SEM_DONO:
-                _dono = DONO_RATO
-                _is_dragging = true
-                _update_joystick(event.position)
-        elif _dono == DONO_RATO:
+        if event.pressed and _dono == SEM_DONO:
+            _tomar_posse(DONO_RATO, event.position)
+        accept_event()
+
+
+func _tomar_posse(quem: int, onde_local: Vector2) -> void:
+    _dono = quem
+    touch_index = quem if quem >= 0 else -1
+    _is_dragging = true
+    _update_joystick(onde_local)
+
+
+## O dedo que ja e nosso, seguido pela tela inteira.
+func _input(event: InputEvent) -> void:
+    if _dono == SEM_DONO:
+        return
+    if event is InputEventScreenTouch:
+        _viu_toque = true
+        if not event.pressed and event.index == _dono:
             _release_joystick()
-        accept_event()
-    elif event is InputEventMouseMotion:
-        if _viu_toque or _dono != DONO_RATO:
-            return
-        _update_joystick(event.position)
-        accept_event()
+            get_viewport().set_input_as_handled()
+    elif event is InputEventScreenDrag:
+        if event.index == _dono:
+            _update_joystick(_para_local(event.position))
+            get_viewport().set_input_as_handled()
+    elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+        if not event.pressed and _dono == DONO_RATO:
+            _release_joystick()
+            get_viewport().set_input_as_handled()
+    elif event is InputEventMouseMotion and _dono == DONO_RATO and not _viu_toque:
+        _update_joystick(_para_local(event.position))
+        get_viewport().set_input_as_handled()
+
+
+## Da tela para dentro do controle. `_gui_input` ja entrega em coordenada local,
+## `_input` entrega em coordenada de tela — e o direcional vive num CanvasLayer,
+## entao a conta tem de passar pela transformacao da camada.
+func _para_local(na_tela: Vector2) -> Vector2:
+    return get_global_transform_with_canvas().affine_inverse() * na_tela
+
+
+## Perder o foco solta o dedo. Sem isto, trocar de aba no navegador com o
+## polegar apoiado deixava o heroi andando sozinho e o controle sem dono.
+func _notification(o_que: int) -> void:
+    if o_que == NOTIFICATION_APPLICATION_FOCUS_OUT or o_que == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+        if _dono != SEM_DONO:
+            _release_joystick()
+
 
 func _update_joystick(pointer_position: Vector2) -> void:
     set_process(true)
