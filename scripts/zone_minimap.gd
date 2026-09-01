@@ -73,7 +73,11 @@ func _criar_minimap_hud() -> void:
     
     var vbox := VBoxContainer.new()
     vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
-    vbox.add_theme_constant_override("separation", 2)
+    # Seis, e nao dois. O anel dourado e desenhado com quatro pixels de margem
+    # dentro da area do radar, entao com separacao de dois o "Tier I" encostava
+    # no aro e ficava lido por baixo do ouro. Visto na captura, nao medido: os
+    # retangulos nao se cruzam, quem invade e o desenho dentro deles.
+    vbox.add_theme_constant_override("separation", 6)
     hud_box.add_child(vbox)
     
     _title_label = Label.new()
@@ -95,6 +99,17 @@ func _criar_minimap_hud() -> void:
     vbox.add_child(_tier_label)
     
     # Área de desenho do radar com a moldura artística
+    # UM ESPACO DE VERDADE ANTES DO DISCO.
+    #
+    # Os retangulos do rotulo e do radar nao se cruzam — 54 contra 64 — e mesmo
+    # assim, na captura, "Região inicial" aparece encostado no aro dourado: o
+    # desenho da moldura tem brilho para fora do retangulo em que e pintada.
+    # Medir dizia que estava bom e a tela dizia que nao; quem manda e a tela.
+    var respiro := Control.new()
+    respiro.custom_minimum_size = Vector2(0, 10)
+    respiro.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    vbox.add_child(respiro)
+
     _minimap_draw = Control.new()
     # Quadrado: a moldura e um circulo, e caixa achatada vira elipse.
     _minimap_draw.custom_minimum_size = Vector2(170, 170)
@@ -225,10 +240,16 @@ var _zid_atual := ""
 const JANELA := 52.0
 
 
+## Guarda quem ja esta sendo desenhada: a carta agora leva varios quadros, e
+## sem isto uma segunda chamada comecaria a mesma imagem de novo por cima.
+var _desenhando := ""
+
 func _preparar_carta(zid: String, z_data: Dictionary) -> void:
     _zid_atual = zid
     if _cartas.has(zid):
         _carta_atual = _cartas[zid]
+        return
+    if _desenhando == zid:
         return
     _carta_atual = null
     var construtor: Node = zone_manager.zone_builder if zone_manager else null
@@ -239,8 +260,27 @@ func _preparar_carta(zid: String, z_data: Dictionary) -> void:
     var regiao: Node3D = construtor._regioes.get(zid)
     if regiao == null or not is_instance_valid(regiao):
         return
-    _carta_atual = CartaDaZona.desenhar(construtor, zid, z_data, regiao)
-    _cartas[zid] = _carta_atual
+    _desenhando = zid
+    # Passa a arvore: e por ela que a carta devolve o quadro entre as faixas de
+    # linha, em vez de segurar a tela por mais de um segundo.
+    var pronta: ImageTexture = await CartaDaZona.desenhar(
+        construtor, zid, z_data, regiao, get_tree())
+    _desenhando = ""
+    if pronta == null:
+        return
+    _cartas[zid] = pronta
+    # A zona pode ter mudado enquanto a carta era desenhada.
+    if _zid_atual == zid:
+        _carta_atual = pronta
+        # E PRECISO PEDIR O REDESENHO.
+        #
+        # O radar so repinta quando o jogador anda. A carta agora leva varios
+        # quadros para ficar pronta, e se ela chega com o heroi parado — que e o
+        # caso ao entrar numa zona — nada dispara o desenho e o disco fica preto
+        # ate alguem dar um passo. Visto na captura; nenhum teste pegaria, porque
+        # todos chamavam queue_redraw() na mao.
+        if _minimap_draw:
+            _minimap_draw.queue_redraw()
 
 
 func _on_zone_changed(z_data: Dictionary) -> void:
@@ -268,6 +308,9 @@ const GIRO_QUE_IMPORTA := 0.05
 var _ate_redesenhar := 0.0
 var _onde_desenhei := Vector3(1e9, 1e9, 1e9)
 var _giro_desenhado := 0.0
+## Mesmo sem ninguem se mexer, o radar repinta neste intervalo.
+const INTERVALO_PARADO := 0.5
+var _ate_repintar := 0.0
 
 
 func _process(delta: float) -> void:
@@ -275,15 +318,19 @@ func _process(delta: float) -> void:
         _ate_redesenhar -= delta
         if _ate_redesenhar <= 0.0:
             _ate_redesenhar = RITMO_DO_RADAR
+            _ate_repintar -= RITMO_DO_RADAR
             if player == null:
                 _minimap_draw.queue_redraw()
-            else:
-                var aqui := player.global_position
-                if (aqui.distance_to(_onde_desenhei) > PASSO_QUE_IMPORTA
-                        or absf(angle_difference(_giro_desenhado, player.rotation.y)) > GIRO_QUE_IMPORTA):
-                    _onde_desenhei = aqui
-                    _giro_desenhado = player.rotation.y
-                    _minimap_draw.queue_redraw()
+            elif (player.global_position.distance_to(_onde_desenhei) > PASSO_QUE_IMPORTA
+                    or absf(angle_difference(_giro_desenhado, player.rotation.y)) > GIRO_QUE_IMPORTA
+                    or _ate_repintar <= 0.0):
+                # Parado o radar tambem precisa respirar de vez em quando: bicho
+                # anda, NPC anda e o anel do objetivo pulsa. Meio segundo entre
+                # repinturas custa quase nada e mantem os marcos vivos.
+                _onde_desenhei = player.global_position
+                _giro_desenhado = player.rotation.y
+                _ate_repintar = INTERVALO_PARADO
+                _minimap_draw.queue_redraw()
 
     # A primeira zona ja esta carregada quando este no acorda, entao o sinal de
     # troca dela nunca chega — e a regiao pode ainda estar se montando. Insiste
@@ -319,9 +366,21 @@ func _on_minimap_draw() -> void:
     var frame_rect := Rect2(center - Vector2(frame_size, frame_size) * 0.5, Vector2(frame_size, frame_size))
     var raio_util := frame_size * 0.5 - 8.0
 
-    # 1. O disco escuro por baixo. A moldura nova e so um anel — sem este fundo
-    # o radar flutuaria solto sobre o mapa 3D e os pontos sumiriam na grama.
-    _minimap_draw.draw_circle(center, frame_size * 0.5 - 4.0, Color(0.05, 0.07, 0.06, 0.82))
+    # 1. O disco por baixo. A moldura nova e so um anel — sem este fundo o radar
+    # flutuaria solto sobre o mapa 3D e os pontos sumiriam na grama.
+    #
+    # ENQUANTO A CARTA NAO CHEGA, o disco usa a cor do bioma em vez de quase
+    # preto. A carta leva alguns segundos para nascer (e desenhada aos poucos
+    # para nao travar a tela), e nesse tempo um disco preto com pontinhos parecia
+    # radar quebrado. Com o verde da floresta ou o cinza da serra ali, a chegada
+    # do desenho e um detalhamento, nao um conserto.
+    var fundo := Color(0.05, 0.07, 0.06, 0.82)
+    if _carta_atual == null:
+        var bioma := String(_current_zone_data.get("biome", ""))
+        fundo = CartaDaZona.CHAO_DO_BIOMA.get(bioma, Color(0.26, 0.34, 0.22))
+        fundo.a = 0.82
+        fundo = fundo.darkened(0.25)
+    _minimap_draw.draw_circle(center, frame_size * 0.5 - 4.0, fundo)
 
     # 1b. A CARTA DA REGIAO dentro do disco.
     #

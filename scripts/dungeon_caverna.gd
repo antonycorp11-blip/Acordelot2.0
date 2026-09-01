@@ -940,6 +940,9 @@ func _entrar() -> void:
         return
     _posicao_de_retorno = _jogador.global_position
     _dentro = true
+    # A caverna tem chao proprio e nao segue o relevo do mundo aberto: com a
+    # garantia ligada, o heroi seria puxado para a superficie assim que descesse.
+    _jogador.chao_garantido = false
     _dungeon.visible = true
     _dungeon.process_mode = Node.PROCESS_MODE_INHERIT
     if _zona:
@@ -980,6 +983,7 @@ func _entrar() -> void:
 
 func _sair() -> void:
     _dentro = false
+    _jogador.chao_garantido = true
     _jogador.global_position = _posicao_de_retorno + Vector3.UP * 0.4
     _jogador.velocity = Vector3.ZERO
     _dungeon.visible = false

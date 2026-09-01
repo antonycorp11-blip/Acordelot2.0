@@ -1283,15 +1283,6 @@
     ]
    },
    {
-    "tag": "poco",
-    "model": "res://models/poco_vila.glb",
-    "position": [
-     0.0,
-     0.0
-    ],
-    "rotation": 0
-   },
-   {
     "tag": "banco",
     "model": "res://models/banco_vila.glb",
     "position": [

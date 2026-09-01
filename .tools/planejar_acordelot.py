@@ -208,7 +208,11 @@ def fileiras():
 
 def quintais():
     """Carga e mobilia no miolo dos quarteiroes, nunca na calcada."""
-    pecas = [prop("poco", "poco_vila", 0.0, 0.0, 0)]
+    # SEM POCO NO CENTRO. A praca da capital declara `fonte_central`, e o
+    # construtor levanta a fonte exatamente em (0, 0). O poco aqui nascia dentro
+    # dela — dois marcos no mesmo ponto no coracao da cidade. Nas vilas o poco
+    # continua, porque la nao ha fonte.
+    pecas = []
     for x, z, giro in ((-11.5, 11.5, 315), (11.5, 11.5, 45),
                        (-11.5, -11.5, 225), (11.5, -11.5, 135)):
         pecas.append(prop("banco", "banco_vila", x, z, giro))

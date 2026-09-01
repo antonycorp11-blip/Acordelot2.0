@@ -170,13 +170,12 @@ func construir_zona(zone_data: Dictionary) -> void:
     _portals_node.name = "Portals"
     add_child(_portals_node)
 
+    _montando = true
+    _relogio_da_montagem = Time.get_ticks_usec()
     _planejar_pontes()
-    _construir_terreno()
-    # Montar uma regiao inteira no mesmo quadro era o tranco sentido ao entrar
-    # na cidade. O terreno nasce primeiro para o jogador nunca cair; o visual
-    # restante e distribuido em poucos quadros.
-    if is_inside_tree():
-        await get_tree().process_frame
+    # O terreno nasce primeiro para o jogador nunca cair; o restante vem depois,
+    # sempre dentro do orcamento do quadro.
+    await _construir_terreno()
 
     # Rios e estradas pertencem ao plano da região, portanto nascem antes dos
     # edifícios. O leito já foi cavado pela mesma função de altura do terreno.
@@ -191,14 +190,17 @@ func construir_zona(zone_data: Dictionary) -> void:
     _construir_marco_central()
     await _acender_a_povoacao()
     _plantar_os_npcs()
-    _espalhar_os_adornos()
-    if is_inside_tree():
-        await get_tree().process_frame
-    _construir_floresta_3d_real()
+    await _espalhar_os_adornos()
+    await _respirar()
+    await _construir_floresta_3d_real()
     _bloquear_macicos_densos()
-    _plantar_vegetacao_baixa()
-    _plantar_mato_pbr()
-    _plantar_grama_texturizada_nova()
+    await _respirar()
+    await _plantar_vegetacao_baixa()
+    await _respirar()
+    await _plantar_mato_pbr()
+    await _respirar()
+    await _plantar_grama_texturizada_nova()
+    await _respirar()
     _construir_pedras_do_chao()
     _construir_barreiras_perimetro_arvores_reais()
     # Vila, cidade e santuario nao criam ninho. O jogador reclamou de Shiker
@@ -210,6 +212,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _plantar_ecos_musicais()
     if not _e_regiao:
         _construir_portais()
+    _montando = false
 
 
 ## Poucos pontos reutilizaveis em zonas naturais. Cidades ficam sem madeira,
@@ -425,6 +428,12 @@ func _construir_terreno() -> void:
     var half: float = TAMANHO_ZONA * 0.5
     
     for j in range(SUBDIVISOES + 1):
+        # A malha do chao e 65 por 65: quatro mil alturas calculadas, cada uma
+        # com ruido, rio, estrada e nivelamento de vila por cima. Somada a
+        # colisao, era o unico pedaco que ainda estourava o orcamento do quadro
+        # depois que o resto passou a respirar — 140 ms medidos.
+        if j % 8 == 0:
+            await _respirar()
         for i in range(SUBDIVISOES + 1):
             var x: float = -half + float(i) * step
             var z: float = -half + float(j) * step
@@ -468,6 +477,10 @@ func _construir_terreno() -> void:
     _terrain_mesh.material_override = mat
     add_child(_terrain_mesh)
     
+    # A forma de colisao vem da mesma malha e custa quase tanto quanto monta-la.
+    # Fica no quadro seguinte: o desenho do chao ja apareceu, e o jogador so
+    # alcanca a regiao vizinha dezenas de metros depois de ela comecar a nascer.
+    await _respirar()
     _terrain_body = StaticBody3D.new()
     _terrain_body.name = "TerrainCollision"
     var col := CollisionShape3D.new()
@@ -930,6 +943,7 @@ func _construir_layout_urbano() -> void:
     if not todas.has(layout_id):
         return
     var pecas: Array = todas[layout_id]
+    var so_com_textura: bool = bool(_dados_da_praca().get("so_com_textura", false))
     var pinheiros_planejados: Array[Vector3] = []
     var contagem_entulho := {}
     var construidas := 0
@@ -962,10 +976,21 @@ func _construir_layout_urbano() -> void:
         var modelo_path: String = str(p.get("model", ""))
         if modelo_path == "" or not ResourceLoader.exists(modelo_path):
             continue
-        # Construção ou prop urbano sem textura nunca entra. As plantas novas
-        # já só usam o acervo aprovado; a segunda guarda impede regressões se
-        # um layout antigo for ligado por engano.
-        if not _tem_textura(modelo_path):
+        # O CORTE POR TEXTURA VALE ONDE A PLANTA PEDIU, e so ali.
+        #
+        # O proprio comentario de COM_TEXTURA diz isso: "a regra vale POR PLANTA
+        # (...) so entra em vigor onde o planejador marcou so_com_textura". O
+        # codigo aplicava a todas. Tres zonas declaram a bandeira como falsa e
+        # eram esvaziadas assim mesmo — medido: o Santuario das Notas Sagradas
+        # tinha 57 pecas planejadas e construia ZERO, o Altar de Escalas 7 de 53
+        # e a Masmorra 8 de 62. Os 172 modelos estao no disco; nenhum estava
+        # faltando. Eram tres povoados vazios por um filtro que ninguem tinha
+        # ligado para eles.
+        #
+        # Onde a bandeira nao esta ligada, o modelo sem imagem ainda passa por
+        # _corrigir_materiais_prop e ganha cor por vertice: fica sem sujeira de
+        # madeira e telha, mas fica. Cidade apagada e pior que cidade simples.
+        if so_com_textura and not _tem_textura(modelo_path):
             continue
 
         # Pinheiros repetidos usam MultiMesh. No distrito dos Portoes eram 52
@@ -1026,9 +1051,26 @@ func _construir_layout_urbano() -> void:
             Vector3.ZERO) * _caixa_do_modelo(suporte)
         var e_adorno: bool = tag in PROPS_DE_CALCADA or tag.ends_with("_cc0")
         if not e_adorno:
-            pegadas_das_casas.append(Rect2(
-                px + ocupacao.position.x, pz + ocupacao.position.z,
-                ocupacao.size.x, ocupacao.size.z))
+            var pegada := Rect2(px + ocupacao.position.x, pz + ocupacao.position.z,
+                ocupacao.size.x, ocupacao.size.z)
+            # PAREDE DENTRO DE PAREDE NAO ENTRA.
+            #
+            # Medido na cena montada: os Portoes de Acordelot tinham dez
+            # construcoes cruzadas, um solar com sete metros dentro de um
+            # casarao. A planta radial que gerou aquele bairro escolhe o ponto
+            # pela fatia entre duas avenidas e nao confere o tamanho de quem ja
+            # esta plantado, entao no anel de dentro, onde a fatia e estreita,
+            # as casas grandes se encavalam.
+            #
+            # Consertar o planejador nao resolveria as plantas feitas a mao nem
+            # as que ainda vao aparecer. A garantia mora aqui: quem chega depois
+            # e nao cabe, nao nasce. Uma casa a menos e melhor que duas dentro
+            # uma da outra, e a rua continua cheia — sao cinco de cinquenta e
+            # cinco no pior bairro.
+            if not _pode_encavalar(tag) and _cruza_construcao(pegada, pegadas_das_casas):
+                suporte.free()
+                continue
+            pegadas_das_casas.append(pegada)
         elif _dentro_de_construcao(Vector2(px, pz), pegadas_das_casas):
             suporte.free()
             continue
@@ -1063,8 +1105,9 @@ func _construir_layout_urbano() -> void:
             _adicionar_colisor_prop(suporte, tag, 1.0)
         _props_node.add_child(suporte)
         construidas += 1
-        if construidas % 6 == 0 and is_inside_tree():
-            await get_tree().process_frame
+        # Pelo RELOGIO, e nao de seis em seis: uma casa grande com colisao custa
+        # muito mais que um barril, e contar pecas trata as duas como iguais.
+        await _respirar()
 
     if not pinheiros_planejados.is_empty():
         _plantar_pinheiros_em_lote(pinheiros_planejados,
@@ -1085,6 +1128,29 @@ func _construcoes_antes_dos_adornos(pecas: Array) -> Array:
         else:
             estruturas.append(p)
     return estruturas + adornos
+
+
+## Muralha, muro e ponte SE JUNTAM de proposito: os segmentos foram desenhados
+## para encostar um no outro e formar uma linha continua. Cortar por
+## sobreposicao abriria buraco na muralha.
+const PODE_ENCAVALAR := ["muralha", "muro", "ponte", "escada", "portao"]
+
+func _pode_encavalar(tag: String) -> bool:
+    return tag in PODE_ENCAVALAR
+
+
+## Cruzamento de verdade, nao beiral encostado. Um metro e meio de invasao nos
+## dois eixos e parede atravessando parede; menos que isso e telhado vizinho.
+const INVASAO_TOLERADA := 0.8
+
+func _cruza_construcao(nova: Rect2, pegadas: Array[Rect2]) -> bool:
+    for r in pegadas:
+        if not nova.intersects(r):
+            continue
+        var c := nova.intersection(r)
+        if minf(c.size.x, c.size.y) > INVASAO_TOLERADA:
+            return true
+    return false
 
 
 func _dentro_de_construcao(p: Vector2, pegadas: Array[Rect2]) -> bool:
@@ -1184,8 +1250,7 @@ func _acender_a_povoacao() -> void:
         poste.rotation.y = deg_to_rad(90.0 if px < 0.0 else 270.0)
         _props_node.add_child(poste)
         feitas += 1
-        if feitas % 6 == 0 and is_inside_tree():
-            await get_tree().process_frame
+        await _respirar()
 
     # As tochas de parede, que iluminam a PORTA e nao a via.
     for t in _dados_da_praca().get("tochas", []):
@@ -1200,8 +1265,7 @@ func _acender_a_povoacao() -> void:
         tocha.rotation.y = deg_to_rad(float(t[2]))
         _props_node.add_child(tocha)
         feitas += 1
-        if feitas % 6 == 0 and is_inside_tree():
-            await get_tree().process_frame
+        await _respirar()
 
 
 ## O poste da rua: o modelo, a lampada no alto e a poca de luz no chao.
@@ -1362,6 +1426,7 @@ func _espalhar_os_adornos() -> void:
         grupos[chave].append(a)
 
     for chave in grupos:
+        await _respirar()
         var partes: PackedStringArray = String(chave).split("|")
         var textura := load(partes[0]) as Texture2D
         if textura == null:
@@ -1449,14 +1514,16 @@ func _construir_floresta_3d_real() -> void:
     if n_arvores > 0:
         var posicoes: Array[Vector3] = []
         for i in range(n_arvores):
+            if i % 24 == 0:
+                await _respirar()
             var p := _sortear_ponto_de_floresta(rng, raio_min)
             posicoes.append(Vector3(p.x, calcular_altura(p.x, p.y), p.y))
-        _plantar_arvores_cc0_em_lotes(posicoes, hash(str(_zone_data.get("id", "zona"))))
+        await _plantar_arvores_cc0_em_lotes(posicoes, hash(str(_zone_data.get("id", "zona"))))
     if not is_cidade:
         var subbosque: int = clampi(int(round(float(n_arvores) * 0.20)), 10, 18)
-        _espalhar_props_3d(rng, subbosque, SUBBOSQUE_FLORESTA_3D,
+        await _espalhar_props_3d(rng, subbosque, SUBBOSQUE_FLORESTA_3D,
             66.0, false, 0.82, 1.22, 5.0)
-    _espalhar_props_3d(rng, n_arbustos, ARBUSTOS_3D, 65.0, false, 0.9, 1.3, raio_min)
+    await _espalhar_props_3d(rng, n_arbustos, ARBUSTOS_3D, 65.0, false, 0.9, 1.3, raio_min)
 
 
 ## O centro dos maciços é mata fechada, não um campo com árvores decorativas.
@@ -1501,6 +1568,8 @@ func _plantar_arvores_cc0_em_lotes(posicoes: Array[Vector3], semente: int) -> vo
     # fechada sem multiplicar a variante retorcida de quase 10 mil triangulos.
     var variantes_leves := [4, 5, 6, 4, 5, 6, 2, 3, 0, 1, 7]
     for i in posicoes.size():
+        if i % 12 == 0:
+            await _respirar()
         var variante: int = int(variantes_leves[
             rng.randi_range(0, variantes_leves.size() - 1)]) \
             if floresta_inicial else rng.randi_range(0, ARVORES_CC0.size() - 1)
@@ -1670,6 +1739,8 @@ func _plantar_vegetacao_baixa() -> void:
         centros.append(Vector2(rng.randf_range(-76.0, 76.0), rng.randf_range(-76.0, 76.0)))
     var largura_rio := float(_zone_data.get("river_width", 5.0)) + 2.0
     for i in quantidade:
+        if i % 200 == 0:
+            await _respirar()
         var p := Vector2.ZERO
         var tentativas := 0
         while tentativas < 8:
@@ -1793,11 +1864,11 @@ func _plantar_mato_pbr() -> void:
     var rng := RandomNumberGenerator.new()
     rng.seed = hash(str(_zone_data.get("id", "zona"))) + 5507
     var arbustos := int(_zone_data.get("bush_count", 22))
-    _semear_mato(amostra, "tufo_alto", 700, 0.55, 0.95, 34.0, rng)
+    await _semear_mato(amostra, "tufo_alto", 700, 0.55, 0.95, 34.0, rng)
     # A erva é uma roseta de folha larga: medida pela altura ela viraria um
     # disco de dois metros e meio de diâmetro. Esta é medida pela largura.
-    _semear_mato(amostra, "erva_flor", 400, 0.45, 0.75, 26.0, rng, true)
-    _semear_mato(amostra, "erva_flor", arbustos * 2, 1.10, 1.70, 44.0, rng, true)
+    await _semear_mato(amostra, "erva_flor", 400, 0.45, 0.75, 26.0, rng, true)
+    await _semear_mato(amostra, "erva_flor", arbustos * 2, 1.10, 1.70, 44.0, rng, true)
     _semear_moita_na_trilha(amostra, rng)
     amostra.queue_free()
 
@@ -1812,7 +1883,7 @@ func _semear_moita_na_trilha(amostra: Node3D, rng: RandomNumberGenerator) -> voi
     var trilhas: Array = _zone_data.get("road_paths", [])
     if trilhas.is_empty():
         return
-    _semear_mato(amostra, "moita_baixa", 26, 0.70, 1.15, 30.0, rng, true, true)
+    await _semear_mato(amostra, "moita_baixa", 26, 0.70, 1.15, 30.0, rng, true, true)
 
 
 ## Uma espécie, uma chamada de desenho.
@@ -1845,6 +1916,8 @@ func _semear_mato(amostra: Node3D, nome: String, quantidade: int,
     var lotes: Dictionary = {}
     var largura_rio := float(_zone_data.get("river_width", 5.0)) + 2.5
     for i in quantidade:
+        if i % 150 == 0:
+            await _respirar()
         # Metade nos maciços, metade no campo aberto: o mato do plano regional
         # nasce junto com as árvores, mas clareira sem mato nenhum lê como
         # gramado de jardim, não como floresta.
@@ -1871,6 +1944,8 @@ func _semear_mato(amostra: Node3D, nome: String, quantidade: int,
             lotes[chave] = []
         lotes[chave].append(suporte * local)
 
+    if not is_instance_valid(origem):
+        return
     var material := _material_do_mato(origem, altura_tipica, alcance)
     for chave in lotes:
         var instancias: Array = lotes[chave]
@@ -1962,6 +2037,8 @@ func _plantar_grama_texturizada_nova() -> void:
     var giros: Array[float] = []
     var rios: Array = _zone_data.get("river_paths", [])
     for i in quantidade:
+        if i % 20 == 0:
+            await _respirar()
         var p := Vector2.ZERO
         if i < 52 and not rios.is_empty():
             # Vegetação úmida acompanha as margens, mas não nasce dentro d'água.
@@ -2203,6 +2280,7 @@ func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio
     var tem_agua: bool = bool(_zone_data.get("water", false))
     
     for i in range(qtd):
+        await _respirar()
         var item: Dictionary = lista[rng.randi() % lista.size()]
         var path: String = str(item["path"])
         var tag: String = str(item["tag"])
@@ -2592,6 +2670,40 @@ const RITMO_DA_CONFERENCIA := 1.0
 
 var _ate_conferir := RITMO_DA_CONFERENCIA
 
+## O ORCAMENTO DE TEMPO POR QUADRO durante a montagem de uma regiao.
+##
+## Medido antes de existir: montar a Floresta do Despertar gastava 1,19 SEGUNDO
+## num unico quadro — 450 ms de arvores, 315 de vegetacao baixa, 197 de mato,
+## 204 de grama. Tudo depois de `_espalhar_os_adornos` corria sem ceder o quadro
+## uma vez. Num celular isso e a tela congelada por varios segundos ao atravessar
+## uma divisa, que e o "travamento no carregamento".
+##
+## Contar pecas nao resolve: seis casas custam o que custam num aparelho e outra
+## coisa noutro. O que se controla e o RELOGIO — trabalha-se ate gastar o
+## orcamento, cede-se o quadro, e retoma-se. A regiao demora mais quadros para
+## ficar pronta e nenhum deles engasga.
+const ORCAMENTO_DO_QUADRO_US := 4500
+
+var _relogio_da_montagem := 0
+## Enquanto isto for verdadeiro a regiao ainda esta nascendo e NAO pode ser
+## solta: a montagem agora atravessa dezenas de quadros, e liberar no meio
+## deixava a rotina rodando sobre nos ja destruidos — "argument previously
+## freed" na hora de montar o mato.
+var _montando := false
+
+
+func _respirar() -> void:
+    # `is_inside_tree()` e falso enquanto a regiao ainda esta sendo pendurada no
+    # mundo — e era justamente a montagem inicial, a mais pesada, que passava
+    # inteira sem ceder um quadro. Basta haver arvore de cena para poder esperar.
+    var arvore := get_tree()
+    if arvore == null:
+        return
+    if Time.get_ticks_usec() - _relogio_da_montagem < ORCAMENTO_DO_QUADRO_US:
+        return
+    await arvore.process_frame
+    _relogio_da_montagem = Time.get_ticks_usec()
+
 
 func _process(delta: float) -> void:
     if not _e_regiao and not _celulas.is_empty():
@@ -2857,6 +2969,12 @@ func _construir_regiao(zid: String) -> void:
 
 func _soltar_regiao(zid: String) -> void:
     var regiao: Node = _regioes.get(zid)
-    if is_instance_valid(regiao):
-        regiao.queue_free()
+    if not is_instance_valid(regiao):
+        _regioes.erase(zid)
+        return
+    # Regiao a meio caminho de nascer nao morre: a proxima conferencia de
+    # vizinhanca tenta de novo, e a essa altura ela ja terminou.
+    if regiao._montando:
+        return
+    regiao.queue_free()
     _regioes.erase(zid)

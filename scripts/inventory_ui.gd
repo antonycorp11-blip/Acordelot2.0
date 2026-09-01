@@ -458,6 +458,23 @@ func _area_da_grade() -> Control:
 
 
 ## Um slot: moldura da raridade, arte do item, quantidade no canto.
+## O NUMERO CABE NO CANTO DO SLOT.
+##
+## A caixa da quantidade tem pouco mais de trinta pixels e a fonte, dezessete:
+## "1" cabia, "3341" nao — o milhar transbordava para a esquerda e ficava por
+## cima da moeda. Quatro digitos ja e o caso comum (Claves), entao a partir do
+## milhar o numero vira "3,3 mil" abreviado, que e o que cabe e o que se le de
+## relance num icone pequeno.
+func _quantidade_curta(n: int) -> String:
+    if n < 1000:
+        return str(n)
+    if n < 1000000:
+        var mil: float = float(n) / 1000.0
+        return ("%.0fK" % mil) if mil >= 10.0 else ("%.1fK" % mil).replace(".", ",")
+    var mi: float = float(n) / 1000000.0
+    return ("%.0fM" % mi) if mi >= 10.0 else ("%.1fM" % mi).replace(".", ",")
+
+
 func _slot(item: Dictionary) -> Control:
     var botao := Button.new()
     botao.custom_minimum_size = Vector2(104, 112)
@@ -492,11 +509,11 @@ func _slot(item: Dictionary) -> Control:
     icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
     botao.add_child(icone)
 
-    var qtd := _texto(str(item.get("qtd", 1)), 17, Color(0.99, 0.95, 0.80))
+    var qtd := _texto(_quantidade_curta(int(item.get("qtd", 1))), 17, Color(0.99, 0.95, 0.80))
     # Para DENTRO da moldura: encostado na borda, o numero caia em cima do
     # ornamento de baixo do slot e ficava pela metade.
     qtd.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-    qtd.offset_left = -38
+    qtd.offset_left = -52
     qtd.offset_top = -34
     qtd.offset_right = -14
     qtd.offset_bottom = -14

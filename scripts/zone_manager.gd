@@ -31,7 +31,23 @@ func _ready() -> void:
         zone_builder.montar_mundo(_zones_db, player)
 
     _current_zone_id = String(_zones_db.get("start_zone", "zone_floresta_despertar"))
+    # O CHAO PRIMEIRO, O JOGADOR DEPOIS.
+    #
+    # A montagem da regiao passou a atravessar varios quadros para nao travar a
+    # tela, e a colisao do terreno nasce junto com o resto. Sem esperar, o heroi
+    # era posto no lugar certo e caia pelo vazio antes de existir chao debaixo
+    # dele — medido: de y -10 para y -4873 em vinte segundos, com a camera
+    # embaixo do mundo e a tela preta.
+    #
+    # Congelar a fisica e o mesmo recurso que a viagem rapida ja usava. Aqui ele
+    # passa a valer tambem para a primeira entrada no mundo.
+    if player:
+        player.set_physics_process(false)
     _posicionar_jogador("center")
+    await _esperar_a_regiao(_current_zone_id)
+    _posicionar_jogador("center")
+    if player:
+        player.set_physics_process(true)
     var inicial: Dictionary = _zones_db.get("zones", {}).get(_current_zone_id, {})
     _animar_banner_zona(inicial)
     zone_changed.emit(inicial)
@@ -147,14 +163,29 @@ func carregar_zona(zone_id: String, _entrada_dir: String = "center") -> void:
     destino.y = zone_builder.calcular_altura(destino.x, destino.z) + 4.0
     player.global_position = destino
     player.velocity = Vector3.ZERO
-    var tentativas := 0
-    while not zone_builder._regioes.has(zone_id) and tentativas < 100:
-        await get_tree().create_timer(0.10).timeout
-        tentativas += 1
+    await _esperar_a_regiao(zone_id)
     destino.y = zone_builder.calcular_altura(destino.x, destino.z) + 1.2
     player.global_position = destino
     player.velocity = Vector3.ZERO
     player.set_physics_process(true)
+
+## Espera a regiao existir E terminar de nascer.
+##
+## Ter a entrada no dicionario nao basta: `_construir_regiao` registra a regiao
+## no mesmo quadro em que a cria, e a construcao dela continua por dezenas de
+## quadros depois disso. Quem so conferia o dicionario liberava a fisica com o
+## chao ainda pela metade.
+func _esperar_a_regiao(zone_id: String) -> void:
+    if zone_builder == null:
+        return
+    var tentativas := 0
+    while tentativas < 200:
+        var regiao = zone_builder._regioes.get(zone_id)
+        if is_instance_valid(regiao) and not regiao._montando:
+            return
+        await get_tree().create_timer(0.05).timeout
+        tentativas += 1
+
 
 func _posicionar_jogador(entrada_dir: String) -> void:
     if not player or not zone_builder:

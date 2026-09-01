@@ -17,6 +17,24 @@ var _personagem_atual := "akles"
 
 var _voando := false
 
+## O CHAO DE ULTIMA INSTANCIA.
+##
+## Num mundo montado por streaming, cair para fora nao pode ser possivel — e era.
+## Ao viajar para a Masmorra o heroi nascia dentro de uma torre (construcao que
+## voltou quando o filtro por textura passou a valer so onde a planta pede) e a
+## capsula era empurrada para baixo do terreno; dali descia para sempre, com a
+## camera embaixo do mundo e a tela preta. A mesma coisa aconteceria em qualquer
+## brecha de tempo entre o jogador chegar e o chao daquela celula existir.
+##
+## `Relevo.altura` e uma funcao pura de (x, z): ela sabe onde e o chao mesmo
+## quando a malha ainda nao nasceu. Se o heroi estiver MUITO abaixo dela, ele
+## volta. Nao substitui a colisao — quatro metros de folga deixam ladeira,
+## buraco e salto em paz —, e so age no caso em que nao ha volta por si.
+const QUEDA_QUE_NAO_VOLTA := 4.0
+## Desligado dentro da DG, que tem chao proprio noutro nivel e nao segue o
+## relevo do mundo aberto.
+var chao_garantido := true
+
 ## O quadro de referência do direcional, guardado como DESVIO ANGULAR entre o
 ## rumo que o dedo escolheu e os eixos atuais da câmera. Ver `_physics_process`.
 ##
@@ -262,6 +280,12 @@ func _physics_process(delta: float) -> void:
         velocity.y -= gravity * delta
     else:
         velocity.y = -0.5
+
+    if chao_garantido:
+        var chao := Relevo.altura(global_position.x, global_position.z)
+        if global_position.y < chao - QUEDA_QUE_NAO_VOLTA:
+            global_position.y = chao + 0.6
+            velocity.y = 0.0
 
     # No meio do golpe o corpo NAO gira com o direcional. Sem isso o jogador
     # anda durante o swing, o heroi acompanha, e a lamina termina apontada para

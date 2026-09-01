@@ -13,9 +13,17 @@ extends RefCounted
 ## entra e guardada. Sao 102 mil amostras de altura, na casa das dezenas de
 ## milissegundos, e acontece enquanto a zona ainda esta se montando.
 
-# O disco ocupa 162 px na tela. 192 preserva todos os detalhes visiveis e
-# reduz de 204 mil para cerca de 74 mil as amostras feitas ao entrar na zona.
-const PIXELS := 192
+# O disco ocupa 162 px na tela e mostra uma JANELA de 52 m dos 160 da zona: so
+# um terco da carta aparece de cada vez, ja ampliado. A 144 a janela visivel tem
+# 47 texels para 162 px — ampliacao de 3,5x contra 2,6x —, diferenca que nao se
+# le num radar, e a imagem passa a custar 1,8 vez menos.
+#
+# ISTO E DESEMPENHO, NAO CAPRICHO. Espalhar a geracao pelos quadros tirou a
+# travada mas nao o custo: com o jogo a 16 quadros por segundo e 5 ms de
+# orcamento, a carta a 192 levava MAIS DE TREZE SEGUNDOS para aparecer, e o
+# jogador entrava na zona com o radar preto. Barato importa tanto quanto
+# incremental.
+const PIXELS := 144
 
 ## Nomes que o construtor da as pecas (`suporte.name = tag`). E por eles que a
 ## carta sabe o que e casa e o que e mato, sem adivinhar por tamanho.
@@ -45,71 +53,163 @@ const CHAO_DO_BIOMA := {
 }
 
 
-static func desenhar(mundo: Node, zid: String, dados: Dictionary, regiao: Node) -> ImageTexture:
+## UMA VARREDURA SO, e cedendo o quadro.
+##
+## Media 1,9 s por zona — mais que tudo o que monta a regiao somado — e travava
+## a tela inteira a cada travessia de divisa. Eram QUATRO passagens completas
+## sobre a mesma imagem de 192 por 192: relevo, composicao natural, rede
+## regional e vias urbanas, cada uma relendo 36 mil pixels do zero, e as duas
+## ultimas ainda percorrendo a lista de segmentos por pixel.
+##
+## Agora e uma passagem: cada pixel decide de uma vez o que e. Os segmentos de
+## rio e estrada sao achatados numa lista antes do laco, em vez de reabertos a
+## cada ponto. E a cada faixa de linhas a funcao devolve o quadro — a carta
+## demora alguns quadros a mais para ficar pronta e o jogo nao para.
+## A ALTURA VEM DE UMA GRADE MAIS GROSSA, interpolada.
+##
+## `calcular_altura` e a conta cara — ruido, rio, estrada e nivelamento de vila
+## empilhados — e a carta pedia uma por pixel: 36.864 por zona. O relevo e
+## suave, entao amostrar de dois em dois pixels e interpolar entre os quatro
+## vizinhos da o mesmo desenho com um quarto das contas. O sombreamento lateral
+## continua funcionando porque a diferenca entre pixels vizinhos continua
+## variando — so ficou mais macia, que num disco de 162 px ninguem distingue.
+const PASSO_DA_ALTURA := 4
+
+## Orcamento por quadro, em microssegundos. Faixa de linhas nao serve: a mesma
+## faixa custa uma coisa num aparelho e outra noutro, e foi assim que dezesseis
+## faixas de cem milissegundos passaram por "incremental".
+const ORCAMENTO_US := 5000
+
+static func desenhar(mundo: Node, zid: String, dados: Dictionary, regiao: Node,
+		arvore: SceneTree = null) -> ImageTexture:
 	var lado: float = float(mundo.TAMANHO_ZONA)
 	var metros_por_pixel: float = lado / float(PIXELS)
 	var meia: float = lado * 0.5
 	var deslocamento: Vector3 = mundo.deslocamento_da_celula(
 		mundo._celulas.get(zid, Vector2i.ZERO))
 
-	var imagem := Image.create(PIXELS, PIXELS, false, Image.FORMAT_RGBA8)
+	# A grade de alturas, medida uma vez.
+	var lado_grade: int = PIXELS / PASSO_DA_ALTURA + 2
+	var alturas := PackedFloat32Array()
+	alturas.resize(lado_grade * lado_grade)
+	for gj in lado_grade:
+		var zz: float = -meia + float(gj * PASSO_DA_ALTURA) * metros_por_pixel
+		for gi in lado_grade:
+			var xx: float = -meia + float(gi * PASSO_DA_ALTURA) * metros_por_pixel
+			alturas[gj * lado_grade + gi] = mundo.calcular_altura(
+				deslocamento.x + xx, deslocamento.z + zz)
+		if arvore != null and gj % 8 == 0 and gj > 0:
+			await arvore.process_frame
+
+	# BYTES, NAO set_pixel. Vinte mil chamadas de `set_pixel`, cada uma criando e
+	# desempacotando um Color, custam mais que a conta que decide a cor. Aqui a
+	# imagem e montada num vetor de bytes e criada de uma vez no fim.
+	var pixels := PackedByteArray()
+	pixels.resize(PIXELS * PIXELS * 4)
 	var base: Color = CHAO_DO_BIOMA.get(String(dados.get("biome", "")), Color(0.26, 0.34, 0.22))
 	var tem_agua: bool = bool(dados.get("water", false))
 	var nivel_da_agua: float = float(dados.get("water_level", -2.0))
 
+	# Tudo o que o laco precisa, preparado UMA vez.
+	var macicos: Array = dados.get("forest_clusters", [])
+	var clareiras: Array = dados.get("clearings", [])
+	var largura_rio: float = float(dados.get("river_width", 5.0))
+	var pedra: bool = str(dados.get("road_surface", "terra")) == "pedra"
+	var cor_estrada := Color(0.52, 0.50, 0.46) if pedra else Color(0.50, 0.35, 0.20)
+	var borda_estrada := Color(0.20, 0.20, 0.18) if pedra else Color(0.27, 0.20, 0.13)
+	var trechos_rio := _achatar(dados.get("river_paths", []), largura_rio + 1.1)
+	var trechos_estrada := _achatar(dados.get("road_paths", []), 5.8)
+	var limite_rio_q: float = (largura_rio + 1.1) * (largura_rio + 1.1)
+	var vias := _vias_da_praca(mundo, dados)
+
+	var relogio := Time.get_ticks_usec()
 	for py in PIXELS:
+		if arvore != null and Time.get_ticks_usec() - relogio > ORCAMENTO_US:
+			await arvore.process_frame
+			relogio = Time.get_ticks_usec()
 		var z: float = -meia + (float(py) + 0.5) * metros_por_pixel
-		var altura_anterior: float = mundo.calcular_altura(deslocamento.x - meia, deslocamento.z + z)
+		var fz: float = (float(py) + 0.5) / float(PASSO_DA_ALTURA)
+		var gj: int = int(fz)
+		var tz: float = fz - float(gj)
+		var altura_anterior: float = _altura_na_grade(alturas, lado_grade, -0.5 / float(PASSO_DA_ALTURA), gj, tz)
 		for px in PIXELS:
 			var x: float = -meia + (float(px) + 0.5) * metros_por_pixel
-			var altura: float = mundo.calcular_altura(deslocamento.x + x, deslocamento.z + z)
+			var altura: float = _altura_na_grade(alturas, lado_grade,
+				(float(px) + 0.5) / float(PASSO_DA_ALTURA), gj, tz)
+			var p := Vector2(x, z)
 
+			var destino := (py * PIXELS + px) * 4
 			if tem_agua and altura < nivel_da_agua:
 				var fundura: float = clampf((nivel_da_agua - altura) * 0.28, 0.0, 0.45)
-				imagem.set_pixel(px, py, COR_AGUA.darkened(fundura))
+				_gravar(pixels, destino, COR_AGUA.darkened(fundura))
 				altura_anterior = altura
 				continue
 
 			# Relevo por sombreamento lateral: a diferenca para o pixel da
 			# esquerda ja e a inclinacao do terreno naquele ponto, de graca.
-			# Sem isto a carta e uma mancha chapada e o jogador nao le morro.
 			var inclinacao: float = clampf((altura - altura_anterior) * 1.6, -0.35, 0.35)
-			imagem.set_pixel(px, py, base.lightened(maxf(inclinacao, 0.0))
-				.darkened(maxf(-inclinacao, 0.0) + 0.06))
 			altura_anterior = altura
+			var cor: Color = base.lightened(maxf(inclinacao, 0.0)) \
+				.darkened(maxf(-inclinacao, 0.0) + 0.06)
 
-	_pintar_composicao_natural(imagem, dados, metros_por_pixel, meia)
-	_riscar_rede_regional(imagem, dados, metros_por_pixel, meia)
-	_riscar_as_vias(imagem, mundo, dados, metros_por_pixel, meia)
+			# Macico e clareira: a mesma composicao que planta as arvores.
+			for macico in macicos:
+				if p.distance_squared_to(Vector2(float(macico[0]), float(macico[1]))) \
+						< float(macico[2]) * float(macico[2]):
+					cor = cor.darkened(0.15)
+					break
+			for clareira in clareiras:
+				if p.distance_squared_to(Vector2(float(clareira[0]), float(clareira[1]))) \
+						< float(clareira[2]) * float(clareira[2]):
+					cor = Color(0.36, 0.43, 0.22)
+					break
+
+			# Rio e estrada da regiao, do mesmo plano usado no mundo 3D.
+			# AO QUADRADO E COM CAIXA. A raiz quadrada e a comparacao de cada
+			# segmento eram feitas para TODO pixel — ate vinte e oito por ponto
+			# nesta zona. A caixa do trecho rejeita quase todos com quatro
+			# comparacoes, e o que sobra compara distancia ao quadrado.
+			var pintou := false
+			for t in trechos_rio:
+				if p.x < t[2] or p.x > t[4] or p.y < t[3] or p.y > t[5]:
+					continue
+				var d2r: float = _distancia_segmento_quadrada(p, t[0], t[1])
+				if d2r <= limite_rio_q:
+					cor = COR_AGUA.darkened((1.0 - clampf(sqrt(d2r) / maxf(largura_rio, 0.1), 0.0, 1.0)) * 0.20)
+					pintou = true
+					break
+			if not pintou:
+				for t in trechos_estrada:
+					if p.x < t[2] or p.x > t[4] or p.y < t[3] or p.y > t[5]:
+						continue
+					var d2e: float = _distancia_segmento_quadrada(p, t[0], t[1])
+					if d2e <= 33.64:
+						cor = cor_estrada if d2e <= 22.09 else borda_estrada
+						pintou = true
+						break
+			if not pintou and not vias.is_empty() and _sobre_a_via(p, vias):
+				cor = vias["cor"]
+
+			_gravar(pixels, destino, cor)
+
+	var imagem := Image.create_from_data(PIXELS, PIXELS, false, Image.FORMAT_RGBA8, pixels)
 	if regiao != null and is_instance_valid(regiao):
-		_carimbar_as_pecas(imagem, regiao, metros_por_pixel, meia)
+		await _carimbar_as_pecas(imagem, regiao, metros_por_pixel, meia, arvore)
 
 	return ImageTexture.create_from_image(imagem)
 
 
-## Os maciços e clareiras do mapa são os mesmos usados para plantar as árvores.
-## Assim o minimapa representa a floresta real, inclusive seus corredores.
-static func _pintar_composicao_natural(imagem: Image, dados: Dictionary,
-		metros_por_pixel: float, meia: float) -> void:
-	var macicos: Array = dados.get("forest_clusters", [])
-	var clareiras: Array = dados.get("clearings", [])
-	if macicos.is_empty() and clareiras.is_empty():
-		return
-	for py in PIXELS:
-		var z := -meia + (float(py) + 0.5) * metros_por_pixel
-		for px in PIXELS:
-			var x := -meia + (float(px) + 0.5) * metros_por_pixel
-			var p := Vector2(x, z)
-			for macico in macicos:
-				var centro := Vector2(float(macico[0]), float(macico[1]))
-				if p.distance_to(centro) < float(macico[2]):
-					imagem.set_pixel(px, py, imagem.get_pixel(px, py).darkened(0.15))
-					break
-			for clareira in clareiras:
-				var centro := Vector2(float(clareira[0]), float(clareira[1]))
-				if p.distance_to(centro) < float(clareira[2]):
-					imagem.set_pixel(px, py, Color(0.36, 0.43, 0.22))
-					break
+## Bilinear na grade grossa. `fx` ja vem em coordenada de grade.
+static func _altura_na_grade(alturas: PackedFloat32Array, lado: int,
+		fx: float, gj: int, tz: float) -> float:
+	var gi: int = clampi(int(floor(fx)), 0, lado - 2)
+	var tx: float = clampf(fx - float(gi), 0.0, 1.0)
+	var j: int = clampi(gj, 0, lado - 2)
+	var a: float = alturas[j * lado + gi]
+	var b: float = alturas[j * lado + gi + 1]
+	var c: float = alturas[(j + 1) * lado + gi]
+	var d: float = alturas[(j + 1) * lado + gi + 1]
+	return lerpf(lerpf(a, b, tx), lerpf(c, d, tx), tz)
 
 
 static func _distancia_segmento(p: Vector2, a: Vector2, b: Vector2) -> float:
@@ -118,95 +218,87 @@ static func _distancia_segmento(p: Vector2, a: Vector2, b: Vector2) -> float:
 	return p.distance_to(a + ab * t)
 
 
-## Rios e estradas vêm do mesmo plano usado no mundo 3D. Assim a carta nunca
-## promete uma ponte, curva ou caminho que não existe debaixo dos pés.
-static func _riscar_rede_regional(imagem: Image, dados: Dictionary,
-		metros_por_pixel: float, meia: float) -> void:
-	var rios: Array = dados.get("river_paths", [])
-	var estradas: Array = dados.get("road_paths", [])
-	if rios.is_empty() and estradas.is_empty():
-		return
-	var largura_rio := float(dados.get("river_width", 5.0))
-	var pedra := str(dados.get("road_surface", "terra")) == "pedra"
-	var cor_estrada := Color(0.52, 0.50, 0.46) if pedra else Color(0.50, 0.35, 0.20)
-	var borda_estrada := Color(0.20, 0.20, 0.18) if pedra else Color(0.27, 0.20, 0.13)
-	for py in PIXELS:
-		var z := -meia + (float(py) + 0.5) * metros_por_pixel
-		for px in PIXELS:
-			var x := -meia + (float(px) + 0.5) * metros_por_pixel
-			var p := Vector2(x, z)
-			var pintou := false
-			for rio in rios:
-				for i in range(rio.size() - 1):
-					var a := Vector2(float(rio[i][0]), float(rio[i][1]))
-					var b := Vector2(float(rio[i + 1][0]), float(rio[i + 1][1]))
-					var distancia_rio := _distancia_segmento(p, a, b)
-					if distancia_rio <= largura_rio + 1.1:
-						var centro := 1.0 - clampf(distancia_rio / maxf(largura_rio, 0.1), 0.0, 1.0)
-						imagem.set_pixel(px, py, COR_AGUA.darkened(centro * 0.20))
-						pintou = true
-						break
-				if pintou:
-					break
-			for caminho in estradas:
-				for i in range(caminho.size() - 1):
-					var a := Vector2(float(caminho[i][0]), float(caminho[i][1]))
-					var b := Vector2(float(caminho[i + 1][0]), float(caminho[i + 1][1]))
-					var distancia_via := _distancia_segmento(p, a, b)
-					if distancia_via <= 5.8:
-						imagem.set_pixel(px, py, cor_estrada if distancia_via <= 4.7 else borda_estrada)
-						pintou = true
-						break
-				if pintou:
-					break
+## Os segmentos de todas as polilinhas numa lista so, para o laco de pixel nao
+## reabrir a estrutura aninhada trinta e seis mil vezes.
+static func _achatar(caminhos: Array, folga: float) -> Array:
+	var trechos: Array = []
+	for caminho in caminhos:
+		for i in range(caminho.size() - 1):
+			var a := Vector2(float(caminho[i][0]), float(caminho[i][1]))
+			var b := Vector2(float(caminho[i + 1][0]), float(caminho[i + 1][1]))
+			# [a, b, x minimo, z minimo, x maximo, z maximo] — a caixa ja
+			# alargada pela largura da via, para a rejeicao ser uma comparacao.
+			trechos.append([a, b,
+				minf(a.x, b.x) - folga, minf(a.y, b.y) - folga,
+				maxf(a.x, b.x) + folga, maxf(a.y, b.y) + folga])
+	return trechos
 
 
-## As mesmas medidas que o shader do chao recebe, em coordenadas da zona.
-static func _riscar_as_vias(imagem: Image, mundo: Node, dados: Dictionary,
-		metros_por_pixel: float, meia: float) -> void:
+static func _distancia_segmento_quadrada(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab := b - a
+	var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.0001), 0.0, 1.0)
+	return p.distance_squared_to(a + ab * t)
+
+
+static func _gravar(pixels: PackedByteArray, onde: int, cor: Color) -> void:
+	pixels[onde] = int(clampf(cor.r, 0.0, 1.0) * 255.0)
+	pixels[onde + 1] = int(clampf(cor.g, 0.0, 1.0) * 255.0)
+	pixels[onde + 2] = int(clampf(cor.b, 0.0, 1.0) * 255.0)
+	pixels[onde + 3] = 255
+
+
+## As medidas da malha urbana, prontas para a conta por pixel.
+static func _vias_da_praca(mundo: Node, dados: Dictionary) -> Dictionary:
 	var pracas: Dictionary = mundo._city_layouts.get("pracas", {})
 	var praca: Dictionary = pracas.get(String(dados.get("layout_id", "")), {})
 	var vias: Dictionary = praca.get("vias", {})
 	if vias.is_empty():
-		return
-
+		return {}
 	var principal: Array = vias.get("principal", [0.0, 0.0])
-	var travessas: Array = vias.get("travessas", [0.0, 0.0, 0.0])
-	var secundarias: Array = vias.get("secundarias", [999.0, 999.0, 0.0, 0.0])
-	var meia_rua: float = float(principal[0])
-	var alcance_z: float = float(principal[1])
-	var raio_do_largo: float = float(vias.get("largo", 0.0))
-	var cor: Color = Color(0.55, 0.55, 0.58) if bool(vias.get("pedra", false)) \
-		else Color(0.52, 0.44, 0.33)
-	if meia_rua < 0.01:
-		return
+	if principal.size() < 2 or float(principal[0]) < 0.01:
+		return {}
+	return {
+		"meia": float(principal[0]), "alcance": float(principal[1]),
+		"largo": float(vias.get("largo", 0.0)),
+		"travessas": vias.get("travessas", [0.0, 0.0, 0.0]),
+		"secundarias": vias.get("secundarias", [999.0, 999.0, 0.0, 0.0]),
+		"cor": Color(0.55, 0.55, 0.58) if bool(vias.get("pedra", false)) \
+			else Color(0.52, 0.44, 0.33),
+	}
 
-	for py in PIXELS:
-		var z: float = -meia + (float(py) + 0.5) * metros_por_pixel
-		for px in PIXELS:
-			var x: float = -meia + (float(px) + 0.5) * metros_por_pixel
-			var na_via := absf(x) < meia_rua and absf(z) < alcance_z
-			if not na_via and raio_do_largo > 0.01:
-				na_via = Vector2(x, z).length() < raio_do_largo
-			if not na_via:
-				var meia_t: float = float(principal[1]) if travessas.size() < 2 else float(travessas[1])
-				if absf(z - float(travessas[0])) < meia_t and absf(x) < float(travessas[2]):
-					na_via = true
-			if not na_via and secundarias.size() >= 4 and float(secundarias[0]) < 900.0:
-				for onde in [float(secundarias[0]), float(secundarias[1])]:
-					if absf(z - onde) < float(secundarias[2]) and absf(x) < float(secundarias[3]):
-						na_via = true
-						break
-			if na_via:
-				imagem.set_pixel(px, py, cor)
+
+static func _sobre_a_via(p: Vector2, v: Dictionary) -> bool:
+	if absf(p.x) < float(v["meia"]) and absf(p.y) < float(v["alcance"]):
+		return true
+	var largo: float = float(v["largo"])
+	if largo > 0.01 and p.length() < largo:
+		return true
+	var travessas: Array = v["travessas"]
+	if travessas.size() >= 3:
+		var meia_t: float = float(v["alcance"]) if travessas.size() < 2 else float(travessas[1])
+		if absf(p.y - float(travessas[0])) < meia_t and absf(p.x) < float(travessas[2]):
+			return true
+	var secundarias: Array = v["secundarias"]
+	if secundarias.size() >= 4 and float(secundarias[0]) < 900.0:
+		for onde in [float(secundarias[0]), float(secundarias[1])]:
+			if absf(p.y - onde) < float(secundarias[2]) and absf(p.x) < float(secundarias[3]):
+				return true
+	return false
 
 
 ## Uma marca por peca plantada. O tamanho da marca sai da CAIXA do modelo, para
 ## o solar ocupar mais quarteirao que o barril — e o que faz a carta parecer a
 ## vila e nao uma constelacao de pontos iguais.
 static func _carimbar_as_pecas(imagem: Image, regiao: Node3D,
-		metros_por_pixel: float, meia: float) -> void:
+		metros_por_pixel: float, meia: float, arvore: SceneTree = null) -> void:
+	# Cada edificio ainda pede a propria caixa, e medir a caixa e outra varredura
+	# de nos. Numa regiao de cento e setenta pecas isso sozinho estourava o
+	# quadro depois que o resto da carta ja respirava.
+	var relogio := Time.get_ticks_usec()
 	for peca in regiao.find_children("*", "Node3D", true, false):
+		if arvore != null and Time.get_ticks_usec() - relogio > ORCAMENTO_US:
+			await arvore.process_frame
+			relogio = Time.get_ticks_usec()
 		# Pelo metadado, nao pelo nome: irmao homonimo perde o nome para um
 		# "@Node3D@2199" gerado pelo motor, e era assim que a segunda casa de
 		# cada tipo desaparecia da carta.
