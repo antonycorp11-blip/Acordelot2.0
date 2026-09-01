@@ -12,8 +12,10 @@ const TelaPersonagemScript := preload("res://scripts/tela_personagem_v3.gd")
 const TelaSinteseScript := preload("res://scripts/tela_sintese_v3.gd")
 const TelaEcosScript := preload("res://scripts/tela_ecos_v3.gd")
 const TelaSkillsScript := preload("res://scripts/tela_skills_v3.gd")
+const TelaMissoesScript := preload("res://scripts/tela_missoes.gd")
 const EcoDoNascenteCena := preload("res://scenes/ecos/EcoDoNascente.tscn")
 const RessonanciaHUDScript := preload("res://scripts/ressonancia_hud.gd")
+const CelebracaoScript := preload("res://scripts/celebracao_harmonica.gd")
 const DesempenhoAdaptativoScript := preload("res://scripts/desempenho_adaptativo.gd")
 const DungeonCavernaScript := preload("res://scripts/dungeon_caverna.gd")
 const GeradorDeBichosScript := preload("res://scripts/gerador_de_bichos.gd")
@@ -38,6 +40,8 @@ var _npc_perto: Node = null
 var _btn_ataque: Node = null
 var _dialogo: Node = null
 var _tela_ecos: CanvasLayer = null
+var _tela_missoes: CanvasLayer = null
+var _celebracao: Control = null
 var _tela_skills: CanvasLayer = null
 var _eco_companheiro: Node3D = null
 var _eco_companheiro_id := ""
@@ -104,6 +108,9 @@ func _ready() -> void:
         _zone_manager.zone_changed.connect(func(z):
             if _gerador_bichos:
                 _gerador_bichos.definir_zona(z)
+            var diario_zona := get_node_or_null("/root/Diario")
+            if diario_zona:
+                diario_zona.registrar_visita(str(z.get("id", "")))
             registrar_npcs()
             _sincronizar_eco_companheiro(true)
             _eco_captura = null
@@ -181,7 +188,15 @@ func _ready() -> void:
                 _abrir_tela_ecos()
             elif qual == "talentos":
                 inv_ui.toggle_inventory(false)
-                _abrir_tela_skills())
+                _abrir_tela_skills()
+            elif qual == "missoes":
+                inv_ui.toggle_inventory(false)
+                _abrir_tela_missoes()
+            elif qual == "mapa":
+                inv_ui.toggle_inventory(false)
+                _abrir_mapa_do_reino())
+
+    _montar_celebracao()
 
     var progresso := get_node_or_null("/root/Progresso")
     _criar_botao_skill_eco()
@@ -202,6 +217,13 @@ func _ready() -> void:
 
     if hud_vida and hud_vida.has_signal("config_pedida"):
         hud_vida.config_pedida.connect(func(): ajustes.mostrar(true))
+
+    # O diario do dia, aberto pelo contador da HUD e pela aba do inventario.
+    _tela_missoes = TelaMissoesScript.new()
+    _tela_missoes.name = "TelaMissoes"
+    add_child(_tela_missoes)
+    if hud_vida and hud_vida.has_signal("missoes_pedidas"):
+        hud_vida.missoes_pedidas.connect(_abrir_tela_missoes)
         
     # Conexão dos 3 Botões de Habilidades (Skills)
     var btn_skill1 := find_child("BtnSkill1", true, false)
@@ -260,6 +282,54 @@ func _ready() -> void:
     var joystick := find_child("VirtualJoystick", true, false)
     if joystick:
         joystick.add_to_group("virtual_joystick")
+
+
+## O AVISO DE PROGRESSO, que nao existia em lugar nenhum.
+##
+## Subir de nivel, fechar uma tarefa do dia e fechar o dia inteiro aconteciam em
+## silencio: o numero mudava numa tela que o jogador nao estava olhando. O sinal
+## `nivel_subiu` existia desde sempre e NINGUEM escutava.
+##
+## O cartao e o mesmo `CelebracaoHarmonica` que as telas de ficha e de sintese ja
+## usam — paineis e Tween, sem shader nem particula, igual no navegador. Fazer um
+## segundo aviso do zero seria manter dois estilos de comemoracao no mesmo jogo.
+func _montar_celebracao() -> void:
+    var hud := get_node_or_null("HUD")
+    if hud == null:
+        return
+    _celebracao = CelebracaoScript.new()
+    _celebracao.name = "Celebracao"
+    hud.add_child(_celebracao)
+
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso:
+        progresso.nivel_subiu.connect(func(novo: int):
+            _celebracao.mostrar_evento("NÍVEL %d" % novo,
+                "+3 pontos de atributo  •  +1 ponto de talento",
+                Color(1.0, 0.82, 0.35)))
+
+    var diario := get_node_or_null("/root/Diario")
+    if diario:
+        diario.missao_concluida.connect(func(missao: Dictionary):
+            _celebracao.mostrar_evento("TAREFA CUMPRIDA",
+                "%s  •  +%d Claves" % [missao["titulo"], diario.CLAVES_POR_MISSAO],
+                Color(0.44, 0.86, 0.52)))
+        diario.dia_completo.connect(func():
+            _celebracao.mostrar_evento("DIÁRIO COMPLETO",
+                "+%d Claves  •  +1 Partitura Menor" % diario.CLAVES_DO_DIA,
+                Color(0.62, 0.72, 1.0)))
+
+
+func _abrir_tela_missoes() -> void:
+    if _tela_missoes:
+        _tela_missoes.mostrar(true)
+
+
+## O mapa do reino mora no minimapa; a aba do inventario so pede a abertura.
+func _abrir_mapa_do_reino() -> void:
+    var mini := find_child("ZoneMinimap", true, false)
+    if mini and mini.has_method("toggle_world_map"):
+        mini.toggle_world_map(true)
 
 
 func _abrir_tela_ecos() -> void:
@@ -503,6 +573,9 @@ func _concluir_ressonancia() -> void:
     var ganhou_alma := _sorte_captura.randf() < chance_alma
     if ganhou_alma:
         progresso.adicionar_recurso("alma_eco_" + id, 1)
+    var diario := get_node_or_null("/root/Diario")
+    if diario:
+        diario.registrar("capturar_eco", 1, id)
     _hud_ressonancia.recompensa("+%d fragmentos%s" % [fragmentos, "  •  +1 Alma rara" if ganhou_alma else ""])
     eco.play_disappear()
     _reaparecer_eco_depois(eco)

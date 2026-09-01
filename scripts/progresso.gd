@@ -6,6 +6,12 @@ extends Node
 signal alterado
 signal nivel_subiu(novo_nivel: int)
 signal recurso_alterado(id: String, total: int)
+## GANHO, nao total: quem escuta quer saber quanto ENTROU agora. O diario conta
+## "traga 4 madeiras" somando entradas, e com o total ele nunca saberia se as
+## quatro chegaram hoje ou ja estavam na bolsa.
+signal recurso_ganho(id: String, quantidade: int)
+signal nota_sintetizada(nota: String)
+signal fragmento_purificado(nota: String)
 
 const ARQUIVO := "user://progresso.cfg"
 const NIVEL_MAXIMO := 60
@@ -127,6 +133,25 @@ var acordes_equipados: Array = []
 ## Poder de Luta consolidado. Hoje a conta tem apenas Akles.
 var poder_outros_personagens: Dictionary = {}
 var ascensoes := {20: false, 40: false}
+## OS MARCOS DA HISTORIA que ja foram vividos.
+##
+## Um dicionario de bandeiras, e nao um numero de capitulo, porque a historia nao
+## e uma fila: um jogador pode ter conhecido o Lucian sem ter descido na caverna.
+## Quem consulta hoje e o diario, para nao sortear uma tarefa alegre com alguem
+## que a historia acabou de tirar de cena.
+var marcos: Dictionary = {}
+
+
+func marcar_historia(id: String, aconteceu := true) -> void:
+    if bool(marcos.get(id, false)) == aconteceu:
+        return
+    marcos[id] = aconteceu
+    salvar()
+    alterado.emit()
+
+
+func tem_marco(id: String) -> bool:
+    return bool(marcos.get(id, false))
 
 
 func _ready() -> void:
@@ -171,6 +196,8 @@ func recompensar_batalha(_xp: int, ganhos: Dictionary) -> void:
     for id in ganhos:
         recursos[id] = maxi(0, int(recursos.get(id, 0)) + int(ganhos[id]))
         recurso_alterado.emit(str(id), int(recursos[id]))
+        if int(ganhos[id]) > 0:
+            recurso_ganho.emit(str(id), int(ganhos[id]))
     salvar()
     alterado.emit()
 
@@ -288,6 +315,8 @@ func adicionar_recurso(id: String, quantidade: int) -> void:
     recursos[id] = maxi(0, int(recursos.get(id, 0)) + quantidade)
     salvar()
     recurso_alterado.emit(id, int(recursos[id]))
+    if quantidade > 0:
+        recurso_ganho.emit(id, quantidade)
     alterado.emit()
 
 
@@ -321,6 +350,7 @@ func sintetizar_nota(nota: String) -> bool:
     recursos[pronta] = quantidade(pronta) + 1
     recurso_alterado.emit(pronta, int(recursos[pronta]))
     salvar()
+    nota_sintetizada.emit(nota)
     alterado.emit()
     return true
 
@@ -337,6 +367,7 @@ func purificar_fragmento(nota: String) -> bool:
     recursos[limpo] = quantidade(limpo) + 1
     recurso_alterado.emit(limpo, int(recursos[limpo]))
     salvar()
+    fragmento_purificado.emit(nota)
     alterado.emit()
     return true
 
@@ -431,6 +462,7 @@ func salvar() -> void:
     cfg.set_value("personagem", "pontos", pontos_de_atributo)
     cfg.set_value("personagem", "atributos", atributos)
     cfg.set_value("personagem", "ascensoes", ascensoes)
+    cfg.set_value("personagem", "marcos", marcos)
     cfg.set_value("poder", "arma", arma_equipada)
     cfg.set_value("poder", "nivel_arma", nivel_da_arma)
     cfg.set_value("poder", "skills", niveis_skills)
@@ -454,6 +486,9 @@ func carregar() -> void:
     if attrs is Dictionary:
         for id in ATRIBUTOS_INICIAIS:
             atributos[id] = int(attrs.get(id, ATRIBUTOS_INICIAIS[id]))
+    var marcos_salvos = cfg.get_value("personagem", "marcos", {})
+    if marcos_salvos is Dictionary:
+        marcos = marcos_salvos.duplicate(true)
     var guardados = cfg.get_value("inventario", "recursos", {})
     if guardados is Dictionary:
         for id in RECURSOS_INICIAIS:

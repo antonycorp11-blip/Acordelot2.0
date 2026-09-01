@@ -254,9 +254,36 @@ func _on_zone_changed(z_data: Dictionary) -> void:
 
 var _ate_tentar_carta := 0.0
 
+## O RADAR NAO PRECISA DE SESSENTA DESENHOS POR SEGUNDO.
+##
+## Ele redesenhava a cada quadro: disco, poligono de trinta lados com textura,
+## anel, seta e agora os marcos — tudo reconstruido mesmo com o jogador parado.
+## Num disco de 170 px, doze atualizacoes por segundo sao indistinguiveis a olho
+## e custam um quinto. Alem do ritmo, so redesenha se algo de fato mudou de
+## lugar: parado no meio da conversa com um NPC, o radar nao gasta nada.
+const RITMO_DO_RADAR := 1.0 / 12.0
+const PASSO_QUE_IMPORTA := 0.35
+const GIRO_QUE_IMPORTA := 0.05
+
+var _ate_redesenhar := 0.0
+var _onde_desenhei := Vector3(1e9, 1e9, 1e9)
+var _giro_desenhado := 0.0
+
+
 func _process(delta: float) -> void:
     if _minimap_draw and _minimap_draw.is_visible_in_tree():
-        _minimap_draw.queue_redraw()
+        _ate_redesenhar -= delta
+        if _ate_redesenhar <= 0.0:
+            _ate_redesenhar = RITMO_DO_RADAR
+            if player == null:
+                _minimap_draw.queue_redraw()
+            else:
+                var aqui := player.global_position
+                if (aqui.distance_to(_onde_desenhei) > PASSO_QUE_IMPORTA
+                        or absf(angle_difference(_giro_desenhado, player.rotation.y)) > GIRO_QUE_IMPORTA):
+                    _onde_desenhei = aqui
+                    _giro_desenhado = player.rotation.y
+                    _minimap_draw.queue_redraw()
 
     # A primeira zona ja esta carregada quando este no acorda, entao o sinal de
     # troca dela nunca chega — e a regiao pode ainda estar se montando. Insiste
@@ -272,12 +299,26 @@ func _process(delta: float) -> void:
         _current_zone_data = atual
         _preparar_carta(String(atual.get("id", "")), atual)
 
+## Os marcos do radar: o que vale a pena procurar na tela, e em que cor.
+##
+## Cada um sai de um grupo que o mundo ja mantem — nao ha lista paralela para
+## envelhecer. Sao poucos e pequenos de proposito: o radar tem 170 px, e um
+## enxame de icones some com a geografia que ele existe para mostrar.
+const MARCOS_DO_RADAR := [
+    {"grupo": "npc", "cor": Color(1.00, 0.84, 0.42), "raio": 3.2, "teto": 12},
+    {"grupo": "eco_capturavel", "cor": Color(0.52, 0.92, 1.00), "raio": 3.0, "teto": 12},
+    {"grupo": "recurso_coletavel", "cor": Color(0.52, 0.88, 0.46), "raio": 2.4, "teto": 16},
+    {"grupo": "bicho", "cor": Color(0.92, 0.35, 0.30), "raio": 2.6, "teto": 16},
+]
+
+
 func _on_minimap_draw() -> void:
     var rect := _minimap_draw.get_rect()
     var center := rect.size * 0.5
     var frame_size := 162.0
     var frame_rect := Rect2(center - Vector2(frame_size, frame_size) * 0.5, Vector2(frame_size, frame_size))
-    
+    var raio_util := frame_size * 0.5 - 8.0
+
     # 1. O disco escuro por baixo. A moldura nova e so um anel — sem este fundo
     # o radar flutuaria solto sobre o mapa 3D e os pontos sumiriam na grama.
     _minimap_draw.draw_circle(center, frame_size * 0.5 - 4.0, Color(0.05, 0.07, 0.06, 0.82))
@@ -288,51 +329,118 @@ func _on_minimap_draw() -> void:
     # retangulo deixaria as quinas para fora do anel, e recortar em circulo por
     # cima custaria outra passada. O poligono JA e o circulo.
     var desvio := Vector2.ZERO
-    if _carta_atual and player and zone_manager and zone_manager.zone_builder:
+    var centro_uv := Vector2(0.5, 0.5)
+    var meia_janela := 0.0
+    var origem := Vector3.ZERO
+    var lado := 0.0
+    var tem_janela := false
+
+    if player and zone_manager and zone_manager.zone_builder:
         var construtor = zone_manager.zone_builder
-        var lado: float = float(construtor.TAMANHO_ZONA)
-        var origem: Vector3 = construtor.deslocamento_da_celula(
+        lado = float(construtor.TAMANHO_ZONA)
+        origem = construtor.deslocamento_da_celula(
             construtor._celulas.get(_zid_atual, Vector2i.ZERO))
         var local := player.global_position - origem
         var alvo := Vector2((local.x + lado * 0.5) / lado, (local.z + lado * 0.5) / lado)
-        var meia_janela := JANELA / lado
+        meia_janela = JANELA / lado
         # Encostado na divisa, a janela para de acompanhar e quem anda e a seta:
         # seguir alem da borda mostraria a textura esticada, que e mentira.
-        var centro_uv := Vector2(
+        centro_uv = Vector2(
             clampf(alvo.x, meia_janela, 1.0 - meia_janela),
             clampf(alvo.y, meia_janela, 1.0 - meia_janela))
-        desvio = (alvo - centro_uv) / meia_janela * (frame_size * 0.5 - 8.0)
+        desvio = (alvo - centro_uv) / meia_janela * raio_util
+        tem_janela = true
 
-        var raio_mapa := frame_size * 0.5 - 5.0
-        var pontos := PackedVector2Array()
-        var uvs := PackedVector2Array()
-        for i in 30:
-            var a := TAU * float(i) / 30.0
-            var d := Vector2(cos(a), sin(a))
-            pontos.append(center + d * raio_mapa)
-            uvs.append(centro_uv + d * meia_janela)
-        _minimap_draw.draw_colored_polygon(pontos, Color(1, 1, 1, 0.93), uvs, _carta_atual)
+        if _carta_atual:
+            var raio_mapa := frame_size * 0.5 - 5.0
+            var pontos := PackedVector2Array()
+            var uvs := PackedVector2Array()
+            for i in 30:
+                var a := TAU * float(i) / 30.0
+                var d := Vector2(cos(a), sin(a))
+                pontos.append(center + d * raio_mapa)
+                uvs.append(centro_uv + d * meia_janela)
+            _minimap_draw.draw_colored_polygon(pontos, Color(1, 1, 1, 0.93), uvs, _carta_atual)
 
-    
-    # 2. O anel dourado com o "N" da bussola, por cima da borda do disco.
+    # 2. Os marcos, por cima da carta e por baixo do anel: quem esta dentro da
+    # janela aparece; quem esta fora simplesmente nao e desenhado, sem borda
+    # entulhada de setas.
+    if tem_janela:
+        _desenhar_marcos(center, origem, lado, centro_uv, meia_janela, raio_util)
+        _desenhar_objetivo(center, origem, lado, centro_uv, meia_janela, raio_util)
+
+    # 3. O anel dourado com o "N" da bussola, por cima da borda do disco.
     if _minimap_frame_tex:
         _minimap_draw.draw_texture_rect(_minimap_frame_tex, frame_rect, false)
-        
-    var radius := 62.0
-    
-    # 3. Posição e Seta de Direção do Jogador
+
+    # 4. Posicao e seta de direcao do jogador.
     if player:
-        var px: float = player.global_position.x
-        var pz: float = player.global_position.z
         # A carta se move sob a seta, entao a seta mora no centro. So sai de la
         # quando a janela bate na borda da zona e trava.
         var p_radar := center + desvio
-        
+
         _minimap_draw.draw_circle(p_radar, 4.5, Color(1.0, 0.95, 0.2))
-        
+
         var rot_y: float = player.rotation.y
         var dir := Vector2(sin(rot_y), -cos(rot_y))
         _minimap_draw.draw_line(p_radar, p_radar + dir * 8.5, Color(1.0, 0.98, 0.7), 2.2)
+
+
+## Onde um ponto do mundo cai dentro do disco, ou null se estiver fora da
+## janela. Mesma conta da seta do jogador, para os dois nunca discordarem.
+func _ponto_no_radar(alvo: Vector3, center: Vector2, origem: Vector3, lado: float,
+        centro_uv: Vector2, meia_janela: float, raio_util: float) -> Variant:
+    if lado <= 0.0 or meia_janela <= 0.0:
+        return null
+    var local := alvo - origem
+    var uv := Vector2((local.x + lado * 0.5) / lado, (local.z + lado * 0.5) / lado)
+    var fora := (uv - centro_uv) / meia_janela
+    if fora.length() > 1.0:
+        return null
+    return center + fora * raio_util
+
+
+func _desenhar_marcos(center: Vector2, origem: Vector3, lado: float,
+        centro_uv: Vector2, meia_janela: float, raio_util: float) -> void:
+    for marco in MARCOS_DO_RADAR:
+        var cor: Color = marco["cor"]
+        var raio: float = marco["raio"]
+        var restam: int = marco["teto"]
+        for no in get_tree().get_nodes_in_group(String(marco["grupo"])):
+            if restam <= 0:
+                break
+            var corpo := no as Node3D
+            if corpo == null or not is_instance_valid(corpo):
+                continue
+            var onde = _ponto_no_radar(corpo.global_position, center, origem, lado,
+                centro_uv, meia_janela, raio_util)
+            if onde == null:
+                continue
+            restam -= 1
+            # Contorno escuro primeiro: sobre a mata da carta um ponto colorido
+            # sozinho desaparece.
+            _minimap_draw.draw_circle(onde, raio + 1.2, Color(0.03, 0.04, 0.05, 0.85))
+            _minimap_draw.draw_circle(onde, raio, cor)
+
+
+## O alvo da missao do dia, quando ha um com lugar no mundo. E o unico marco com
+## anel: e o que o jogador procura, e precisa ganhar do resto na primeira olhada.
+func _desenhar_objetivo(center: Vector2, origem: Vector3, lado: float,
+        centro_uv: Vector2, meia_janela: float, raio_util: float) -> void:
+    var diario := get_node_or_null("/root/Diario")
+    if diario == null or not diario.has_method("alvo_no_mundo"):
+        return
+    var alvo = diario.alvo_no_mundo()
+    if not (alvo is Vector3):
+        return
+    var onde = _ponto_no_radar(alvo, center, origem, lado, centro_uv, meia_janela, raio_util)
+    if onde == null:
+        return
+    var pulso := 0.5 + 0.5 * sin(float(Time.get_ticks_msec()) * 0.004)
+    _minimap_draw.draw_circle(onde, 5.0, Color(1.0, 0.86, 0.35, 0.95))
+    _minimap_draw.draw_circle(onde, 8.0 + pulso * 2.5,
+        Color(1.0, 0.86, 0.35, 0.35 + pulso * 0.35), false, 2.0)
+
 
 func _atualizar_grid_mapa_mundi() -> void:
     if _world_map_draw:

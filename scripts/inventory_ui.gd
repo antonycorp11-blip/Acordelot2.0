@@ -674,16 +674,22 @@ func _barra_de_navegacao() -> Control:
     return linha
 
 
-## O toque nas abas que ainda nao tem tela.
+## As abas que JA tem tela abrem; as que nao tem avisam.
 ##
 ## Avisar que a tela nao existe e MELHOR que nao responder: o jogador para de
-## insistir no botao e sabe que o toque foi registrado. Quando a tela nascer, e
-## so trocar este aviso pela abertura dela.
+## insistir no botao e sabe que o toque foi registrado. Quando a tela nascer, o
+## identificador dela entra na lista abaixo e o aviso some sozinho.
+##
+## "Missoes" e "Mapa" acabaram de sair da lista de espera: o diario do dia e o
+## mapa do reino existem, e continuar dizendo "em breve" para um botao que tem
+## destino e pior que nao ter o botao.
+const ABAS_COM_TELA := ["personagem", "talentos", "melodia", "lira", "missoes", "mapa"]
+
 func _abrir_aba(ident: String, rotulo: String) -> void:
     if ident == "inventario":
         return
     aba_pedida.emit(ident)
-    if ident == "personagem":
+    if ident in ABAS_COM_TELA:
         return
     if _recado == null:
         return

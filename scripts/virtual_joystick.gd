@@ -1,5 +1,7 @@
 extends Control
+## O direcional do polegar.
 
+const AreaSeguraUI := preload("res://scripts/area_segura_ui.gd")
 
 var movement_vector := Vector2.ZERO
 var touch_index := -1
@@ -11,19 +13,60 @@ var _is_dragging := false
 @export var knob_radius := 34.0
 @export var deadzone := 0.1
 
+const LADO := 210.0
+
 func _ready() -> void:
-    custom_minimum_size = Vector2(210, 210)
+    custom_minimum_size = Vector2(LADO, LADO)
     knob_position = size * 0.5
     _target_knob = knob_position
+    _acomodar_na_tela()
+    get_viewport().size_changed.connect(_acomodar_na_tela)
     queue_redraw()
 
+
+## LONGE DA QUINA DO APARELHO.
+##
+## A cena punha o direcional a 15 pixels do rodape. Em celular com barra de
+## gestos, canto arredondado ou recorte de camera, esses 15 pixels sao
+## exatamente a faixa que o sistema come — e o polegar que buscava a beirada do
+## circulo acabava arrastando a barra do navegador para cima no meio da luta.
+##
+## O recuo sai do mesmo AreaSeguraUI que as telas cheias ja usam: uma conta so
+## para "onde a tela deste aparelho realmente comeca", e nao um numero chutado
+## por controle.
+func _acomodar_na_tela() -> void:
+    var tela := get_viewport().get_visible_rect().size
+    var margem := AreaSeguraUI.recuo(tela) + 10.0
+    anchor_left = 0.0
+    anchor_right = 0.0
+    anchor_top = 1.0
+    anchor_bottom = 1.0
+    offset_left = margem
+    offset_right = margem + LADO
+    offset_top = -LADO - margem
+    offset_bottom = -margem
+    queue_redraw()
+
+
+## So redesenha enquanto ha o que animar.
+##
+## As duas pernas do if chamavam queue_redraw() sem condicao: com o dedo fora da
+## tela e o botao ja parado no centro, o direcional continuava se redesenhando
+## sessenta vezes por segundo para pintar exatamente a mesma imagem. Num
+## controle que passa a maior parte do tempo em repouso, isso e desenho puro
+## jogado fora.
 func _process(delta: float) -> void:
-    if not _is_dragging:
-        knob_position = knob_position.lerp(size * 0.5, 18.0 * delta)
-        queue_redraw()
-    else:
-        knob_position = knob_position.lerp(_target_knob, 26.0 * delta)
-        queue_redraw()
+    var alvo: Vector2 = _target_knob if _is_dragging else size * 0.5
+    # Forma exponencial em vez de lerp direto: o lerp por delta muda de
+    # velocidade conforme os quadros por segundo, e o mesmo controle ficava mais
+    # mole no celular do que no computador.
+    var suavidade: float = 26.0 if _is_dragging else 18.0
+    knob_position = knob_position.lerp(alvo, 1.0 - exp(-suavidade * delta))
+    if knob_position.distance_to(alvo) < 0.15:
+        knob_position = alvo
+        if not _is_dragging:
+            set_process(false)
+    queue_redraw()
 
 func _gui_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
@@ -50,6 +93,7 @@ func _gui_input(event: InputEvent) -> void:
         accept_event()
 
 func _update_joystick(pointer_position: Vector2) -> void:
+    set_process(true)
     var center := size * 0.5
     var offset := pointer_position - center
     var dist := offset.length()
@@ -67,6 +111,7 @@ func _update_joystick(pointer_position: Vector2) -> void:
         movement_vector = offset.normalized() * clampf(remapped, 0.0, 1.0)
 
 func _release_joystick() -> void:
+    set_process(true)
     touch_index = -1
     _is_dragging = false
     movement_vector = Vector2.ZERO
@@ -106,7 +151,10 @@ func _draw() -> void:
             Color(0.5, 0.65, 0.8, 0.45), 3.0)
 
     if _arte_botao:
-        var lado_b := knob_radius * 2.5
+        # 2,15 e nao 2,5: a arte agora e um circulo recortado que ocupa o
+        # quadrado inteiro, entao o multiplicador antigo desenhava um botao
+        # visivelmente maior que o raio que o codigo usa para mover.
+        var lado_b := knob_radius * 2.15
         draw_texture_rect(_arte_botao,
             Rect2(knob_position - Vector2(lado_b, lado_b) * 0.5, Vector2(lado_b, lado_b)),
             false, Color(1.12, 1.12, 1.06) if _is_dragging else Color(1, 1, 1))

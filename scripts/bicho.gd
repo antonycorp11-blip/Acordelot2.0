@@ -357,7 +357,68 @@ func _pintar_barra() -> void:
     quadro.center_offset = Vector3(-util * (1.0 - fracao) * 0.5, 0.0, 0.0)
 
 
+## SO PENSA QUEM ESTA PERTO.
+##
+## O bicho enxerga o jogador a 10,5 m (RAIO_DE_ATENCAO) e nao decide nada alem
+## disso — mas continuava pagando, a cada quadro de fisica, o esqueleto animado,
+## o move_and_slide() e a barra de vida colada na cabeca. No mundo aberto as
+## zonas vizinhas ficam carregadas junto, entao sao dezenas de bichos animando
+## fora da tela para nao fazer nada.
+##
+## Dormir e so desligar esse custo: nenhum estado se perde, e a folga entre o
+## raio de acordar e o de dormir evita o liga-desliga de quem anda na divisa.
+const PERTO_PARA_ACORDAR := 34.0
+const LONGE_PARA_DORMIR := 44.0
+## A vigia e espacada e ganha uma fase propria por bicho, para os ninhos de uma
+## regiao nao conferirem a distancia todos no mesmo quadro.
+const RITMO_DA_VIGIA := 0.35
+
+var _dormindo := false
+var _ate_vigiar := 0.0
+## So dorme depois de ter encostado no chao uma vez: dormindo nao ha gravidade,
+## e um bicho que nascesse no ar ficaria pendurado ate alguem chegar perto.
+var _ja_pisou := false
+
+
+func _vigiar_distancia(delta: float) -> bool:
+    _ate_vigiar -= delta
+    if _ate_vigiar <= 0.0:
+        _ate_vigiar = RITMO_DA_VIGIA + randf() * 0.12
+        var alvo := _achar_jogador()
+        if alvo and is_instance_valid(alvo):
+            var longe := global_position.distance_to(alvo.global_position)
+            if _dormindo:
+                if longe < PERTO_PARA_ACORDAR:
+                    acordar()
+            elif longe > LONGE_PARA_DORMIR and _ja_pisou and not _morrendo:
+                _dormir()
+    return _dormindo
+
+
+func _dormir() -> void:
+    _dormindo = true
+    velocity = Vector3.ZERO
+    if _anim_player:
+        _anim_player.process_mode = Node.PROCESS_MODE_DISABLED
+    if _suporte_da_barra:
+        _suporte_da_barra.visible = false
+
+
+## Publica: quem acerta o bicho de longe (o raio, por exemplo) precisa poder
+## trazer de volta um que estava dormindo.
+func acordar() -> void:
+    if not _dormindo:
+        return
+    _dormindo = false
+    if _anim_player:
+        _anim_player.process_mode = Node.PROCESS_MODE_INHERIT
+    if _suporte_da_barra:
+        _suporte_da_barra.visible = true
+
+
 func _physics_process(delta: float) -> void:
+    if _vigiar_distancia(delta):
+        return
     _seguir_a_cabeca()
     if _morrendo:
         return
@@ -368,6 +429,7 @@ func _physics_process(delta: float) -> void:
         velocity.y -= GRAVIDADE * delta
     else:
         velocity.y = -0.5
+        _ja_pisou = true
         
     var agora := Time.get_ticks_msec() / 1000.0
     if agora < _atordoado_ate:
@@ -589,7 +651,11 @@ func _achar_jogador() -> Node3D:
 func levar_dano(quantidade: float, direcao: Vector3) -> void:
     if vida <= 0.0:
         return
-        
+
+    # Levar tiro acorda: o raio alcanca mais longe que o raio de dormir, e um
+    # bicho que continuasse dormindo levaria dano sem nunca reagir.
+    acordar()
+
     vida = maxf(0.0, vida - quantidade)
     if _hp_label_3d:
         _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
@@ -733,6 +799,10 @@ func _largar_fragmento() -> void:
 
 func _morrer() -> void:
     remove_from_group("bicho")
+    var diario := get_node_or_null("/root/Diario")
+    if diario:
+        # O prefixo da animacao ja diz que criatura e esta: "shiker" ou "golem".
+        diario.registrar("derrotar", 1, _prefixo_anim)
     _largar_clave()
     _largar_fragmento()
     _morrendo = true

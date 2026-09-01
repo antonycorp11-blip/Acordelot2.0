@@ -1069,6 +1069,10 @@ func _afastar_da_faixa_viaria(p: Vector2, raio_prop: float) -> Vector2:
                 melhor_direcao = ab.normalized()
     var distancia_segura := 6.2 + raio_prop + 0.7
     if melhor_distancia >= distancia_segura or melhor_distancia == INF:
+        # Longe da estrada da regiao, mas ainda pode estar em cima da avenida da
+        # propria vila — que e outra lista, e ate aqui ninguem a consultava.
+        if _sobre_a_via_urbana(p, raio_prop + 0.6):
+            return _empurrar_para_fora_da_via(p, raio_prop + 0.6)
         return p
     var normal := (p - melhor_ponto).normalized()
     if normal.length_squared() < 0.01:
@@ -1076,6 +1080,31 @@ func _afastar_da_faixa_viaria(p: Vector2, raio_prop: float) -> Vector2:
         if (roundi(p.x) + roundi(p.y)) % 2 == 0:
             normal = -normal
     return melhor_ponto + normal * distancia_segura
+
+
+## Sai da rua da vila pelo lado mais curto.
+##
+## As vias urbanas sao faixas alinhadas aos eixos, entao "o lado mais curto" e
+## so comparar quanto falta para cada borda — nao ha curva para projetar.
+func _empurrar_para_fora_da_via(p: Vector2, folga: float) -> Vector2:
+    var destino := p
+    for _passo in 4:
+        if not _sobre_a_via_urbana(destino, folga):
+            return destino
+        var vias: Dictionary = _dados_da_praca().get("vias", {})
+        var principal: Array = vias.get("principal", [0.0, 0.0])
+        var meia_rua: float = float(principal[0]) + folga + 0.4
+        # Empurra para o lado em que ja esta; ficar exatamente no eixo manda
+        # para a direita, e duas pecas no mesmo eixo nao se empilham porque a
+        # paridade da coordenada decide.
+        var lado: float = signf(destino.x)
+        if is_zero_approx(lado):
+            lado = 1.0 if (roundi(destino.y) % 2 == 0) else -1.0
+        destino.x = lado * meia_rua
+        var raio_do_largo := float(vias.get("largo", 0.0))
+        if raio_do_largo > 0.01 and destino.length() < raio_do_largo + folga:
+            destino = destino.normalized() * (raio_do_largo + folga + 0.4)
+    return destino
 
 # -------------------------------------------------------------
 # 3b. A noite da povoacao e o que enfeita a rua
@@ -2024,6 +2053,57 @@ func _perto_da_rede(p: Vector2, chave: String, largura: float) -> bool:
                 return true
     return false
 
+
+## AS RUAS DA VILA, e nao so as estradas da regiao.
+##
+## `road_paths` sao as vias que cruzam a regiao; a malha urbana — avenida
+## principal, largo, travessas e ruas de bairro — vem da planta da praca e vive
+## noutro lugar do arquivo. Tudo que evitava estrada consultava so a primeira
+## lista, entao pedra e arbusto podiam nascer no meio da avenida da capital sem
+## nada reclamar: a rua estava PINTADA no chao ali, mas nenhum teste sabia dela.
+##
+## A geometria aqui e a MESMA que `_pintar_as_vias` manda ao shader do chao e
+## que a carta do minimapa risca. Se as tres discordassem, o jogador veria rua
+## num lugar, entulho noutro e o mapa apontando um terceiro.
+func _sobre_a_via_urbana(p: Vector2, folga: float) -> bool:
+    var vias: Dictionary = _dados_da_praca().get("vias", {})
+    if vias.is_empty():
+        return false
+    var principal: Array = vias.get("principal", [0.0, 0.0])
+    if principal.size() < 2:
+        return false
+    var meia_rua := float(principal[0])
+    if meia_rua < 0.01:
+        return false
+    if absf(p.x) < meia_rua + folga and absf(p.y) < float(principal[1]) + folga:
+        return true
+    var raio_do_largo := float(vias.get("largo", 0.0))
+    if raio_do_largo > 0.01 and p.length() < raio_do_largo + folga:
+        return true
+    var travessas: Array = vias.get("travessas", [0.0, 0.0, 0.0])
+    if travessas.size() >= 3:
+        var meia_t: float = float(principal[1]) if travessas.size() < 2 else float(travessas[1])
+        if absf(p.y - float(travessas[0])) < meia_t + folga \
+                and absf(p.x) < float(travessas[2]) + folga:
+            return true
+    var secundarias: Array = vias.get("secundarias", [999.0, 999.0, 0.0, 0.0])
+    if secundarias.size() >= 4 and float(secundarias[0]) < 900.0:
+        for onde in [float(secundarias[0]), float(secundarias[1])]:
+            if absf(p.y - onde) < float(secundarias[2]) + folga \
+                    and absf(p.x) < float(secundarias[3]) + folga:
+                return true
+    return false
+
+
+## A faixa que precisa ficar limpa para o jogador passar.
+##
+## Um so lugar respondendo "da para andar aqui?" — estrada da regiao E rua da
+## vila. Quem planta qualquer coisa pergunta a esta funcao, e nao a metade dela.
+const FOLGA_DA_CIRCULACAO := 2.2
+
+func _bloqueia_circulacao(p: Vector2, folga := FOLGA_DA_CIRCULACAO) -> bool:
+    return _perto_da_rede(p, "road_paths", 6.0 + folga) or _sobre_a_via_urbana(p, folga)
+
 func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio_max: float, solido: bool, sc_min: float, sc_max: float, dist_min: float) -> void:
     # Lista vazia e uma resposta valida agora: quando todos os modelos de um
     # tipo sao descartados por nao terem textura, o certo e nao espalhar nada.
@@ -2040,21 +2120,42 @@ func _espalhar_props_3d(rng: RandomNumberGenerator, qtd: int, lista: Array, raio
         var enterrar: float = float(item.get("enterrar", 0.5))
         
         var escala_extra: float = rng.randf_range(sc_min, sc_max)
+
+        # O PONTO PRIMEIRO, O MODELO DEPOIS.
+        #
+        # Antes o modelo era carregado e montado e so entao se olhava onde ele
+        # tinha caido; se fosse na agua, ia para o lixo inteiro. Pior: NINGUEM
+        # olhava se tinha caido na rua. Este sorteio nao consultava estrada nem
+        # via urbana, entao pedra e arbusto nasciam no meio do caminho — e a
+        # regra da casa e que rota de circulacao fica limpa.
+        #
+        # Oito tentativas: com o mapa cheio de mata e so as faixas de rua
+        # proibidas, a primeira ou a segunda quase sempre serve, e desistir do
+        # adorno e melhor que planta-lo em cima da estrada.
+        var px := 0.0
+        var pz := 0.0
+        var py := 0.0
+        var achou := false
+        for _tentativa in 8:
+            var ang: float = rng.randf_range(0.0, TAU)
+            var dist: float = rng.randf_range(dist_min, raio_max)
+            px = cos(ang) * dist
+            pz = sin(ang) * dist
+            if _bloqueia_circulacao(Vector2(px, pz)):
+                continue
+            # Enterra o tronco/raízes no terreno para não ficarem flutuando
+            py = calcular_altura(px, pz) - (enterrar * escala_extra)
+            if tem_agua and py < water_y + 0.5:
+                continue
+            achou = true
+            break
+        if not achou:
+            continue
+
         var suporte := _instanciar_prop_3d(path, tag, alt_base, escala_extra)
         if not suporte:
             continue
-            
-        var ang: float = rng.randf_range(0.0, TAU)
-        var dist: float = rng.randf_range(dist_min, raio_max)
-        var px: float = cos(ang) * dist
-        var pz: float = sin(ang) * dist
-        # Enterra o tronco/raízes no terreno para não ficarem flutuando
-        var py: float = calcular_altura(px, pz) - (enterrar * escala_extra)
-        
-        if tem_agua and py < water_y + 0.5:
-            suporte.queue_free()
-            continue
-            
+
         suporte.position = Vector3(px, py, pz)
         suporte.rotation.y = rng.randf_range(0.0, TAU)
         

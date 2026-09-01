@@ -6,6 +6,9 @@ const MALHA_DOURADA := preload("res://assets/dungeon/quaternius/Chest_Gold.obj")
 
 @export var recompensa_claves := 150
 @export var dourado := false
+## O bau do fundo da caverna. Abrir este e o que conta como "concluiu a DG" —
+## nao ha chefe ainda, e chegar ate o ultimo tesouro e o fim da incursao.
+@export var conclui_dg := false
 
 var _aberto := false
 var _visual: MeshInstance3D
@@ -84,6 +87,11 @@ func _ao_entrar(corpo: Node3D) -> void:
     # O LETREIRO EM DUAS LINHAS E GRANDE. O texto anterior saia num tamanho de
     # legenda e sumia em meio segundo: quem abriu o bau nao conseguia ler o que
     # ganhou, que e a unica parte que importa.
+    if conclui_dg:
+        var diario := get_node_or_null("/root/Diario")
+        if diario:
+            diario.registrar("dungeon", 1, "")
+
     _rotulo.font_size = 46
     _rotulo.modulate = Color(1.0, 0.92, 0.62)
     _rotulo.text = "\n".join(ganhos) if not ganhos.is_empty() else "VAZIO"

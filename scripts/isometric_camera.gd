@@ -28,7 +28,10 @@ const FOV_GTA := 68.0
 ## (player.gd:150) e a camera viria atras dele — os tres fecham um ciclo que se
 ## realimenta e a camera roda sozinha enquanto o analogico estiver de lado. Por
 ## isso aqui ela so obedece ao dedo, e o ciclo nunca se forma.
-const SENSIBILIDADE := 0.006
+## Escolhida pelo jogador nos ajustes; este e o valor de fabrica. Estatica
+## porque a camera nasce da cena e nao ha por onde injetar a preferencia antes
+## do _ready — e porque so existe uma camera de cada vez.
+static var sensibilidade := 0.006
 const SUAVIDADE_DO_GIRO := 12.0
 ## Nao ha recentragem automatica. Tinha, so quando o heroi estava parado, e
 ## mesmo assim atrapalhava: parar para atacar gira o heroi no lugar, a camera ia
@@ -81,7 +84,7 @@ func _unhandled_input(event: InputEvent) -> void:
             _mudar_zoom(0.10)
     elif event is InputEventMouseMotion and modo_gta:
         if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
-            _giro_desejado -= event.relative.x * SENSIBILIDADE
+            _giro_desejado -= event.relative.x * sensibilidade
     elif event is InputEventScreenTouch:
         if event.pressed:
             _toques[event.index] = event.position
@@ -92,7 +95,7 @@ func _unhandled_input(event: InputEvent) -> void:
         var antes: Vector2 = _toques.get(event.index, event.position)
         _toques[event.index] = event.position
         if modo_gta and _toques.size() == 1:
-            _giro_desejado -= (event.position.x - antes.x) * SENSIBILIDADE
+            _giro_desejado -= (event.position.x - antes.x) * sensibilidade
         if _toques.size() >= 2:
             var pontos: Array = _toques.values()
             var distancia: float = pontos[0].distance_to(pontos[1])

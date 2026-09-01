@@ -17,15 +17,22 @@ var _personagem_atual := "akles"
 
 var _voando := false
 
-## O quadro de referência do direcional: para onde ficam "frente" e "direita"
-## na tela no instante em que o polegar escolheu a direção. Ver
-## `_physics_process`, que é onde ele é renovado.
-var _frente_do_dedo := Vector3.ZERO
-var _direita_do_dedo := Vector3.ZERO
-var _direcional_anterior := Vector2.ZERO
-## Quanto o polegar precisa andar no círculo para o quadro ser renovado. Abaixo
-## disso é tremor de dedo sobre vidro, não intenção de mudar de rumo.
-const RENOVAR_QUADRO := 0.06
+## O quadro de referência do direcional, guardado como DESVIO ANGULAR entre o
+## rumo que o dedo escolheu e os eixos atuais da câmera. Ver `_physics_process`.
+##
+## Guardar um ÂNGULO, e não um par de vetores congelados, é o que torna o rumo
+## contínuo: o desvio cresce e diminui junto com a câmera, quadro a quadro, em
+## vez de ser trocado de uma vez por outro quando algum limiar é cruzado.
+var _desvio_do_quadro := 0.0
+var _giro_da_camera_anterior := 0.0
+var _quadro_ativo := false
+## Quanto o quadro pode se afastar da câmera antes de ser ARRASTADO por ela.
+##
+## Sem teto, meia volta de câmera com o dedo parado deixaria o alto do círculo
+## apontando para as costas do jogador. Com teto, o desvio satura e o quadro
+## passa a acompanhar a câmera na mesma velocidade — que é uma curva suave, não
+## um salto, porque limitar um acumulador não cria degrau.
+const DESVIO_MAXIMO := PI * 0.5
 
 func alternar_voo() -> void:
     _voando = not _voando
@@ -170,45 +177,62 @@ func _physics_process(delta: float) -> void:
     var camera := get_viewport().get_camera_3d()
     var move_direction := Vector3.ZERO
 
-    if camera and input_vector.length() > 0.0:
-        # Girar a câmera NÃO desvia quem já está andando.
+    if camera:
+        # Girar a câmera NÃO desvia quem já está andando — e não dá solavanco.
         #
         # O movimento é relativo à tela, e tem de ser: "para cima no círculo" é
-        # "para longe na tela". Mas ler os eixos da câmera a cada quadro
-        # amarrava as duas coisas — o segundo dedo girava a câmera e o herói
-        # fazia a curva junto, sem ninguém ter tocado no direcional.
+        # "para longe na tela". Ler os eixos da câmera a cada quadro amarra as
+        # duas coisas, e o segundo dedo passa a fazer o herói curvar sozinho.
         #
-        # Congelar os eixos no primeiro toque também não serve: foi o que havia
-        # antes, e depois de meia volta de câmera o "cima" do círculo apontava
-        # para as costas do jogador.
+        # A versão anterior congelava os eixos e só os renovava quando o polegar
+        # andava mais que um limiar no círculo. Era ali que nascia o salto: com
+        # a câmera já girada, qualquer TREMOR de dedo acima do limiar trocava o
+        # quadro de uma vez, e o rumo no mundo pulava de golpe o tanto que a
+        # câmera tinha girado desde a última renovação. Quanto mais câmera, maior
+        # o pulo — que é exatamente o "personagem muda de trajetória do nada".
         #
-        # Então o quadro é renovado quando o POLEGAR se mexe, não quando a
-        # câmera se mexe: com o dedo parado o rumo no mundo não muda, e basta
-        # corrigir a direção no círculo para ele voltar a ser o alto da tela.
-        # No teclado nada disso vale — lá o quadro é sempre o atual, que é o
-        # que se espera de mouse com WASD.
-        if (not veio_do_dedo or _frente_do_dedo == Vector3.ZERO
-                or input_vector.distance_to(_direcional_anterior) > RENOVAR_QUADRO):
-            _frente_do_dedo = -camera.global_basis.z
-            _frente_do_dedo.y = 0.0
-            _frente_do_dedo = _frente_do_dedo.normalized()
-            _direita_do_dedo = camera.global_basis.x
-            _direita_do_dedo.y = 0.0
-            _direita_do_dedo = _direita_do_dedo.normalized()
-        _direcional_anterior = input_vector
-        # A INTENSIDADE do empurrao sobrevive ate a velocidade.
-        #
-        # Antes o vetor era normalizado aqui, e com isso qualquer toque alem da
-        # zona morta virava velocidade cheia: nao havia andar devagar, so parado
-        # ou disparado. Num polegar sobre vidro isso e o que faz o controle
-        # parecer escorregadio e dificil de mirar.
-        var bruto := _direita_do_dedo * input_vector.x - _frente_do_dedo * input_vector.y
-        var forca: float = clampf(input_vector.length(), 0.0, 1.0)
-        move_direction = bruto.normalized() * forca
-    else:
-        # Dedo fora do círculo: o próximo toque começa do quadro atual da tela.
-        _frente_do_dedo = Vector3.ZERO
-        _direcional_anterior = Vector2.ZERO
+        # Agora o que se guarda é o DESVIO entre o quadro do dedo e a câmera, e
+        # ele é corrigido pelo giro da câmera a cada quadro. Dedo parado, rumo
+        # parado; dedo mexeu, o rumo muda só o quanto o dedo mudou. Não existe
+        # limiar, logo não existe degrau. No teclado o desvio é sempre zero, que
+        # é o relativo-à-câmera puro que se espera de mouse com WASD.
+        var frente := -camera.global_basis.z
+        frente.y = 0.0
+        frente = frente.normalized()
+        var direita := camera.global_basis.x
+        direita.y = 0.0
+        direita = direita.normalized()
+        var giro_da_camera := atan2(frente.x, frente.z)
+
+        if veio_do_dedo and input_vector.length() > 0.0:
+            if _quadro_ativo:
+                # `frente` e `direita` são colunas do mesmo giro: as duas rodam
+                # com a câmera, e o desvio desconta exatamente esse giro.
+                _desvio_do_quadro = clampf(
+                    _desvio_do_quadro - angle_difference(
+                        _giro_da_camera_anterior, giro_da_camera),
+                    -DESVIO_MAXIMO, DESVIO_MAXIMO)
+            else:
+                _quadro_ativo = true
+                _desvio_do_quadro = 0.0
+        else:
+            # Dedo fora do círculo: o próximo toque começa do quadro da tela.
+            _quadro_ativo = false
+            _desvio_do_quadro = 0.0
+        _giro_da_camera_anterior = giro_da_camera
+
+        if input_vector.length() > 0.0:
+            # A INTENSIDADE do empurrao sobrevive ate a velocidade.
+            #
+            # Antes o vetor era normalizado aqui, e com isso qualquer toque alem
+            # da zona morta virava velocidade cheia: nao havia andar devagar, so
+            # parado ou disparado. Num polegar sobre vidro isso e o que faz o
+            # controle parecer escorregadio e dificil de mirar.
+            var bruto := direita * input_vector.x - frente * input_vector.y
+            if not is_zero_approx(_desvio_do_quadro):
+                bruto = bruto.rotated(Vector3.UP, _desvio_do_quadro)
+            var forca: float = clampf(input_vector.length(), 0.0, 1.0)
+            move_direction = bruto.normalized() * forca
 
     if _voando:
         velocity.x = move_toward(velocity.x, move_direction.x * fly_speed, acceleration * 1.5 * delta)

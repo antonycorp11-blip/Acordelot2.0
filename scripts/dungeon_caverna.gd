@@ -293,7 +293,8 @@ func _construir_segundo_estagio() -> void:
     # --- BAÚS DO ESTÁGIO 2 ---
     _bau(o + Vector3(-84.0, 0.0, -14.0), 750, true)
     _bau(o + Vector3(26.0, 0.0, -24.0), 500, true)
-    _bau(o + Vector3(0.0, 0.0, -102.0), 1000, true)
+    # O tesouro do fundo: e ele que registra a incursao como concluida.
+    _bau(o + Vector3(0.0, 0.0, -102.0), 1000, true, true)
 
     # --- MONSTROS DO ESTÁGIO 2 (GOLEMS CRISTALINOS & COLOSSOS) ---
     var salas_estagio_2 := [
@@ -583,11 +584,12 @@ func _tocha(onde: Vector3, giro: float) -> void:
     _dungeon.add_child(luz)
 
 
-func _bau(onde: Vector3, recompensa: int, ouro: bool) -> void:
+func _bau(onde: Vector3, recompensa: int, ouro: bool, fecha_a_dg := false) -> void:
     var bau := BAU.new()
     bau.position = onde
     bau.recompensa_claves = recompensa
     bau.dourado = ouro
+    bau.conclui_dg = fecha_a_dg
     _dungeon.add_child(bau)
 
 
@@ -663,14 +665,26 @@ func _criar_botao_hud() -> void:
     hud.add_child(_placar)
 
 
+## Nome, fator de vida, fator de espolio, nivel recomendado e a explicacao.
+##
+## O nivel recomendado nao existia e era a pergunta que a tela nao respondia:
+## "eu aguento esta?". Sem ela a escolha de dificuldade e chute, e chute errado
+## na Cacofonia custa a incursao inteira.
 const DIFICULDADES := [
-    ["SERENA", 0.75, 1.0, "Para conhecer a caverna. Menos vida nos Shikers."],
-    ["DISSONANTE", 1.0, 1.4, "O equilibrio da caverna. Recompensa cheia."],
-    ["CACOFONIA", 1.6, 2.2, "Eles batem mais forte e aguentam mais. Espolio dobrado."],
+    ["SERENA", 0.75, 1.0, 1, "Para conhecer a caverna. Shikers com menos vida."],
+    ["DISSONANTE", 1.0, 1.4, 5, "O equilibrio da caverna. Recompensa cheia."],
+    ["CACOFONIA", 1.6, 2.2, 12, "Batem mais forte e aguentam mais. Espolio dobrado."],
 ]
+
+const KIT_UI := "res://textures/ui/kit/"
+const FONTE_UI := "res://fontes/Cinzel.ttf"
+const OURO_UI := Color(0.97, 0.84, 0.47)
+const TEXTO_UI := Color(0.84, 0.88, 0.94)
+const APAGADO_UI := Color(0.62, 0.67, 0.76)
 
 var _dificuldade := 1
 var _tela_entrada: CanvasLayer
+var _cartoes_dificuldade: Array[Control] = []
 
 
 func _pedir_entrada() -> void:
@@ -679,9 +693,23 @@ func _pedir_entrada() -> void:
         return
     if _tela_entrada == null:
         _montar_tela_entrada()
+    _atualizar_cartoes()
     _tela_entrada.visible = true
 
 
+## A TELA DE ENTRADA DA DG.
+##
+## A anterior era um painel de 660 por 480 pixels FIXOS, centralizado, com seis
+## botoes, seis linhas de explicacao e mais dois botoes de acao empilhados
+## dentro. Em 1280 de largura passava raspando; em celular deitado, onde a altura
+## util cai para uns 380 pixels de tela esticada, o "ENTRAR" simplesmente ficava
+## abaixo da borda do painel. Nao era falta de capricho no espacamento: era um
+## retangulo de tamanho fixo com conteudo que nao cabe nele.
+##
+## Aqui o painel e proporcional a tela, o miolo ROLA e as duas acoes ficam fora
+## da rolagem — o mesmo desenho da tela de ajustes e do diario, pela mesma razao
+## e com a mesma moldura do kit, para as tres pararem de parecer telas de jogos
+## diferentes.
 func _montar_tela_entrada() -> void:
     _tela_entrada = CanvasLayer.new()
     _tela_entrada.layer = 60
@@ -693,78 +721,176 @@ func _montar_tela_entrada() -> void:
     fundo.mouse_filter = Control.MOUSE_FILTER_STOP
     _tela_entrada.add_child(fundo)
 
-    var painel := PanelContainer.new()
-    var caixa := StyleBoxFlat.new()
-    caixa.bg_color = Color(0.045, 0.06, 0.12, 0.97)
-    caixa.border_color = Color(0.62, 0.50, 0.26)
-    caixa.set_border_width_all(2)
-    caixa.set_corner_radius_all(12)
-    painel.add_theme_stylebox_override("panel", caixa)
-    painel.set_anchors_preset(Control.PRESET_CENTER)
-    painel.offset_left = -330
-    painel.offset_right = 330
-    painel.offset_top = -240
-    painel.offset_bottom = 240
+    var painel := NinePatchRect.new()
+    painel.texture = load(KIT_UI + "moldura_painel_grande.png")
+    painel.patch_margin_left = 22
+    painel.patch_margin_top = 68
+    painel.patch_margin_right = 22
+    painel.patch_margin_bottom = 64
+    painel.anchor_left = 0.5
+    painel.anchor_right = 0.5
+    painel.anchor_top = 0.05
+    painel.anchor_bottom = 0.95
+    painel.offset_left = -320.0
+    painel.offset_right = 320.0
+    painel.mouse_filter = Control.MOUSE_FILTER_STOP
     fundo.add_child(painel)
 
-    var margem := MarginContainer.new()
-    for lado in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
-        margem.add_theme_constant_override(lado, 26)
-    painel.add_child(margem)
-
     var coluna := VBoxContainer.new()
-    coluna.add_theme_constant_override("separation", 10)
-    margem.add_child(coluna)
+    coluna.set_anchors_preset(Control.PRESET_FULL_RECT)
+    coluna.offset_left = 36
+    coluna.offset_right = -36
+    coluna.offset_top = 72
+    coluna.offset_bottom = -28
+    coluna.add_theme_constant_override("separation", 4)
+    painel.add_child(coluna)
 
-    coluna.add_child(_letra("CAVERNA DA PRIMEIRA RESSONÂNCIA", 26, Color(0.97, 0.84, 0.47)))
-    coluna.add_child(_letra("Dois estágios  •  Shikers, baús e dois Super Shikers", 14, Color(0.72, 0.78, 0.88)))
+    coluna.add_child(_letra("Caverna da Primeira Ressonância", 25, OURO_UI))
+    coluna.add_child(_letra("Floresta do Despertar  •  Masmorra", 13, APAGADO_UI))
 
+    var rolagem := ScrollContainer.new()
+    rolagem.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    rolagem.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    coluna.add_child(rolagem)
+
+    var miolo := VBoxContainer.new()
+    miolo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    miolo.add_theme_constant_override("separation", 8)
+    rolagem.add_child(miolo)
+
+    miolo.add_child(_letra(
+        "Dois estágios sob a floresta. Shikers guardam os corredores, dois Super "
+        + "Shikers guardam o fundo, e os baús trazem Claves e fragmentos corrompidos.",
+        13, TEXTO_UI))
+    miolo.add_child(_letra("Recompensas: Claves  •  Fragmentos corrompidos  •  Partituras",
+        13, Color(0.80, 0.86, 0.72)))
+
+    miolo.add_child(_secao("Dificuldade"))
+    _cartoes_dificuldade.clear()
+    _botoes_dificuldade.clear()
     for i in DIFICULDADES.size():
-        var d: Array = DIFICULDADES[i]
-        var b := Button.new()
-        b.custom_minimum_size.y = 62
-        b.text = "%s        vida ×%.2f      espólio ×%.1f" % [d[0], d[1], d[2]]
-        b.add_theme_font_size_override("font_size", 17)
-        b.add_theme_color_override("font_color", Color(0.98, 0.94, 0.82))
-        var cor := Color(0.16, 0.22, 0.34) if i != _dificuldade else Color(0.34, 0.24, 0.46)
-        var fundo_b := StyleBoxFlat.new()
-        fundo_b.bg_color = cor
-        fundo_b.border_color = cor.lightened(0.3)
-        fundo_b.set_border_width_all(1)
-        fundo_b.set_corner_radius_all(8)
-        b.add_theme_stylebox_override("normal", fundo_b)
-        b.pressed.connect(_escolher_dificuldade.bind(i))
-        coluna.add_child(b)
-        _botoes_dificuldade.append(b)
-        coluna.add_child(_letra(str(d[3]), 12, Color(0.64, 0.70, 0.80)))
+        var cartao := _cartao_dificuldade(i)
+        miolo.add_child(cartao)
+        _cartoes_dificuldade.append(cartao)
 
     var acoes := HBoxContainer.new()
     acoes.alignment = BoxContainer.ALIGNMENT_CENTER
-    acoes.add_theme_constant_override("separation", 14)
+    acoes.add_theme_constant_override("separation", 12)
     coluna.add_child(acoes)
 
-    var entrar := Button.new()
-    entrar.text = "ENTRAR NA CAVERNA"
-    entrar.custom_minimum_size = Vector2(300, 56)
-    entrar.add_theme_font_size_override("font_size", 19)
-    entrar.add_theme_color_override("font_color", Color(1.0, 0.93, 0.72))
-    var dourado := StyleBoxFlat.new()
-    dourado.bg_color = Color(0.36, 0.27, 0.10)
-    dourado.border_color = Color(0.80, 0.64, 0.30)
-    dourado.set_border_width_all(2)
-    dourado.set_corner_radius_all(9)
-    entrar.add_theme_stylebox_override("normal", dourado)
+    var entrar := _botao_kit("ENTRAR NA CAVERNA", "botao_dourado")
+    entrar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     entrar.pressed.connect(func():
         _tela_entrada.visible = false
         _entrar())
     acoes.add_child(entrar)
 
-    var voltar := Button.new()
-    voltar.text = "VOLTAR"
-    voltar.custom_minimum_size = Vector2(150, 56)
-    voltar.add_theme_font_size_override("font_size", 17)
+    var voltar := _botao_kit("VOLTAR", "botao_vermelho")
+    voltar.custom_minimum_size.x = 150
     voltar.pressed.connect(func(): _tela_entrada.visible = false)
     acoes.add_child(voltar)
+
+
+## Um cartao por dificuldade, e a escolhida se ANUNCIA.
+##
+## Antes as tres eram botoes iguais e a selecionada mudava de um azul-escuro para
+## um roxo-escuro — dois tons que, no brilho de um celular ao sol, sao a mesma
+## coisa. Aqui a escolhida ganha aro dourado, fundo mais claro e um losango aceso
+## na frente do nome: tres sinais, e nenhum deles depende de distinguir tom.
+func _cartao_dificuldade(i: int) -> Control:
+    var d: Array = DIFICULDADES[i]
+    var cartao := PanelContainer.new()
+    cartao.mouse_filter = Control.MOUSE_FILTER_STOP
+
+    var dentro := VBoxContainer.new()
+    dentro.add_theme_constant_override("separation", 2)
+    cartao.add_child(dentro)
+
+    var topo := HBoxContainer.new()
+    topo.add_theme_constant_override("separation", 8)
+    dentro.add_child(topo)
+
+    var marca := Label.new()
+    marca.name = "Marca"
+    marca.text = "◆"
+    marca.add_theme_font_size_override("font_size", 15)
+    topo.add_child(marca)
+
+    var nome := Label.new()
+    nome.name = "Nome"
+    nome.text = str(d[0])
+    nome.add_theme_font_override("font", load(FONTE_UI))
+    nome.add_theme_font_size_override("font_size", 18)
+    nome.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    topo.add_child(nome)
+
+    var nivel := Label.new()
+    nivel.text = "nível %d+" % int(d[3])
+    nivel.add_theme_font_size_override("font_size", 12)
+    nivel.add_theme_color_override("font_color", APAGADO_UI)
+    topo.add_child(nivel)
+
+    var numeros := Label.new()
+    numeros.text = "vida ×%.2f      espólio ×%.1f" % [float(d[1]), float(d[2])]
+    numeros.add_theme_font_size_override("font_size", 13)
+    numeros.add_theme_color_override("font_color", Color(0.76, 0.82, 0.90))
+    dentro.add_child(numeros)
+
+    var conta := Label.new()
+    conta.text = str(d[4])
+    conta.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    conta.add_theme_font_size_override("font_size", 12)
+    conta.add_theme_color_override("font_color", APAGADO_UI)
+    dentro.add_child(conta)
+
+    # O cartao inteiro e a area de toque: num celular, alvo de toque menor que o
+    # cartao que se ve e a receita para o jogador achar que a tela travou.
+    var toque := Button.new()
+    toque.flat = true
+    toque.set_anchors_preset(Control.PRESET_FULL_RECT)
+    toque.focus_mode = Control.FOCUS_NONE
+    for estado in ["normal", "hover", "pressed", "focus"]:
+        toque.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+    toque.pressed.connect(_escolher_dificuldade.bind(i))
+    cartao.add_child(toque)
+    _botoes_dificuldade.append(toque)
+    return cartao
+
+
+func _secao(texto: String) -> Control:
+    var caixa := VBoxContainer.new()
+    caixa.add_theme_constant_override("separation", 2)
+    var espaco := Control.new()
+    espaco.custom_minimum_size = Vector2(0, 6)
+    caixa.add_child(espaco)
+    caixa.add_child(_letra(texto, 17, OURO_UI))
+    var risco := ColorRect.new()
+    risco.color = Color(0.72, 0.58, 0.30, 0.45)
+    risco.custom_minimum_size = Vector2(0, 1)
+    caixa.add_child(risco)
+    return caixa
+
+
+func _botao_kit(rotulo: String, arte: String) -> Button:
+    var b := Button.new()
+    b.text = rotulo
+    b.custom_minimum_size = Vector2(0, 52)
+    b.add_theme_font_override("font", load(FONTE_UI))
+    b.add_theme_font_size_override("font_size", 17)
+    b.add_theme_color_override("font_color", Color(1.0, 0.95, 0.84))
+    for estado in ["normal", "hover", "pressed", "focus"]:
+        b.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+    var moldura := NinePatchRect.new()
+    moldura.texture = load(KIT_UI + arte + ".png")
+    moldura.patch_margin_left = 36
+    moldura.patch_margin_top = 28
+    moldura.patch_margin_right = 36
+    moldura.patch_margin_bottom = 14
+    moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
+    moldura.show_behind_parent = true
+    moldura.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    b.add_child(moldura)
+    return b
 
 
 func _letra(txt: String, corpo: int, cor: Color) -> Label:
@@ -772,6 +898,7 @@ func _letra(txt: String, corpo: int, cor: Color) -> Label:
     l.text = txt
     l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    l.add_theme_font_override("font", load(FONTE_UI))
     l.add_theme_font_size_override("font_size", corpo)
     l.add_theme_color_override("font_color", cor)
     return l
@@ -779,15 +906,31 @@ func _letra(txt: String, corpo: int, cor: Color) -> Label:
 
 func _escolher_dificuldade(qual: int) -> void:
     _dificuldade = qual
-    for i in _botoes_dificuldade.size():
-        var b: Button = _botoes_dificuldade[i]
-        var cor := Color(0.16, 0.22, 0.34) if i != qual else Color(0.34, 0.24, 0.46)
-        var fundo_b := StyleBoxFlat.new()
-        fundo_b.bg_color = cor
-        fundo_b.border_color = cor.lightened(0.3)
-        fundo_b.set_border_width_all(1)
-        fundo_b.set_corner_radius_all(8)
-        b.add_theme_stylebox_override("normal", fundo_b)
+    _atualizar_cartoes()
+
+
+func _atualizar_cartoes() -> void:
+    for i in _cartoes_dificuldade.size():
+        var cartao: PanelContainer = _cartoes_dificuldade[i]
+        var escolhido: bool = i == _dificuldade
+        var estilo := StyleBoxFlat.new()
+        estilo.bg_color = Color(0.14, 0.11, 0.05, 0.96) if escolhido else Color(0.045, 0.065, 0.11, 0.92)
+        estilo.border_color = OURO_UI if escolhido else Color(0.34, 0.40, 0.50, 0.85)
+        estilo.set_border_width_all(2 if escolhido else 1)
+        estilo.set_corner_radius_all(9)
+        estilo.content_margin_left = 14
+        estilo.content_margin_right = 14
+        estilo.content_margin_top = 9
+        estilo.content_margin_bottom = 11
+        cartao.add_theme_stylebox_override("panel", estilo)
+        var marca := cartao.find_child("Marca", true, false) as Label
+        if marca:
+            marca.add_theme_color_override("font_color",
+                OURO_UI if escolhido else Color(0.30, 0.36, 0.44))
+        var nome := cartao.find_child("Nome", true, false) as Label
+        if nome:
+            nome.add_theme_color_override("font_color",
+                Color(1.0, 0.95, 0.80) if escolhido else Color(0.72, 0.78, 0.86))
 
 
 func _aplicar_dificuldade() -> void:

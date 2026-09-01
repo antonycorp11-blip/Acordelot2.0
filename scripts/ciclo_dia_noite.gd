@@ -180,7 +180,11 @@ func _aplicar() -> void:
         # De madrugada a sombra dura custa o mesmo que ao meio-dia e nao aparece:
         # a luz da lua e fraca demais para desenhar contraste. Desligar devolve
         # o quadro inteiro do celular na metade do ciclo.
-        _luz.shadow_enabled = forca[0] > 0.45
+        #
+        # E o nivel grafico manda por cima: quem escolheu Baixo desligou a
+        # sombra, e sem esta condicao o ciclo a reacendia no proximo decimo de
+        # segundo — a opcao parecia simplesmente nao funcionar.
+        _luz.shadow_enabled = forca[0] > 0.45 and Ajustes.sombras_permitidas
 
     _acender_as_lampadas(forca[0] < 1.0)
 

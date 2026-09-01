@@ -21,7 +21,6 @@ class_name PlayerHUD
 const BURACOS := {
     "vida": Rect2(0.0189, 0.30, 0.9623, 0.60),
     "xp": Rect2(0.0189, 0.1304, 0.9623, 0.7391),
-    "alvo": Rect2(0.0748, 0.2131, 0.8866, 0.5738),
 }
 
 const LARGURA_DA_BARRA := 232.0
@@ -37,13 +36,12 @@ var _poder_label: Label
 var _escudo := 0.0
 var _escudo_ate := 0.0
 
-var _alvo_caixa: Control
-var _alvo_cheio: ColorRect
-var _alvo_nome: Label
-var _alvo_some_em := 0.0
+var _botao_missoes: Button
+var _medalha: Panel
 
 signal config_pedida
 signal mochila_pedida
+signal missoes_pedidas
 
 
 func _ready() -> void:
@@ -75,14 +73,17 @@ func _ready() -> void:
     # o olho ja procura, porque esta onde a briga acontece.
 
 
-func _process(delta: float) -> void:
-    if _alvo_caixa and _alvo_caixa.visible:
-        _alvo_some_em -= delta
-        if _alvo_some_em <= 0.0:
-            _alvo_caixa.visible = false
-    if _escudo > 0.0 and Time.get_ticks_msec() / 1000.0 >= _escudo_ate:
+## So corre enquanto ha escudo para expirar. A HUD passa a maior parte da partida
+## sem nada a fazer por quadro, e um _process ligado o tempo todo para conferir
+## um cronometro parado e custo puro num aparelho que ja esta no limite.
+func _process(_delta: float) -> void:
+    if _escudo <= 0.0:
+        set_process(false)
+        return
+    if Time.get_ticks_msec() / 1000.0 >= _escudo_ate:
         _escudo = 0.0
         _pintar_vida()
+        set_process(false)
 
 
 # ---------------------------------------------------------------- construcao
@@ -208,6 +209,7 @@ func _montar_retrato_e_barras() -> void:
     medalha.position = Vector2(LADO_DO_RETRATO * 0.845, LADO_DO_RETRATO * 0.87) - medalha.size * 0.5
     medalha.mouse_filter = Control.MOUSE_FILTER_IGNORE
     canto.add_child(medalha)
+    _medalha = medalha
 
     _nivel_label = Label.new()
     _nivel_label.position = medalha.position
@@ -263,36 +265,101 @@ func _montar_retrato_e_barras() -> void:
     _pintar_vida()
     _pintar_xp()
 
-    # --- engrenagem e mochila, no canto de cima a direita
-    # AO LADO DO MAPA, no alto — o lugar padrao deste tipo de botao em jogo de
-    # celular, e agora ele esta livre: o relogio do dia virou anel em volta do
-    # minimapa e desocupou a faixa de cima.
-    #
-    # Por OFFSET e nao por position: com ancora num canto, "position" continua
-    # medida a partir do canto de cima a esquerda do pai, e era isso que jogava
-    # os dois para fora da tela.
+    _montar_coluna_de_utilitarios()
+
+
+## A ENGRENAGEM SAIU DE CIMA DA BARRA DE VIDA.
+##
+## Ela e a mochila ficavam a ESQUERDA do minimapa, no alto: -308 e -380 pixels
+## contados da borda direita. Numa base de 1280 sobrava espaco, mas a tela do
+## jogo estica em largura e nao em altura — em celular deitado o bloco do
+## jogador (retrato + vida + XP + poder, uns 320 px) cresce para a direita e
+## encontra exatamente essa faixa. Era o "botao mal posicionado": nao estava
+## fora da tela, estava por cima do bloco de vida em telas largas.
+##
+## Agora as tres entradas de menu moram numa coluna so, encostada na direita e
+## ABAIXO do minimapa — uma regiao que nada mais disputa em nenhuma proporcao de
+## tela. Juntas tambem se leem melhor: quem procura "onde eu abro as coisas"
+## acha um lugar, e nao tres.
+func _montar_coluna_de_utilitarios() -> void:
     var lado := 62.0
-    var topo := 20.0
+
+    var coluna := VBoxContainer.new()
+    coluna.anchor_left = 1.0
+    coluna.anchor_right = 1.0
+    coluna.anchor_top = 0.0
+    coluna.anchor_bottom = 0.0
+    # Abaixo da pilha do minimapa (titulo + disco + dois botoes), que termina
+    # por volta de 295 px do topo.
+    coluna.offset_left = -186.0
+    coluna.offset_right = -14.0
+    coluna.offset_top = 302.0
+    coluna.offset_bottom = 302.0 + lado * 2.0 + 46.0
+    coluna.add_theme_constant_override("separation", 8)
+    coluna.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(coluna)
+
+    _botao_missoes = Button.new()
+    _botao_missoes.text = "MISSÕES  0/3"
+    _botao_missoes.custom_minimum_size = Vector2(0, 34)
+    _botao_missoes.add_theme_font_override("font", load("res://fontes/Cinzel.ttf"))
+    _botao_missoes.add_theme_font_size_override("font_size", 12)
+    _botao_missoes.add_theme_color_override("font_color", Color(0.98, 0.90, 0.66))
+    # A mesma placa navy com aro dourado dos botoes do minimapa, logo acima:
+    # inventar um terceiro estilo para o botao vizinho e o que faz a HUD parecer
+    # montada por pessoas diferentes.
+    var placa := StyleBoxFlat.new()
+    placa.bg_color = Color(0.035, 0.09, 0.17, 0.94)
+    placa.border_color = Color(0.76, 0.60, 0.28, 0.95)
+    placa.set_border_width_all(2)
+    placa.set_corner_radius_all(8)
+    _botao_missoes.add_theme_stylebox_override("normal", placa)
+    var apertada := placa.duplicate() as StyleBoxFlat
+    apertada.bg_color = Color(0.12, 0.32, 0.52, 0.98)
+    _botao_missoes.add_theme_stylebox_override("pressed", apertada)
+    _botao_missoes.pressed.connect(func(): missoes_pedidas.emit())
+    coluna.add_child(_botao_missoes)
+
+    var fileira := HBoxContainer.new()
+    fileira.alignment = BoxContainer.ALIGNMENT_END
+    fileira.add_theme_constant_override("separation", 10)
+    coluna.add_child(fileira)
 
     var inventario := _botao("res://textures/ui/btn_inventario.png", lado)
-    inventario.set_anchors_preset(Control.PRESET_TOP_RIGHT, true)
-    inventario.offset_left = -246.0 - lado
-    inventario.offset_right = -246.0
-    inventario.offset_top = topo
-    inventario.offset_bottom = topo + lado
     inventario.pressed.connect(func(): mochila_pedida.emit())
-    add_child(inventario)
+    fileira.add_child(inventario)
 
     var config := _botao("res://textures/ui/btn_config_novo.png", lado)
-    config.set_anchors_preset(Control.PRESET_TOP_RIGHT, true)
-    # AO LADO, na mesma fileira: empilhada embaixo ela descia para a altura do
-    # anel do relogio e disputava espaco com ele.
-    config.offset_left = -246.0 - lado * 2.0 - 10.0
-    config.offset_right = -246.0 - lado - 10.0
-    config.offset_top = topo
-    config.offset_bottom = topo + lado
     config.pressed.connect(func(): config_pedida.emit())
-    add_child(config)
+    fileira.add_child(config)
+
+    _ligar_o_diario()
+
+
+## O contador 0/3 na propria HUD.
+##
+## Sem ele o jogador so descobre que fechou o dia se abrir a tela — e uma tarefa
+## diaria que nao aparece na tela principal e uma tarefa que ninguem faz.
+func _ligar_o_diario() -> void:
+    var diario := get_node_or_null("/root/Diario")
+    if diario == null:
+        return
+    if not diario.alterado.is_connected(_pintar_missoes):
+        diario.alterado.connect(_pintar_missoes)
+    _pintar_missoes()
+
+
+func _pintar_missoes() -> void:
+    if _botao_missoes == null:
+        return
+    var diario := get_node_or_null("/root/Diario")
+    if diario == null:
+        return
+    var feitas: int = diario.concluidas()
+    var total: int = diario.missoes.size()
+    _botao_missoes.text = "MISSÕES  %d/%d" % [feitas, total]
+    _botao_missoes.add_theme_color_override("font_color",
+        Color(0.62, 0.95, 0.62) if total > 0 and feitas >= total else Color(0.98, 0.90, 0.66))
 
 
 func _botao(caminho: String, lado: float) -> TextureButton:
@@ -303,42 +370,6 @@ func _botao(caminho: String, lado: float) -> TextureButton:
     b.custom_minimum_size = Vector2(lado, lado)
     b.size = Vector2(lado, lado)
     return b
-
-
-func _montar_barra_do_alvo() -> void:
-    var t := Vector2(300.0, 300.0 * 61.0 / 441.0)
-    _alvo_caixa = Control.new()
-    _alvo_caixa.set_anchors_preset(Control.PRESET_CENTER_TOP)
-    # Centralizada no alto, no lugar que era do indicador de dia e noite.
-    #
-    # Ela ja esteve aqui e batia no bloco do jogador, entao desceu; o erro foi
-    # medir a tela pela largura de um celular. A base do jogo e 1280 de largura
-    # e o esticamento so alarga: o bloco da esquerda acaba nos 318 pixels e a
-    # barra do alvo comeca nos 490. Nao ha encontro entre os dois.
-    # DESCEU de vez. A conta de largura estava certa na base 1280, mas o celular
-    # do dono e ultralargo: com a tela esticada, o bloco do jogador cresce para
-    # a direita e alcanca o centro, onde esta esta barra. Em vez de calcular o
-    # encontro, ela sai da faixa: cento e vinte pixels ja e abaixo do bloco
-    # inteiro, e nao ha largura de tela em que os dois se cruzem.
-    _alvo_caixa.position = Vector2(-t.x * 0.5, 120.0)
-    _alvo_caixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _alvo_caixa.visible = false
-    add_child(_alvo_caixa)
-
-    var partes := _preencher(BURACOS["alvo"], t, Color(0.82, 0.14, 0.12), _alvo_caixa)
-    _alvo_cheio = partes[1]
-    _moldura("res://textures/ui/barra_alvo.png", t, _alvo_caixa)
-
-    _alvo_nome = Label.new()
-    _alvo_nome.position = Vector2(0.0, -19.0)
-    _alvo_nome.size = Vector2(t.x, 18.0)
-    _alvo_nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _alvo_nome.add_theme_font_size_override("font_size", 14)
-    _alvo_nome.add_theme_color_override("font_color", Color(1.0, 0.9, 0.55))
-    _alvo_nome.add_theme_color_override("font_outline_color", Color(0.06, 0.03, 0.0, 0.95))
-    _alvo_nome.add_theme_constant_override("outline_size", 4)
-    _alvo_nome.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _alvo_caixa.add_child(_alvo_nome)
 
 
 # -------------------------------------------------------------------- estado
@@ -363,8 +394,31 @@ func _pintar_xp() -> void:
     var necessario: float = float(progresso.xp_para_nivel())
     var fracao: float = 0.0 if necessario <= 0.0 else float(progresso.experiencia) / necessario
     _xp_cheio.size.x = largura * clampf(fracao, 0.0, 1.0)
-    if _xp_label:
+    if _xp_label == null:
+        return
+    # SUBIR DE NIVEL E MANUAL neste jogo — quem sobe e o botao da ficha. Sem um
+    # aviso aqui, o jogador acumulava XP suficiente e nunca ficava sabendo:
+    # a unica pista morava dentro de uma tela que ele nao tinha motivo de abrir.
+    if progresso.pode_subir_nivel():
+        _xp_label.text = "PRONTO PARA SUBIR DE NÍVEL"
+        _xp_label.add_theme_color_override("font_color", Color(0.66, 1.0, 0.62))
+        _acender_medalha(true)
+    else:
         _xp_label.text = "%d / %d XP" % [progresso.experiencia, int(necessario)]
+        _xp_label.add_theme_color_override("font_color", Color(1, 1, 1))
+        _acender_medalha(false)
+
+
+## A medalha do nivel acende junto com o aviso da barra: dois sinais no mesmo
+## canto, para o recado nao depender de o jogador estar lendo o texto pequeno.
+func _acender_medalha(pronto: bool) -> void:
+    if _medalha == null:
+        return
+    var disco := _medalha.get_theme_stylebox("panel") as StyleBoxFlat
+    if disco == null:
+        return
+    disco.border_color = Color(0.55, 1.0, 0.52) if pronto else Color(0.80, 0.64, 0.30)
+    disco.set_border_width_all(3 if pronto else 2)
 
 
 func _atualizar_progressao() -> void:
@@ -402,6 +456,7 @@ func conceder_escudo(qtd: float) -> void:
     _escudo = maxf(_escudo, qtd)
     _escudo_ate = Time.get_ticks_msec() / 1000.0 + 8.0
     _pintar_vida()
+    set_process(true)
 
 
 ## Mostra a barra do alvo por alguns segundos. Chamada por quem leva o dano.
@@ -421,14 +476,3 @@ func _milhar(valor: int) -> String:
         if conta % 3 == 0 and i > 0:
             saida = "." + saida
     return saida
-
-
-func _mostrar_alvo_antigo(nome: String, vida: float, vida_maxima: float) -> void:
-    if _alvo_caixa == null:
-        return
-    _alvo_caixa.visible = true
-    _alvo_some_em = 4.0
-    _alvo_nome.text = nome
-    var largura: float = BURACOS["alvo"].size.x * 300.0
-    var fracao: float = 0.0 if vida_maxima <= 0.0 else vida / vida_maxima
-    _alvo_cheio.size.x = largura * clampf(fracao, 0.0, 1.0)

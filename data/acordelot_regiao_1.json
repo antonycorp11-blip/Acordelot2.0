@@ -17,8 +17,10 @@
     },
     "zone_estrada_acordelot": {
       "id":"zone_estrada_acordelot", "name":"Estrada para Acordelot", "tier":"Costa ocidental", "biome":"floresta", "grid_pos":[-2,-1], "terrain_type":"colinas_suaves",
-      "grass_density":1500, "tree_count":54, "bush_count":24, "flower_count":26, "rock_count":18, "layout_id":"", "road_surface":"terra",
+      "grass_density":1500, "tree_count":124, "bush_count":24, "flower_count":26, "rock_count":18, "layout_id":"", "road_surface":"terra",
       "road_paths":[[[8,80],[2,35],[16,-8],[80,0]]],
+      "forest_clusters":[[-45,-40,24,1.0],[-52,10,22,1.0],[-38,55,22,0.9],[-12,-62,20,0.85],[48,-46,24,1.0],[56,34,24,1.0],[38,62,20,0.85]],
+      "clearings":[[-30,20,10],[32,-28,9]],
       "exits":{"north":"","south":"zone_floresta_despertar","east":"zone_vila_caminho","west":""}
     },
     "zone_vila_caminho": {
@@ -62,8 +64,10 @@
     },
     "zone_floresta_sombria": {
       "id":"zone_floresta_sombria", "name":"Floresta dos Ecos", "tier":"Reserva de ressonância", "biome":"sombria", "grid_pos":[1,0], "terrain_type":"colinas_sombrias",
-      "grass_density":1700, "tree_count":88, "bush_count":34, "flower_count":36, "rock_count":30, "layout_id":"", "road_surface":"terra",
+      "grass_density":1700, "tree_count":146, "bush_count":34, "flower_count":36, "rock_count":30, "layout_id":"", "road_surface":"terra",
       "road_paths":[[[-80,0],[-36,8],[0,0],[8,80]],[[12,-80],[8,-36],[0,0]]], "river_width":5.2, "river_depth":1.9, "river_paths":[[[-55,-80],[-48,-28],[-60,24],[-52,80]]],
+      "forest_clusters":[[-28,-52,22,1.0],[38,-46,26,1.0],[58,-8,20,0.9],[44,26,24,1.0],[30,56,22,0.9],[-32,32,24,1.0],[-22,62,20,0.85]],
+      "clearings":[[0,-20,10],[-44,56,9]],
       "exits":{"north":"zone_santuario","south":"zone_caverna_murkdeep","east":"","west":"zone_portoes"}
     },
     "zone_arredores": {
