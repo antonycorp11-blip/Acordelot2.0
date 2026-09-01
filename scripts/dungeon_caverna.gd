@@ -679,6 +679,14 @@ func _shiker(onde: Vector3, tipo: int) -> Node3D:
     var inimigo := BICHO.new()
     inimigo.position = onde
     inimigo.monster_type = tipo
+    # DENTRO DA CAVERNA ELE ENXERGA MAIS LONGE.
+    #
+    # No campo aberto o jogador ve o bicho de longe e escolhe a briga. No
+    # corredor ele so aparece na curva, e com o raio do campo aberto era preciso
+    # encostar nele para acordar — o combate da DG virava uma sequencia de
+    # sustos em cima do proprio corpo. O corredor tem parede: ver mais longe
+    # aqui e ver ate a esquina, nao ver o mapa inteiro.
+    inimigo.raio_de_atencao = 19.0
     _dungeon.add_child(inimigo)
     _inimigos.append(inimigo)
     inimigo.process_mode = Node.PROCESS_MODE_DISABLED

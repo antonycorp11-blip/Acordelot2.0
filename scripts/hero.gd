@@ -15,7 +15,12 @@ const MISTURA := 0.18
 ## As animacoes do Mixamo sao feitas para cinematica, nao para combate: no
 ## ritmo original o golpe parece que esta carregando. Acelerar a reproducao e o
 ## que da peso de jogo sem reanimar nada.
-const VELOCIDADE_DO_GOLPE := 1.85
+## O GOLPE FICOU MAIS RAPIDO.
+##
+## A 1,85 o swing durava perto de um segundo do toque ate a lamina voltar, e o
+## que se sentia era atraso: o dedo pedia e o heroi respondia depois. Aqui a
+## animacao corre mais e o impacto acontece mais cedo dentro dela.
+const VELOCIDADE_DO_GOLPE := 2.35
 
 ## Alcance da lamina, em metros, medido do peito do heroi.
 const ALCANCE_DO_GOLPE := 2.6
@@ -25,13 +30,19 @@ const ABERTURA_DO_GOLPE := 120.0
 const DANO := 34.0
 ## Em que ponto da animacao a lamina passa pelo alvo. Aplicar o dano no comeco
 ## faz o bicho voar antes do golpe sair, e no fim faz parecer que nao pegou.
-const INSTANTE_DO_IMPACTO := 0.38
+const INSTANTE_DO_IMPACTO := 0.30
 
 ## Encaixe da espada na mao.
 @export var comprimento_da_espada := 1.15
 @export var fracao_do_cabo := 0.85
 @export var ajuste_do_punho := Vector3.ZERO
-@export var giro_do_punho := Vector3(180.0, 0.0, 0.0)
+## A LAMINA CAI AO LONGO DA PERNA, NAO CRUZANDO A FRENTE.
+##
+## Com o giro so em X a espada apontava para baixo E para a frente: a ponta
+## terminava adiante dos pes, atravessando a perna de quem olha de lado, como se
+## o heroi arrastasse a arma. Os vinte e oito graus em Z encostam a lamina no
+## corpo — comparado lado a lado com cinco outros encaixes antes de ficar aqui.
+@export var giro_do_punho := Vector3(180.0, 0.0, -28.0)
 
 const ESCALA := ["do", "re", "mi", "fa", "sol", "la", "si"]
 const SONS_NOTAS := [
@@ -50,6 +61,7 @@ var _proxima_nota := 0
 var _golpe := 0
 var _ultimo_golpe_em := -100.0
 var _golpe_pedido := false
+var _golpe_acertou := false
 var _espada: Node3D = null
 var _lamina: Node3D = null
 var _escala_do_modelo := 1.0
@@ -314,6 +326,29 @@ func _fixar_no_lugar(animacao: Animation) -> void:
 func atacando() -> bool:
     return _atacando
 
+
+## ANDAR CANCELA O RESTO DA ANIMACAO.
+##
+## O golpe tem duas metades: a que vai ate a lamina passar pelo alvo, e a
+## recuperacao depois. A primeira e o ataque; a segunda e so o heroi voltando a
+## posicao, e e nela que o controle parecia travado e desajeitado — o jogador ja
+## queria andar e o boneco ainda estava guardando a espada. Depois do impacto,
+## qualquer movimento corta o resto. Antes do impacto nao corta: golpe que some
+## no meio do caminho toda vez que o polegar encosta no direcional e pior ainda.
+func pode_cancelar_golpe() -> bool:
+    return _atacando and _golpe_acertou
+
+
+func cancelar_golpe() -> void:
+    if not _atacando:
+        return
+    _atacando = false
+    _golpe_acertou = false
+    _golpe_pedido = false
+    _ultimo_golpe_em = Time.get_ticks_msec() / 1000.0
+    if _espada:
+        _espada.visible = _buff_espada_gigante
+
 func atualizar_movimento(velocidade: float, voando: bool = false) -> void:
     if _atacando:
         return
@@ -336,6 +371,7 @@ func atacar() -> void:
         _golpe = 0
 
     _atacando = true
+    _golpe_acertou = false
     if _espada:
         _espada.visible = true
     _animador.play("heroi/" + COMBO[_golpe], MISTURA, VELOCIDADE_DO_GOLPE)
@@ -348,6 +384,7 @@ func _marcar_impacto() -> void:
     await get_tree().create_timer(duracao * INSTANTE_DO_IMPACTO).timeout
     if not _atacando:
         return
+    _golpe_acertou = true
     _atingir()
 
 func ativar_aura_azul() -> void:
@@ -382,19 +419,44 @@ func _criar_aura_azul_visual() -> void:
     light.position.y = 1.0
     _aura_fx_node.add_child(light)
     
-    var ring := MeshInstance3D.new()
-    var tor := TorusMesh.new()
-    tor.inner_radius = 0.9
-    tor.outer_radius = 1.2
-    ring.mesh = tor
-    
+    # PARTICULA EM VOLTA, NAO UM ARO NO CHAO.
+    #
+    # Isto era um TorusMesh deitado nos pes: um circulo azul solido, que parecia
+    # marcador de area de skill e nao poder acumulado no corpo de quem esta
+    # buffado. O que a skill pede e brilho subindo em volta do heroi — entao sao
+    # fagulhas nascendo num anel na altura do corpo e subindo, que e o que se
+    # enxerga de qualquer angulo e nao suja o chao.
+    var fagulhas := CPUParticles3D.new()
+    fagulhas.name = "FagulhasDoBuff"
+    fagulhas.amount = 46
+    fagulhas.lifetime = 1.15
+    fagulhas.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+    fagulhas.emission_ring_axis = Vector3.UP
+    fagulhas.emission_ring_radius = 0.62
+    fagulhas.emission_ring_inner_radius = 0.40
+    fagulhas.emission_ring_height = 1.7
+    fagulhas.direction = Vector3.UP
+    fagulhas.spread = 6.0
+    fagulhas.initial_velocity_min = 0.5
+    fagulhas.initial_velocity_max = 1.5
+    fagulhas.gravity = Vector3(0.0, 1.4, 0.0)
+    fagulhas.scale_amount_min = 0.5
+    fagulhas.scale_amount_max = 1.1
+    fagulhas.position.y = 0.15
+
+    var brilho := QuadMesh.new()
+    brilho.size = Vector2(0.20, 0.20)
     var mat := StandardMaterial3D.new()
-    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-    mat.albedo_color = Color(0.2, 0.85, 1.0, 0.85)
+    mat.albedo_texture = load("res://textures/brilho_poste.png")
+    mat.albedo_color = Color(0.40, 0.85, 1.0)
+    mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
     mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-    ring.material_override = mat
-    ring.position.y = 0.2
-    _aura_fx_node.add_child(ring)
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+    mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    brilho.material = mat
+    fagulhas.mesh = brilho
+    _aura_fx_node.add_child(fagulhas)
 
 
 ## Os efeitos vivem durante toda a sessao e apenas alternam visibilidade.
@@ -455,7 +517,15 @@ func ativar_espada_gigante() -> void:
         return
     _buff_espada_gigante = true
     if _espada:
-        _espada.scale = Vector3.ONE * 2.5
+        # A LAMINA CRESCE, NAO TROCA DE TAMANHO.
+        #
+        # Antes ela pulava de 1 para 2,5 num quadro: parecia troca de modelo, e
+        # nao uma espada ganhando poder. Um quarto de segundo com folga no fim
+        # da peso ao crescimento — o mesmo tempo que a luz leva para acender.
+        _espada.scale = Vector3.ONE
+        var crescer := create_tween()
+        crescer.tween_property(_espada, "scale", Vector3.ONE * 2.5, 0.26) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
         # A espada fica GUARDADA fora do golpe, e por isso a skill nao aparecia:
         # o jogador acionava, pagava a mana e nao via nada ate atacar. Enquanto
         # o buff dura, a lamina fica na mao.
@@ -467,7 +537,9 @@ func ativar_espada_gigante() -> void:
     tw.tween_callback(func():
         _buff_espada_gigante = false
         if _espada:
-            _espada.scale = Vector3.ONE
+            var encolher := create_tween()
+            encolher.tween_property(_espada, "scale", Vector3.ONE, 0.20) \
+                .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
             _fazer_espada_brilhar(false)
             _espada.visible = _atacando
     )
@@ -664,6 +736,7 @@ func _ao_terminar(animacao: StringName) -> void:
         return
 
     _atacando = false
+    _golpe_acertou = false
     _ultimo_golpe_em = Time.get_ticks_msec() / 1000.0
 
     if _golpe_pedido:

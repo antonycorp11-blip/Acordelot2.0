@@ -36,7 +36,11 @@ var vida_maxima: float = 200.0
 var vida: float = 200.0
 
 const VELOCIDADE := 3.2
-const RAIO_DE_ATENCAO := 10.5
+const RAIO_DE_ATENCAO := 13.5
+## Quanto o bicho enxerga. Vale o padrao no mundo aberto; a DG sobe este valor,
+## porque corredor fechado com o mesmo raio do campo aberto faz o jogador ter de
+## encostar no monstro para ele reagir.
+@export var raio_de_atencao := RAIO_DE_ATENCAO
 const DISTANCIA_DE_PARADA := 2.2
 const GRAVIDADE := 24.0
 const ATORDOAMENTO := 0.35
@@ -135,11 +139,13 @@ func _vestir(cfg: Dictionary) -> void:
     mat.metallic = 0.0
     mat.roughness = 0.88
     
+    # A COR DO TIER NAO PINTA A CRIATURA.
+    #
+    # A emissao ficava na PELE: o Shiker Ancião era um bicho roxo brilhante, e o
+    # que devia dizer "este e mais forte" acabava dizendo "este e de outra
+    # especie". A marca do tier e o que fica EM VOLTA — as fagulhas e o halo no
+    # chao. A pele continua sendo a pele.
     var cor_aura: Color = cfg.get("aura", Color(0, 0, 0, 0))
-    if cor_aura.a > 0.05:
-        mat.emission_enabled = true
-        mat.emission = cor_aura
-        mat.emission_energy_multiplier = 0.35
 
     _materials = [mat]
     for malha in _modelo.find_children("*", "MeshInstance3D", true, false):
@@ -220,11 +226,27 @@ func _acender_aura(cfg: Dictionary) -> void:
     mat_fagulha.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     mat_fagulha.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
     (fagulhas.mesh as QuadMesh).material = mat_fagulha
-    fagulhas.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-    fagulhas.emission_sphere_radius = 1.1
+    # AS FAGULHAS SOBEM EM VOLTA, NAO DE DENTRO.
+    #
+    # A emissao era uma ESFERA CHEIA de raio 1,1 no meio do peito: metade das
+    # particulas nascia dentro da malha e aparecia grudada na pele, como se a
+    # criatura estivesse manchada de laranja. Um anel em volta do corpo, com
+    # miolo vazado, faz a mesma luz virar contorno — que e o que marca o tier.
+    var largura: float = maxf(float(cfg.get("altura", 2.0)) * 0.40, 0.75)
+    fagulhas.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+    fagulhas.emission_ring_axis = Vector3.UP
+    fagulhas.emission_ring_radius = largura + 0.22
+    fagulhas.emission_ring_inner_radius = largura
+    fagulhas.emission_ring_height = float(cfg.get("altura", 2.0)) * 0.85
+    fagulhas.amount = 26
     fagulhas.direction = Vector3.UP
-    fagulhas.gravity = Vector3(0.0, 1.8, 0.0)
-    fagulhas.position = _centro_do_corpo + Vector3.UP * 0.8
+    fagulhas.spread = 8.0
+    fagulhas.initial_velocity_min = 0.15
+    fagulhas.initial_velocity_max = 0.55
+    fagulhas.gravity = Vector3(0.0, 1.1, 0.0)
+    fagulhas.scale_amount_min = 0.6
+    fagulhas.scale_amount_max = 1.0
+    fagulhas.position = _centro_do_corpo + Vector3.UP * (float(cfg.get("altura", 2.0)) * 0.45)
     add_child(fagulhas)
     _fagulhas = fagulhas
 
@@ -458,7 +480,7 @@ func _physics_process(delta: float) -> void:
         ate.y = 0.0
         var dist := ate.length()
         
-        if dist < RAIO_DE_ATENCAO and dist > DISTANCIA_DE_PARADA:
+        if dist < raio_de_atencao and dist > DISTANCIA_DE_PARADA:
             desejada = ate.normalized() * _velocidade
             var target_angle := atan2(ate.x, ate.z)
             rotation.y = lerp_angle(rotation.y, target_angle, 8.0 * delta)
@@ -620,14 +642,28 @@ func _investida(direcao: Vector3) -> void:
             _bater_no_heroi(_forca_da_area * 0.85))
 
 
+## O DANO NO HEROI ESTAVA CAINDO NO VAZIO.
+##
+## Isto chamava `receber_dano`, que nao existe em lugar nenhum, e caia no
+## `levar_dano` do jogador, que tambem nao existe: os dois `has_method` davam
+## falso e o golpe simplesmente sumia. O metodo do HUD sempre se chamou
+## `tomar_dano` — o jogo inteiro estava sem dano por causa de um nome.
+##
+## A defesa entra aqui, com os numeros que o Progresso ja calcula: ela reduz por
+## proporcao, nunca zera, e o golpe sempre tira ao menos um risco de vida —
+## defesa alta deixa o jogador durar mais, nao virar invulneravel.
 func _bater_no_heroi(dano: float) -> void:
     var hud := get_tree().get_first_node_in_group("player_hud")
     if hud == null:
         hud = get_node_or_null("/root/ZonedWorld/HUD/PlayerHUD")
-    if hud and hud.has_method("receber_dano"):
-        hud.receber_dano(dano)
-    elif _jogador and _jogador.has_method("levar_dano"):
-        _jogador.levar_dano(dano)
+    if hud == null or not hud.has_method("tomar_dano"):
+        return
+    var progresso := get_node_or_null("/root/Progresso")
+    var defesa := 0.0
+    if progresso and progresso.has_method("estatisticas"):
+        defesa = float(progresso.estatisticas().get("defesa", 0.0))
+    var recebido: float = dano * (100.0 / (100.0 + maxf(defesa, 0.0)))
+    hud.tomar_dano(maxf(recebido, dano * 0.15))
 
 
 func _rugir() -> void:
@@ -780,6 +816,41 @@ const ALTURAS := [
     "fa_sustenido", "sol", "sol_sustenido", "la", "la_sustenido", "si",
 ]
 
+## A EXPERIENCIA VOLTOU A EXISTIR.
+##
+## `ganhar_experiencia` estava no Progresso desde o comeco e NINGUEM chamava:
+## a unica fonte de XP no jogo era gastar Claves numa partitura. Matar bicho
+## nao valia nada, e por isso o nivel parou de subir.
+##
+## O valor sai dos numeros que ja definem o bicho — vida e dano da tabela de
+## monstros —, entao um tier mais forte vale mais sem precisar de uma segunda
+## tabela para alguem esquecer de atualizar.
+func _dar_experiencia() -> void:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null or not progresso.has_method("ganhar_experiencia"):
+        return
+    var cfg: Dictionary = MONSTROS_CONFIG[monster_type % MONSTROS_CONFIG.size()]
+    var xp := int(float(cfg.get("hp", 140.0)) * 0.18 + float(cfg.get("dano", 14.0)) * 1.2)
+    if xp <= 0:
+        return
+    progresso.ganhar_experiencia(xp)
+
+    var aviso := Label3D.new()
+    aviso.text = "+%d XP" % xp
+    aviso.font_size = 24
+    aviso.outline_size = 6
+    aviso.modulate = Color(0.62, 0.86, 1.0)
+    aviso.outline_modulate = Color(0.02, 0.06, 0.14, 1.0)
+    aviso.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    aviso.top_level = true
+    add_child(aviso)
+    aviso.global_position = global_position + Vector3.UP * 1.9
+    var tw := create_tween()
+    tw.tween_property(aviso, "global_position:y", aviso.global_position.y + 1.4, 0.9)
+    tw.parallel().tween_property(aviso, "modulate:a", 0.0, 0.9)
+    tw.tween_callback(aviso.queue_free)
+
+
 func _largar_clave() -> void:
     var receita: Array = CLAVES_POR_FORMA[monster_type % CLAVES_POR_FORMA.size()]
     var pai := get_parent()
@@ -828,6 +899,7 @@ func _morrer() -> void:
         diario.registrar("derrotar", 1, _prefixo_anim)
     _largar_clave()
     _largar_fragmento()
+    _dar_experiencia()
     _morrendo = true
     if _hp_label_3d: _hp_label_3d.visible = false
     if _name_label_3d: _name_label_3d.visible = false

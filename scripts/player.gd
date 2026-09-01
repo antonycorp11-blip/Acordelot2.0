@@ -12,7 +12,15 @@ var _personagem_atual := "akles"
 @export var move_speed := 6.0
 @export var fly_speed := 18.0
 @export var flight_altitude := 7.5
-@export var acceleration := 18.0
+## O QUANTO O HEROI OBEDECE AO DEDO.
+##
+## A 18 ele levava um terco de segundo para chegar na velocidade cheia e outro
+## tanto para parar: o polegar mandava e o corpo respondia depois, que e o
+## "escorregadio" do controle. A 60 a resposta e no quadro seguinte sem virar
+## robo — a inercia continua existindo, so deixou de ser atraso.
+@export var acceleration := 60.0
+## Quao rapido o corpo se vira para o rumo novo.
+@export var giro_por_segundo := 16.0
 @export var gravity := 24.0
 
 var _voando := false
@@ -262,7 +270,7 @@ func _physics_process(delta: float) -> void:
         
         if move_direction.length() > 0.0:
             var target_angle := atan2(move_direction.x, move_direction.z)
-            rotation.y = lerp_angle(rotation.y, target_angle, 10.0 * delta)
+            rotation.y = lerp_angle(rotation.y, target_angle, giro_por_segundo * delta)
             
         move_and_slide()
         _hero.atualizar_movimento(Vector2(velocity.x, velocity.z).length(), true)
@@ -272,6 +280,16 @@ func _physics_process(delta: float) -> void:
     # impedia o jogador de continuar andando o tempo todo: o heroi atravessava
     # metros no meio do swing, que e o "personagem mudando de posicao". Nao e a
     # animacao carregando avanco — medido, o quadril anda 2 cm.
+    # ANDAR CORTA A RECUPERACAO DO GOLPE.
+    #
+    # A lamina ja passou pelo alvo; o que sobra da animacao e o heroi voltando a
+    # guarda, e e nesse pedaco que o jogo parecia travar quando o jogador ja
+    # queria sair. Antes do impacto nada e cortado, para o golpe nao sumir toda
+    # vez que o polegar encosta no direcional.
+    if move_direction.length() > 0.01 and _hero.has_method("pode_cancelar_golpe") \
+            and _hero.pode_cancelar_golpe():
+        _hero.cancelar_golpe()
+
     var velocidade := move_speed * (FREIO_NO_GOLPE if _hero.atacando() else 1.0)
     velocity.x = move_toward(velocity.x, move_direction.x * velocidade, acceleration * delta)
     velocity.z = move_toward(velocity.z, move_direction.z * velocidade, acceleration * delta)
@@ -292,7 +310,7 @@ func _physics_process(delta: float) -> void:
     # outro lado — o golpe sai visualmente errado mesmo tendo acertado.
     if move_direction.length() > 0.01 and not _hero.atacando():
         var target_angle := atan2(move_direction.x, move_direction.z)
-        rotation.y = lerp_angle(rotation.y, target_angle, 10.0 * delta)
+        rotation.y = lerp_angle(rotation.y, target_angle, giro_por_segundo * delta)
 
     move_and_slide()
 
