@@ -5,16 +5,11 @@ extends Node3D
 const BICHO := preload("res://scripts/bicho.gd")
 const BAU := preload("res://scripts/bau_dungeon.gd")
 
-const SALA_PEQUENA := preload("res://models/cc0/cave/room-small.glb")
-const SALA_PEQUENA_B := preload("res://models/cc0/cave/room-small-variation.glb")
-const SALA_GRANDE := preload("res://models/cc0/cave/room-large.glb")
-const CORREDOR := preload("res://models/cc0/cave/corridor-wide.glb")
-const JUNCAO := preload("res://models/cc0/cave/corridor-wide-junction.glb")
+# Do kit da caverna sobram os dois arcos: eles marcam a passagem entre estagios.
+# Sala, corredor, juncao, curva e fundo de saco sairam junto com a planta antiga
+# — eram tubos fechados com teto, que e o que fazia o heroi sumir atras deles.
 const PORTAO := preload("res://models/cc0/cave/gate.glb")
 const PORTA := preload("res://models/cc0/cave/gate-metal-bars.glb")
-const SALA_GRANDE_B := preload("res://models/cc0/cave/room-large-variation.glb")
-const CURVA := preload("res://models/cc0/cave/corridor-wide-corner.glb")
-const FUNDO_DE_SACO := preload("res://models/cc0/cave/corridor-wide-end.glb")
 
 const TOCHA_MESH := preload("res://assets/dungeon/quaternius/Torch.obj")
 const CAIXOTE_MESH := preload("res://assets/dungeon/quaternius/Crate.obj")
@@ -29,10 +24,12 @@ const BRILHO := preload("res://textures/brilho_poste.png")
 const TEXTURA_ROCHA := preload("res://assets/dungeon/textures/rocha_caverna_1k.jpg")
 
 const ORIGEM := Vector3(520.0, 0.0, 520.0)
-const ENTRADA := Vector3(0.0, 1.15, 78.0)
+## O centro da camara de entrada da planta nova.
+const ENTRADA := Vector3(0.0, 1.15, 84.0)
 
 var _jogador: CharacterBody3D
 var _zona: Node3D
+var _ceu_do_mundo: Node3D
 var _ambiente: WorldEnvironment
 var _sol: DirectionalLight3D
 var _minimapa: Control
@@ -70,32 +67,43 @@ func _ready() -> void:
     _criar_botao_hud()
 
 
-## A PLANTA, num grid que fecha.
+## A DG, REFEITA DO ZERO — SEM O KIT MODULAR.
 ##
-## A anterior nao fechava. Os modulos do kit medem 20 m (sala grande), 12 m
-## (sala pequena) e 8 m (corredor), e a planta antiga punha corredor em x = 32 e
-## 40 para alcancar uma sala centrada em x = 50: o corredor terminava em 44 e a
-## sala comecava em 40, quatro metros DENTRO um do outro. Media isso em dez
-## juncoes. Modulo dentro de modulo e parede dentro de parede — e como um
-## corredor de quatro metros de vao livre passa a parecer um funil.
+## DUAS QUEIXAS, UMA CAUSA. Os modulos da caverna sao TUBOS FECHADOS: paredes dos
+## dois lados e TETO. O corredor tinha 4,1 m de vao livre medidos na malha, e a
+## camera olha de cima e de tras — entao a parede do lado de ca e o teto ficavam
+## entre o olho e o heroi, e ele sumia. Nao era bug de codigo: era o formato das
+## pecas contra o angulo da camera. Nenhum ajuste de posicao consertava isso.
 ##
-## Aqui cada peca encosta na seguinte com a folga de 0,23 m que o proprio kit
-## desenhou, e nada mais. As contas estao anotadas em cada linha: sempre a
-## borda de quem veio antes.
+## Aqui a planta e uma lista de RETANGULOS — salas e corredores — e a geometria
+## nasce deles:
 ##
-## A OUTRA METADE DO PROBLEMA ERA O BICHO. Dois golems nasciam no corredor de
-## entrada, que tem 4 m de vao: com a capsula do golem no meio, sobrava um metro
-## de cada lado e o jogador tinha de raspar na parede para passar. Nenhum bicho
-## nasce em corredor agora — corredor e passagem, sala e onde se briga. E a
-## posicao sai do CENTRO de um modulo de sala, com folga da parede, em vez do
-## cos/sen de indice que a versao anterior usava e que nao sabia onde havia
-## parede.
+## 1. NAO HA TETO. Nenhum. A caverna se le pelo chao, pelas paredes do fundo e
+##    pelo escuro em volta.
+## 2. AS PAREDES SAO DE FACE UNICA, VIRADA PARA DENTRO. E o truque que resolve o
+##    sumico: a parede do lado da camera tem a normal apontando para longe dela e
+##    o proprio recorte de face a descarta; a do fundo aparece inteira. O jogador
+##    ve a sala como uma caixa aberta, e nunca ha parede na frente dele. A
+##    colisao continua nos quatro lados, invisivel.
+## 3. ONDE DOIS RETANGULOS SE ENCOSTAM, NAO NASCE PAREDE. A abertura sai da
+##    propria planta, sem porta desenhada a mao e sem vao que nao fecha.
+## 4. CORREDOR DE 12 M, contra os 4,1 de antes.
 
-## Vao livre do corredor, medido na malha: as paredes comem quase metade dos 8 m
-## do modulo. E o numero que decide que corredor nao e lugar de encontro.
-const VAO_DO_CORREDOR := 4.1
-## Folga da parede para qualquer coisa que nasca dentro de uma sala.
-const FOLGA_DA_PAREDE := 3.5
+const ALTURA_DA_PAREDE := 6.0
+const ESPESSURA_DA_PAREDE := 1.4
+## Passo com que a borda de um retangulo e percorrida ao levantar parede. Menor
+## que a largura do corredor, para uma abertura nunca sair mais larga que o vao.
+const PASSO_DA_PAREDE := 2.0
+
+var _material_parede: StandardMaterial3D
+var _plano: Array = []
+
+
+## Um retangulo da planta: centro (x, z) e tamanho (largura, comprimento).
+func _sala(x: float, z: float, largura: float, comprimento: float) -> Rect2:
+    var r := Rect2(x - largura * 0.5, z - comprimento * 0.5, largura, comprimento)
+    _plano.append(r)
+    return r
 
 
 func _construir_dungeon() -> void:
@@ -105,189 +113,162 @@ func _construir_dungeon() -> void:
     _dungeon.visible = false
     _dungeon.process_mode = Node.PROCESS_MODE_DISABLED
     add_child(_dungeon)
+    _plano.clear()
 
     # ---------------------------------------------------------- ESTAGIO 1
-    # ENTRADA -> corredor curto -> SALA A (primeiro encontro) -> corredor ->
-    # SALAO B (com duas alas de tesouro) -> corredor -> ARENA DO CHEFE.
-    _modulo(SALA_PEQUENA, Vector3(0, 0, 78))          # z 72,0 .. 84,0
-    _corredor_z([68.0, 60.0])                         # z 55,9 .. 72,1
-    _modulo(PORTAO, Vector3(0, 0, 56.0))              # o arco fica na emenda
-    var sala_a := _salao(Vector3(0, 0, 36), 1, 2)     # 20x40   z 15,9 .. 56,1
-    _corredor_z([12.0, 4.0])                          # z -0,1 .. 16,1
-    var salao_b := _salao(Vector3(0, 0, -20), 3, 2)   # 60x40   z -40,1 .. 0,1
+    # Norte (z alto) para sul: entrada, primeiro encontro, salao com duas alas
+    # de tesouro, e a arena do chefe. Cada retangulo encosta no seguinte.
+    var entrada := _sala(0, 84, 24, 24)          # z  72 ..  96
+    _sala(0, 60, 12, 24)                          # z  48 ..  72   corredor
+    var sala_a := _sala(0, 32, 32, 32)           # z  16 ..  48
+    _sala(0, 4, 12, 24)                           # z  -8 ..  16   corredor
+    var salao_b := _sala(0, -28, 44, 40)         # z -48 ..  -8
+    _sala(34, -28, 24, 12)                        # ala leste, corredor
+    var ala_leste := _sala(60, -28, 28, 28)
+    _sala(-34, -28, 24, 12)                       # ala oeste, corredor
+    var ala_oeste := _sala(-60, -28, 28, 28)
+    _sala(0, -62, 12, 28)                         # z -76 .. -48   corredor
+    var arena := _sala(0, -100, 48, 48)          # z -124 .. -76
 
-    # Alas: saem da borda x = +-30 do salao, alinhadas com a porta do modulo.
-    #
-    # Camara GRANDE, e nao a pequena. A sala de 12 m tem so 6 m de vao livre
-    # depois das paredes: com um golem e um bau dentro, o jogador nao tinha por
-    # onde circular para lutar — era o mesmo aperto do corredor, com porta.
-    _corredor_x([34.0, 42.0], -10.0)                  # x 29,9 .. 46,1
-    _modulo(SALA_GRANDE_B, Vector3(56, 0, -10))       # x 46,0 .. 66,0
-    _corredor_x([-34.0, -42.0], -30.0)
-    _modulo(SALA_GRANDE_B, Vector3(-56, 0, -30))
-
-    _corredor_z([-44.0, -52.0])                       # z -56,1 .. -39,9
-    _modulo(PORTAO, Vector3(0, 0, -56.0))
-    var arena := _salao(Vector3(0, 0, -76), 3, 2)     # 60x40   z -96,1 .. -55,9
-
-    _laje_visual_e_solida(Vector3(0, -0.2, -4), Vector3(156, 0.4, 196))
-    _cercar(Vector3(0, 0, -4), Vector2(156, 196))
+    _erguer_o_plano(Vector3.ZERO)
     _vazio_preto()
 
-    _acender_as_salas(sala_a + salao_b + arena)
-    _acender_o_corredor([Vector3(0, 0, 64), Vector3(0, 0, 8), Vector3(0, 0, -48)])
-    _acender_o_corredor([Vector3(38, 0, -10), Vector3(-38, 0, -30)], true)
-    _acender_as_salas([Vector3(56, 0, -10), Vector3(-56, 0, -30)])
+    _acender(entrada, 1)
+    _acender(sala_a, 2)
+    _acender(salao_b, 3)
+    _acender(ala_leste, 1)
+    _acender(ala_oeste, 1)
+    _acender(arena, 3)
+    _acender_corredor(Vector3(0, 0, 60), 12.0)
+    _acender_corredor(Vector3(0, 0, 4), 12.0)
+    _acender_corredor(Vector3(0, 0, -62), 12.0)
+    _acender_corredor(Vector3(34, 0, -28), 12.0, true)
+    _acender_corredor(Vector3(-34, 0, -28), 12.0, true)
 
     _enfeitar(sala_a, [Color(0.6, 0.4, 1.0), Color(0.4, 0.7, 1.0)])
-    _enfeitar(salao_b, [Color(0.8, 0.4, 1.0), Color(0.4, 0.8, 1.0), Color(1.0, 0.5, 0.8)])
+    _enfeitar(salao_b, [Color(0.8, 0.4, 1.0), Color(0.4, 0.8, 1.0)])
+    _enfeitar(ala_leste, [Color(0.4, 0.9, 1.0)])
+    _enfeitar(ala_oeste, [Color(1.0, 0.5, 0.8)])
     _enfeitar(arena, [Color(1.0, 0.4, 0.7), Color(0.4, 0.7, 1.0)])
-    _enfeitar([Vector3(56, 0, -10), Vector3(-56, 0, -30)], [Color(0.4, 0.9, 1.0)], 6.5)
 
-    # BAUS: um por ala, e o do fundo da arena.
-    _bau(Vector3(56.0, 0.0, -6.0), 350, true)
-    _bau(Vector3(-56.0, 0.0, -26.0), 350, true)
-    _bau(Vector3(0.0, 0.0, -90.0), 600, true)
+    _bau(Vector3(60.0, 0.0, -22.0), 350, true)
+    _bau(Vector3(-60.0, 0.0, -22.0), 350, true)
+    _bau(Vector3(0.0, 0.0, -116.0), 600, true)
 
-    # MONSTROS. Nenhum em corredor; todos a partir do centro de um modulo.
-    for onde in [Vector3(-5, 1.1, 48), Vector3(5, 1.1, 40), Vector3(-5, 1.1, 26)]:
-        _shiker(onde, 0)                              # primeiro encontro, leve
-    var guardas_b := [
-        [Vector3(-20, 1.1, -12), 1], [Vector3(20, 1.1, -8), 0],
-        [Vector3(-20, 1.1, -32), 3], [Vector3(0, 1.1, -33), 1],
-        [Vector3(20, 1.1, -31), 3],
-    ]
-    for g in guardas_b:
+    # MONSTROS. Nenhum em corredor — corredor e passagem, sala e onde se briga.
+    for onde in [Vector3(-9, 1.1, 40), Vector3(9, 1.1, 30), Vector3(-6, 1.1, 22)]:
+        _shiker(onde, 0)
+    for g in [[Vector3(-14, 1.1, -16), 1], [Vector3(14, 1.1, -14), 0],
+              [Vector3(-15, 1.1, -40), 3], [Vector3(0, 1.1, -42), 1],
+              [Vector3(15, 1.1, -38), 3]]:
         _shiker(g[0], int(g[1]))
-    _shiker(Vector3(56, 1.1, -14), 3)                 # guarda de cada ala
-    _shiker(Vector3(-56, 1.1, -34), 3)
-
-    _shiker(Vector3(-20, 1.1, -68), 3)
-    _shiker(Vector3(20, 1.1, -68), 3)
-    _shiker(Vector3(-16, 1.1, -80), 1)
-    _shiker(Vector3(16, 1.1, -80), 1)
-    var chefe := _shiker(Vector3(0.0, 1.1, -80.0), 2)
+    _shiker(Vector3(60, 1.1, -34), 3)
+    _shiker(Vector3(-60, 1.1, -34), 3)
+    _shiker(Vector3(-16, 1.1, -88), 3)
+    _shiker(Vector3(16, 1.1, -88), 3)
+    _shiker(Vector3(-13, 1.1, -106), 1)
+    _shiker(Vector3(13, 1.1, -106), 1)
+    var chefe := _shiker(Vector3(0.0, 1.1, -106.0), 2)
     chefe.call_deferred("tornar_super_shiker")
 
-    _vestir_salas(salao_b + arena)
+    _vestir_salas([Vector3(0, 0, -28), Vector3(0, 0, -100), Vector3(0, 0, 32)])
     _construir_segundo_estagio()
 
 
-## O SEGUNDO ESTAGIO: antessala, salao com duas criptas a oeste e o santuario.
-const ESTAGIO_2 := Vector3(0.0, 0.0, -180.0)
-const ENTRADA_ESTAGIO_2 := Vector3(0.0, 1.15, -144.0)
+## O SEGUNDO ESTAGIO, com o maior salao do jogo.
+const ESTAGIO_2 := Vector3(0.0, 0.0, -260.0)
+const ENTRADA_ESTAGIO_2 := Vector3(0.0, 1.15, -196.0)
 
 func _construir_segundo_estagio() -> void:
     var o := ESTAGIO_2
+    _plano.clear()
 
-    _corredor_z([o.z + 36.0, o.z + 28.0])                 # z o+23,9 .. o+40,1
-    _modulo(PORTAO, o + Vector3(0, 0, 24.0))
-    var antessala := _salao(o + Vector3(0, 0, 4), 1, 2)   # 20x40  z o-16,1 .. o+14,1
-    _corredor_z([o.z - 20.0, o.z - 28.0])                 # z o-32,1 .. o-15,9
-    var salao_c := _salao(o + Vector3(0, 0, -52), 3, 2)   # 60x40  z o-72,1 .. o-31,9
+    var antessala := _sala(0, 48, 28, 28)         # z  34 ..  62
+    _sala(0, 22, 12, 24)                          # z  10 ..  34
+    var salao_c := _sala(0, -14, 48, 48)          # z -38 ..  10
+    _sala(-38, -14, 28, 12)                       # cripta oeste, corredor
+    var cripta := _sala(-66, -14, 28, 28)
+    _sala(-94, -14, 28, 12)
+    var cripta_funda := _sala(-122, -14, 28, 28)
+    _sala(0, -52, 12, 28)                         # z -66 .. -38
+    var santuario := _sala(0, -92, 52, 52)        # z -118 .. -66
 
-    # As criptas do oeste, uma atras da outra, saindo da borda x = -30.
-    _corredor_x([-34.0, -42.0], o.z - 42.0)               # x -46,1 .. -29,9
-    _modulo(SALA_GRANDE_B, o + Vector3(-56, 0, -42))      # x -66,0 .. -46,0
-    _corredor_x([-70.0, -78.0], o.z - 42.0)               # x -82,1 .. -65,9
-    _modulo(SALA_GRANDE_B, o + Vector3(-92, 0, -42))      # x -102,0 .. -82,0
+    _erguer_o_plano(o)
+    _acender(antessala, 2, o)
+    _acender(salao_c, 3, o)
+    _acender(cripta, 1, o)
+    _acender(cripta_funda, 1, o)
+    _acender(santuario, 3, o)
+    _acender_corredor(o + Vector3(0, 0, 22), 12.0)
+    _acender_corredor(o + Vector3(0, 0, -52), 12.0)
+    _acender_corredor(o + Vector3(-38, 0, -14), 12.0, true)
+    _acender_corredor(o + Vector3(-94, 0, -14), 12.0, true)
 
-    _corredor_z([o.z - 76.0, o.z - 84.0])                 # z o-88,1 .. o-71,9
-    _modulo(PORTAO, o + Vector3(0, 0, -88.0))
-    var santuario := _salao(o + Vector3(0, 0, -108), 3, 2)
+    _enfeitar(antessala, [Color(0.5, 0.8, 1.0)], o)
+    _enfeitar(salao_c, [Color(0.4, 0.9, 0.8), Color(1.0, 0.6, 0.3)], o)
+    _enfeitar(cripta, [Color(1.0, 0.3, 0.9)], o)
+    _enfeitar(cripta_funda, [Color(1.0, 0.8, 0.4)], o)
+    _enfeitar(santuario, [Color(1.0, 0.8, 0.4), Color(0.4, 0.9, 1.0)], o)
 
-    _laje_visual_e_solida(o + Vector3(-36, -0.2, -41), Vector3(144, 0.4, 186))
-    _cercar(o + Vector3(-36, 0, -41), Vector2(144, 186))
-
-    _acender_as_salas(antessala + salao_c + santuario
-        + [o + Vector3(-56, 0, -42), o + Vector3(-92, 0, -42)])
-    _acender_o_corredor([o + Vector3(0, 0, 32), o + Vector3(0, 0, -24),
-        o + Vector3(0, 0, -80)])
-    _acender_o_corredor([o + Vector3(-38, 0, -42), o + Vector3(-74, 0, -42)], true)
-
-    _enfeitar(antessala, [Color(0.5, 0.8, 1.0), Color(0.9, 0.4, 1.0)])
-    _enfeitar(salao_c, [Color(0.4, 0.9, 0.8), Color(1.0, 0.6, 0.3), Color(0.8, 0.3, 1.0)])
-    _enfeitar([o + Vector3(-56, 0, -42), o + Vector3(-92, 0, -42)],
-        [Color(1.0, 0.3, 0.9), Color(1.0, 0.8, 0.4)])
-    _enfeitar(santuario, [Color(1.0, 0.8, 0.4), Color(0.4, 0.9, 1.0)])
-
-    _bau(o + Vector3(-56.0, 0.0, -38.0), 500, true)
-    _bau(o + Vector3(-92.0, 0.0, -44.0), 750, true)
-    _bau(o + Vector3(26.0, 0.0, -62.0), 500, true)
+    _bau(o + Vector3(-66.0, 0.0, -8.0), 500, true)
+    _bau(o + Vector3(-122.0, 0.0, -14.0), 750, true)
+    _bau(o + Vector3(18.0, 0.0, -30.0), 500, true)
     # O tesouro do fundo: e ele que registra a incursao como concluida.
-    _bau(o + Vector3(0.0, 0.0, -122.0), 1000, true, true)
+    _bau(o + Vector3(0.0, 0.0, -110.0), 1000, true, true)
 
-    _shiker(o + Vector3(-5, 1.1, 8), 4)
-    _shiker(o + Vector3(5, 1.1, -6), 4)
-    for g in [[Vector3(-20, 1.1, -44), 4], [Vector3(0, 1.1, -55), 2],
-              [Vector3(20, 1.1, -40), 2], [Vector3(20, 1.1, -62), 4]]:
+    _shiker(o + Vector3(-8, 1.1, 52), 4)
+    _shiker(o + Vector3(8, 1.1, 42), 4)
+    for g in [[Vector3(-16, 1.1, -4), 4], [Vector3(0, 1.1, -22), 2],
+              [Vector3(16, 1.1, -2), 2], [Vector3(16, 1.1, -28), 4]]:
         _shiker(o + g[0], int(g[1]))
-    _shiker(o + Vector3(-56, 1.1, -46), 5)
-    _shiker(o + Vector3(-92, 1.1, -38), 4)
-    _shiker(o + Vector3(-92, 1.1, -48), 5)
-
-    _shiker(o + Vector3(-20, 1.1, -100), 4)
-    _shiker(o + Vector3(20, 1.1, -100), 4)
-    _shiker(o + Vector3(-16, 1.1, -112), 4)
-    _shiker(o + Vector3(16, 1.1, -112), 4)
-    var guardiao := _shiker(o + Vector3(0.0, 1.1, -112.0), 5)
+    _shiker(o + Vector3(-66, 1.1, -20), 5)
+    _shiker(o + Vector3(-122, 1.1, -8), 4)
+    _shiker(o + Vector3(-122, 1.1, -20), 5)
+    _shiker(o + Vector3(-18, 1.1, -80), 4)
+    _shiker(o + Vector3(18, 1.1, -80), 4)
+    _shiker(o + Vector3(-14, 1.1, -98), 4)
+    _shiker(o + Vector3(14, 1.1, -98), 4)
+    var guardiao := _shiker(o + Vector3(0.0, 1.1, -98.0), 5)
     guardiao.call_deferred("tornar_super_shiker")
 
-    _vestir_salas(salao_c + santuario)
+    _vestir_salas([o + Vector3(0, 0, -14), o + Vector3(0, 0, -92)])
 
-    # Portas de transicao entre estagios, nas bordas de fundo de cada arena.
-    _porta_de_estagio(Vector3(0.0, 0.0, -94.0), ORIGEM + ENTRADA_ESTAGIO_2,
+    _porta_de_estagio(Vector3(0.0, 0.0, -118.0), ORIGEM + ENTRADA_ESTAGIO_2,
         "DESCER AO SEGUNDO ESTAGIO")
-    _porta_de_estagio(o + Vector3(0.0, 0.0, 12.0), ORIGEM + Vector3(0.0, 1.15, -70.0),
+    _porta_de_estagio(o + Vector3(0.0, 0.0, 56.0), ORIGEM + Vector3(0.0, 1.15, -118.0),
         "VOLTAR AO PRIMEIRO ESTAGIO")
 
 
-## Duas tochas por sala, nas paredes laterais — derivadas da planta, e nao de uma
-## lista escrita a mao. A lista antiga tinha 33 posicoes fixas que ja nao batiam
-## com sala nenhuma depois que os modulos se moveram: havia tocha acesa no meio
-## do nada e sala grande sem nenhuma.
-func _acender_as_salas(centros: Array) -> void:
-    for c in centros:
-        var centro: Vector3 = c
-        _tocha(centro + Vector3(-8.6, 0.0, 0.0), 0.0)
-        _tocha(centro + Vector3(8.6, 0.0, 0.0), PI)
+# ---------------------------------------------------------------------------
+# A GEOMETRIA, TIRADA DA PLANTA
+# ---------------------------------------------------------------------------
+
+## Chao, paredes e colisao de todos os retangulos da planta.
+func _erguer_o_plano(desloc: Vector3) -> void:
+    for r in _plano:
+        _chao_do_retangulo(r, desloc)
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for r in _plano:
+        _paredes_do_retangulo(r, desloc, st)
+    var malha := st.commit()
+    if malha == null or malha.get_surface_count() == 0:
+        return
+    var paredes := MeshInstance3D.new()
+    paredes.name = "ParedesDaCaverna"
+    paredes.mesh = malha
+    paredes.material_override = _material_da_parede()
+    paredes.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    _dungeon.add_child(paredes)
 
 
-## Tochas de corredor, uma de cada lado do vao. `deitado` vale para o corredor
-## que corre em X.
-func _acender_o_corredor(pontos: Array, deitado := false) -> void:
-    for p in pontos:
-        var onde: Vector3 = p
-        if deitado:
-            _tocha(onde + Vector3(0.0, 0.0, -3.4), -PI * 0.5)
-            _tocha(onde + Vector3(0.0, 0.0, 3.4), PI * 0.5)
-        else:
-            _tocha(onde + Vector3(-3.4, 0.0, 0.0), 0.0)
-            _tocha(onde + Vector3(3.4, 0.0, 0.0), PI)
+## Uma laje por retangulo, um pouco maior que ele para as emendas nao abrirem
+## fresta na diagonal entre duas salas vizinhas.
+func _chao_do_retangulo(r: Rect2, desloc: Vector3) -> void:
+    var centro := desloc + Vector3(r.position.x + r.size.x * 0.5, -0.25,
+        r.position.y + r.size.y * 0.5)
+    var tamanho := Vector3(r.size.x + 1.0, 0.5, r.size.y + 1.0)
 
-
-## Cristal e pilha de provisoes dentro de cada sala, longe da parede e longe do
-## meio (onde o jogador anda e onde o bicho nasce).
-func _enfeitar(centros: Array, cores: Array, alcance := 6.5) -> void:
-    var i := 0
-    for c in centros:
-        var centro: Vector3 = c
-        var cor: Color = cores[i % cores.size()]
-        var giro := float(i) * 1.3
-        _cristal(centro + Vector3(cos(giro) * alcance, 0.0, sin(giro) * alcance),
-            giro, 1.1 + float(i % 3) * 0.2, cor)
-        _pilha_provisoes(centro + Vector3(-cos(giro) * alcance, 0.0, -sin(giro) * alcance),
-            -giro)
-        if i % 3 == 0:
-            _prop(CAVEIRA_MESH, centro + Vector3(sin(giro) * alcance, 0.04,
-                -cos(giro) * alcance), giro, 1.3)
-        i += 1
-
-
-## Laje visual e sólida: uma base contínua com colisão e malha de rocha texturizada.
-## Garante zero frestas ou ausência visual de chão sob toda a masmorra.
-func _laje_visual_e_solida(centro: Vector3, tamanho: Vector3) -> void:
-    # 1. Colisão sólida
     var corpo := StaticBody3D.new()
     corpo.position = centro
     var colisao := CollisionShape3D.new()
@@ -297,24 +278,166 @@ func _laje_visual_e_solida(centro: Vector3, tamanho: Vector3) -> void:
     corpo.add_child(colisao)
     _dungeon.add_child(corpo)
 
-    # 2. Malha visual com textura triplanar de rocha
     var visual := MeshInstance3D.new()
-    var caixa_mesh := BoxMesh.new()
-    caixa_mesh.size = tamanho
-    visual.mesh = caixa_mesh
+    var caixa := BoxMesh.new()
+    caixa.size = tamanho
+    visual.mesh = caixa
     visual.material_override = _material_da_rocha()
     visual.position = centro
     visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     _dungeon.add_child(visual)
 
 
-func _cercar(centro: Vector3, tamanho: Vector2) -> void:
-    var meia_x: float = tamanho.x * 0.5
-    var meia_z: float = tamanho.y * 0.5
-    for lado in [Vector3(meia_x, 0, 0), Vector3(-meia_x, 0, 0)]:
-        _parede_invisivel(centro + lado, Vector3(1.0, 12.0, tamanho.y))
-    for lado in [Vector3(0, 0, meia_z), Vector3(0, 0, -meia_z)]:
-        _parede_invisivel(centro + lado, Vector3(tamanho.x, 12.0, 1.0))
+## Percorre a borda do retangulo e levanta parede onde nao ha vizinho.
+##
+## EM TRECHOS, NAO EM PEDACOS. A primeira versao emitia um corpo, uma forma e uma
+## malha a cada dois metros: cinco mil nos e 345 chamadas de desenho para uma
+## caverna. Agora os passos vizinhos que sao parede viram UM trecho — uma caixa
+## de colisao e um retangulo de face — e todas as faces do estagio entram numa
+## malha unica, que e uma chamada de desenho para a caverna inteira.
+func _paredes_do_retangulo(r: Rect2, desloc: Vector3, st: SurfaceTool) -> void:
+    var lados := [
+        [Vector2(0.0, -1.0), r.position.y, true],                    # norte (-z)
+        [Vector2(0.0, 1.0), r.position.y + r.size.y, true],          # sul (+z)
+        [Vector2(-1.0, 0.0), r.position.x, false],                   # oeste (-x)
+        [Vector2(1.0, 0.0), r.position.x + r.size.x, false],         # leste (+x)
+    ]
+    for lado in lados:
+        var fora: Vector2 = lado[0]
+        var linha: float = lado[1]
+        var ao_longo_de_x: bool = lado[2]
+        var comeco: float = r.position.x if ao_longo_de_x else r.position.y
+        var fim: float = comeco + (r.size.x if ao_longo_de_x else r.size.y)
+        var inicio_do_trecho := -1.0
+        var t := comeco
+        while t < fim + 0.01:
+            var acabou: bool = t >= fim - 0.01
+            var meio: float = t + PASSO_DA_PAREDE * 0.5
+            var ponto := Vector2(meio, linha) if ao_longo_de_x else Vector2(linha, meio)
+            var tem_parede: bool = (not acabou) and not _dentro_do_plano(
+                ponto + fora * (PASSO_DA_PAREDE * 0.6), r)
+            if tem_parede and inicio_do_trecho < 0.0:
+                inicio_do_trecho = t
+            elif not tem_parede and inicio_do_trecho >= 0.0:
+                _erguer_parede(inicio_do_trecho, minf(t, fim), linha, fora,
+                    ao_longo_de_x, desloc, st)
+                inicio_do_trecho = -1.0
+            t += PASSO_DA_PAREDE
+
+
+func _dentro_do_plano(p: Vector2, menos: Rect2) -> bool:
+    for r in _plano:
+        if r == menos:
+            continue
+        if r.has_point(p):
+            return true
+    return false
+
+
+## Um trecho de parede: colisao solida e UMA face virada para dentro.
+func _erguer_parede(de: float, ate: float, linha: float, fora: Vector2,
+        ao_longo_de_x: bool, desloc: Vector3, st: SurfaceTool) -> void:
+    var largura: float = ate - de
+    if largura < 0.05:
+        return
+    var meio: float = (de + ate) * 0.5
+    var ponto := Vector2(meio, linha) if ao_longo_de_x else Vector2(linha, meio)
+    var centro := desloc + Vector3(ponto.x, ALTURA_DA_PAREDE * 0.5, ponto.y)
+    var meia := Vector3(fora.x, 0.0, fora.y) * (ESPESSURA_DA_PAREDE * 0.5)
+
+    var corpo := StaticBody3D.new()
+    corpo.position = centro + meia
+    var colisao := CollisionShape3D.new()
+    var forma := BoxShape3D.new()
+    forma.size = Vector3(largura, ALTURA_DA_PAREDE, ESPESSURA_DA_PAREDE) \
+        if ao_longo_de_x else Vector3(ESPESSURA_DA_PAREDE, ALTURA_DA_PAREDE, largura)
+    colisao.shape = forma
+    corpo.add_child(colisao)
+    _dungeon.add_child(corpo)
+
+    # A FACE, escrita direto na malha do estagio. Normal para DENTRO: vista de
+    # fora — que e onde a camera fica quando a parede esta entre ela e o heroi —
+    # ela simplesmente nao e desenhada.
+    var para_dentro := Vector3(-fora.x, 0.0, -fora.y)
+    var ao_lado := Vector3(fora.y, 0.0, -fora.x) * (largura * 0.5)
+    var alto := Vector3.UP * ALTURA_DA_PAREDE
+    var base := centro - Vector3(0.0, ALTURA_DA_PAREDE * 0.5, 0.0)
+    var a := base - ao_lado
+    var b := base + ao_lado
+    var c := b + alto
+    var d := a + alto
+    var repete: float = largura / 4.0
+    _face(st, a, b, c, d, para_dentro, repete)
+
+
+func _face(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3,
+        normal: Vector3, repete: float) -> void:
+    for v in [[a, Vector2(0.0, 1.0)], [b, Vector2(repete, 1.0)], [c, Vector2(repete, 0.0)],
+              [a, Vector2(0.0, 1.0)], [c, Vector2(repete, 0.0)], [d, Vector2(0.0, 0.0)]]:
+        st.set_normal(normal)
+        st.set_uv(v[1])
+        st.add_vertex(v[0])
+
+
+## Rocha de parede: a mesma pedra do chao, mas de face unica. O recorte de face
+## nao pode ser desligado aqui — e ele que faz a parede da frente sumir.
+func _material_da_parede() -> StandardMaterial3D:
+    if _material_parede != null:
+        return _material_parede
+    _material_parede = StandardMaterial3D.new()
+    _material_parede.albedo_texture = TEXTURA_ROCHA
+    # Mesma correcao do chao, um tom acima: a parede e o que da a leitura da
+    # sala e precisa se destacar do piso.
+    _material_parede.albedo_color = Color(0.50, 0.51, 1.0)
+    _material_parede.roughness = 0.96
+    _material_parede.uv1_scale = Vector3(0.5, 0.5, 0.5)
+    _material_parede.uv1_triplanar = true
+    _material_parede.cull_mode = BaseMaterial3D.CULL_BACK
+    _material_parede.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+    return _material_parede
+
+
+## Tochas nas paredes de uma sala, tantas por lado.
+func _acender(r: Rect2, por_lado: int, desloc := Vector3.ZERO) -> void:
+    var x0: float = r.position.x
+    var z0: float = r.position.y
+    for i in por_lado:
+        var f: float = (float(i) + 1.0) / (float(por_lado) + 1.0)
+        _tocha(desloc + Vector3(x0 + r.size.x * f, 0.0, z0 + 1.2), 0.0)
+        _tocha(desloc + Vector3(x0 + r.size.x * f, 0.0, z0 + r.size.y - 1.2), PI)
+        _tocha(desloc + Vector3(x0 + 1.2, 0.0, z0 + r.size.y * f), -PI * 0.5)
+        _tocha(desloc + Vector3(x0 + r.size.x - 1.2, 0.0, z0 + r.size.y * f), PI * 0.5)
+
+
+func _acender_corredor(onde: Vector3, vao: float, deitado := false) -> void:
+    if deitado:
+        _tocha(onde + Vector3(0.0, 0.0, -vao * 0.5 + 1.2), -PI * 0.5)
+        _tocha(onde + Vector3(0.0, 0.0, vao * 0.5 - 1.2), PI * 0.5)
+    else:
+        _tocha(onde + Vector3(-vao * 0.5 + 1.2, 0.0, 0.0), 0.0)
+        _tocha(onde + Vector3(vao * 0.5 - 1.2, 0.0, 0.0), PI)
+
+
+## Cristal e provisoes encostados na parede, longe do meio — que e onde o
+## jogador anda e onde o bicho nasce.
+func _enfeitar(r: Rect2, cores: Array, desloc := Vector3.ZERO) -> void:
+    var cantos := [Vector2(0.16, 0.16), Vector2(0.84, 0.20),
+                   Vector2(0.20, 0.82), Vector2(0.80, 0.84)]
+    for i in cantos.size():
+        var c: Vector2 = cantos[i]
+        var onde := desloc + Vector3(r.position.x + r.size.x * c.x, 0.0,
+            r.position.y + r.size.y * c.y)
+        if i % 2 == 0:
+            _cristal(onde, float(i) * 1.3, 1.1 + float(i % 3) * 0.2,
+                cores[i % cores.size()])
+        else:
+            _pilha_provisoes(onde, float(i) * 0.9)
+    _prop(CAVEIRA_MESH, desloc + Vector3(r.position.x + r.size.x * 0.5, 0.04,
+        r.position.y + r.size.y * 0.12), 0.4, 1.3)
+
+
+
+
 
 
 func _parede_invisivel(onde: Vector3, tamanho: Vector3) -> void:
@@ -331,8 +454,6 @@ func _parede_invisivel(onde: Vector3, tamanho: Vector3) -> void:
 func _vestir_salas(centros: Array) -> void:
     for i in centros.size():
         var c: Vector3 = centros[i]
-        if i % 2 == 0:
-            _modulo(PORTAO, c + Vector3(0, 0, 10.0))
         _tocha(c + Vector3(-8.6, 0, -2.0 + float(i % 3)), 0.0)
         _tocha(c + Vector3(8.6, 0, 2.0 - float(i % 3)), PI)
         var canto := Vector3(6.5 * (1.0 if i % 2 else -1.0), 0.0, -6.5)
@@ -342,32 +463,10 @@ func _vestir_salas(centros: Array) -> void:
                 float(i) * 1.1, 1.15)
 
 
-func _corredor_z(alturas: Array, x := 0.0) -> void:
-    for z in alturas:
-        _modulo(CORREDOR, Vector3(x, 0, float(z)), PI * 0.5)
 
 
-func _corredor_x(posicoes_x: Array, z := 0.0) -> void:
-    for x in posicoes_x:
-        _modulo(CORREDOR, Vector3(float(x), 0, z), 0.0)
 
 
-## Monta um salao e DEVOLVE o centro de cada modulo.
-##
-## Devolver a lista e o que permite tocha, cristal e bicho sairem da propria
-## planta. Antes cada um tinha a sua lista de coordenadas escrita a mao, e as
-## tres desencontravam da geometria assim que um modulo saia do lugar.
-func _salao(centro: Vector3, colunas: int, linhas: int) -> Array:
-    var lado := 20.0
-    var centros: Array = []
-    for i in colunas:
-        for j in linhas:
-            var onde := Vector3(
-                centro.x + (float(i) - (colunas - 1) * 0.5) * lado, 0,
-                centro.z + (float(j) - (linhas - 1) * 0.5) * lado)
-            _modulo(SALA_GRANDE, onde)
-            centros.append(onde)
-    return centros
 
 
 func _porta_de_estagio(onde: Vector3, destino: Vector3, rotulo: String) -> void:
@@ -426,7 +525,14 @@ func _material_da_rocha() -> StandardMaterial3D:
         return _material_rocha
     _material_rocha = StandardMaterial3D.new()
     _material_rocha.albedo_texture = TEXTURA_ROCHA
-    _material_rocha.albedo_color = Color(0.68, 0.72, 0.78)
+    # A TINTA CORRIGE A TEXTURA, que nao e cinza. Medida, `rocha_caverna_1k.jpg`
+    # tem media R=80 G=78 B=28: uma pedra OLIVA. Multiplicada por um cinza
+    # azulado ela continuava esverdeada, e o chao da caverna parecia gramado —
+    # era essa a queixa de "a DG esta ruim" tanto quanto os corredores.
+    #
+    # Levantar so o azul devolve o cinza: 0,40 x 80, 0,41 x 78 e 1,0 x 28 dao
+    # tres numeros quase iguais. Fica mais escuro, e a luz da caverna compensa.
+    _material_rocha.albedo_color = Color(0.42, 0.43, 1.0)
     _material_rocha.roughness = 0.94
     _material_rocha.metallic = 0.0
     _material_rocha.uv1_triplanar = true
@@ -950,6 +1056,13 @@ func _entrar() -> void:
         _zona.process_mode = Node.PROCESS_MODE_DISABLED
     if _sol:
         _sol.visible = false
+    # O CEU E GEOMETRIA, nao fundo. Nuvem, estrela e lua sao malhas que seguem a
+    # camera: o fundo preto do ambiente da caverna nao as apaga, e ficava uma
+    # nuvem passando no alto da masmorra. Some junto com o resto do mundo.
+    if _ceu_do_mundo == null:
+        _ceu_do_mundo = get_parent().get_node_or_null("CeuVivoCompatibilidade") as Node3D
+    if _ceu_do_mundo:
+        _ceu_do_mundo.visible = false
     if _minimapa:
         _minimapa.visible = false
     if _barra_dia:
@@ -993,6 +1106,8 @@ func _sair() -> void:
         _zona.process_mode = Node.PROCESS_MODE_INHERIT
     if _sol:
         _sol.visible = true
+    if _ceu_do_mundo:
+        _ceu_do_mundo.visible = true
     if _luz_da_caverna:
         _luz_da_caverna.visible = false
     if _minimapa:
@@ -1021,7 +1136,7 @@ func _aplicar_ambiente_da_caverna() -> void:
     env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
     env.ambient_light_sky_contribution = 0.0
     env.ambient_light_color = Color(0.36, 0.42, 0.58)
-    env.ambient_light_energy = 1.3
+    env.ambient_light_energy = 1.55
     env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
     env.tonemap_exposure = 1.12
     env.fog_enabled = true

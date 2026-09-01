@@ -289,24 +289,25 @@ func _montar_retrato_e_barras() -> void:
 func _montar_coluna_de_utilitarios() -> void:
     var lado := 54.0
 
+    # OS TRES DE ABRIR TELA FICAM A ESQUERDA DO MAPA, NO ALTO.
+    #
+    # Embaixo do minimapa cabe uma coisa so, e essa coisa e o personagem: e o
+    # unico botao que muda o que esta em campo, e faz sentido junto do radar que
+    # mostra onde ele esta. Missoes, mochila e ajustes abrem tela — vao para a
+    # faixa livre a esquerda do disco, onde nada mais disputa espaco em nenhuma
+    # proporcao de tela (o bloco de vida termina por volta de 324 px).
     var fileira := HBoxContainer.new()
     fileira.anchor_left = 1.0
     fileira.anchor_right = 1.0
     fileira.anchor_top = 0.0
     fileira.anchor_bottom = 0.0
-    fileira.offset_left = -(lado * 4.0 + 24.0) - 14.0
-    fileira.offset_right = -14.0
-    # ABAIXO DO ANEL DO DIA, que vai ate y = 250. A 240 os quatro discos ficavam
-    # cortados pelo arco dourado — visto na captura.
-    fileira.offset_top = 262.0
-    fileira.offset_bottom = 262.0 + lado
+    fileira.offset_right = -226.0
+    fileira.offset_left = -226.0 - (lado * 3.0 + 16.0)
+    fileira.offset_top = 22.0
+    fileira.offset_bottom = 22.0 + lado
     fileira.alignment = BoxContainer.ALIGNMENT_END
     fileira.add_theme_constant_override("separation", 8)
     add_child(fileira)
-
-    _botao_personagem = _botao_redondo(lado)
-    _botao_personagem.pressed.connect(_trocar_personagem)
-    fileira.add_child(_botao_personagem)
 
     _botao_missoes = _botao_redondo(lado, "res://textures/ui/kit/nav/missoes.png")
     _botao_missoes.pressed.connect(func(): missoes_pedidas.emit())
@@ -317,8 +318,6 @@ func _montar_coluna_de_utilitarios() -> void:
     _selo_missoes = Label.new()
     _selo_missoes.text = "0/3"
     _selo_missoes.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT, true)
-    # DENTRO do disco: com folga positiva o selo escapava pela borda e caia
-    # sobre o botao vizinho.
     _selo_missoes.offset_left = -lado + 6.0
     _selo_missoes.offset_right = -5.0
     _selo_missoes.offset_top = -21.0
@@ -338,6 +337,20 @@ func _montar_coluna_de_utilitarios() -> void:
     var config := _botao_redondo(lado, "res://textures/ui/btn_config_novo.png")
     config.pressed.connect(func(): config_pedida.emit())
     fileira.add_child(config)
+
+    # E, SOZINHO, EMBAIXO DO MAPA: o personagem. Centrado com o disco do radar,
+    # que ocupa de -215 a -15 da borda direita, e abaixo do anel do dia.
+    _botao_personagem = _botao_redondo(lado)
+    _botao_personagem.anchor_left = 1.0
+    _botao_personagem.anchor_right = 1.0
+    _botao_personagem.anchor_top = 0.0
+    _botao_personagem.anchor_bottom = 0.0
+    _botao_personagem.offset_left = -115.0 - lado * 0.5
+    _botao_personagem.offset_right = -115.0 + lado * 0.5
+    _botao_personagem.offset_top = 262.0
+    _botao_personagem.offset_bottom = 262.0 + lado
+    _botao_personagem.pressed.connect(_trocar_personagem)
+    add_child(_botao_personagem)
 
     _pintar_botao_personagem(_personagem_atual)
     _ligar_o_diario()
