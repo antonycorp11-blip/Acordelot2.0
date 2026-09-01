@@ -779,8 +779,17 @@ func _largar_clave() -> void:
         moeda.valor = int(receita[1])
         var angulo: float = TAU * (float(i) / maxf(float(receita[0]), 1.0)) + randf() * 0.8
         var raio: float = 0.0 if receita[0] == 1 else randf_range(0.55, 1.1)
-        moeda.position = global_position + Vector3(cos(angulo) * raio, 0.0, sin(angulo) * raio)
+        # PRIMEIRO ENTRA NA CENA, DEPOIS RECEBE A POSICAO DE MUNDO.
+        #
+        # Antes o valor de `global_position` do bicho era escrito em `position`,
+        # que e LOCAL ao pai. Enquanto o mundo tinha uma zona so, na origem, as
+        # duas coisas eram iguais; com o mundo aberto cada regiao vive num
+        # deslocamento, e a moeda passou a nascer com o deslocamento somado duas
+        # vezes. Medido: 320 metros longe de quem morreu — fora de qualquer
+        # alcance de coleta. O drop nunca deixou de acontecer; ele caia longe.
         pai.add_child(moeda)
+        moeda.global_position = global_position \
+            + Vector3(cos(angulo) * raio, 0.0, sin(angulo) * raio)
 
 
 func _largar_fragmento() -> void:
@@ -793,8 +802,10 @@ func _largar_fragmento() -> void:
     var fragmento: Node3D = FragmentoDropScript.new()
     fragmento.altura_id = str(ALTURAS.pick_random())
     var angulo := randf() * TAU
-    fragmento.position = global_position + Vector3(cos(angulo), 0.06, sin(angulo)) * 0.85
+    # Mesma correcao da moeda: posicao de MUNDO depois de entrar na cena.
     pai.add_child(fragmento)
+    fragmento.global_position = global_position \
+        + Vector3(cos(angulo), 0.06, sin(angulo)) * 0.85
 
 
 func _morrer() -> void:

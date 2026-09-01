@@ -16,6 +16,7 @@ var _rotulo: Label3D
 
 
 func _ready() -> void:
+    add_to_group("bau_dungeon")
     collision_layer = 0
     collision_mask = 1
     body_entered.connect(_ao_entrar)

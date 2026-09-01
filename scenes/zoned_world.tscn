@@ -14,7 +14,6 @@
 [ext_resource type="Texture2D" path="res://textures/ui/btn_voo.png" id="12_btn_voo"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_inventario.png" id="13_btn_inventario"]
 [ext_resource type="Script" path="res://scripts/player_hud.gd" id="14_player_hud"]
-[ext_resource type="Script" path="res://scripts/inventory_ui.gd" id="15_inventory_ui"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_skill1.png" id="16_skill1"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_skill2.png" id="17_skill2"]
 [ext_resource type="Texture2D" path="res://textures/ui/btn_skill3.png" id="18_skill3"]
@@ -230,12 +229,3 @@ texture_normal = ExtResource("11_btn_ataque")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="InventoryUI" type="Control" parent="HUD"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("15_inventory_ui")

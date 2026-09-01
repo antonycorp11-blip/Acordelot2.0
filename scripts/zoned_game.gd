@@ -8,11 +8,25 @@ const DialogoScript := preload("res://scripts/dialogo.gd")
 ## varre o projeto, e isso quebra exportacao limpa.
 const AquecimentoScript := preload("res://scripts/aquecimento.gd")
 const AjustesScript := preload("res://scripts/ajustes.gd")
-const TelaPersonagemScript := preload("res://scripts/tela_personagem_v3.gd")
-const TelaSinteseScript := preload("res://scripts/tela_sintese_v3.gd")
-const TelaEcosScript := preload("res://scripts/tela_ecos_v3.gd")
-const TelaSkillsScript := preload("res://scripts/tela_skills_v3.gd")
-const TelaMissoesScript := preload("res://scripts/tela_missoes.gd")
+const UiShellScript := preload("res://scripts/ui_shell.gd")
+const PAGINAS := [
+    ["personagem", "Personagem", "res://textures/ui/kit/nav/personagem.png",
+     preload("res://scripts/pagina_personagem.gd")],
+    ["talentos", "Talentos", "res://textures/ui/kit/nav/talentos.png",
+     preload("res://scripts/pagina_talentos.gd")],
+    ["sintese", "Síntese", "res://textures/ui/kit/nav/melodia.png",
+     preload("res://scripts/pagina_sintese.gd")],
+    ["inventario", "Inventário", "res://textures/ui/kit/nav/inventario.png",
+     preload("res://scripts/pagina_inventario.gd")],
+    ["missoes", "Missões", "res://textures/ui/kit/nav/missoes.png",
+     preload("res://scripts/pagina_missoes.gd")],
+    ["mapa", "Mapa", "res://textures/ui/kit/nav/mapa.png",
+     preload("res://scripts/pagina_mapa.gd")],
+    ["loja", "Loja", "res://textures/ui/kit/nav/loja.png",
+     preload("res://scripts/pagina_loja.gd")],
+    ["ecos", "Ecos", "res://textures/ui/kit/nav/lira.png",
+     preload("res://scripts/pagina_ecos.gd")],
+]
 const EcoDoNascenteCena := preload("res://scenes/ecos/EcoDoNascente.tscn")
 const RessonanciaHUDScript := preload("res://scripts/ressonancia_hud.gd")
 const CelebracaoScript := preload("res://scripts/celebracao_harmonica.gd")
@@ -40,10 +54,8 @@ const FRAMES_ECOS := {
 var _npc_perto: Node = null
 var _btn_ataque: Node = null
 var _dialogo: Node = null
-var _tela_ecos: CanvasLayer = null
-var _tela_missoes: CanvasLayer = null
+var _shell: CanvasLayer = null
 var _celebracao: Control = null
-var _tela_skills: CanvasLayer = null
 var _eco_companheiro: Node3D = null
 var _eco_companheiro_id := ""
 var _btn_skill_eco: Button = null
@@ -62,7 +74,6 @@ var _sorte_captura := RandomNumberGenerator.new()
 
 func _ready() -> void:
     var hud_vida: Node = find_child("PlayerHUD", true, false)
-    var inv_ui: Node = find_child("InventoryUI", true, false)
 
     # Detalhe visível também no Web/Compatibility: duas MultiMeshes para
     # nuvens/estrelas e uma lua, sem shader de céu incompatível.
@@ -149,10 +160,8 @@ func _ready() -> void:
         
     # A mochila e a engrenagem sao do kit novo e nascem dentro do PlayerHUD, que
     # e quem sabe onde a arte encaixa. Aqui so se diz o que elas fazem.
-    if hud_vida and inv_ui and hud_vida.has_signal("mochila_pedida"):
-        hud_vida.mochila_pedida.connect(func():
-            inv_ui.toggle_inventory()
-        )
+    if hud_vida and hud_vida.has_signal("mochila_pedida"):
+        hud_vida.mochila_pedida.connect(func(): _shell.abrir("inventario"))
     # A ESCALA DO MUNDO, escolhida pelo jogador. Aplicada antes de qualquer
     # tela existir, para o primeiro quadro ja sair no tamanho certo.
     AjustesScript.aplicar_guardado(get_tree())
@@ -163,44 +172,22 @@ func _ready() -> void:
     ajustes.name = "Ajustes"
     add_child(ajustes)
 
-    # A engrenagem passa a abrir os ajustes. O mapa continua a um toque de
-    # distancia pelo proprio botao "Mapa do Reino", embaixo do minimapa.
-    # A ficha do personagem, aberta pela aba do inventario.
-    var ficha: CanvasLayer = TelaPersonagemScript.new()
-    ficha.name = "TelaPersonagem"
-    add_child(ficha)
-    var sintese: CanvasLayer = TelaSinteseScript.new()
-    sintese.name = "TelaSintese"
-    add_child(sintese)
-    if ficha.has_signal("tela_pedida"):
-        ficha.tela_pedida.connect(func(qual: String):
-            ficha.mostrar(false)
-            if qual == "talentos":
-                _abrir_tela_skills()
-            elif qual == "sintese":
-                sintese.mostrar(true))
-    if inv_ui and inv_ui.has_signal("aba_pedida"):
-        inv_ui.aba_pedida.connect(func(qual: String):
-            if qual == "personagem":
-                inv_ui.toggle_inventory(false)
-                ficha.mostrar(true)
-            elif qual == "melodia":
-                inv_ui.toggle_inventory(false)
-                sintese.mostrar(true)
-            elif qual == "lira":
-                inv_ui.toggle_inventory(false)
-                _abrir_tela_ecos()
-            elif qual == "talentos":
-                inv_ui.toggle_inventory(false)
-                _abrir_tela_skills()
-            elif qual == "missoes":
-                inv_ui.toggle_inventory(false)
-                _abrir_tela_missoes()
-            elif qual == "mapa":
-                inv_ui.toggle_inventory(false)
-                _abrir_mapa_do_reino())
-
-    _montar_celebracao()
+    # UM SHELL, OITO PAGINAS.
+    #
+    # Antes cada tela era uma CanvasLayer com fundo, moldura e botao de fechar
+    # proprios, e abrir uma destruia a outra — junto com a barra de navegacao de
+    # baixo, que existe justamente para trocar de aba. Agora a moldura, o
+    # cabecalho, o fechar e a navbar sao um so e nao piscam; trocar de aba troca
+    # apenas o miolo, sem construir nada.
+    _shell = UiShellScript.new()
+    _shell.name = "UiShell"
+    add_child(_shell)
+    for p in PAGINAS:
+        var pagina: Control = p[3].new()
+        pagina.name = "Pagina_" + String(p[0])
+        _shell.registrar(String(p[0]), String(p[1]), String(p[2]), pagina)
+    _shell.abrir("inventario")
+    _shell.visible = false
 
     var progresso := get_node_or_null("/root/Progresso")
     _criar_botao_skill_eco()
@@ -222,12 +209,8 @@ func _ready() -> void:
     if hud_vida and hud_vida.has_signal("config_pedida"):
         hud_vida.config_pedida.connect(func(): ajustes.mostrar(true))
 
-    # O diario do dia, aberto pelo contador da HUD e pela aba do inventario.
-    _tela_missoes = TelaMissoesScript.new()
-    _tela_missoes.name = "TelaMissoes"
-    add_child(_tela_missoes)
     if hud_vida and hud_vida.has_signal("missoes_pedidas"):
-        hud_vida.missoes_pedidas.connect(_abrir_tela_missoes)
+        hud_vida.missoes_pedidas.connect(func(): _shell.abrir("missoes"))
         
     # Conexão dos 3 Botões de Habilidades (Skills)
     var btn_skill1 := find_child("BtnSkill1", true, false)
@@ -273,14 +256,6 @@ func _ready() -> void:
         mira.disparar.connect(func(direcao: Vector2):
             if _player and _player.has_method("usar_skill"):
                 _player.usar_skill(3, direcao)
-        )
-        
-    if inv_ui and hud_vida:
-        inv_ui.item_used.connect(func(item_id: String):
-            if item_id == "pocao_cura_g":
-                hud_vida.curar(450.0)
-            elif item_id == "carne_assada":
-                hud_vida.curar(200.0)
         )
         
     var joystick := find_child("VirtualJoystick", true, false)
@@ -348,34 +323,28 @@ func _acomodar_controles_do_polegar() -> void:
             false, true)
 
 
+
 func _abrir_tela_missoes() -> void:
-    if _tela_missoes:
-        _tela_missoes.mostrar(true)
+    _shell.abrir("missoes")
 
 
-## O mapa do reino mora no minimapa; a aba do inventario so pede a abertura.
+
+
 func _abrir_mapa_do_reino() -> void:
-    var mini := find_child("ZoneMinimap", true, false)
-    if mini and mini.has_method("toggle_world_map"):
-        mini.toggle_world_map(true)
+    _shell.abrir("mapa")
+
+
 
 
 func _abrir_tela_ecos() -> void:
-    # A tela nasce sob demanda e usa retratos leves próprios; não carrega as
-    # dez folhas de animação só para ampliar uma miniatura no catálogo.
-    if _tela_ecos == null:
-        _tela_ecos = TelaEcosScript.new()
-        _tela_ecos.name = "TelaEcos"
-        add_child(_tela_ecos)
-    _tela_ecos.mostrar(true)
+    _shell.abrir("ecos")
+
+
 
 
 func _abrir_tela_skills() -> void:
-    if _tela_skills == null:
-        _tela_skills = TelaSkillsScript.new()
-        _tela_skills.name = "TelaSkills"
-        add_child(_tela_skills)
-    _tela_skills.mostrar(true)
+    _shell.abrir("talentos")
+
 
 
 func _atualizar_botoes_skill() -> void:
@@ -568,6 +537,11 @@ func _buscar_eco_para_captura() -> void:
         _eco_captura = melhor
         _progresso_ressonancia = 0.0
         _ressonando = false
+    if _hud_ressonancia == null:
+        # A montagem da cena cede o quadro em varios pontos, entao _process ja
+        # roda antes da HUD existir. Sem esta guarda o primeiro segundo de jogo
+        # vira uma enxurrada de erro no console.
+        return
     if _eco_captura == null:
         _hud_ressonancia.esconder()
     else:
@@ -808,7 +782,7 @@ func _tirar_print() -> void:
             aj.mostrar(true)
         await get_tree().create_timer(0.4).timeout
     if OS.get_cmdline_user_args().has("--ficha"):
-        var f := find_child("TelaPersonagem", true, false)
+        var f := _shell
         if f:
             f.mostrar(true)
             for argumento in OS.get_cmdline_user_args():
@@ -816,7 +790,7 @@ func _tirar_print() -> void:
                     f._mudar_aba_v3(argumento.trim_prefix("--aba="))
         await get_tree().create_timer(0.4).timeout
     if OS.get_cmdline_user_args().has("--sintese"):
-        var s := find_child("TelaSintese", true, false)
+        var s := _shell
         if s:
             s.mostrar(true)
             if OS.get_cmdline_user_args().has("--partituras"):
@@ -833,14 +807,10 @@ func _tirar_print() -> void:
             _dialogo.comecar("renaldo_portao" if OS.get_cmdline_user_args().has("--renaldo") else "mirella_boas_vindas")
         await get_tree().create_timer(0.4).timeout
     if OS.get_cmdline_user_args().has("--inv"):
-        var inv := find_child("InventoryUI", true, false)
-        if inv:
-            inv.toggle_inventory(true)
+        _shell.abrir("inventario")
         await get_tree().create_timer(0.4).timeout
     if OS.get_cmdline_user_args().has("--mapa"):
-        var mapa := find_child("ZoneMinimap", true, false)
-        if mapa and mapa.has_method("toggle_world_map"):
-            mapa.toggle_world_map(true)
+        _shell.abrir("mapa")
         await get_tree().create_timer(0.5).timeout
     if DisplayServer.get_name() == "headless":
         print("SHOT indisponível no renderizador headless; árvore validada.")

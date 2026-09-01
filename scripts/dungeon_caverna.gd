@@ -91,12 +91,16 @@ func _ready() -> void:
 
 const ALTURA_DA_PAREDE := 6.0
 const ESPESSURA_DA_PAREDE := 1.4
+const SOBREPOSICAO_DO_CHAO := 1.8
 ## Passo com que a borda de um retangulo e percorrida ao levantar parede. Menor
 ## que a largura do corredor, para uma abertura nunca sair mais larga que o vao.
 const PASSO_DA_PAREDE := 2.0
 
 var _material_parede: StandardMaterial3D
 var _plano: Array = []
+var _planta_minimapa: Array[Rect2] = []
+var _ultimo_ponto_seguro := Vector3.ZERO
+var _recuperacoes_no_teste := 0
 
 
 ## Um retangulo da planta: centro (x, z) e tamanho (largura, comprimento).
@@ -104,6 +108,15 @@ func _sala(x: float, z: float, largura: float, comprimento: float) -> Rect2:
     var r := Rect2(x - largura * 0.5, z - comprimento * 0.5, largura, comprimento)
     _plano.append(r)
     return r
+
+
+## Guarda a planta completa em coordenadas locais da DG. O segundo estagio usa
+## um deslocamento proprio, por isso nao bastava entregar `_plano` ao radar.
+func _registrar_plano_no_mapa(desloc: Vector3) -> void:
+    for item in _plano:
+        var r: Rect2 = item
+        _planta_minimapa.append(Rect2(
+            r.position + Vector2(desloc.x, desloc.z), r.size))
 
 
 func _construir_dungeon() -> void:
@@ -114,6 +127,7 @@ func _construir_dungeon() -> void:
     _dungeon.process_mode = Node.PROCESS_MODE_DISABLED
     add_child(_dungeon)
     _plano.clear()
+    _planta_minimapa.clear()
 
     # ---------------------------------------------------------- ESTAGIO 1
     # Norte (z alto) para sul: entrada, primeiro encontro, salao com duas alas
@@ -130,6 +144,7 @@ func _construir_dungeon() -> void:
     _sala(0, -62, 12, 28)                         # z -76 .. -48   corredor
     var arena := _sala(0, -100, 48, 48)          # z -124 .. -76
 
+    _registrar_plano_no_mapa(Vector3.ZERO)
     _erguer_o_plano(Vector3.ZERO)
     _vazio_preto()
 
@@ -171,13 +186,14 @@ func _construir_dungeon() -> void:
     var chefe := _shiker(Vector3(0.0, 1.1, -106.0), 2)
     chefe.call_deferred("tornar_super_shiker")
 
-    _vestir_salas([Vector3(0, 0, -28), Vector3(0, 0, -100), Vector3(0, 0, 32)])
     _construir_segundo_estagio()
 
 
 ## O SEGUNDO ESTAGIO, com o maior salao do jogo.
 const ESTAGIO_2 := Vector3(0.0, 0.0, -260.0)
-const ENTRADA_ESTAGIO_2 := Vector3(0.0, 1.15, -196.0)
+## Antes era -196: dois metros FORA da antessala, cujo limite e -198. O heroi
+## aparecia sobre o vazio preto e podia cair antes do primeiro quadro de fisica.
+const ENTRADA_ESTAGIO_2 := Vector3(0.0, 1.15, -216.0)
 
 func _construir_segundo_estagio() -> void:
     var o := ESTAGIO_2
@@ -193,6 +209,7 @@ func _construir_segundo_estagio() -> void:
     _sala(0, -52, 12, 28)                         # z -66 .. -38
     var santuario := _sala(0, -92, 52, 52)        # z -118 .. -66
 
+    _registrar_plano_no_mapa(o)
     _erguer_o_plano(o)
     _acender(antessala, 2, o)
     _acender(salao_c, 3, o)
@@ -231,8 +248,6 @@ func _construir_segundo_estagio() -> void:
     var guardiao := _shiker(o + Vector3(0.0, 1.1, -98.0), 5)
     guardiao.call_deferred("tornar_super_shiker")
 
-    _vestir_salas([o + Vector3(0, 0, -14), o + Vector3(0, 0, -92)])
-
     _porta_de_estagio(Vector3(0.0, 0.0, -118.0), ORIGEM + ENTRADA_ESTAGIO_2,
         "DESCER AO SEGUNDO ESTAGIO")
     _porta_de_estagio(o + Vector3(0.0, 0.0, 56.0), ORIGEM + Vector3(0.0, 1.15, -118.0),
@@ -267,7 +282,11 @@ func _erguer_o_plano(desloc: Vector3) -> void:
 func _chao_do_retangulo(r: Rect2, desloc: Vector3) -> void:
     var centro := desloc + Vector3(r.position.x + r.size.x * 0.5, -0.25,
         r.position.y + r.size.y * 0.5)
-    var tamanho := Vector3(r.size.x + 1.0, 0.5, r.size.y + 1.0)
+    # A sobreposicao fecha as emendas entre salas e corredores. As lajes usam a
+    # mesma altura e material, entao ela e invisivel e evita frestas na colisao
+    # do navegador.
+    var tamanho := Vector3(r.size.x + SOBREPOSICAO_DO_CHAO, 0.5,
+        r.size.y + SOBREPOSICAO_DO_CHAO)
 
     var corpo := StaticBody3D.new()
     corpo.position = centro
@@ -397,72 +416,64 @@ func _material_da_parede() -> StandardMaterial3D:
     return _material_parede
 
 
+const RECUO_DA_TOCHA := 0.16
+const RECUO_DO_PROP := 2.0
+
+
+## Coloca a tocha na face real da parede. Se naquele ponto houver outro
+## retangulo da planta, existe uma porta/corredor e a tocha nao e criada.
+func _tocha_na_parede(face: Vector3, fora: Vector2, dona: Rect2,
+        desloc: Vector3, giro: float) -> void:
+    if _dentro_do_plano(Vector2(face.x, face.z) + fora * 1.05, dona):
+        return
+    var para_dentro := Vector3(-fora.x, 0.0, -fora.y)
+    _tocha(desloc + face + para_dentro * RECUO_DA_TOCHA, giro)
+
+
 ## Tochas nas paredes de uma sala, tantas por lado.
 func _acender(r: Rect2, por_lado: int, desloc := Vector3.ZERO) -> void:
     var x0: float = r.position.x
     var z0: float = r.position.y
     for i in por_lado:
         var f: float = (float(i) + 1.0) / (float(por_lado) + 1.0)
-        _tocha(desloc + Vector3(x0 + r.size.x * f, 0.0, z0 + 1.2), 0.0)
-        _tocha(desloc + Vector3(x0 + r.size.x * f, 0.0, z0 + r.size.y - 1.2), PI)
-        _tocha(desloc + Vector3(x0 + 1.2, 0.0, z0 + r.size.y * f), -PI * 0.5)
-        _tocha(desloc + Vector3(x0 + r.size.x - 1.2, 0.0, z0 + r.size.y * f), PI * 0.5)
+        _tocha_na_parede(Vector3(x0 + r.size.x * f, 0.0, z0),
+            Vector2(0.0, -1.0), r, desloc, 0.0)
+        _tocha_na_parede(Vector3(x0 + r.size.x * f, 0.0, z0 + r.size.y),
+            Vector2(0.0, 1.0), r, desloc, PI)
+        _tocha_na_parede(Vector3(x0, 0.0, z0 + r.size.y * f),
+            Vector2(-1.0, 0.0), r, desloc, -PI * 0.5)
+        _tocha_na_parede(Vector3(x0 + r.size.x, 0.0, z0 + r.size.y * f),
+            Vector2(1.0, 0.0), r, desloc, PI * 0.5)
 
 
 func _acender_corredor(onde: Vector3, vao: float, deitado := false) -> void:
     if deitado:
-        _tocha(onde + Vector3(0.0, 0.0, -vao * 0.5 + 1.2), -PI * 0.5)
-        _tocha(onde + Vector3(0.0, 0.0, vao * 0.5 - 1.2), PI * 0.5)
+        _tocha(onde + Vector3(0.0, 0.0, -vao * 0.5 + RECUO_DA_TOCHA), -PI * 0.5)
+        _tocha(onde + Vector3(0.0, 0.0, vao * 0.5 - RECUO_DA_TOCHA), PI * 0.5)
     else:
-        _tocha(onde + Vector3(-vao * 0.5 + 1.2, 0.0, 0.0), 0.0)
-        _tocha(onde + Vector3(vao * 0.5 - 1.2, 0.0, 0.0), PI)
+        _tocha(onde + Vector3(-vao * 0.5 + RECUO_DA_TOCHA, 0.0, 0.0), 0.0)
+        _tocha(onde + Vector3(vao * 0.5 - RECUO_DA_TOCHA, 0.0, 0.0), PI)
 
 
 ## Cristal e provisoes encostados na parede, longe do meio — que e onde o
 ## jogador anda e onde o bicho nasce.
 func _enfeitar(r: Rect2, cores: Array, desloc := Vector3.ZERO) -> void:
-    var cantos := [Vector2(0.16, 0.16), Vector2(0.84, 0.20),
-                   Vector2(0.20, 0.82), Vector2(0.80, 0.84)]
+    var cantos := [
+        Vector2(r.position.x + RECUO_DO_PROP, r.position.y + RECUO_DO_PROP),
+        Vector2(r.end.x - RECUO_DO_PROP, r.position.y + RECUO_DO_PROP),
+        Vector2(r.position.x + RECUO_DO_PROP, r.end.y - RECUO_DO_PROP),
+        Vector2(r.end.x - RECUO_DO_PROP, r.end.y - RECUO_DO_PROP),
+    ]
     for i in cantos.size():
         var c: Vector2 = cantos[i]
-        var onde := desloc + Vector3(r.position.x + r.size.x * c.x, 0.0,
-            r.position.y + r.size.y * c.y)
+        var onde := desloc + Vector3(c.x, 0.0, c.y)
         if i % 2 == 0:
             _cristal(onde, float(i) * 1.3, 1.1 + float(i % 3) * 0.2,
                 cores[i % cores.size()])
         else:
             _pilha_provisoes(onde, float(i) * 0.9)
-    _prop(CAVEIRA_MESH, desloc + Vector3(r.position.x + r.size.x * 0.5, 0.04,
-        r.position.y + r.size.y * 0.12), 0.4, 1.3)
-
-
-
-
-
-
-func _parede_invisivel(onde: Vector3, tamanho: Vector3) -> void:
-    var corpo := StaticBody3D.new()
-    corpo.position = onde + Vector3.UP * 6.0
-    var colisao := CollisionShape3D.new()
-    var forma := BoxShape3D.new()
-    forma.size = tamanho
-    colisao.shape = forma
-    corpo.add_child(colisao)
-    _dungeon.add_child(corpo)
-
-
-func _vestir_salas(centros: Array) -> void:
-    for i in centros.size():
-        var c: Vector3 = centros[i]
-        _tocha(c + Vector3(-8.6, 0, -2.0 + float(i % 3)), 0.0)
-        _tocha(c + Vector3(8.6, 0, 2.0 - float(i % 3)), PI)
-        var canto := Vector3(6.5 * (1.0 if i % 2 else -1.0), 0.0, -6.5)
-        _prop(CAIXOTE_MESH if i % 3 else BARRIL_MESH, c + canto, float(i) * 0.7)
-        if i % 4 == 0:
-            _prop(CAVEIRA_MESH, c + Vector3(-canto.x * 0.8, 0.04, canto.z + 1.4),
-                float(i) * 1.1, 1.15)
-
-
+    _prop(CAVEIRA_MESH, desloc + Vector3(r.position.x + RECUO_DO_PROP + 1.2,
+        0.04, r.end.y - 1.1), 0.4, 1.3)
 
 
 
@@ -471,8 +482,6 @@ func _vestir_salas(centros: Array) -> void:
 
 func _porta_de_estagio(onde: Vector3, destino: Vector3, rotulo: String) -> void:
     _modulo(PORTA, onde)
-    _tocha(onde + Vector3(-3.2, 0.0, 0.0), 0.0)
-    _tocha(onde + Vector3(3.2, 0.0, 0.0), PI)
 
     var aviso := Label3D.new()
     aviso.text = rotulo
@@ -676,6 +685,41 @@ func _shiker(onde: Vector3, tipo: int) -> Node3D:
     return inimigo
 
 
+func _sobre_piso_da_dg(local: Vector3, margem := 0.55) -> bool:
+    var ponto := Vector2(local.x, local.z)
+    for r in _planta_minimapa:
+        var area: Rect2 = r.grow(-margem)
+        if area.size.x > 0.0 and area.size.y > 0.0 and area.has_point(ponto):
+            return true
+    return false
+
+
+func _dentro_da_planta_da_dg(local: Vector3) -> bool:
+    var ponto := Vector2(local.x, local.z)
+    for r in _planta_minimapa:
+        if r.grow(0.9).has_point(ponto):
+            return true
+    return false
+
+
+## Ultima rede de seguranca. A geometria foi selada, mas se uma fisica web
+## atravessar uma emenda o jogador volta ao ultimo piso valido, em vez de cair
+## indefinidamente no vazio.
+func _proteger_contra_queda() -> void:
+    var local := _jogador.global_position - ORIGEM
+    if local.y < -1.8 or not _dentro_da_planta_da_dg(local):
+        if OS.get_cmdline_user_args().has("--parede") and _recuperacoes_no_teste < 3:
+            print("DG recuperou jogador fora da planta em ", local,
+                " para ", _ultimo_ponto_seguro - ORIGEM)
+        _recuperacoes_no_teste += 1
+        _jogador.global_position = _ultimo_ponto_seguro
+        _jogador.velocity = Vector3.ZERO
+        return
+    if local.y < 2.6 and _sobre_piso_da_dg(local):
+        _ultimo_ponto_seguro = Vector3(_jogador.global_position.x,
+            ORIGEM.y + 1.15, _jogador.global_position.z)
+
+
 func _process(delta: float) -> void:
     if not _dentro or _jogador == null:
         return
@@ -690,6 +734,11 @@ func _process(delta: float) -> void:
         var distancia := inimigo.global_position.distance_to(_jogador.global_position)
         inimigo.visible = distancia < 50.0
         inimigo.process_mode = Node.PROCESS_MODE_INHERIT if distancia < 32.0 else Node.PROCESS_MODE_DISABLED
+
+
+func _physics_process(_delta: float) -> void:
+    if _dentro and _jogador:
+        _proteger_contra_queda()
 
 
 func _criar_botao_hud() -> void:
@@ -1064,7 +1113,10 @@ func _entrar() -> void:
     if _ceu_do_mundo:
         _ceu_do_mundo.visible = false
     if _minimapa:
-        _minimapa.visible = false
+        _minimapa.visible = true
+        if _minimapa.has_method("entrar_modo_dungeon"):
+            _minimapa.call("entrar_modo_dungeon", _planta_minimapa, ORIGEM,
+                "Caverna da Primeira Ressonancia")
     if _barra_dia:
         _barra_dia.visible = false
     if _camera:
@@ -1085,6 +1137,7 @@ func _entrar() -> void:
     if OS.get_cmdline_user_args().has("--dg2"):
         destino = ENTRADA_ESTAGIO_2 + Vector3(0.0, 0.0, -14.0)
     _jogador.global_position = ORIGEM + destino
+    _ultimo_ponto_seguro = ORIGEM + destino
     _jogador.velocity = Vector3.ZERO
     _botao.text = "SAIR\nDA DG"
     _aplicar_dificuldade()
@@ -1112,6 +1165,8 @@ func _sair() -> void:
         _luz_da_caverna.visible = false
     if _minimapa:
         _minimapa.visible = true
+        if _minimapa.has_method("sair_modo_dungeon"):
+            _minimapa.call("sair_modo_dungeon")
     if _barra_dia:
         _barra_dia.visible = true
     if _camera:

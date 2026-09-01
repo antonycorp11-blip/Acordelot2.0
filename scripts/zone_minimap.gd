@@ -18,6 +18,17 @@ var _info_label: Label
 
 var _current_zone_data: Dictionary = {}
 var _minimap_frame_tex: Texture2D
+var _modo_dungeon := false
+var _planta_dungeon: Array[Rect2] = []
+var _origem_dungeon := Vector3.ZERO
+var _limites_dungeon := Rect2()
+var _textura_dungeon: ImageTexture
+
+const TAMANHO_TEXTURA_DUNGEON := Vector2i(256, 512)
+## Raio, em metros, mostrado ao redor do jogador. O disco cobre 96 m de ponta
+## a ponta: suficiente para ler uma sala e o corredor seguinte sem revelar toda
+## a exploracao de uma vez.
+const JANELA_DUNGEON := 48.0
 
 func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -35,6 +46,8 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey and event.pressed and not event.echo:
         if event.keycode in [KEY_M, KEY_TAB]:
+            if _modo_dungeon:
+                return
             toggle_world_map()
             get_viewport().set_input_as_handled()
         elif event.keycode == KEY_ESCAPE and _world_map_modal.visible:
@@ -54,6 +67,81 @@ func toggle_world_map(force_state = null) -> void:
         zone_manager._banner_container.visible = not next_state
     if next_state:
         _atualizar_grid_mapa_mundi()
+
+
+## A DG usa o mesmo radar e a mesma moldura do mundo, mas troca temporariamente
+## a carta pela planta real dos corredores. A imagem nasce uma vez na entrada;
+## durante o jogo o radar apenas desloca as coordenadas UV, sem reconstruir mapa.
+func entrar_modo_dungeon(planta: Array, origem: Vector3, titulo: String) -> void:
+    _modo_dungeon = true
+    _origem_dungeon = origem
+    _planta_dungeon.clear()
+    for item in planta:
+        if item is Rect2:
+            _planta_dungeon.append(item)
+    _gerar_textura_dungeon()
+    _title_label.text = titulo
+    _tier_label.text = "MAPA DA CAVERNA"
+    if _world_map_modal and _world_map_modal.visible:
+        toggle_world_map(false)
+    visible = true
+    _onde_desenhei = Vector3(1e9, 1e9, 1e9)
+    if _minimap_draw:
+        _minimap_draw.queue_redraw()
+
+
+func sair_modo_dungeon() -> void:
+    _modo_dungeon = false
+    _planta_dungeon.clear()
+    _textura_dungeon = null
+    var atual: Dictionary = zone_manager.zona_atual() if zone_manager else _current_zone_data
+    if not atual.is_empty():
+        _on_zone_changed(atual)
+
+
+func _gerar_textura_dungeon() -> void:
+    if _planta_dungeon.is_empty():
+        _textura_dungeon = null
+        return
+    var minimo := Vector2(INF, INF)
+    var maximo := Vector2(-INF, -INF)
+    for r in _planta_dungeon:
+        minimo.x = minf(minimo.x, r.position.x)
+        minimo.y = minf(minimo.y, r.position.y)
+        maximo.x = maxf(maximo.x, r.position.x + r.size.x)
+        maximo.y = maxf(maximo.y, r.position.y + r.size.y)
+    minimo -= Vector2(4.0, 4.0)
+    maximo += Vector2(4.0, 4.0)
+    _limites_dungeon = Rect2(minimo, maximo - minimo)
+
+    var imagem := Image.create(TAMANHO_TEXTURA_DUNGEON.x,
+        TAMANHO_TEXTURA_DUNGEON.y, false, Image.FORMAT_RGBA8)
+    imagem.fill(Color(0.012, 0.015, 0.026, 1.0))
+    var bordas: Array[Rect2i] = []
+    for r in _planta_dungeon:
+        var x0 := int(floor((r.position.x - minimo.x) / _limites_dungeon.size.x
+            * float(TAMANHO_TEXTURA_DUNGEON.x - 1)))
+        var y0 := int(floor((r.position.y - minimo.y) / _limites_dungeon.size.y
+            * float(TAMANHO_TEXTURA_DUNGEON.y - 1)))
+        var x1 := int(ceil((r.position.x + r.size.x - minimo.x) / _limites_dungeon.size.x
+            * float(TAMANHO_TEXTURA_DUNGEON.x - 1)))
+        var y1 := int(ceil((r.position.y + r.size.y - minimo.y) / _limites_dungeon.size.y
+            * float(TAMANHO_TEXTURA_DUNGEON.y - 1)))
+        x0 = clampi(x0, 2, TAMANHO_TEXTURA_DUNGEON.x - 3)
+        y0 = clampi(y0, 2, TAMANHO_TEXTURA_DUNGEON.y - 3)
+        x1 = clampi(x1, x0 + 1, TAMANHO_TEXTURA_DUNGEON.x - 2)
+        y1 = clampi(y1, y0 + 1, TAMANHO_TEXTURA_DUNGEON.y - 2)
+        bordas.append(Rect2i(x0 - 2, y0 - 2, x1 - x0 + 4, y1 - y0 + 4))
+    # Primeiro o contorno de todos os retangulos, depois o piso. Assim uma sala
+    # e um corredor que se tocam apagam a linha entre eles e a passagem fica
+    # visualmente aberta no mapa.
+    for area in bordas:
+        imagem.fill_rect(area, Color(0.72, 0.55, 0.24, 1.0))
+    for i in _planta_dungeon.size():
+        var area: Rect2i = bordas[i]
+        imagem.fill_rect(Rect2i(area.position + Vector2i(2, 2),
+            area.size - Vector2i(4, 4)), Color(0.18, 0.23, 0.31, 1.0))
+    _textura_dungeon = ImageTexture.create_from_image(imagem)
 
 func _criar_minimap_hud() -> void:
     # Container no canto superior direito
@@ -116,7 +204,8 @@ func _criar_minimap_hud() -> void:
     _minimap_draw.draw.connect(_on_minimap_draw)
     _minimap_draw.gui_input.connect(func(ev: InputEvent):
         if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
-            toggle_world_map()
+            if not _modo_dungeon:
+                toggle_world_map()
     )
     vbox.add_child(_minimap_draw)
 
@@ -303,6 +392,11 @@ func _process(delta: float) -> void:
                 _ate_repintar = INTERVALO_PARADO
                 _minimap_draw.queue_redraw()
 
+    # A planta da DG ja esta pronta; nao tente preparar a carta do mundo por
+    # baixo dela enquanto a caverna estiver ativa.
+    if _modo_dungeon:
+        return
+
     # A primeira zona ja esta carregada quando este no acorda, entao o sinal de
     # troca dela nunca chega — e a regiao pode ainda estar se montando. Insiste
     # de meio em meio segundo ate ter o que desenhar.
@@ -336,6 +430,10 @@ func _on_minimap_draw() -> void:
     var frame_size := 162.0
     var frame_rect := Rect2(center - Vector2(frame_size, frame_size) * 0.5, Vector2(frame_size, frame_size))
     var raio_util := frame_size * 0.5 - 8.0
+
+    if _modo_dungeon:
+        _desenhar_minimapa_dungeon(center, frame_size, frame_rect, raio_util)
+        return
 
     # 1. O disco por baixo. A moldura nova e so um anel — sem este fundo o radar
     # flutuaria solto sobre o mapa 3D e os pontos sumiriam na grama.
@@ -414,6 +512,78 @@ func _on_minimap_draw() -> void:
         var rot_y: float = player.rotation.y
         var dir := Vector2(sin(rot_y), -cos(rot_y))
         _minimap_draw.draw_line(p_radar, p_radar + dir * 8.5, Color(1.0, 0.98, 0.7), 2.2)
+
+
+func _desenhar_minimapa_dungeon(center: Vector2, frame_size: float,
+        frame_rect: Rect2, raio_util: float) -> void:
+    _minimap_draw.draw_circle(center, frame_size * 0.5 - 4.0,
+        Color(0.012, 0.015, 0.026, 0.96))
+    var centro_uv := Vector2(0.5, 0.5)
+    var meia_uv := Vector2(0.2, 0.1)
+    var desvio := Vector2.ZERO
+
+    if player and _textura_dungeon and _limites_dungeon.size.x > 0.0:
+        var local := player.global_position - _origem_dungeon
+        var alvo_uv := Vector2(
+            (local.x - _limites_dungeon.position.x) / _limites_dungeon.size.x,
+            (local.z - _limites_dungeon.position.y) / _limites_dungeon.size.y)
+        meia_uv = Vector2(JANELA_DUNGEON / _limites_dungeon.size.x,
+            JANELA_DUNGEON / _limites_dungeon.size.y)
+        centro_uv = Vector2(
+            clampf(alvo_uv.x, meia_uv.x, 1.0 - meia_uv.x),
+            clampf(alvo_uv.y, meia_uv.y, 1.0 - meia_uv.y))
+        desvio = Vector2(
+            (alvo_uv.x - centro_uv.x) / meia_uv.x,
+            (alvo_uv.y - centro_uv.y) / meia_uv.y) * raio_util
+
+        var pontos := PackedVector2Array()
+        var uvs := PackedVector2Array()
+        for i in 30:
+            var angulo := TAU * float(i) / 30.0
+            var direcao := Vector2(cos(angulo), sin(angulo))
+            pontos.append(center + direcao * (frame_size * 0.5 - 5.0))
+            uvs.append(centro_uv + Vector2(
+                direcao.x * meia_uv.x, direcao.y * meia_uv.y))
+        _minimap_draw.draw_colored_polygon(pontos, Color.WHITE, uvs, _textura_dungeon)
+
+        _desenhar_marcos_dungeon("bicho", Color(0.94, 0.31, 0.28), 2.7,
+            center, centro_uv, meia_uv, raio_util, 18)
+        _desenhar_marcos_dungeon("bau_dungeon", Color(1.0, 0.78, 0.22), 3.2,
+            center, centro_uv, meia_uv, raio_util, 10)
+
+    if _minimap_frame_tex:
+        _minimap_draw.draw_texture_rect(_minimap_frame_tex, frame_rect, false)
+    if player:
+        var p_radar := center + desvio
+        _minimap_draw.draw_circle(p_radar, 4.5, Color(1.0, 0.95, 0.2))
+        var dir := Vector2(sin(player.rotation.y), -cos(player.rotation.y))
+        _minimap_draw.draw_line(p_radar, p_radar + dir * 8.5,
+            Color(1.0, 0.98, 0.7), 2.2)
+
+
+func _desenhar_marcos_dungeon(grupo: String, cor: Color, raio: float,
+        center: Vector2, centro_uv: Vector2, meia_uv: Vector2,
+        raio_util: float, limite: int) -> void:
+    var restantes := limite
+    for item in get_tree().get_nodes_in_group(grupo):
+        if restantes <= 0:
+            break
+        var no := item as Node3D
+        if no == null or not is_instance_valid(no) or not no.is_visible_in_tree():
+            continue
+        var local := no.global_position - _origem_dungeon
+        var uv := Vector2(
+            (local.x - _limites_dungeon.position.x) / _limites_dungeon.size.x,
+            (local.z - _limites_dungeon.position.y) / _limites_dungeon.size.y)
+        var fora := Vector2(
+            (uv.x - centro_uv.x) / meia_uv.x,
+            (uv.y - centro_uv.y) / meia_uv.y)
+        if fora.length() > 1.0:
+            continue
+        restantes -= 1
+        var onde := center + fora * raio_util
+        _minimap_draw.draw_circle(onde, raio + 1.1, Color(0.02, 0.02, 0.03, 0.9))
+        _minimap_draw.draw_circle(onde, raio, cor)
 
 
 ## Onde um ponto do mundo cai dentro do disco, ou null se estiver fora da

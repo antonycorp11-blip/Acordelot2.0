@@ -20,6 +20,7 @@ const ARQUIVO := "user://ajustes.cfg"
 const KIT := "res://textures/ui/kit/"
 const FONTE := "res://fontes/Cinzel.ttf"
 const VirtualJoystickScript := preload("res://scripts/virtual_joystick.gd")
+const T := preload("res://scripts/ui_tema.gd")
 
 ## Cada nível, e o que exatamente ele desliga.
 ##
@@ -128,6 +129,7 @@ var _botao_auto: Button
 var _medidor: Label
 var _ate_medir := 0.0
 var _fundo: ColorRect
+var _caixa_do_modal: Control
 var _botoes: Array = []
 var _rotulo_volume: Label
 var _rotulo_sensibilidade: Label
@@ -149,6 +151,8 @@ func _ready() -> void:
     _montar()
     visible = false
     set_process(false)
+    get_viewport().size_changed.connect(_acomodar_modal)
+    _acomodar_modal()
     call_deferred("_aplicar_guardado_na_cena")
 
 
@@ -170,43 +174,66 @@ func _montar() -> void:
             mostrar(false))
     add_child(_fundo)
 
-    var painel := NinePatchRect.new()
-    painel.texture = load(KIT + "moldura_painel_grande.png")
-    painel.patch_margin_left = 22
-    painel.patch_margin_top = 68
-    painel.patch_margin_right = 22
-    painel.patch_margin_bottom = 64
-    painel.anchor_left = 0.5
-    painel.anchor_right = 0.5
-    painel.anchor_top = 0.06
-    painel.anchor_bottom = 0.94
-    painel.offset_left = -285.0
-    painel.offset_right = 285.0
+    # MODAL, e nao mais uma tela de tamanho proprio.
+    #
+    # Os ajustes tinham a sua moldura, a sua largura e a sua fonte: pareciam vir
+    # de outro jogo. Agora usam o mesmo painel, os mesmos botoes e a mesma
+    # tipografia do resto da interface — so que centrados e menores, porque
+    # modal nao precisa da largura inteira do inventario.
+    # A CAIXA E UM Control, NAO UM PanelContainer.
+    #
+    # Container cresce ate o tamanho minimo do conteudo: com as secoes de audio,
+    # camera e direcional dentro, o painel esticava para mais de mil pixels e
+    # vazava pela tela mesmo com a rolagem no meio. Um Control ancorado nao
+    # propaga minimo dos filhos — a altura passa a ser a que eu mando, e quem se
+    # ajusta e a rolagem. E a mesma protecao que segura o shell.
+    var caixa := Control.new()
+    caixa.anchor_left = 0.5
+    caixa.anchor_right = 0.5
+    caixa.anchor_top = 0.5
+    caixa.anchor_bottom = 0.5
+    caixa.offset_left = -330.0
+    caixa.offset_right = 330.0
+    caixa.offset_top = -300.0
+    caixa.offset_bottom = 300.0
+    caixa.mouse_filter = Control.MOUSE_FILTER_STOP
+    _fundo.add_child(caixa)
+    _caixa_do_modal = caixa
+
+    var painel := Panel.new()
+    painel.set_anchors_preset(Control.PRESET_FULL_RECT)
+    painel.add_theme_stylebox_override("panel", T.painel_principal())
     painel.mouse_filter = Control.MOUSE_FILTER_STOP
-    _fundo.add_child(painel)
+    caixa.add_child(painel)
+
+    var margem := MarginContainer.new()
+    margem.set_anchors_preset(Control.PRESET_FULL_RECT)
+    for lado in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+        margem.add_theme_constant_override(lado, 26)
+    caixa.add_child(margem)
 
     var coluna := VBoxContainer.new()
-    coluna.set_anchors_preset(Control.PRESET_FULL_RECT)
-    coluna.offset_left = 34
-    coluna.offset_right = -34
-    # Abaixo do ornamento do topo: encostado nele, o titulo era lido por cima do
-    # ouro da moldura.
-    coluna.offset_top = 74
-    coluna.offset_bottom = -30
     coluna.add_theme_constant_override("separation", 8)
-    painel.add_child(coluna)
+    margem.add_child(coluna)
 
     coluna.add_child(_rotulo("Ajustes", 27, Color(0.97, 0.84, 0.47)))
 
-    var rolagem := ScrollContainer.new()
-    rolagem.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    rolagem.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-    coluna.add_child(rolagem)
+    # TRES COLUNAS, SEM ROLAGEM.
+    #
+    # A tela e deitada, entao as secoes ficam lado a lado e cabem inteiras: em
+    # pe elas viravam uma fila de mil pixels que so a rolagem segurava, e ter de
+    # rolar para achar um ajuste e o proprio defeito. Nada aqui rola.
+    var leque := HBoxContainer.new()
+    leque.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    leque.add_theme_constant_override("separation", 34)
+    coluna.add_child(leque)
 
-    var miolo := VBoxContainer.new()
-    miolo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    miolo.add_theme_constant_override("separation", 6)
-    rolagem.add_child(miolo)
+    var miolo := _coluna_de_secao()
+    var col2 := _coluna_de_secao()
+    var col3 := _coluna_de_secao()
+    leque.add_child(miolo)
+    leque.add_child(col2)
+    leque.add_child(col3)
 
     # ------------------------------------------------------------- gráficos
     miolo.add_child(_titulo_de_secao("Gráficos"))
@@ -227,19 +254,19 @@ func _montar() -> void:
     miolo.add_child(_botao_auto)
 
     # ---------------------------------------------------------------- áudio
-    miolo.add_child(_titulo_de_secao("Áudio"))
+    col2.add_child(_titulo_de_secao("Áudio"))
     _rotulo_volume = _rotulo("", 15, Color(0.86, 0.89, 0.94))
-    miolo.add_child(_rotulo_volume)
+    col2.add_child(_rotulo_volume)
     var cursor_volume := _cursor(0.0, 1.0, 0.05, _volume)
     cursor_volume.value_changed.connect(_mudar_volume)
-    miolo.add_child(cursor_volume)
+    col2.add_child(cursor_volume)
     _mostrar_volume()
 
     # --------------------------------------------------------------- câmera
-    miolo.add_child(_titulo_de_secao("Câmera"))
+    col2.add_child(_titulo_de_secao("Câmera"))
     var linha_camera := HBoxContainer.new()
     linha_camera.add_theme_constant_override("separation", 8)
-    miolo.add_child(linha_camera)
+    col2.add_child(linha_camera)
     for dados in [["DE CIMA", false], ["DE OMBRO", true]]:
         var b := _botao(str(dados[0]), bool(dados[1]) == _camera_gta)
         b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -248,31 +275,31 @@ func _montar() -> void:
         _botoes_camera.append(b)
 
     _rotulo_sensibilidade = _rotulo("", 15, Color(0.86, 0.89, 0.94))
-    miolo.add_child(_rotulo_sensibilidade)
+    col2.add_child(_rotulo_sensibilidade)
     var cursor_sensivel := _cursor(0.002, 0.016, 0.001, _sensibilidade)
     cursor_sensivel.value_changed.connect(_mudar_sensibilidade)
-    miolo.add_child(cursor_sensivel)
+    col2.add_child(cursor_sensivel)
     _mostrar_sensibilidade()
 
     # ------------------------------------------------------------ direcional
-    miolo.add_child(_titulo_de_secao("Direcional"))
+    col3.add_child(_titulo_de_secao("Direcional"))
     _rotulo_tamanho = _rotulo("", 15, Color(0.86, 0.89, 0.94))
-    miolo.add_child(_rotulo_tamanho)
+    col3.add_child(_rotulo_tamanho)
     var cursor_tamanho := _cursor(170.0, 270.0, 5.0, VirtualJoystickScript.tamanho)
     cursor_tamanho.value_changed.connect(_mudar_tamanho)
-    miolo.add_child(cursor_tamanho)
+    col3.add_child(cursor_tamanho)
 
     _rotulo_zona_morta = _rotulo("", 15, Color(0.86, 0.89, 0.94))
-    miolo.add_child(_rotulo_zona_morta)
+    col3.add_child(_rotulo_zona_morta)
     var cursor_zona := _cursor(0.03, 0.30, 0.01, VirtualJoystickScript.zona_morta)
     cursor_zona.value_changed.connect(_mudar_zona_morta)
-    miolo.add_child(cursor_zona)
+    col3.add_child(cursor_zona)
 
     _rotulo_opacidade = _rotulo("", 15, Color(0.86, 0.89, 0.94))
-    miolo.add_child(_rotulo_opacidade)
+    col3.add_child(_rotulo_opacidade)
     var cursor_op := _cursor(0.25, 1.0, 0.05, VirtualJoystickScript.opacidade)
     cursor_op.value_changed.connect(_mudar_opacidade)
-    miolo.add_child(cursor_op)
+    col3.add_child(cursor_op)
     _mostrar_direcional()
 
     # -------------------------------------------------------------- medidor
@@ -280,17 +307,39 @@ func _montar() -> void:
     # "aqui roda" do outro, ninguem sai do lugar. Com quadros por segundo,
     # chamadas de desenho e triangulos na tela, o dono manda um numero e eu sei
     # exatamente onde atacar.
-    miolo.add_child(_titulo_de_secao("Diagnóstico"))
+    col3.add_child(_titulo_de_secao("Diagnóstico"))
     var b_medidor := _botao("MOSTRAR MEDIDOR", _medidor_ligado)
     b_medidor.pressed.connect(_alternar_medidor)
-    miolo.add_child(b_medidor)
+    col3.add_child(b_medidor)
     _botao_medidor = b_medidor
 
-    # O fechar fica FORA da rolagem: é a saída, e saída que exige rolar até o
+    # O fechar fica FORA das colunas: é a saída, e saída que exige procurar até o
     # fim é a maneira mais fácil de prender o jogador numa tela de opções.
     var fechar := _botao("Fechar", false, "botao_vermelho")
     fechar.pressed.connect(func(): mostrar(false))
     coluna.add_child(fechar)
+
+
+## O modal nunca passa de 88% da altura util do aparelho: em celular deitado a
+## caixa de 600 px nao caberia, e o resto rola por dentro.
+func _acomodar_modal() -> void:
+    if _caixa_do_modal == null:
+        return
+    var tela := get_viewport().get_visible_rect().size
+    var alta: float = minf(600.0, tela.y * 0.90)
+    var larga: float = minf(1180.0, tela.x * 0.94)
+    _caixa_do_modal.offset_left = -larga * 0.5
+    _caixa_do_modal.offset_right = larga * 0.5
+    _caixa_do_modal.offset_top = -alta * 0.5
+    _caixa_do_modal.offset_bottom = alta * 0.5
+
+
+func _coluna_de_secao() -> VBoxContainer:
+    var c := VBoxContainer.new()
+    c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    c.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    c.add_theme_constant_override("separation", 6)
+    return c
 
 
 func _titulo_de_secao(texto: String) -> Control:
@@ -332,37 +381,25 @@ func _aplicar_guardado_na_cena() -> void:
         _alternar_medidor()
 
 
+## Do tema. O tamanho pedido vira o estilo mais proximo, para os ajustes usarem
+## a MESMA escala tipografica das paginas em vez de uma tabela paralela.
 func _rotulo(txt: String, corpo: int, cor: Color, quebra := false) -> Label:
-    var l := Label.new()
-    l.text = txt
-    l.add_theme_font_override("font", load(FONTE))
-    l.add_theme_font_size_override("font_size", corpo)
-    l.add_theme_color_override("font_color", cor)
+    var estilo: int = T.LEGENDA
+    if corpo >= 25: estilo = T.TITULO_SECAO
+    elif corpo >= 18: estilo = T.NOME_ITEM
+    elif corpo >= 14: estilo = T.CORPO
+    var l := T.rotulo(txt, estilo, cor)
     l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if quebra else TextServer.AUTOWRAP_OFF
     return l
 
 
 func _botao(rotulo: String, aceso: bool, arte := "") -> Button:
-    var b := Button.new()
-    b.custom_minimum_size = Vector2(0, 46)
-    b.text = rotulo
-    b.add_theme_font_override("font", load(FONTE))
-    b.add_theme_font_size_override("font_size", 18)
-    b.add_theme_color_override("font_color", Color(0.98, 0.94, 0.82))
-    for estado in ["normal", "hover", "pressed", "focus"]:
-        b.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
-
-    var fundo := NinePatchRect.new()
-    fundo.texture = load(KIT + (arte if arte != "" else ("botao_roxo" if aceso else "botao_azul")) + ".png")
-    fundo.patch_margin_left = 36
-    fundo.patch_margin_top = 28
-    fundo.patch_margin_right = 36
-    fundo.patch_margin_bottom = 14
-    fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-    fundo.show_behind_parent = true
-    fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    b.add_child(fundo)
+    var tipo: int = T.PERIGOSO if arte == "botao_vermelho" else T.SECUNDARIO
+    var b := T.botao(rotulo, tipo, 46.0)
+    if arte == "":
+        T.pintar_aba(b, aceso)
+        b.alignment = HORIZONTAL_ALIGNMENT_CENTER
     return b
 
 
@@ -553,10 +590,8 @@ func _milhar_simples(valor: int) -> String:
 
 
 func _pintar_botao(b: Button, aceso: bool) -> void:
-    for filho in b.get_children():
-        if filho is NinePatchRect:
-            (filho as NinePatchRect).texture = load(
-                KIT + ("botao_roxo" if aceso else "botao_azul") + ".png")
+    T.pintar_aba(b, aceso)
+    b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 
 func _gravar() -> void:
