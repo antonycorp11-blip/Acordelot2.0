@@ -20,7 +20,7 @@ func _montar() -> void:
     col.set_anchors_preset(Control.PRESET_FULL_RECT)
     col.add_theme_constant_override("separation", 8)
     add_child(col)
-    _contador = T.rotulo("", T.TITULO_SECAO, T.OURO_FORTE)
+    _contador = T.rotulo_simples("", 19, T.SOBRANCELHA)
     col.add_child(_contador)
     col.add_child(T.espaco(8))
     var rol := ScrollContainer.new()

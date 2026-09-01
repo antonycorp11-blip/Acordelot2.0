@@ -38,6 +38,7 @@ var _det_posse: Label
 var _det_desc: Label
 var _det_moldura: PanelContainer
 var _det_halo: TextureRect
+var _det_faixa: HBoxContainer
 var _botao_usar: Button
 var _botao_descartar: Button
 var _confirmacao: PanelContainer
@@ -46,6 +47,10 @@ var _selo_slots: Label
 var _selo_claves: Label
 var _selo_materiais: Label
 var _selo_frag: Label
+var _resumo: VBoxContainer
+var _barra_lotacao: ProgressBar
+var _rotulo_lotacao: Label
+var _cabeca_da_grade: Control
 
 
 func _ready() -> void:
@@ -96,31 +101,60 @@ func _montar() -> void:
     linha.add_theme_constant_override("separation", 18)
     add_child(linha)
 
-    # ------------------------------------------------------------- filtros
-    var coluna := VBoxContainer.new()
-    coluna.custom_minimum_size.x = 220
-    coluna.add_theme_constant_override("separation", 8)
-    linha.add_child(coluna)
-    for nome in CATALOGO.FILTROS:
-        # ALTURA MENOR. Cinco palavras nao precisam de um botao de 66 px.
-        var b := T.aba(String(nome), 50.0)
-        b.pressed.connect(_escolher_filtro.bind(String(nome)))
-        coluna.add_child(b)
-        _botoes_filtro[String(nome)] = b
-    coluna.add_child(T.espaco(8))
+    # ------------------------------------------------------- resumo da bolsa
+    # O que a coluna da esquerda mostra e o que a bolsa REALMENTE tem. No
+    # protótipo aqui mora a ficha do heroi; a ficha ja tem tela propria, e
+    # repetir o retrato seria enfeite. O resumo, nao: e a resposta para "quanto
+    # ainda cabe e do que eu tenho muito".
+    var esq := T.painel_do_proto(16)
+    esq.custom_minimum_size.x = 290
+    linha.add_child(esq)
+    var ce := VBoxContainer.new()
+    ce.add_theme_constant_override("separation", 4)
+    esq.add_child(ce)
+    ce.add_child(T.cabeca_de_painel("Bolsa do Maestro", "Resumo"))
+    ce.add_child(T.espaco(8))
+    _resumo = VBoxContainer.new()
+    _resumo.add_theme_constant_override("separation", 0)
+    _resumo.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    ce.add_child(_resumo)
+    ce.add_child(T.sobrancelha("Lotação"))
+    _barra_lotacao = T.barra(Color(0.60, 0.47, 0.24), Color(0.94, 0.75, 0.36), 10.0)
+    ce.add_child(_barra_lotacao)
+    _rotulo_lotacao = T.rotulo_simples("", 15, T.SOBRANCELHA)
+    ce.add_child(_rotulo_lotacao)
 
     # --------------------------------------------------------------- grade
     # A grade e o elemento principal, entao e ela que recebe o espaco que sobra.
-    var caixa_grade := T.coluna(14)
+    var caixa_grade := T.painel_do_proto(16)
     caixa_grade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     caixa_grade.size_flags_stretch_ratio = 2.4
     linha.add_child(caixa_grade)
+    var cg := VBoxContainer.new()
+    cg.add_theme_constant_override("separation", 8)
+    caixa_grade.add_child(cg)
+    _cabeca_da_grade = T.cabeca_de_painel("Coleção harmônica", "Fragmentos & relíquias", "0 / 0")
+    cg.add_child(_cabeca_da_grade)
+
+    # OS FILTROS VIRARAM FAIXA, e nao mais uma coluna inteira ao lado.
+    #
+    # Cinco palavras ocupavam 220 px de largura por 650 de altura para nada. Em
+    # faixa eles ficam onde se procura por eles — encostados no que filtram — e
+    # a grade herda a largura que sobrou.
+    var faixa := HBoxContainer.new()
+    faixa.add_theme_constant_override("separation", 8)
+    cg.add_child(faixa)
+    for nome in CATALOGO.FILTROS:
+        var b := T.aba(String(nome), 40.0)
+        b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+        b.pressed.connect(_escolher_filtro.bind(String(nome)))
+        faixa.add_child(b)
+        _botoes_filtro[String(nome)] = b
 
     _rolagem = ScrollContainer.new()
     _rolagem.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
     _rolagem.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-    caixa_grade.add_child(_rolagem)
-
+    _rolagem.size_flags_vertical = Control.SIZE_EXPAND_FILL
     _grade = GridContainer.new()
     _grade.columns = COLUNAS
     # Slot de tamanho fixo com grade esticada deixaria uma faixa morta so de um
@@ -130,6 +164,7 @@ func _montar() -> void:
     _grade.add_theme_constant_override("h_separation", 12)
     _grade.add_theme_constant_override("v_separation", 12)
     _rolagem.add_child(_grade)
+    cg.add_child(_rolagem)
 
     # ------------------------------------------------------------- detalhe
     linha.add_child(_montar_detalhe())
@@ -137,13 +172,19 @@ func _montar() -> void:
 
 
 func _montar_detalhe() -> Control:
-    var painel := T.coluna(18)
-    painel.custom_minimum_size.x = 380
-    painel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    var painel := T.painel_do_proto(16)
+    painel.custom_minimum_size.x = 360
 
     var col := VBoxContainer.new()
     col.add_theme_constant_override("separation", 4)
     painel.add_child(col)
+
+    # A ETIQUETA DE RARIDADE NO ALTO, como no protótipo: ela responde "quanto
+    # vale isto" antes de o olho chegar no nome.
+    _det_faixa = HBoxContainer.new()
+    _det_faixa.add_theme_constant_override("separation", 8)
+    col.add_child(_det_faixa)
+    col.add_child(T.espaco(4))
 
     # A VITRINE DO ITEM.
     #
@@ -317,6 +358,36 @@ func _pintar_contadores() -> void:
     _selo_materiais.text = _milhar(materiais)
     _selo_frag.text = _milhar(fragmentos)
 
+    if _resumo:
+        for antigo in _resumo.get_children():
+            _resumo.remove_child(antigo)
+            antigo.queue_free()
+        var tipos := 0
+        var consumiveis := 0
+        for it in CATALOGO.ITENS_DE_RECURSO:
+            var q: int = _progresso.quantidade(String(it[0]))
+            if q <= 0:
+                continue
+            tipos += 1
+            if String(it[4]) == "consumivel":
+                consumiveis += q
+        for par in [["Claves", _milhar(_progresso.quantidade("claves"))],
+                ["Materiais", _milhar(materiais)],
+                ["Fragmentos", _milhar(fragmentos)],
+                ["Consumíveis", _milhar(consumiveis)],
+                ["Tipos guardados", str(tipos)]]:
+            var l := T.linha_de_status(String(par[0]), String(par[1]))
+            l.size_flags_vertical = Control.SIZE_EXPAND_FILL
+            _resumo.add_child(l)
+    if _barra_lotacao:
+        _barra_lotacao.value = clampf(float(ocupados) / float(CAPACIDADE), 0.0, 1.0)
+    if _rotulo_lotacao:
+        _rotulo_lotacao.text = "%d de %d espaços ocupados" % [ocupados, CAPACIDADE]
+    if _cabeca_da_grade:
+        for filho in _cabeca_da_grade.get_children():
+            if filho is Label and (filho as Label).text.contains("/"):
+                (filho as Label).text = "%d / %d" % [ocupados, CAPACIDADE]
+
 
 # ------------------------------------------------------------------- slots
 
@@ -430,6 +501,15 @@ func _pintar_detalhe() -> void:
     _det_posse.text = "%s" % _milhar(_progresso.quantidade(_selecionado)) if tem else ""
     _det_desc.text = String(ficha[5]) if tem else "Derrote Shikers e recolha o que eles deixam."
     var cor: Color = T.RARIDADE.get(raridade, T.RARIDADE["Comum"])
+    for antigo in _det_faixa.get_children():
+        _det_faixa.remove_child(antigo)
+        antigo.queue_free()
+    if tem:
+        _det_faixa.add_child(T.chip(raridade, cor))
+        # "VALIOSO  VALIOSO" nao diz nada duas vezes: a segunda etiqueta so
+        # aparece quando o tipo do item e diferente da raridade dele.
+        if String(ficha[4]).to_upper() != raridade.to_upper():
+            _det_faixa.add_child(T.chip(String(ficha[4]), T.SOBRANCELHA.lightened(0.2)))
     _det_halo.modulate = Color(cor.r, cor.g, cor.b, 1.0 if tem else 0.0)
     _det_moldura.add_theme_stylebox_override("panel", T.estilo_do_kit(
         String(T.SLOT_DA_RARIDADE.get(raridade, "slot_dourado")) if tem else "slot_azul",
@@ -461,6 +541,12 @@ func _pode_descartar(id: String, tipo: String) -> bool:
     return true
 
 
+func _avisar(sobre: String, texto: String) -> void:
+    var casca := get_tree().root.find_child("UiShell", true, false)
+    if casca and casca.has_method("avisar"):
+        casca.avisar(sobre, texto)
+
+
 func _usar() -> void:
     var ficha := _ficha(_selecionado)
     if ficha.is_empty() or _progresso == null:
@@ -468,6 +554,8 @@ func _usar() -> void:
     for tipo in _progresso.PARTITURAS:
         if String(_progresso.PARTITURAS[tipo]["recurso"]) == _selecionado:
             _progresso.usar_partitura(String(tipo))
+            _avisar("Experiência absorvida",
+                "+%d XP de %s" % [int(_progresso.PARTITURAS[tipo]["xp"]), String(ficha[1])])
             return
 
 

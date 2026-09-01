@@ -29,7 +29,7 @@ func _montar() -> void:
     col.set_anchors_preset(Control.PRESET_FULL_RECT)
     col.add_theme_constant_override("separation", 8)
     add_child(col)
-    var p := T.coluna(10)
+    var p := T.painel_do_proto(10)
     p.size_flags_vertical = Control.SIZE_EXPAND_FILL
     col.add_child(p)
     _tela = Control.new()

@@ -36,6 +36,10 @@ var _navbar: HBoxContainer
 var _paginas: Dictionary = {}      # id -> {"no": Control, "botao": Button, "nome": String}
 var _ordem: Array[String] = []
 var _atual := ""
+var _aviso: PanelContainer
+var _aviso_sobre: Label
+var _aviso_texto: Label
+var _tempo_do_aviso: Tween
 
 
 func _ready() -> void:
@@ -128,14 +132,16 @@ func _montar_cabecalho() -> Control:
     _cabecalho.alignment = BoxContainer.ALIGNMENT_BEGIN
     caixa.add_child(_cabecalho)
 
-    # O titulo vem sobre a PLACA do kit, nao solto no ar.
-    var placa := PanelContainer.new()
-    placa.add_theme_stylebox_override("panel", T.placa_de_titulo())
-    _cabecalho.add_child(placa)
+    # SOBRANCELHA E TITULO, como no protótipo: uma linha curta em versalete
+    # dizendo onde voce esta, e o nome da tela grande logo abaixo.
+    var pilha_do_titulo := VBoxContainer.new()
+    pilha_do_titulo.add_theme_constant_override("separation", 0)
+    pilha_do_titulo.alignment = BoxContainer.ALIGNMENT_CENTER
+    _cabecalho.add_child(pilha_do_titulo)
+    pilha_do_titulo.add_child(T.sobrancelha("Arquivo do Maestro"))
     _titulo = T.rotulo("", T.TITULO_PAGINA, T.OURO_FORTE)
     _titulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    _titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    placa.add_child(_titulo)
+    pilha_do_titulo.add_child(_titulo)
 
     # Onde a pagina pendura os contadores dela. Fica ENTRE o titulo e o fechar,
     # empurrado para a direita, com espaco de sobra entre um contador e outro.
@@ -234,7 +240,11 @@ func abrir(id: String) -> void:
     if _paginas.has(_atual):
         var antiga: Control = _paginas[_atual]["no"]
         antiga.visible = false
-        # Pagina escondida nao pensa: nada de sistema pesado rodando atras.
+        # Pagina escondida nao pensa: nada de sistema pesado rodando atras. A
+        # pagina que mantem algo caro ligado — o palco 3D do personagem, por
+        # exemplo — recebe o aviso para desligar antes de sumir.
+        if antiga.has_method("ao_fechar"):
+            antiga.ao_fechar()
         antiga.process_mode = Node.PROCESS_MODE_DISABLED
     _atual = id
     var nova: Control = _paginas[id]["no"]
@@ -269,10 +279,63 @@ func _animar_entrada(pagina: Control) -> void:
     tw.tween_property(pagina, "position:y", 0.0, 0.13).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
+## O AVISO DE RECOMPENSA.
+##
+## No protótipo todo ganho aparece numa faixa curta no alto — sintetizar, resgatar,
+## equipar. Sem isso o jogador aperta o botao, o numero muda em algum canto e
+## nada diz que aquilo foi uma conquista. A faixa entra, fica tres segundos e
+## sai sozinha; chamar de novo reinicia o relogio em vez de empilhar faixas.
+func avisar(sobre: String, texto: String) -> void:
+    if _aviso == null:
+        _montar_aviso()
+    _aviso_sobre.text = sobre.to_upper()
+    _aviso_texto.text = texto
+    _aviso.visible = true
+    _aviso.modulate.a = 0.0
+    _aviso.position.y = -14.0
+    if _tempo_do_aviso and _tempo_do_aviso.is_valid():
+        _tempo_do_aviso.kill()
+    _tempo_do_aviso = create_tween()
+    _tempo_do_aviso.tween_property(_aviso, "modulate:a", 1.0, 0.16)
+    _tempo_do_aviso.parallel().tween_property(_aviso, "position:y", 0.0, 0.24) \
+        .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+    _tempo_do_aviso.tween_interval(2.6)
+    _tempo_do_aviso.tween_property(_aviso, "modulate:a", 0.0, 0.35)
+    _tempo_do_aviso.tween_callback(func(): _aviso.visible = false)
+
+
+func _montar_aviso() -> void:
+    _aviso = T.painel_do_proto(12, false)
+    var estilo := _aviso.get_theme_stylebox("panel") as StyleBoxFlat
+    if estilo:
+        estilo.bg_color = Color(0.086, 0.070, 0.031, 0.97)
+        estilo.border_color = T.OURO
+    _aviso.set_anchors_preset(Control.PRESET_CENTER_TOP)
+    _aviso.offset_top = ALTURA_DO_CABECALHO + 6.0
+    _aviso.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _aviso.visible = false
+    _base.add_child(_aviso)
+
+    var linha := HBoxContainer.new()
+    linha.add_theme_constant_override("separation", 12)
+    _aviso.add_child(linha)
+    var col := VBoxContainer.new()
+    col.add_theme_constant_override("separation", 0)
+    linha.add_child(col)
+    _aviso_sobre = T.sobrancelha("")
+    _aviso_sobre.add_theme_color_override("font_color", T.OURO)
+    col.add_child(_aviso_sobre)
+    _aviso_texto = T.rotulo_simples("", 21, Color(1.0, 0.953, 0.855))
+    col.add_child(_aviso_texto)
+
+
 func fechar_tudo() -> void:
     visible = false
     if _paginas.has(_atual):
-        _paginas[_atual]["no"].process_mode = Node.PROCESS_MODE_DISABLED
+        var atual: Control = _paginas[_atual]["no"]
+        if atual.has_method("ao_fechar"):
+            atual.ao_fechar()
+        atual.process_mode = Node.PROCESS_MODE_DISABLED
     fechado.emit()
 
 

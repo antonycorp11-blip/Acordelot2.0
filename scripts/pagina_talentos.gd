@@ -25,7 +25,7 @@ func _montar() -> void:
     col.set_anchors_preset(Control.PRESET_FULL_RECT)
     col.add_theme_constant_override("separation", 10)
     add_child(col)
-    _pontos = T.rotulo("", T.TITULO_SECAO, T.SUCESSO)
+    _pontos = T.rotulo_simples("", 19, T.GANHO)
     col.add_child(_pontos)
     col.add_child(T.espaco(8))
     var rol := ScrollContainer.new()
@@ -40,7 +40,7 @@ func _montar() -> void:
         lista.add_child(_cartao(String(t[0]), String(t[1]), String(t[2])))
 
 func _cartao(id: String, nome: String, texto: String) -> Control:
-    var p := T.coluna(16)
+    var p := T.painel_do_proto(14)
     var linha := HBoxContainer.new()
     linha.add_theme_constant_override("separation", 16)
     p.add_child(linha)

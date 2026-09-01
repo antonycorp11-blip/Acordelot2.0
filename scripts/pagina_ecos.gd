@@ -24,7 +24,8 @@ func _montar() -> void:
     col.set_anchors_preset(Control.PRESET_FULL_RECT)
     col.add_theme_constant_override("separation", 10)
     add_child(col)
-    _colecao = T.rotulo("", T.TITULO_SECAO, T.OURO_FORTE)
+    col.add_child(T.cabeca_de_painel("Vozes do Caminho", "Ecos"))
+    _colecao = T.rotulo_simples("", 17, T.SOBRANCELHA)
     col.add_child(_colecao)
 
     # SEM ROLAGEM E SEM SOBRA. Doze ecos em quatro por tres, e os cartoes

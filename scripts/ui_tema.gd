@@ -252,7 +252,14 @@ static func botao(texto: String, tipo := SECUNDARIO, altura := 46.0) -> Button:
     b.add_theme_color_override("font_color", letra)
     b.add_theme_color_override("font_hover_color", letra.lightened(0.25))
     b.add_theme_color_override("font_pressed_color", letra.lightened(0.35))
-    b.add_theme_color_override("font_disabled_color", Color(letra.r, letra.g, letra.b, 0.34))
+    # O DESABILITADO PRECISA DE CONTRASTE PROPRIO.
+    #
+    # A letra do botao dourado e marrom escuro, que le bem sobre o ouro aceso.
+    # Desbotada sobre a arte ja escurecida ela sumia: "Condensar" ficava
+    # invisivel justamente quando o jogador precisa entender por que nao pode.
+    b.add_theme_color_override("font_disabled_color",
+        Color(0.82, 0.77, 0.66, 0.80) if tipo == PRIMARIO
+        else Color(letra.r, letra.g, letra.b, 0.36))
 
     # A ARTE SO ENTRA SE COUBER SEM ACHATAR.
     #
@@ -486,3 +493,174 @@ static func botao_fechar(ao_fechar: Callable) -> Button:
         risco.draw_line(Vector2(r.x - m, m), Vector2(m, r.y - m), cor, 2.5, true))
     b.add_child(risco)
     return b
+
+
+# ------------------------------------------------- a linguagem do prototipo
+## O VOCABULARIO VISUAL VINDO DO PROTOTIPO.
+##
+## O protótipo em React definiu uma linguagem que funciona: superficie azul-noite
+## quase preta, fio de bronze em volta, cantoneiras finas nos quatro cantos,
+## sobrancelha em versalete acima de cada titulo, valor em creme com o ganho em
+## verde ao lado, e barra com degrade. Nada disso e imagem — e tudo desenhado,
+## entao acompanha qualquer tamanho de tela sem esticar arte.
+##
+## Aqui essas pecas viram funcao, e as oito telas passam a falar a mesma lingua.
+const BRONZE := Color(0.518, 0.408, 0.239, 0.62)
+const BRONZE_FORTE := Color(0.647, 0.514, 0.294, 0.95)
+const CREME := Color(0.910, 0.875, 0.804)
+const SOBRANCELHA := Color(0.616, 0.545, 0.420)
+const GANHO := Color(0.490, 0.871, 0.388)
+const CIANO := Color(0.267, 0.714, 1.0)
+const VIOLETA := Color(0.663, 0.408, 1.0)
+const FUNDO_DO_PAINEL := Color(0.031, 0.055, 0.098, 0.92)
+
+
+## Painel do protótipo: fundo quase preto, fio de bronze, cantoneiras.
+static func painel_do_proto(margem := 16, com_cantos := true) -> PanelContainer:
+    var p := PanelContainer.new()
+    var e := StyleBoxFlat.new()
+    e.bg_color = FUNDO_DO_PAINEL
+    e.border_color = BRONZE
+    e.set_border_width_all(1)
+    e.set_corner_radius_all(3)
+    e.content_margin_left = margem
+    e.content_margin_right = margem
+    e.content_margin_top = margem
+    e.content_margin_bottom = margem
+    p.add_theme_stylebox_override("panel", e)
+    if com_cantos:
+        var enfeite := Control.new()
+        enfeite.set_anchors_preset(Control.PRESET_FULL_RECT)
+        enfeite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        p.add_child(enfeite)
+        cantoneiras(enfeite)
+    return p
+
+
+## Quatro cantoneiras em L, desenhadas. Sao o que da o ar de moldura sem custar
+## uma textura nem esticar nada.
+static func cantoneiras(no: Control, cor := BRONZE_FORTE, braco := 13.0, grossura := 1.0) -> void:
+    no.draw.connect(func() -> void:
+        var r := no.size
+        var pontas := [
+            [Vector2(0, 0), Vector2(braco, 0), Vector2(0, braco)],
+            [Vector2(r.x, 0), Vector2(r.x - braco, 0), Vector2(r.x, braco)],
+            [Vector2(0, r.y), Vector2(braco, r.y), Vector2(0, r.y - braco)],
+            [Vector2(r.x, r.y), Vector2(r.x - braco, r.y), Vector2(r.x, r.y - braco)],
+        ]
+        for p in pontas:
+            no.draw_line(p[0], p[1], cor, grossura, true)
+            no.draw_line(p[0], p[2], cor, grossura, true))
+    no.resized.connect(no.queue_redraw)
+
+
+## A sobrancelha: rotulo curto em versalete acima do titulo. E o que separa
+## "que area e esta" de "o que ha nela" sem gastar uma linha de titulo.
+static func sobrancelha(texto: String) -> Label:
+    var l := Label.new()
+    l.text = texto.to_upper()
+    l.add_theme_font_override("font", fonte_ui())
+    l.add_theme_font_size_override("font_size", 14)
+    l.add_theme_color_override("font_color", SOBRANCELHA)
+    l.add_theme_constant_override("line_spacing", 0)
+    return l
+
+
+## Titulo de secao no tom do protótipo: serifado, creme dourado, sem caixa alta.
+static func titulo_do_proto(texto: String, tamanho := 30) -> Label:
+    var l := Label.new()
+    l.text = texto
+    l.add_theme_font_override("font", fonte_titulo())
+    l.add_theme_font_size_override("font_size", tamanho)
+    l.add_theme_color_override("font_color", Color(0.941, 0.863, 0.686))
+    return l
+
+
+## Etiqueta pequena de canto: raridade, nota, estado.
+static func chip(texto: String, cor: Color) -> PanelContainer:
+    var p := PanelContainer.new()
+    var e := StyleBoxFlat.new()
+    e.bg_color = Color(cor.r, cor.g, cor.b, 0.18)
+    e.border_color = Color(cor.r, cor.g, cor.b, 0.75)
+    e.set_border_width_all(1)
+    e.set_corner_radius_all(2)
+    e.content_margin_left = 6
+    e.content_margin_right = 6
+    e.content_margin_top = 1
+    e.content_margin_bottom = 2
+    p.add_theme_stylebox_override("panel", e)
+    var l := Label.new()
+    l.text = texto.to_upper()
+    l.add_theme_font_override("font", fonte_ui())
+    l.add_theme_font_size_override("font_size", 13)
+    l.add_theme_color_override("font_color", cor.lightened(0.35))
+    p.add_child(l)
+    return p
+
+
+## Barra com degrade. Serve para XP, para receita e para lotacao da bolsa.
+static func barra(de: Color, ate: Color, altura := 9.0) -> ProgressBar:
+    var b := ProgressBar.new()
+    b.custom_minimum_size.y = altura
+    b.show_percentage = false
+    b.max_value = 1.0
+    var vazio := StyleBoxFlat.new()
+    vazio.bg_color = Color(0.027, 0.047, 0.082, 1.0)
+    vazio.border_color = Color(0.408, 0.333, 0.212, 0.85)
+    vazio.set_border_width_all(1)
+    b.add_theme_stylebox_override("background", vazio)
+    var cheio := StyleBoxFlat.new()
+    cheio.bg_color = ate
+    cheio.shadow_color = Color(de.r, de.g, de.b, 0.35)
+    cheio.shadow_size = 5
+    b.add_theme_stylebox_override("fill", cheio)
+    return b
+
+
+## Linha de status: rotulo a esquerda, valor a direita, ganho em verde ao lado.
+## O ganho e opcional — sem numero real para mostrar, ele nao aparece.
+static func linha_de_status(rotulo: String, valor: String, ganho := "") -> Control:
+    var l := HBoxContainer.new()
+    l.add_theme_constant_override("separation", 10)
+    l.custom_minimum_size.y = 38
+    var nome := rotulo_simples(rotulo, 19, Color(0.741, 0.686, 0.576))
+    nome.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    nome.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    l.add_child(nome)
+    var v := rotulo_simples(valor, 20, CREME)
+    v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    v.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    l.add_child(v)
+    if ganho != "":
+        var g := rotulo_simples(ganho, 16, GANHO)
+        g.custom_minimum_size.x = 62
+        g.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+        g.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+        l.add_child(g)
+    return l
+
+
+static func rotulo_simples(texto: String, tamanho: int, cor: Color) -> Label:
+    var l := Label.new()
+    l.text = texto
+    l.add_theme_font_override("font", fonte_ui())
+    l.add_theme_font_size_override("font_size", tamanho)
+    l.add_theme_color_override("font_color", cor)
+    return l
+
+
+## Cabeca de painel: sobrancelha em cima, titulo embaixo, contador a direita.
+static func cabeca_de_painel(sobre: String, titulo: String, direita := "") -> Control:
+    var linha := HBoxContainer.new()
+    linha.add_theme_constant_override("separation", 12)
+    var col := VBoxContainer.new()
+    col.add_theme_constant_override("separation", 0)
+    col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    col.add_child(sobrancelha(sobre))
+    col.add_child(titulo_do_proto(titulo))
+    linha.add_child(col)
+    if direita != "":
+        var d := rotulo_simples(direita, 17, SOBRANCELHA)
+        d.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+        linha.add_child(d)
+    return linha
