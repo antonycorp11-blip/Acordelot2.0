@@ -24,7 +24,7 @@ signal fechado
 
 const ALTURA_DO_CABECALHO := 92.0
 const ALTURA_DA_NAVBAR := 104.0
-const MARGEM := 26.0
+const MARGEM := 10.0
 
 var _base: Control
 var _cabecalho: HBoxContainer
@@ -39,7 +39,12 @@ var _atual := ""
 
 
 func _ready() -> void:
-    layer = 20
+    # ACIMA DE TUDO QUE E JOGO.
+    #
+    # O anuncio de zona vive na camada 100 e atravessava a moldura: "Floresta
+    # Inicial" aparecia escrito no meio da ficha do personagem. Menu principal e
+    # a coisa mais na frente que existe enquanto esta aberto.
+    layer = 105
     _montar()
     visible = false
     get_viewport().size_changed.connect(_acomodar)
@@ -66,6 +71,22 @@ func _montar() -> void:
     moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
     moldura.add_theme_stylebox_override("panel", T.painel_principal())
     _base.add_child(moldura)
+
+    # As camadas de fundo entram ANTES da coluna: quem e desenhado primeiro fica
+    # atras. Elas nao pedem tamanho nenhum, entao nao mexem no layout.
+    # A DECORACAO VAI NUM Control, NAO NO PanelContainer.
+    #
+    # Container estica TODO filho ate o retangulo inteiro, ancora nenhuma
+    # respeitada: os cantos ornamentados de 110 px viraram quatro manchas
+    # douradas de mil e seiscentos. Dentro de um Control comum cada peca fica do
+    # tamanho que tem e no canto onde foi ancorada.
+    var decoracao := Control.new()
+    decoracao.name = "Decoracao"
+    decoracao.set_anchors_preset(Control.PRESET_FULL_RECT)
+    decoracao.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    moldura.add_child(decoracao)
+    T.fundo_em_camadas(decoracao)
+    T.ornamentar_cantos(decoracao)
 
     var coluna := VBoxContainer.new()
     coluna.add_theme_constant_override("separation", 0)
@@ -95,8 +116,10 @@ func _montar() -> void:
 func _montar_cabecalho() -> Control:
     var caixa := MarginContainer.new()
     caixa.custom_minimum_size.y = ALTURA_DO_CABECALHO
+    # Folga para os cantos ornamentados: sem ela o titulo e o botao de fechar
+    # caem em cima do desenho.
     for lado in ["margin_left", "margin_right"]:
-        caixa.add_theme_constant_override(lado, int(MARGEM))
+        caixa.add_theme_constant_override(lado, 96)
     caixa.add_theme_constant_override("margin_top", 10)
     caixa.add_theme_constant_override("margin_bottom", 6)
 
@@ -105,9 +128,14 @@ func _montar_cabecalho() -> Control:
     _cabecalho.alignment = BoxContainer.ALIGNMENT_BEGIN
     caixa.add_child(_cabecalho)
 
+    # O titulo vem sobre a PLACA do kit, nao solto no ar.
+    var placa := PanelContainer.new()
+    placa.add_theme_stylebox_override("panel", T.placa_de_titulo())
+    _cabecalho.add_child(placa)
     _titulo = T.rotulo("", T.TITULO_PAGINA, T.OURO_FORTE)
     _titulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    _cabecalho.add_child(_titulo)
+    _titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    placa.add_child(_titulo)
 
     # Onde a pagina pendura os contadores dela. Fica ENTRE o titulo e o fechar,
     # empurrado para a direita, com espaco de sobra entre um contador e outro.
@@ -118,17 +146,7 @@ func _montar_cabecalho() -> Control:
     _cabecalho.add_child(_extras)
 
     # UM SO BOTAO DE FECHAR, no mesmo canto, do mesmo tamanho, em toda a UI.
-    var fechar := Button.new()
-    fechar.text = "✕"
-    fechar.custom_minimum_size = Vector2(52, 52)
-    fechar.focus_mode = Control.FOCUS_NONE
-    fechar.add_theme_font_override("font", T.fonte_ui())
-    fechar.add_theme_font_size_override("font_size", 24)
-    fechar.add_theme_color_override("font_color", Color(1.0, 0.86, 0.84))
-    fechar.add_theme_stylebox_override("normal", T.painel(Color(0.17, 0.05, 0.05, 0.94), T.PERIGO, 8, 1, 0))
-    fechar.add_theme_stylebox_override("hover", T.painel(Color(0.24, 0.07, 0.07, 0.97), T.PERIGO.lightened(0.2), 8, 1, 0))
-    fechar.add_theme_stylebox_override("pressed", T.painel(Color(0.30, 0.09, 0.09, 1.0), T.PERIGO.lightened(0.3), 8, 2, 0))
-    fechar.pressed.connect(fechar_tudo)
+    var fechar := T.botao_fechar(fechar_tudo)
     var canto := CenterContainer.new()
     canto.add_child(fechar)
     _cabecalho.add_child(canto)
@@ -142,6 +160,10 @@ func _montar_navbar() -> Control:
         caixa.add_theme_constant_override(lado, int(MARGEM))
     caixa.add_theme_constant_override("margin_top", 8)
     caixa.add_theme_constant_override("margin_bottom", 10)
+    # Mesma folga do cabecalho: o canto ornamentado de baixo ficava escrito por
+    # cima de "Personagem" e de "Ecos".
+    caixa.add_theme_constant_override("margin_left", 96)
+    caixa.add_theme_constant_override("margin_right", 96)
     _navbar = HBoxContainer.new()
     _navbar.alignment = BoxContainer.ALIGNMENT_CENTER
     _navbar.add_theme_constant_override("separation", 10)
@@ -229,7 +251,22 @@ func abrir(id: String) -> void:
         nova.ao_abrir()
     _pintar_navbar()
     _acomodar()
+    _animar_entrada(nova)
     pagina_trocada.emit(id)
+
+
+## A TROCA GANHA NOVENTA MILISSEGUNDOS DE VIDA.
+##
+## Aparecer instantaneo e correto e seco: a tela pisca e o olho perde onde
+## estava. Um sobe-e-aparece curto conta ao jogador que aquilo ali e novo, sem
+## fazer ninguem esperar — e curto de proposito, porque animacao de abrir menu
+## e a primeira coisa que cansa quem joga todo dia.
+func _animar_entrada(pagina: Control) -> void:
+    pagina.modulate.a = 0.0
+    pagina.position.y = 14.0
+    var tw := create_tween().set_parallel()
+    tw.tween_property(pagina, "modulate:a", 1.0, 0.09)
+    tw.tween_property(pagina, "position:y", 0.0, 0.13).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func fechar_tudo() -> void:

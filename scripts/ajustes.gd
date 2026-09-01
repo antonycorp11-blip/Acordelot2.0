@@ -139,7 +139,7 @@ var _rotulo_opacidade: Label
 
 
 func _ready() -> void:
-    layer = 18
+    layer = 115
     var arquivo := ConfigFile.new()
     if arquivo.load(ARQUIVO) == OK:
         _escolhido = clampi(int(arquivo.get_value("video", "nivel", 1)), 0, NIVEIS.size() - 1)
@@ -560,6 +560,14 @@ func _montar_medidor() -> void:
 func _process(delta: float) -> void:
     if not _medidor_ligado or _medidor == null:
         return
+    # SAI DA FRENTE QUANDO A INTERFACE ABRE.
+    #
+    # O medidor mora no canto de cima a esquerda da tela de jogo, e a moldura da
+    # UI principal cobre justamente aquela faixa: na tela de Sintese ele comia o
+    # "co" de "corrompido". Ele e diagnostico de jogo, nao de menu — enquanto
+    # houver menu na frente, ele espera.
+    var casca := _casca_da_ui()
+    _medidor.visible = casca == null or not casca.visible
     _ate_medir -= delta
     if _ate_medir > 0.0:
         return
@@ -575,6 +583,14 @@ func _process(delta: float) -> void:
         Color(0.68, 1.0, 0.72) if fps >= 45.0 else (Color(1.0, 0.86, 0.45) if fps >= 28.0 else Color(1.0, 0.52, 0.45)))
     if OS.get_cmdline_user_args().has("--medir"):
         print("MEDIDOR ", _medidor.text.replace("\n", " | "))
+
+
+var _casca: CanvasLayer = null
+
+func _casca_da_ui() -> CanvasLayer:
+    if _casca == null or not is_instance_valid(_casca):
+        _casca = get_tree().root.find_child("UiShell", true, false) as CanvasLayer
+    return _casca
 
 
 func _milhar_simples(valor: int) -> String:

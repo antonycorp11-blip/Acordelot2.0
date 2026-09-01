@@ -10,6 +10,7 @@ var _progresso: Node
 var _nivel: Label
 var _xp: Label
 var _barra: ProgressBar
+var _corrida_da_barra: Tween
 var _pontos: Label
 var _poder: Label
 var _linhas: Dictionary = {}
@@ -44,9 +45,17 @@ func _montar() -> void:
     ce.add_theme_constant_override("separation", 6)
     esq.add_child(ce)
 
+    # O RETRATO OCUPA A COLUNA.
+    #
+    # Ele era um selo de 150 px no alto de uma coluna de 650 e o resto da tela
+    # ficava vazio. Aqui ele cresce com o espaco que houver: numa ficha de
+    # personagem, o personagem e que tem de ser a maior coisa da tela.
     var retrato := PanelContainer.new()
-    retrato.custom_minimum_size = Vector2(0, 150)
-    retrato.add_theme_stylebox_override("panel", T.painel(T.NAVY_CLARO, T.OURO_ARO, 10, 2, 8))
+    retrato.custom_minimum_size = Vector2(0, 200)
+    retrato.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    retrato.add_theme_stylebox_override("panel", T.estilo_do_kit(
+        "moldura_painel_simples", Vector4i(40, 40, 40, 40), Vector4i(14, 14, 14, 14)))
+    retrato.add_child(T.halo_redondo(Color(0.55, 0.68, 1.0), 0.20))
     ce.add_child(retrato)
     var folha := load("res://textures/dialogo/akles_corpo.png") as Texture2D
     if folha:
@@ -60,11 +69,17 @@ func _montar() -> void:
         img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
         retrato.add_child(img)
 
-    ce.add_child(T.rotulo("Akles", T.NOME_ITEM, T.OURO_FORTE))
-    _nivel = T.rotulo("", T.TITULO_SECAO, T.TEXTO)
+    ce.add_child(T.espaco(10))
+    var nome := T.rotulo("Akles", T.TITULO_SECAO, T.OURO_FORTE)
+    nome.add_theme_font_override("font", T.fonte_display())
+    nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    ce.add_child(nome)
+    _nivel = T.rotulo("", T.NOME_ITEM, T.TEXTO)
+    _nivel.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     ce.add_child(_nivel)
+    ce.add_child(T.espaco(4))
     _barra = ProgressBar.new()
-    _barra.custom_minimum_size.y = 14
+    _barra.custom_minimum_size.y = 18
     _barra.show_percentage = false
     _barra.max_value = 1.0
     var vazio := StyleBoxFlat.new()
@@ -82,12 +97,15 @@ func _montar() -> void:
     _poder = T.rotulo("", T.CORPO, T.OURO)
     ce.add_child(_poder)
     ce.add_child(T.espaco(6))
-    _acao = T.botao("Subir nível", T.PRIMARIO)
+    _acao = T.botao("Subir nível", T.PRIMARIO, 54.0)
     _acao.pressed.connect(_agir)
     ce.add_child(_acao)
 
     # ------------------------------------------------------- atributos
     var meio := T.coluna(18)
+    # Margem larga a direita: com a coluna inteira o nome do atributo ficava a
+    # meio metro do proprio numero.
+    meio.add_theme_constant_override("margin_right", 90)
     meio.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     linha.add_child(meio)
     var cm := VBoxContainer.new()
@@ -98,8 +116,12 @@ func _montar() -> void:
     _pontos = T.rotulo("", T.CORPO, T.SUCESSO)
     cm.add_child(_pontos)
     cm.add_child(T.espaco(8))
+    # As linhas dividem a altura entre si em vez de se amontoarem no alto: a
+    # coluna media 650 px e usava 300.
     for id in NOMES:
-        cm.add_child(_linha_de_atributo(String(id)))
+        var linha_do_atributo := _linha_de_atributo(String(id))
+        linha_do_atributo.size_flags_vertical = Control.SIZE_EXPAND_FILL
+        cm.add_child(linha_do_atributo)
 
     # --------------------------------------------------------- derivados
     var dir := T.coluna(18)
@@ -113,12 +135,13 @@ func _montar() -> void:
     cd.add_child(T.espaco(8))
     _stats = VBoxContainer.new()
     _stats.add_theme_constant_override("separation", 8)
+    _stats.size_flags_vertical = Control.SIZE_EXPAND_FILL
     cd.add_child(_stats)
 
 func _linha_de_atributo(id: String) -> Control:
     var l := HBoxContainer.new()
     l.add_theme_constant_override("separation", 10)
-    l.custom_minimum_size.y = 38
+    l.custom_minimum_size.y = 46
     var nome := T.rotulo(String(NOMES[id]), T.CORPO, T.TEXTO)
     nome.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     nome.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -130,6 +153,8 @@ func _linha_de_atributo(id: String) -> Control:
     l.add_child(valor)
     var mais := T.botao("+", T.SECUNDARIO, 38.0)
     mais.custom_minimum_size.x = 48
+    # Sem isto o botao estica com a linha e vira uma coluna de 90 px de altura.
+    mais.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     mais.pressed.connect(func():
         if _progresso: _progresso.investir_atributo(id))
     l.add_child(mais)
@@ -145,7 +170,20 @@ func _pintar() -> void:
     if _progresso == null or _nivel == null: return
     _nivel.text = "Nível %d" % _progresso.nivel
     var falta: float = float(_progresso.xp_para_nivel())
-    _barra.value = clampf(float(_progresso.experiencia) / maxf(falta, 1.0), 0.0, 1.0)
+    # A BARRA ANDA, NAO PULA.
+    #
+    # Trocar o valor seco faz a experiencia ganha desaparecer sem ninguem ver.
+    # Um quarto de segundo de percurso e o que transforma "o numero mudou" em
+    # "eu progredi" — e e o unico lugar da ficha onde animar vale a pena.
+    var destino: float = clampf(float(_progresso.experiencia) / maxf(falta, 1.0), 0.0, 1.0)
+    if is_inside_tree() and absf(destino - _barra.value) > 0.001:
+        if _corrida_da_barra and _corrida_da_barra.is_valid():
+            _corrida_da_barra.kill()
+        _corrida_da_barra = create_tween()
+        _corrida_da_barra.tween_property(_barra, "value", destino, 0.28) \
+            .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+    else:
+        _barra.value = destino
     _xp.text = "%d / %d XP" % [_progresso.experiencia, int(falta)]
     _pontos.text = "%d ponto(s) a distribuir" % _progresso.pontos_de_atributo
     _pontos.add_theme_color_override("font_color",
@@ -167,6 +205,7 @@ func _pintar() -> void:
             ["Dano crítico", "%.0f%%" % float(e["dano_critico"])],
             ["Poder harmônico", "%d" % int(e["poder_harmonico"])]]:
         var l := HBoxContainer.new()
+        l.size_flags_vertical = Control.SIZE_EXPAND_FILL
         var a := T.rotulo(String(par[0]), T.CORPO, T.TEXTO_FRACO)
         a.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         l.add_child(a)

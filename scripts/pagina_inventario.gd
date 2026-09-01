@@ -10,8 +10,17 @@ class_name PaginaInventario
 const T := preload("res://scripts/ui_tema.gd")
 const CATALOGO := preload("res://scripts/inventory_ui.gd")
 
-const COLUNAS := 6
-const LADO_DO_SLOT := 96.0
+## O SLOT MANTEM A PROPORCAO DA ARTE.
+##
+## `slot_azul.png` tem 94x121. Esticado para um quadrado, o bico de baixo achata
+## e o aro engorda de um lado — a arte passa a parecer amassada. Aqui o slot
+## nasce na proporcao do arquivo e o numero de colunas e que se ajusta para
+## ocupar a largura, em vez de esticar cada peca.
+const LADO_DO_SLOT := 112.0
+const LARGURA_DO_SLOT := LADO_DO_SLOT * 94.0 / 121.0
+const COLUNAS := 7
+## Quantas fileiras a bolsa desenha mesmo estando vazia.
+const FILEIRAS_VISIVEIS := 5
 const CAPACIDADE := 150
 
 var _progresso: Node
@@ -28,6 +37,7 @@ var _det_tipo: Label
 var _det_posse: Label
 var _det_desc: Label
 var _det_moldura: PanelContainer
+var _det_halo: TextureRect
 var _botao_usar: Button
 var _botao_descartar: Button
 var _confirmacao: PanelContainer
@@ -93,7 +103,7 @@ func _montar() -> void:
     linha.add_child(coluna)
     for nome in CATALOGO.FILTROS:
         # ALTURA MENOR. Cinco palavras nao precisam de um botao de 66 px.
-        var b := T.aba(String(nome), 40.0)
+        var b := T.aba(String(nome), 50.0)
         b.pressed.connect(_escolher_filtro.bind(String(nome)))
         coluna.add_child(b)
         _botoes_filtro[String(nome)] = b
@@ -113,7 +123,9 @@ func _montar() -> void:
 
     _grade = GridContainer.new()
     _grade.columns = COLUNAS
-    _grade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    # Slot de tamanho fixo com grade esticada deixaria uma faixa morta so de um
+    # lado. Centrada, a sobra fica igual dos dois — e a grade parece de proposito.
+    _grade.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
     # ESPACAMENTO IGUAL nos dois eixos: era o que fazia a grade parecer torta.
     _grade.add_theme_constant_override("h_separation", 12)
     _grade.add_theme_constant_override("v_separation", 12)
@@ -133,34 +145,44 @@ func _montar_detalhe() -> Control:
     col.add_theme_constant_override("separation", 4)
     painel.add_child(col)
 
-    var topo := HBoxContainer.new()
-    topo.add_theme_constant_override("separation", 16)
-    col.add_child(topo)
+    # A VITRINE DO ITEM.
+    #
+    # O item aparecia como uma miniatura de 86 px ao lado do nome, e o resto da
+    # coluna era vazio ate o botao de descartar la embaixo. Agora ele e exibido:
+    # arte grande, centrada, com um halo na cor da raridade atras. E o que faz
+    # a coluna deixar de ser uma legenda e virar a peca principal da direita.
+    var vitrine := CenterContainer.new()
+    col.add_child(vitrine)
 
     _det_moldura = PanelContainer.new()
-    _det_moldura.custom_minimum_size = Vector2(86, 86)
+    _det_moldura.custom_minimum_size = Vector2(196, 196)
     _det_moldura.add_theme_stylebox_override("panel",
-        T.painel(T.NAVY_CLARO, T.OURO_ARO, 8, 2, 6))
-    topo.add_child(_det_moldura)
+        T.estilo_do_kit("slot_dourado", Vector4i(24, 22, 24, 30), Vector4i(14, 14, 14, 20)))
+    vitrine.add_child(_det_moldura)
+
+    _det_halo = T.halo_redondo(Color(1, 1, 1), 0.34)
+    _det_moldura.add_child(_det_halo)
+
     _det_icone = TextureRect.new()
     _det_icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     _det_icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     _det_moldura.add_child(_det_icone)
 
-    var nomes := VBoxContainer.new()
-    nomes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    nomes.alignment = BoxContainer.ALIGNMENT_CENTER
-    nomes.add_theme_constant_override("separation", 3)
-    topo.add_child(nomes)
-    # HIERARQUIA: nome grande, categoria pequena, quantidade normal.
-    _det_nome = T.rotulo("", T.NOME_ITEM, T.OURO_FORTE)
+    col.add_child(T.espaco(12))
+    # HIERARQUIA: nome grande, categoria pequena, quantidade em destaque.
+    _det_nome = T.rotulo("", T.TITULO_SECAO, T.OURO_FORTE)
+    _det_nome.add_theme_font_override("font", T.fonte_display())
     _det_nome.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    nomes.add_child(_det_nome)
+    _det_nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    col.add_child(_det_nome)
     _det_tipo = T.rotulo("", T.LEGENDA, T.TEXTO_FRACO)
-    nomes.add_child(_det_tipo)
-    _det_posse = T.rotulo("", T.CORPO, T.TEXTO)
+    _det_tipo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    col.add_child(_det_tipo)
+    col.add_child(T.espaco(6))
+    _det_posse = T.rotulo("", T.NOME_ITEM, T.OURO)
     _det_posse.autowrap_mode = TextServer.AUTOWRAP_OFF
-    nomes.add_child(_det_posse)
+    _det_posse.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    col.add_child(_det_posse)
 
     col.add_child(T.espaco(10))
     var rol := ScrollContainer.new()
@@ -174,11 +196,11 @@ func _montar_detalhe() -> Control:
     rol.add_child(_det_desc)
 
     col.add_child(T.espaco(10))
-    _botao_usar = T.botao("Usar", T.PRIMARIO)
+    _botao_usar = T.botao("Usar", T.PRIMARIO, 54.0)
     _botao_usar.pressed.connect(_usar)
     col.add_child(_botao_usar)
 
-    _botao_descartar = T.botao("Descartar", T.PERIGOSO)
+    _botao_descartar = T.botao("Descartar", T.PERIGOSO, 54.0)
     _botao_descartar.pressed.connect(_pedir_confirmacao)
     col.add_child(_botao_descartar)
 
@@ -260,6 +282,15 @@ func _recarregar() -> void:
     var itens := _itens_visiveis()
     for it in itens:
         _grade.add_child(_slot(it))
+    # A BOLSA MOSTRA OS ESPACOS QUE TEM.
+    #
+    # Com nove itens numa area de cinco fileiras, a grade terminava na segunda
+    # linha e o resto da tela era um vazio azul — parecia pagina inacabada. Toda
+    # bolsa de RPG desenha os compartimentos livres: preenche o quadro, mostra
+    # quanto ainda cabe e o item novo aparece num lugar que ja estava la.
+    var vazios: int = maxi(FILEIRAS_VISIVEIS * COLUNAS - itens.size(), 0)
+    for i in vazios:
+        _grade.add_child(_slot_vazio())
     if _selecionado == "" or _progresso.quantidade(_selecionado) <= 0:
         _selecionado = String(itens[0][0]) if not itens.is_empty() else ""
     _pintar_detalhe()
@@ -295,18 +326,26 @@ func _slot(it: Array) -> Control:
     var quanto: int = _progresso.quantidade(id)
 
     var caixa := PanelContainer.new()
-    caixa.custom_minimum_size = Vector2(LADO_DO_SLOT, LADO_DO_SLOT)
+    caixa.custom_minimum_size = Vector2(LARGURA_DO_SLOT, LADO_DO_SLOT)
     caixa.set_meta("id", id)
     _pintar_slot(caixa, id == _selecionado, raridade)
 
-    # O icone tem MARGEM propria e nunca encosta na borda nem no numero.
+    # O NUMERO NAO FLUTUA SOBRE O DESENHO: ELE TEM FAIXA PROPRIA.
+    #
+    # Antes a quantidade era ancorada por cima do slot e so uma margem embaixo
+    # tentava segurar o icone longe dela — bastava a arte crescer para "35K"
+    # cair em cima da moeda. Empilhados, icone e numero nao tem como se cruzar.
+    var pilha := VBoxContainer.new()
+    pilha.add_theme_constant_override("separation", 0)
+    pilha.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    caixa.add_child(pilha)
+
     var margem := MarginContainer.new()
+    margem.size_flags_vertical = Control.SIZE_EXPAND_FILL
     for lado in ["margin_left", "margin_right", "margin_top"]:
-        margem.add_theme_constant_override(lado, 10)
-    # Espaco reservado embaixo SO para a quantidade: e assim que o numero deixa
-    # de ficar por cima do desenho, como acontecia com as 35 mil Claves.
-    margem.add_theme_constant_override("margin_bottom", 24)
-    caixa.add_child(margem)
+        margem.add_theme_constant_override(lado, 8)
+    margem.add_theme_constant_override("margin_bottom", 2)
+    pilha.add_child(margem)
 
     var img := TextureRect.new()
     img.texture = _arte(String(it[2]))
@@ -316,16 +355,16 @@ func _slot(it: Array) -> Control:
     margem.add_child(img)
 
     var numero := T.rotulo(_curto(quanto), T.LEGENDA, Color(0.99, 0.95, 0.84))
-    numero.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-    numero.offset_left = 6.0
-    numero.offset_right = -8.0
-    numero.offset_top = -24.0
-    numero.offset_bottom = -4.0
+    numero.custom_minimum_size.y = 22
     numero.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     numero.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     numero.add_theme_color_override("font_outline_color", Color(0.01, 0.02, 0.04, 0.95))
     numero.add_theme_constant_override("outline_size", 4)
-    caixa.add_child(numero)
+    var faixa := MarginContainer.new()
+    faixa.add_theme_constant_override("margin_right", 8)
+    faixa.add_theme_constant_override("margin_bottom", 4)
+    faixa.add_child(numero)
+    pilha.add_child(faixa)
 
     var toque := Button.new()
     toque.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -337,14 +376,32 @@ func _slot(it: Array) -> Control:
     return caixa
 
 
+func _slot_vazio() -> Control:
+    var caixa := PanelContainer.new()
+    caixa.custom_minimum_size = Vector2(LARGURA_DO_SLOT, LADO_DO_SLOT)
+    caixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var estilo := T.estilo_do_kit("slot_azul", Vector4i(24, 22, 24, 30), Vector4i(6, 6, 6, 26))
+    if estilo is StyleBoxTexture:
+        # Apagado, para nao competir com quem tem item dentro.
+        (estilo as StyleBoxTexture).modulate_color = Color(0.42, 0.46, 0.55, 0.42)
+    caixa.add_theme_stylebox_override("panel", estilo)
+    return caixa
+
+
 ## A raridade entra como ARO FINO, nao como preenchimento: e a unica cor forte
 ## do slot e ja se le antes de qualquer texto. O item escolhido ganha aro
 ## dourado e fundo mais claro, para nao depender de distinguir dois azuis.
 func _pintar_slot(caixa: PanelContainer, escolhido: bool, raridade: String) -> void:
-    var cor: Color = T.RARIDADE.get(raridade, T.RARIDADE["Comum"])
-    var fundo: Color = Color(0.10, 0.15, 0.24, 0.96) if escolhido else T.NAVY_PAINEL
+    # O SLOT AGORA E A ARTE DO KIT.
+    #
+    # `slot_azul`, `slot_verde`, `slot_roxo` e `slot_dourado` estavam no projeto
+    # desde sempre, pintados, e o inventario desenhava um retangulo com borda de
+    # um pixel no lugar deles. A raridade escolhe o aro; o item selecionado
+    # recebe o dourado, que e um estado que se le de longe.
+    var nome := "slot_dourado" if escolhido else String(
+        T.SLOT_DA_RARIDADE.get(raridade, "slot_azul"))
     caixa.add_theme_stylebox_override("panel",
-        T.painel(fundo, T.OURO if escolhido else cor, 8, 2 if escolhido else 1, 0))
+        T.estilo_do_kit(nome, Vector4i(24, 22, 24, 30), Vector4i(6, 6, 6, 26)))
 
 
 func _selecionar(id: String) -> void:
@@ -365,12 +422,18 @@ func _pintar_detalhe() -> void:
     var tem := not ficha.is_empty()
     _det_icone.texture = _arte(String(ficha[2])) if tem else null
     _det_nome.text = String(ficha[1]) if tem else "Bolsa vazia"
-    _det_tipo.text = "%s  •  %s" % [String(ficha[3]), String(ficha[4]).capitalize()] if tem else ""
-    _det_posse.text = "Possui  %s" % _milhar(_progresso.quantidade(_selecionado)) if tem else ""
+    # Raridade e tipo as vezes tem o MESMO nome ("Valioso  •  Valioso"), e
+    # repetir a palavra so gasta a linha. Quando coincidem, mostra uma vez.
+    var raridade := String(ficha[3]) if tem else ""
+    var tipo := String(ficha[4]).capitalize() if tem else ""
+    _det_tipo.text = "" if not tem else (raridade if raridade == tipo else "%s  •  %s" % [raridade, tipo])
+    _det_posse.text = "%s" % _milhar(_progresso.quantidade(_selecionado)) if tem else ""
     _det_desc.text = String(ficha[5]) if tem else "Derrote Shikers e recolha o que eles deixam."
-    if tem:
-        var cor: Color = T.RARIDADE.get(String(ficha[3]), T.RARIDADE["Comum"])
-        _det_moldura.add_theme_stylebox_override("panel", T.painel(T.NAVY_CLARO, cor, 8, 2, 6))
+    var cor: Color = T.RARIDADE.get(raridade, T.RARIDADE["Comum"])
+    _det_halo.modulate = Color(cor.r, cor.g, cor.b, 1.0 if tem else 0.0)
+    _det_moldura.add_theme_stylebox_override("panel", T.estilo_do_kit(
+        String(T.SLOT_DA_RARIDADE.get(raridade, "slot_dourado")) if tem else "slot_azul",
+        Vector4i(24, 22, 24, 30), Vector4i(14, 14, 14, 20)))
 
     # AS ACOES SO EXISTEM QUANDO FAZEM SENTIDO.
     var usavel: bool = tem and String(ficha[4]) == "consumivel"

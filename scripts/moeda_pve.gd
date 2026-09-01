@@ -66,8 +66,7 @@ func _ready() -> void:
         modelo.position.y = -caixa.position.y * fator
     add_child(modelo)
 
-    _base_y = position.y + ALTURA
-    position.y = _base_y
+    assentar()
 
     # E o halo em volta: um cartao aditivo que a camera sempre ve de frente. E
     # ele que faz a clave ser notada de longe, quando o modelo em si e so um
@@ -104,6 +103,18 @@ func _ready() -> void:
     get_tree().create_timer(TEMPO_DE_VIDA).timeout.connect(func():
         if is_instance_valid(self) and not _coletada:
             queue_free())
+
+
+## Fixa a altura em que a clave vai flutuar, a partir de onde ela esta AGORA.
+##
+## Antes isso era feito uma unica vez dentro de `_ready`, que roda no instante
+## do `add_child` — ou seja, antes de quem largou a moeda dizer onde ela cai. O
+## resultado era a moeda flutuando 0,85 m acima da ORIGEM DA REGIAO em vez de
+## acima do chao onde o bicho morreu: em terreno rebaixado, isso e a moeda no
+## ceu. Quem posiciona chama isto depois de posicionar.
+func assentar() -> void:
+    _base_y = position.y + ALTURA
+    position.y = _base_y
 
 
 func _process(delta: float) -> void:

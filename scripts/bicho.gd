@@ -296,11 +296,15 @@ func _construir_barra_vida_3d(cfg: Dictionary) -> void:
     _suporte_da_barra.name = "SuporteBarra"
     add_child(_suporte_da_barra)
 
-    _barra_fundo = _quadro(Color(0.04, 0.05, 0.08, 0.95), LARGURA_DA_BARRA + 0.05, ALTURA_DA_BARRA + 0.05)
+    _barra_fundo = _quadro(Color(0.04, 0.05, 0.08, 0.95), LARGURA_DA_BARRA + 0.05, ALTURA_DA_BARRA + 0.05, 0)
     _suporte_da_barra.add_child(_barra_fundo)
 
-    _barra_cheia = _quadro(Color(0.85, 0.18, 0.18, 0.95), LARGURA_DA_BARRA - 0.03, ALTURA_DA_BARRA - 0.03)
-    _barra_cheia.position.z = 0.005
+    # SEM DESLOCAR O NO. O empurrao de meio milimetro em Z vivia na posicao do
+    # no, que e medida no espaco do PAI — e o pai nao gira com a camera, so a
+    # malha gira. Ao dar meia volta no bicho, esse empurrao passava a apontar
+    # para longe de quem olha e enfiava a faixa vermelha atras do fundo escuro.
+    # A separacao agora e por prioridade de desenho, que independe de angulo.
+    _barra_cheia = _quadro(Color(0.85, 0.18, 0.18, 0.95), LARGURA_DA_BARRA - 0.03, ALTURA_DA_BARRA - 0.03, 1)
     _suporte_da_barra.add_child(_barra_cheia)
 
     _name_label_3d = Label3D.new()
@@ -326,7 +330,7 @@ func _construir_barra_vida_3d(cfg: Dictionary) -> void:
     _seguir_a_cabeca()
 
 
-func _quadro(cor: Color, largura: float, altura: float) -> MeshInstance3D:
+func _quadro(cor: Color, largura: float, altura: float, prioridade := 0) -> MeshInstance3D:
     var quadro := QuadMesh.new()
     quadro.size = Vector2(largura, altura)
 
@@ -337,6 +341,13 @@ func _quadro(cor: Color, largura: float, altura: float) -> MeshInstance3D:
     material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
     material.cull_mode = BaseMaterial3D.CULL_DISABLED
     material.no_depth_test = false
+    # QUEM DESENHA POR CIMA E DECIDIDO AQUI, NAO PELA DISTANCIA.
+    #
+    # Material transparente nao escreve profundidade, entao a ordem entre o
+    # fundo e a faixa vermelha saia do ordenamento por distancia — e as duas
+    # estao no mesmo ponto. De alguns angulos o fundo escuro ganhava o desempate
+    # e a barra aparecia preta. Com prioridade explicita nao ha desempate.
+    material.render_priority = prioridade
     quadro.material = material
 
     var no := MeshInstance3D.new()
@@ -790,6 +801,7 @@ func _largar_clave() -> void:
         pai.add_child(moeda)
         moeda.global_position = global_position \
             + Vector3(cos(angulo) * raio, 0.0, sin(angulo) * raio)
+        moeda.assentar()
 
 
 func _largar_fragmento() -> void:
