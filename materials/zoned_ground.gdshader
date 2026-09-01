@@ -71,8 +71,17 @@ varying vec3 world_pos;
 varying vec3 pos_local;
 varying vec3 world_normal;
 
+// SEM sin(). O hash antigo custava um seno por amostra, e o `fbm` abaixo pede
+// doze amostras: com quatro `fbm` e um `noise` por pixel, o chao — que cobre a
+// tela inteira — pedia mais de cinquenta senos POR PIXEL. Em GPU integrada e em
+// celular o seno e caro, e isto sozinho dominava o quadro.
+//
+// Esta versao usa so multiplicacao e parte fracionaria. O padrao muda um pouco,
+// mas e ruido: ninguem compara dois ruidos, compara-se relevo com relevo.
 float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
 }
 
 float noise(vec2 p) {
@@ -83,15 +92,14 @@ float noise(vec2 p) {
                mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
 }
 
+// DUAS OITAVAS, nao tres. A terceira contribui um oitavo do resultado e custa
+// um terco do trabalho; num chao visto de cima, a cinco metros de distancia,
+// ela nao aparece. O peso e reescalado para a faixa continuar a mesma e as
+// bordas de estrada e rua nao mudarem de largura.
 float fbm(vec2 p) {
-    float total = 0.0;
-    float weight = 0.5;
-    for (int i = 0; i < 3; i++) {
-        total += noise(p) * weight;
-        p = p * 2.05;
-        weight *= 0.5;
-    }
-    return total;
+    float total = noise(p) * 0.5;
+    total += noise(p * 2.05) * 0.25;
+    return total * 1.1667;
 }
 
 float distancia_segmento(vec2 p, vec4 linha) {

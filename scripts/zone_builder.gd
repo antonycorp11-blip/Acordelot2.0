@@ -1609,6 +1609,7 @@ func _plantar_arvores_cc0_em_lotes(posicoes: Array[Vector3], semente: int) -> vo
             var local := _ate_a_raiz(origem, modelo)
             var multi := MultiMesh.new()
             multi.transform_format = MultiMesh.TRANSFORM_3D
+            _baratear_malha(origem.mesh)
             multi.mesh = origem.mesh
             multi.instance_count = copias.size()
             for j in copias.size():
@@ -1672,6 +1673,7 @@ func _plantar_pinheiros_em_lote(posicoes: Array[Vector3], semente: int) -> void:
         var local := _ate_a_raiz(origem, modelo)
         var multi := MultiMesh.new()
         multi.transform_format = MultiMesh.TRANSFORM_3D
+        _baratear_malha(origem.mesh)
         multi.mesh = origem.mesh
         multi.instance_count = posicoes.size()
         for i in posicoes.size():
@@ -1951,6 +1953,7 @@ func _semear_mato(amostra: Node3D, nome: String, quantidade: int,
         var instancias: Array = lotes[chave]
         var multi := MultiMesh.new()
         multi.transform_format = MultiMesh.TRANSFORM_3D
+        _baratear_malha(origem.mesh)
         multi.mesh = origem.mesh
         multi.instance_count = instancias.size()
         for i in instancias.size():
@@ -2065,6 +2068,7 @@ func _plantar_grama_texturizada_nova() -> void:
         var local := _ate_a_raiz(origem, amostra)
         var multi := MultiMesh.new()
         multi.transform_format = MultiMesh.TRANSFORM_3D
+        _baratear_malha(origem.mesh)
         multi.mesh = origem.mesh
         multi.instance_count = quantidade
         for i in quantidade:
@@ -2550,12 +2554,56 @@ func _regular_custo(modelo: Node3D, tag: String) -> void:
             mi.visibility_range_end_margin = 5.0
             mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 
+## MISTURA ALFA VIRA RECORTE.
+##
+## Medido com o medidor de quadro: esconder os 112 nos cujo material era o tronco
+## `Bark_NormalTree.png` devolvia 29 ms de um quadro de 116. Casca de arvore e
+## OPACA — quem a marcou como transparente foi o importador do GLTF ao ver um
+## canal alfa na imagem. O mesmo pacote trouxe `Bark_TwistedTree` opaco, o que
+## denuncia o acidente.
+##
+## Objeto com mistura alfa nao escreve profundidade, precisa ser ordenado e paga
+## preenchimento por cada camada que o olho atravessa. Numa GPU integrada — e num
+## celular — uma floresta inteira assim e a conta que estoura o quadro.
+##
+## O recorte resolve os dois casos de uma vez: no tronco todo pixel passa e ele
+## volta a ser opaco; na folha o pixel vazado e descartado, com borda dura em vez
+## de suave. Borda dura de folha a dez metros ninguem nota; um terco do quadro,
+## sim. Os shaders de grama do projeto ja faziam assim — sao os modelos
+## importados que ficaram para tras.
+static var _materiais_ja_baratos: Dictionary = {}
+
+static func _baratear_material(mat: Material) -> void:
+    if not (mat is BaseMaterial3D):
+        return
+    var id: int = mat.get_instance_id()
+    if _materiais_ja_baratos.has(id):
+        return
+    _materiais_ja_baratos[id] = true
+    var b := mat as BaseMaterial3D
+    if b.transparency != BaseMaterial3D.TRANSPARENCY_ALPHA:
+        return
+    b.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+    b.alpha_scissor_threshold = 0.5
+    b.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_ALWAYS
+
+
+static func _baratear_malha(malha: Mesh, instancia: MeshInstance3D = null) -> void:
+    if malha == null:
+        return
+    for s in range(malha.get_surface_count()):
+        _baratear_material(malha.surface_get_material(s))
+        if instancia != null:
+            _baratear_material(instancia.get_active_material(s))
+
+
 func _corrigir_materiais_prop(modelo: Node3D, tag: String) -> void:
     var tem_vento: bool = tag.begins_with("arbusto") or tag.begins_with("folhagem") or tag.begins_with("grama")
     for malha in modelo.find_children("*", "MeshInstance3D", true, false):
         var m_inst := malha as MeshInstance3D
         if not m_inst or not m_inst.mesh:
             continue
+        _baratear_malha(m_inst.mesh, m_inst)
         var precisa_override := false
         for s in range(m_inst.mesh.get_surface_count()):
             var mat: Material = m_inst.get_active_material(s)

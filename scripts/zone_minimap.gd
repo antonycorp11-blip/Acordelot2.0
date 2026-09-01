@@ -15,7 +15,6 @@ var _modal_backdrop: ColorRect
 var _world_map_modal: PanelContainer
 var _world_map_draw: Control
 var _info_label: Label
-var _botao_personagem: Button
 
 var _current_zone_data: Dictionary = {}
 var _minimap_frame_tex: Texture2D
@@ -121,41 +120,13 @@ func _criar_minimap_hud() -> void:
     )
     vbox.add_child(_minimap_draw)
 
-    # Troca de personagem imediatamente abaixo do mapa: longe das skills e
-    # dentro da mesma coluna utilitária, com área de toque confortável.
-    _botao_personagem = Button.new()
-    _botao_personagem.text = "Trocar para Wins"
-    _botao_personagem.custom_minimum_size = Vector2(170, 34)
-    _botao_personagem.add_theme_font_size_override("font_size", 12)
-    var normal := StyleBoxFlat.new()
-    normal.bg_color = Color(0.035, 0.09, 0.17, 0.94)
-    normal.border_color = Color(0.76, 0.60, 0.28, 0.95)
-    normal.set_border_width_all(2)
-    normal.set_corner_radius_all(8)
-    _botao_personagem.add_theme_stylebox_override("normal", normal)
-    var pressionado := normal.duplicate() as StyleBoxFlat
-    pressionado.bg_color = Color(0.12, 0.32, 0.52, 0.98)
-    _botao_personagem.add_theme_stylebox_override("pressed", pressionado)
-    _botao_personagem.pressed.connect(_trocar_personagem)
-    vbox.add_child(_botao_personagem)
-    if player and player.has_signal("personagem_trocado"):
-        player.personagem_trocado.connect(_ao_trocar_personagem)
-    
-    var btn_mapa := Button.new()
-    # Sem emoji: a fonte do jogo nao tem esses desenhos e o celular mostra
-    # um quadradinho vazio no lugar.
-    btn_mapa.text = "Mapa do Reino  (M)"
-    btn_mapa.add_theme_font_size_override("font_size", 11)
-    btn_mapa.pressed.connect(func(): toggle_world_map())
-    vbox.add_child(btn_mapa)
-
-func _trocar_personagem() -> void:
-    if player and player.has_method("trocar_personagem"):
-        player.trocar_personagem()
-
-func _ao_trocar_personagem(id: String, _nome: String) -> void:
-    if _botao_personagem:
-        _botao_personagem.text = "Trocar para Akles" if id == "wins" else "Trocar para Wins"
+    # O BOTAO DE MAPA SAIU, e o de trocar personagem tambem.
+    #
+    # "Mapa do Reino" duplicava o que o proprio disco ja faz: um toque no radar
+    # abre o mapa. Botao que repete o gesto ao lado dele so ocupa canto de tela.
+    # A troca de personagem virou um botao redondo com retrato, na fileira de
+    # utilitarios do PlayerHUD, junto com missoes, mochila e ajustes — que e onde
+    # o jogador procura "as coisas que eu abro".
 
 func _criar_modal_mapa_mundi() -> void:
     _modal_backdrop = ColorRect.new()

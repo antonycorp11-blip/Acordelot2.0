@@ -35,9 +35,27 @@ func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
+## O ANEL SO SE REDESENHA QUANDO O PONTEIRO ANDA.
+##
+## Ele pedia redesenho a cada quadro, e o desenho sao tres arcos de 64, 48 e 48
+## segmentos — cento e sessenta pedacos de linha remontados sessenta vezes por
+## segundo. O dia inteiro dura oito minutos: o ponteiro anda tres quartos de grau
+## por segundo. Redesenhar a cada quadro era pintar a mesma imagem.
+##
+## Um centesimo de hora e cerca de um quinto de segundo de jogo — cinco
+## redesenhos por segundo no maximo, e o ponteiro continua andando liso.
+const HORA_QUE_IMPORTA := 0.01
+
+var _hora_desenhada := -99.0
+
 func _process(_delta: float) -> void:
-    if ciclo:
-        queue_redraw()
+    if ciclo == null:
+        return
+    var agora := float(ciclo.hora)
+    if absf(agora - _hora_desenhada) < HORA_QUE_IMPORTA:
+        return
+    _hora_desenhada = agora
+    queue_redraw()
 
 
 ## O centro do anel PERGUNTA ao minimapa onde ele esta.

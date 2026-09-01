@@ -37,6 +37,9 @@ var _escudo := 0.0
 var _escudo_ate := 0.0
 
 var _botao_missoes: Button
+var _botao_personagem: Button
+var _selo_missoes: Label
+var _personagem_atual := "akles"
 var _medalha: Panel
 
 signal config_pedida
@@ -268,72 +271,157 @@ func _montar_retrato_e_barras() -> void:
     _montar_coluna_de_utilitarios()
 
 
-## A ENGRENAGEM SAIU DE CIMA DA BARRA DE VIDA.
+## QUATRO BOTOES REDONDOS, NUMA FILEIRA SO, LOGO ABAIXO DO MINIMAPA.
 ##
-## Ela e a mochila ficavam a ESQUERDA do minimapa, no alto: -308 e -380 pixels
-## contados da borda direita. Numa base de 1280 sobrava espaco, mas a tela do
-## jogo estica em largura e nao em altura — em celular deitado o bloco do
-## jogador (retrato + vida + XP + poder, uns 320 px) cresce para a direita e
-## encontra exatamente essa faixa. Era o "botao mal posicionado": nao estava
-## fora da tela, estava por cima do bloco de vida em telas largas.
+## Antes eram tres coisas em tres lugares e formatos: a troca de personagem era
+## uma placa retangular larga na coluna do minimapa, "Missoes" era outra placa
+## logo abaixo, e mochila e engrenagem eram dois quadrados mais embaixo ainda. O
+## jogador tinha de aprender tres desenhos diferentes para a mesma ideia — "aqui
+## eu abro alguma coisa".
 ##
-## Agora as tres entradas de menu moram numa coluna so, encostada na direita e
-## ABAIXO do minimapa — uma regiao que nada mais disputa em nenhuma proporcao de
-## tela. Juntas tambem se leem melhor: quem procura "onde eu abro as coisas"
-## acha um lugar, e nao tres.
+## Agora sao quatro discos do mesmo tamanho, lado a lado, no canto de cima a
+## direita: personagem, missoes, mochila e ajustes. Redondo tambem e o formato
+## certo para o polegar, que nao acerta quina.
+##
+## A ENGRENAGEM CONTINUA LONGE DA BARRA DE VIDA. Ela vivia a -380 px da borda
+## direita, e a tela do jogo estica em LARGURA: em celular deitado o bloco do
+## jogador crescia para a direita e alcancava exatamente essa faixa.
 func _montar_coluna_de_utilitarios() -> void:
-    var lado := 62.0
+    var lado := 54.0
 
-    var coluna := VBoxContainer.new()
-    coluna.anchor_left = 1.0
-    coluna.anchor_right = 1.0
-    coluna.anchor_top = 0.0
-    coluna.anchor_bottom = 0.0
-    # Abaixo da pilha do minimapa (titulo + disco + dois botoes), que termina
-    # por volta de 295 px do topo.
-    coluna.offset_left = -186.0
-    coluna.offset_right = -14.0
-    coluna.offset_top = 302.0
-    coluna.offset_bottom = 302.0 + lado * 2.0 + 46.0
-    coluna.add_theme_constant_override("separation", 8)
-    coluna.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    add_child(coluna)
+    var fileira := HBoxContainer.new()
+    fileira.anchor_left = 1.0
+    fileira.anchor_right = 1.0
+    fileira.anchor_top = 0.0
+    fileira.anchor_bottom = 0.0
+    fileira.offset_left = -(lado * 4.0 + 24.0) - 14.0
+    fileira.offset_right = -14.0
+    # ABAIXO DO ANEL DO DIA, que vai ate y = 250. A 240 os quatro discos ficavam
+    # cortados pelo arco dourado — visto na captura.
+    fileira.offset_top = 262.0
+    fileira.offset_bottom = 262.0 + lado
+    fileira.alignment = BoxContainer.ALIGNMENT_END
+    fileira.add_theme_constant_override("separation", 8)
+    add_child(fileira)
 
-    _botao_missoes = Button.new()
-    _botao_missoes.text = "MISSÕES  0/3"
-    _botao_missoes.custom_minimum_size = Vector2(0, 34)
-    _botao_missoes.add_theme_font_override("font", load("res://fontes/Cinzel.ttf"))
-    _botao_missoes.add_theme_font_size_override("font_size", 12)
-    _botao_missoes.add_theme_color_override("font_color", Color(0.98, 0.90, 0.66))
-    # A mesma placa navy com aro dourado dos botoes do minimapa, logo acima:
-    # inventar um terceiro estilo para o botao vizinho e o que faz a HUD parecer
-    # montada por pessoas diferentes.
+    _botao_personagem = _botao_redondo(lado)
+    _botao_personagem.pressed.connect(_trocar_personagem)
+    fileira.add_child(_botao_personagem)
+
+    _botao_missoes = _botao_redondo(lado, "res://textures/ui/kit/nav/missoes.png")
+    _botao_missoes.pressed.connect(func(): missoes_pedidas.emit())
+    fileira.add_child(_botao_missoes)
+
+    # O contador vira SELO no canto do disco: "0/3" dentro de um botao redondo
+    # de 54 px nao cabe como texto.
+    _selo_missoes = Label.new()
+    _selo_missoes.text = "0/3"
+    _selo_missoes.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT, true)
+    # DENTRO do disco: com folga positiva o selo escapava pela borda e caia
+    # sobre o botao vizinho.
+    _selo_missoes.offset_left = -lado + 6.0
+    _selo_missoes.offset_right = -5.0
+    _selo_missoes.offset_top = -21.0
+    _selo_missoes.offset_bottom = -3.0
+    _selo_missoes.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    _selo_missoes.add_theme_font_size_override("font_size", 13)
+    _selo_missoes.add_theme_color_override("font_color", Color(0.98, 0.90, 0.66))
+    _selo_missoes.add_theme_color_override("font_outline_color", Color(0.02, 0.03, 0.05, 0.95))
+    _selo_missoes.add_theme_constant_override("outline_size", 4)
+    _selo_missoes.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _botao_missoes.add_child(_selo_missoes)
+
+    var mochila := _botao_redondo(lado, "res://textures/ui/btn_inventario.png")
+    mochila.pressed.connect(func(): mochila_pedida.emit())
+    fileira.add_child(mochila)
+
+    var config := _botao_redondo(lado, "res://textures/ui/btn_config_novo.png")
+    config.pressed.connect(func(): config_pedida.emit())
+    fileira.add_child(config)
+
+    _pintar_botao_personagem(_personagem_atual)
+    _ligar_o_diario()
+
+
+## Um disco: aro dourado, fundo navy, arte no meio. E a mesma placa dos botoes do
+## minimapa, so que redonda — nenhum estilo novo entra na HUD por isto.
+func _botao_redondo(lado: float, arte := "") -> Button:
+    var b := Button.new()
+    b.custom_minimum_size = Vector2(lado, lado)
+    b.focus_mode = Control.FOCUS_NONE
     var placa := StyleBoxFlat.new()
     placa.bg_color = Color(0.035, 0.09, 0.17, 0.94)
     placa.border_color = Color(0.76, 0.60, 0.28, 0.95)
     placa.set_border_width_all(2)
-    placa.set_corner_radius_all(8)
-    _botao_missoes.add_theme_stylebox_override("normal", placa)
+    placa.set_corner_radius_all(int(lado * 0.5))
+    b.add_theme_stylebox_override("normal", placa)
     var apertada := placa.duplicate() as StyleBoxFlat
     apertada.bg_color = Color(0.12, 0.32, 0.52, 0.98)
-    _botao_missoes.add_theme_stylebox_override("pressed", apertada)
-    _botao_missoes.pressed.connect(func(): missoes_pedidas.emit())
-    coluna.add_child(_botao_missoes)
+    b.add_theme_stylebox_override("pressed", apertada)
+    b.add_theme_stylebox_override("hover", placa)
+    b.add_theme_stylebox_override("focus", placa)
+    if arte != "" and ResourceLoader.exists(arte):
+        var icone := TextureRect.new()
+        icone.texture = load(arte)
+        icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        icone.set_anchors_preset(Control.PRESET_FULL_RECT)
+        icone.offset_left = 6.0
+        icone.offset_top = 6.0
+        icone.offset_right = -6.0
+        icone.offset_bottom = -6.0
+        icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        b.add_child(icone)
+    return b
 
-    var fileira := HBoxContainer.new()
-    fileira.alignment = BoxContainer.ALIGNMENT_END
-    fileira.add_theme_constant_override("separation", 10)
-    coluna.add_child(fileira)
 
-    var inventario := _botao("res://textures/ui/btn_inventario.png", lado)
-    inventario.pressed.connect(func(): mochila_pedida.emit())
-    fileira.add_child(inventario)
+func _trocar_personagem() -> void:
+    var jogador := get_tree().get_first_node_in_group("jogador")
+    if jogador and jogador.has_method("trocar_personagem"):
+        jogador.trocar_personagem()
 
-    var config := _botao("res://textures/ui/btn_config_novo.png", lado)
-    config.pressed.connect(func(): config_pedida.emit())
-    fileira.add_child(config)
 
-    _ligar_o_diario()
+## O RETRATO DE QUEM ENTRA, nao de quem esta em campo: o botao mostra para quem
+## se troca. Akles tem folha de expressoes e vira miniatura de verdade; a Wins
+## ainda nao tem — enquanto nao houver, entra o icone de personagem do kit, que
+## e honesto e nao finge um rosto.
+func _pintar_botao_personagem(atual: String) -> void:
+    if _botao_personagem == null:
+        return
+    for filho in _botao_personagem.get_children():
+        filho.queue_free()
+    var destino := "wins" if atual == "akles" else "akles"
+    var arte: Texture2D = null
+    if destino == "akles":
+        var folha := load("res://textures/dialogo/akles_corpo.png") as Texture2D
+        if folha:
+            var corte := AtlasTexture.new()
+            corte.atlas = folha
+            var l := float(folha.get_width())
+            var a := float(folha.get_height())
+            corte.region = Rect2(l * 0.3978, a * 0.0214, l * 0.1878, a * 0.1409)
+            arte = corte
+    else:
+        arte = load("res://textures/ui/kit/nav/personagem.png") as Texture2D
+    if arte == null:
+        return
+    var rosto := TextureRect.new()
+    rosto.texture = arte
+    rosto.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    rosto.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+    rosto.set_anchors_preset(Control.PRESET_FULL_RECT)
+    rosto.offset_left = 4.0
+    rosto.offset_top = 4.0
+    rosto.offset_right = -4.0
+    rosto.offset_bottom = -4.0
+    rosto.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    rosto.tooltip_text = "Trocar para " + ("Wins" if destino == "wins" else "Akles")
+    _botao_personagem.add_child(rosto)
+
+
+func _ao_trocar_personagem(id: String, _nome: String) -> void:
+    _personagem_atual = id
+    _pintar_botao_personagem(id)
 
 
 ## O contador 0/3 na propria HUD.
@@ -347,18 +435,21 @@ func _ligar_o_diario() -> void:
     if not diario.alterado.is_connected(_pintar_missoes):
         diario.alterado.connect(_pintar_missoes)
     _pintar_missoes()
+    # O retrato do botao acompanha quem esta em campo.
+    var jogador := get_tree().get_first_node_in_group("jogador")
+    if jogador and jogador.has_signal("personagem_trocado") \
+            and not jogador.personagem_trocado.is_connected(_ao_trocar_personagem):
+        jogador.personagem_trocado.connect(_ao_trocar_personagem)
 
 
 func _pintar_missoes() -> void:
-    if _botao_missoes == null:
-        return
     var diario := get_node_or_null("/root/Diario")
-    if diario == null:
+    if diario == null or _selo_missoes == null:
         return
     var feitas: int = diario.concluidas()
     var total: int = diario.missoes.size()
-    _botao_missoes.text = "MISSÕES  %d/%d" % [feitas, total]
-    _botao_missoes.add_theme_color_override("font_color",
+    _selo_missoes.text = "%d/%d" % [feitas, total]
+    _selo_missoes.add_theme_color_override("font_color",
         Color(0.62, 0.95, 0.62) if total > 0 and feitas >= total else Color(0.98, 0.90, 0.66))
 
 
