@@ -144,34 +144,59 @@ def prop(tag, modelo, x, z, giro=0):
 
 
 def fileiras():
-    """As seis fileiras de fachada, mais as quatro casas da avenida."""
-    pecas = []
-    semente = 0
+    """As seis fileiras de fachada, mais as quatro casas da avenida.
 
-    # Giro 0 olha para +z e giro 180 para -z; 90 olha para +x e 270 para -x.
-    # `lado` diz qual borda da caixa encosta na linha: -1 e a de maior
-    # coordenada (casa antes da rua), +1 a de menor (casa depois da rua).
-    fileiras_z = [
-        # rua z = 0 (travessa, dentro do largo)
-        (-FACHADA_TRAVESSA, 0, -1.0, (-55, -37, -19, 19, 37, 55)),
-        (FACHADA_TRAVESSA, 180, 1.0, (-55, -37, -19, 19, 37, 55)),
-        # rua z = -44 (bairro norte)
-        (-RUA_BAIRRO + FACHADA_BAIRRO, 180, 1.0, (-55, -37, -19, 19, 37, 55)),
-        (-RUA_BAIRRO - FACHADA_BAIRRO, 0, -1.0, (-55, -37, 37, 55)),
-        # rua z = +44 (bairro sul)
-        (RUA_BAIRRO - FACHADA_BAIRRO, 0, -1.0, (-55, -37, -19, 19, 37, 55)),
-        (RUA_BAIRRO + FACHADA_BAIRRO, 180, 1.0, (-55, -37, 37, 55)),
+    O PASSO SAI DA PEGADA, nao de uma regua. As posicoes eram fixas em
+    x = -55, -37, -19, 19, 37 e 55: dezoito metros entre vizinhos para casas de
+    sete metros e meio de largura media, ou seja, dez metros de gramado entre
+    uma parede e outra em toda a capital. Uma cidade nao tem lote vago a cada
+    casa. Com o passo saindo da largura das duas vizinhas mais um vao de 2,5 m,
+    cabe mais gente na mesma rua e a fileira le como quarteirao.
+
+    Os quarteiroes comecam em |x| = 14 porque a avenida tem 6 m de meia largura
+    e o largo tem raio 15: adiante disso a casa estaria em cima da praca.
+    """
+    pecas = []
+
+    # (tags a oeste, tags a leste, linha da fachada, lado, giro, |x| inicial)
+    #
+    # O |x| INICIAL NAO E O MESMO EM TODA FILEIRA. As duas de fora, em z = +-55,
+    # correm ao lado das quatro casas que olham para a avenida, plantadas em
+    # x = +-16 e z = +-58. Comecando as duas em 14, a primeira casa da fileira
+    # caia em cima da casa da esquina — medido, ate 4,7 m de parede dentro de
+    # parede. Elas comecam mais para fora e a esquina fica livre.
+    #
+    # As duas da travessa comecam em 20 pelo mesmo tipo de motivo: o largo tem
+    # raio 15, e uma casa larga plantada em 14 punha a quina de dentro em cima
+    # do calcamento da praca.
+    quarteiroes = [
+        # travessa z = 0, dentro do largo
+        (["casa_pedra", "casa_alta", "casa_larga", "casa_taipa"],
+         ["taverna", "casarao", "casa_pedra", "casa_alta"], -FACHADA_TRAVESSA, -1.0, 0, 20.0),
+        (["casarao", "casa_larga", "casa_pedra", "casa_alta"],
+         ["casa_taipa", "solar", "casa_larga"], FACHADA_TRAVESSA, 1.0, 180, 20.0),
+        # rua de bairro norte, z = -46
+        (["casa_alta", "casa_pedra", "taverna", "casa_larga"],
+         ["casa_larga", "casa_taipa", "casarao", "casa_pedra"],
+         -RUA_BAIRRO + FACHADA_BAIRRO, 1.0, 180, 14.0),
+        (["casa_taipa", "casa_larga", "casa_pedra"],
+         ["casa_pedra", "casa_alta", "solar"],
+         -RUA_BAIRRO - FACHADA_BAIRRO, -1.0, 0, 27.0),
+        # rua de bairro sul, z = +46
+        (["solar", "casa_pedra", "casa_larga", "casa_alta"],
+         ["casa_alta", "taverna", "casa_taipa", "casa_larga"],
+         RUA_BAIRRO - FACHADA_BAIRRO, -1.0, 0, 14.0),
+        (["casa_larga", "casa_alta", "casa_pedra"],
+         ["casarao", "casa_larga", "casa_pedra"],
+         RUA_BAIRRO + FACHADA_BAIRRO, 1.0, 180, 27.0),
     ]
-    for linha, giro, lado, xs in fileiras_z:
-        for x in xs:
-            # A coordenada em z e so o ponto de partida: quem manda e a linha
-            # de fachada, e o construtor recalcula esta casa pela caixa dela.
-            pecas.append(casa(semente, x, linha + (6.0 * lado), giro,
-                              ("z", linha, lado)))
-            semente += 3
+    for oeste, leste, linha, lado, giro, inicio in quarteiroes:
+        pecas += fileira(oeste, "z", linha, lado, giro, -inicio, -1)
+        pecas += fileira(leste, "z", linha, lado, giro, inicio, 1)
 
     # As quatro casas que olham para a avenida, nas pontas norte e sul — os
     # unicos trechos do eixo central onde sobra fundo de quarteirao.
+    semente = 0
     for z in (-58.0, 58.0):
         for sinal in (-1.0, 1.0):
             giro = 90 if sinal < 0 else 270

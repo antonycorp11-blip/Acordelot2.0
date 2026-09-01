@@ -934,7 +934,16 @@ func _construir_layout_urbano() -> void:
     var contagem_entulho := {}
     var construidas := 0
 
-    for p in pecas:
+    # CONSTRUCAO PRIMEIRO, ADORNO DEPOIS — e o adorno confere onde pisa.
+    #
+    # As posicoes dos props pequenos sao desenhadas a mao num arquivo separado,
+    # e a planta das casas e gerada por script. Quando a planta muda, o banco e
+    # o caixote continuam onde estavam: medido, quatro deles ficaram DENTRO de
+    # uma casa nas vilas. Nao da para pedir que quem desenha o prop reveja tudo
+    # a cada geracao; a conferencia tem de morar aqui, onde as duas coisas se
+    # encontram e a caixa da casa ja e conhecida.
+    var pegadas_das_casas: Array[Rect2] = []
+    for p in _construcoes_antes_dos_adornos(pecas):
         var tag: String = str(p.get("tag", ""))
         if str(_zone_data.get("id", "")) == "zone_portoes" \
                 and LIMITE_ENTULHO_PORTOES.has(tag):
@@ -1015,12 +1024,27 @@ func _construir_layout_urbano() -> void:
         # Mede a ocupação já girada e rejeita qualquer peça que invada o canal.
         var ocupacao: AABB = Transform3D(Basis(Vector3.UP, suporte.rotation.y),
             Vector3.ZERO) * _caixa_do_modelo(suporte)
+        var e_adorno: bool = tag in PROPS_DE_CALCADA or tag.ends_with("_cc0")
+        if not e_adorno:
+            pegadas_das_casas.append(Rect2(
+                px + ocupacao.position.x, pz + ocupacao.position.z,
+                ocupacao.size.x, ocupacao.size.z))
+        elif _dentro_de_construcao(Vector2(px, pz), pegadas_das_casas):
+            suporte.free()
+            continue
         if tag in PROPS_DE_CALCADA:
             var raio_prop := maxf(ocupacao.size.x, ocupacao.size.z) * 0.5
             var fora_da_rua := _afastar_da_faixa_viaria(Vector2(px, pz), raio_prop)
             if fora_da_rua != Vector2(px, pz):
                 px = fora_da_rua.x
                 pz = fora_da_rua.y
+                # CONFERE DE NOVO. Sair da rua e entrar na casa e uma troca ruim,
+                # e era o que sobrava: dois adornos por vila continuavam dentro
+                # de parede porque o desvio de calcada corre DEPOIS da primeira
+                # conferencia e move o prop para onde ninguem mais olhava.
+                if _dentro_de_construcao(Vector2(px, pz), pegadas_das_casas):
+                    suporte.free()
+                    continue
                 py = calcular_altura(px, pz) + float(p.get("y", 0.0))
                 suporte.position = Vector3(px, py, pz)
         var folga_rio := maxf(ocupacao.size.x, ocupacao.size.z) * 0.52 + 1.5
@@ -1045,6 +1069,31 @@ func _construir_layout_urbano() -> void:
     if not pinheiros_planejados.is_empty():
         _plantar_pinheiros_em_lote(pinheiros_planejados,
             hash(str(_zone_data.get("id", "cidade"))) + 319)
+
+
+## Constroi casa e muro antes de banco e caixote, sem mexer na planta.
+##
+## A ordem de desenho nao muda o resultado — cada peca sabe onde fica —, mas
+## precisa haver uma ordem para o adorno poder perguntar se a casa ja esta la.
+func _construcoes_antes_dos_adornos(pecas: Array) -> Array:
+    var estruturas: Array = []
+    var adornos: Array = []
+    for p in pecas:
+        var tag := str(p.get("tag", ""))
+        if tag in PROPS_DE_CALCADA or tag.ends_with("_cc0"):
+            adornos.append(p)
+        else:
+            estruturas.append(p)
+    return estruturas + adornos
+
+
+func _dentro_de_construcao(p: Vector2, pegadas: Array[Rect2]) -> bool:
+    for r in pegadas:
+        # Um palmo de folga: prop encostado na parede e cenario, prop com o
+        # centro em cima da soleira e erro.
+        if r.grow(-0.4).has_point(p):
+            return true
+    return false
 
 
 ## Move apenas props pequenos para a calcada. Casas, muralhas, fontes e postes

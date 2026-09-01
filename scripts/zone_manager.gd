@@ -60,6 +60,11 @@ func _criar_ui_transicao() -> void:
     # Banner central de entrada de zona estilo Albion Online
     _banner_container = VBoxContainer.new()
     _banner_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
+    # SEM ISTO O NOME DA ZONA NAO FICA CENTRADO. Com ancora esquerda e direita
+    # no meio, o container cresce ate o tamanho do texto — e cresce so para a
+    # direita. O nome comecava no centro da tela e ia para o lado, em vez de
+    # ficar em volta dele. Crescer para os dois lados resolve.
+    _banner_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
     _banner_container.position.y = 80.0
     _banner_container.modulate.a = 0.0
     canvas.add_child(_banner_container)

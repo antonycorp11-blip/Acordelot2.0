@@ -16,6 +16,7 @@ const TelaMissoesScript := preload("res://scripts/tela_missoes.gd")
 const EcoDoNascenteCena := preload("res://scenes/ecos/EcoDoNascente.tscn")
 const RessonanciaHUDScript := preload("res://scripts/ressonancia_hud.gd")
 const CelebracaoScript := preload("res://scripts/celebracao_harmonica.gd")
+const AreaSeguraUIScript := preload("res://scripts/area_segura_ui.gd")
 const DesempenhoAdaptativoScript := preload("res://scripts/desempenho_adaptativo.gd")
 const DungeonCavernaScript := preload("res://scripts/dungeon_caverna.gd")
 const GeradorDeBichosScript := preload("res://scripts/gerador_de_bichos.gd")
@@ -142,6 +143,9 @@ func _ready() -> void:
             if _player and _player.has_method("alternar_voo"):
                 _player.alternar_voo()
         )
+
+    _acomodar_controles_do_polegar()
+    get_viewport().size_changed.connect(_acomodar_controles_do_polegar)
         
     # A mochila e a engrenagem sao do kit novo e nascem dentro do PlayerHUD, que
     # e quem sabe onde a arte encaixa. Aqui so se diz o que elas fazem.
@@ -318,6 +322,30 @@ func _montar_celebracao() -> void:
             _celebracao.mostrar_evento("DIÁRIO COMPLETO",
                 "+%d Claves  •  +1 Partitura Menor" % diario.CLAVES_DO_DIA,
                 Color(0.62, 0.72, 1.0)))
+
+
+## OS CONTROLES DO POLEGAR, todos com o mesmo recuo do aparelho.
+##
+## O botao de voo e a roda de combate vinham da cena com margem fixa: 36 px da
+## esquerda e 15 px da borda de baixo e da direita. Quando o direcional passou a
+## respeitar o recuo do aparelho, ele subiu e andou para dentro — e encontrou o
+## botao de voo, que continuou onde estava. Sobrepunham 64 por 9 pixels em toda
+## proporcao de tela que eu medi.
+##
+## A roda de combate tinha o mesmo defeito pelo outro lado: 15 px do canto
+## inferior direito e exatamente a faixa da barra de gestos e do canto
+## arredondado do celular.
+func _acomodar_controles_do_polegar() -> void:
+    var tela := get_viewport().get_visible_rect().size
+    var btn_voo := find_child("BtnVoo", true, false) as Control
+    if btn_voo:
+        # Empilhado acima do direcional, que ocupa 210 px de altura.
+        AreaSeguraUIScript.encostar_no_canto(btn_voo, Vector2(64, 64), tela,
+            true, true, 218.0)
+    var combate := find_child("BotoesCombate", true, false) as Control
+    if combate:
+        AreaSeguraUIScript.encostar_no_canto(combate, Vector2(255, 255), tela,
+            false, true)
 
 
 func _abrir_tela_missoes() -> void:

@@ -628,35 +628,7 @@
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     -55,
-     -15.0
-    ],
-    "rotation": 0,
-    "fachada": [
-     "z",
-     -9.0,
-     -1.0
-    ]
-   },
-   {
-    "tag": "solar",
-    "model": "res://models/casa_solar.glb",
-    "position": [
-     -37,
-     -15.0
-    ],
-    "rotation": 0,
-    "fachada": [
-     "z",
-     -9.0,
-     -1.0
-    ]
-   },
-   {
-    "tag": "taverna",
-    "model": "res://models/taverna.glb",
-    "position": [
-     -19,
+     -20.0,
      -15.0
     ],
     "rotation": 0,
@@ -670,21 +642,7 @@
     "tag": "casa_alta",
     "model": "res://models/medieval_house_1.glb",
     "position": [
-     19,
-     -15.0
-    ],
-    "rotation": 0,
-    "fachada": [
-     "z",
-     -9.0,
-     -1.0
-    ]
-   },
-   {
-    "tag": "casarao",
-    "model": "res://models/casarao_madeira.glb",
-    "position": [
-     37,
+     -28.38,
      -15.0
     ],
     "rotation": 0,
@@ -698,7 +656,7 @@
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     55,
+     -37.39,
      -15.0
     ],
     "rotation": 0,
@@ -712,77 +670,77 @@
     "tag": "casa_taipa",
     "model": "res://models/casa_taipa.glb",
     "position": [
-     -55,
-     15.0
+     -47.3,
+     -15.0
     ],
-    "rotation": 180,
+    "rotation": 0,
     "fachada": [
      "z",
-     9.0,
-     1.0
-    ]
-   },
-   {
-    "tag": "casa_pedra",
-    "model": "res://models/casa_pedra.glb",
-    "position": [
-     -37,
-     15.0
-    ],
-    "rotation": 180,
-    "fachada": [
-     "z",
-     9.0,
-     1.0
-    ]
-   },
-   {
-    "tag": "solar",
-    "model": "res://models/casa_solar.glb",
-    "position": [
-     -19,
-     15.0
-    ],
-    "rotation": 180,
-    "fachada": [
-     "z",
-     9.0,
-     1.0
+     -9.0,
+     -1.0
     ]
    },
    {
     "tag": "taverna",
     "model": "res://models/taverna.glb",
     "position": [
-     19,
-     15.0
+     20.0,
+     -15.0
     ],
-    "rotation": 180,
+    "rotation": 0,
     "fachada": [
      "z",
-     9.0,
-     1.0
-    ]
-   },
-   {
-    "tag": "casa_alta",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     37,
-     15.0
-    ],
-    "rotation": 180,
-    "fachada": [
-     "z",
-     9.0,
-     1.0
+     -9.0,
+     -1.0
     ]
    },
    {
     "tag": "casarao",
     "model": "res://models/casarao_madeira.glb",
     "position": [
-     55,
+     29.95,
+     -15.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -9.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     40.25,
+     -15.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -9.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     48.62,
+     -15.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -9.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casarao",
+    "model": "res://models/casarao_madeira.glb",
+    "position": [
+     -20.0,
      15.0
     ],
     "rotation": 180,
@@ -796,13 +754,41 @@
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     -55,
-     -31.0
+     -30.95,
+     15.0
     ],
     "rotation": 180,
     "fachada": [
      "z",
-     -37.0,
+     9.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     -42.55,
+     15.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     9.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -50.93,
+     15.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     9.0,
      1.0
     ]
    },
@@ -810,7 +796,49 @@
     "tag": "casa_taipa",
     "model": "res://models/casa_taipa.glb",
     "position": [
-     -37,
+     20.0,
+     15.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     9.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "solar",
+    "model": "res://models/casa_solar.glb",
+    "position": [
+     31.24,
+     15.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     9.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     44.83,
+     15.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     9.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -14.0,
      -31.0
     ],
     "rotation": 180,
@@ -824,21 +852,7 @@
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     -19,
-     -31.0
-    ],
-    "rotation": 180,
-    "fachada": [
-     "z",
-     -37.0,
-     1.0
-    ]
-   },
-   {
-    "tag": "solar",
-    "model": "res://models/casa_solar.glb",
-    "position": [
-     19,
+     -22.38,
      -31.0
     ],
     "rotation": 180,
@@ -852,7 +866,7 @@
     "tag": "taverna",
     "model": "res://models/taverna.glb",
     "position": [
-     37,
+     -32.98,
      -31.0
     ],
     "rotation": 180,
@@ -863,10 +877,38 @@
     ]
    },
    {
-    "tag": "casa_alta",
-    "model": "res://models/medieval_house_1.glb",
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     55,
+     -44.22,
+     -31.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     -37.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     14.0,
+     -31.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     -37.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     23.91,
      -31.0
     ],
     "rotation": 180,
@@ -880,7 +922,35 @@
     "tag": "casarao",
     "model": "res://models/casarao_madeira.glb",
     "position": [
-     -55,
+     32.51,
+     -31.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     -37.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     42.82,
+     -31.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     -37.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -27.0,
      -61.0
     ],
     "rotation": 0,
@@ -894,21 +964,7 @@
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     -37,
-     -61.0
-    ],
-    "rotation": 0,
-    "fachada": [
-     "z",
-     -55.0,
-     -1.0
-    ]
-   },
-   {
-    "tag": "casa_taipa",
-    "model": "res://models/casa_taipa.glb",
-    "position": [
-     37,
+     -36.91,
      -61.0
     ],
     "rotation": 0,
@@ -922,7 +978,35 @@
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     55,
+     -48.51,
+     -61.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -55.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     27.0,
+     -61.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -55.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     35.38,
      -61.0
     ],
     "rotation": 0,
@@ -936,7 +1020,21 @@
     "tag": "solar",
     "model": "res://models/casa_solar.glb",
     "position": [
-     -55,
+     45.73,
+     -61.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -55.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "solar",
+    "model": "res://models/casa_solar.glb",
+    "position": [
+     -14.0,
      31.0
     ],
     "rotation": 0,
@@ -947,38 +1045,10 @@
     ]
    },
    {
-    "tag": "taverna",
-    "model": "res://models/taverna.glb",
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
     "position": [
-     -37,
-     31.0
-    ],
-    "rotation": 0,
-    "fachada": [
-     "z",
-     37.0,
-     -1.0
-    ]
-   },
-   {
-    "tag": "casa_alta",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     -19,
-     31.0
-    ],
-    "rotation": 0,
-    "fachada": [
-     "z",
-     37.0,
-     -1.0
-    ]
-   },
-   {
-    "tag": "casarao",
-    "model": "res://models/casarao_madeira.glb",
-    "position": [
-     19,
+     -26.95,
      31.0
     ],
     "rotation": 0,
@@ -992,7 +1062,49 @@
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     37,
+     -38.55,
+     31.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     37.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -47.57,
+     31.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     37.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     14.0,
+     31.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     37.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "taverna",
+    "model": "res://models/taverna.glb",
+    "position": [
+     22.02,
      31.0
     ],
     "rotation": 0,
@@ -1006,7 +1118,7 @@
     "tag": "casa_taipa",
     "model": "res://models/casa_taipa.glb",
     "position": [
-     55,
+     30.91,
      31.0
     ],
     "rotation": 0,
@@ -1017,38 +1129,24 @@
     ]
    },
    {
-    "tag": "casa_pedra",
-    "model": "res://models/casa_pedra.glb",
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     -55,
-     61.0
+     40.82,
+     31.0
     ],
-    "rotation": 180,
+    "rotation": 0,
     "fachada": [
      "z",
-     55.0,
-     1.0
+     37.0,
+     -1.0
     ]
    },
    {
-    "tag": "solar",
-    "model": "res://models/casa_solar.glb",
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
     "position": [
-     -37,
-     61.0
-    ],
-    "rotation": 180,
-    "fachada": [
-     "z",
-     55.0,
-     1.0
-    ]
-   },
-   {
-    "tag": "taverna",
-    "model": "res://models/taverna.glb",
-    "position": [
-     37,
+     -27.0,
      61.0
     ],
     "rotation": 180,
@@ -1062,7 +1160,21 @@
     "tag": "casa_alta",
     "model": "res://models/medieval_house_1.glb",
     "position": [
-     55,
+     -36.02,
+     61.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     55.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     -44.39,
      61.0
     ],
     "rotation": 180,
@@ -1075,6 +1187,48 @@
    {
     "tag": "casarao",
     "model": "res://models/casarao_madeira.glb",
+    "position": [
+     27.0,
+     61.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     55.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     37.95,
+     61.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     55.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     49.56,
+     61.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     55.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
     "position": [
      -16.0,
      -58.0
@@ -1087,8 +1241,8 @@
     ]
    },
    {
-    "tag": "casa_pedra",
-    "model": "res://models/casa_pedra.glb",
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
     "position": [
      16.0,
      -58.0
@@ -1101,8 +1255,8 @@
     ]
    },
    {
-    "tag": "casa_alta",
-    "model": "res://models/medieval_house_1.glb",
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
     "position": [
      -16.0,
      58.0
@@ -1115,8 +1269,8 @@
     ]
    },
    {
-    "tag": "casa_taipa",
-    "model": "res://models/casa_taipa.glb",
+    "tag": "taverna",
+    "model": "res://models/taverna.glb",
     "position": [
      16.0,
      58.0

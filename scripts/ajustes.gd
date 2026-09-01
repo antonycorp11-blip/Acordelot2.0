@@ -19,6 +19,7 @@ class_name Ajustes
 const ARQUIVO := "user://ajustes.cfg"
 const KIT := "res://textures/ui/kit/"
 const FONTE := "res://fontes/Cinzel.ttf"
+const VirtualJoystickScript := preload("res://scripts/virtual_joystick.gd")
 
 ## Cada nível, e o que exatamente ele desliga.
 ##
@@ -68,6 +69,12 @@ static func aplicar_guardado(arvore: SceneTree) -> void:
         auto = bool(arquivo.get_value("video", "automatico", true))
         volume = float(arquivo.get_value("audio", "volume", 1.0))
         sensivel = float(arquivo.get_value("controles", "sensibilidade", 0.006))
+        VirtualJoystickScript.zona_morta = clampf(
+            float(arquivo.get_value("controles", "zona_morta", 0.10)), 0.03, 0.30)
+        VirtualJoystickScript.tamanho = clampf(
+            float(arquivo.get_value("controles", "tamanho_direcional", 210.0)), 170.0, 270.0)
+        VirtualJoystickScript.opacidade = clampf(
+            float(arquivo.get_value("controles", "opacidade_direcional", 1.0)), 0.25, 1.0)
     automatico = auto
     aplicar(arvore, nivel)
     definir_volume(volume)
@@ -124,6 +131,9 @@ var _fundo: ColorRect
 var _botoes: Array = []
 var _rotulo_volume: Label
 var _rotulo_sensibilidade: Label
+var _rotulo_tamanho: Label
+var _rotulo_zona_morta: Label
+var _rotulo_opacidade: Label
 
 
 func _ready() -> void:
@@ -244,6 +254,27 @@ func _montar() -> void:
     miolo.add_child(cursor_sensivel)
     _mostrar_sensibilidade()
 
+    # ------------------------------------------------------------ direcional
+    miolo.add_child(_titulo_de_secao("Direcional"))
+    _rotulo_tamanho = _rotulo("", 15, Color(0.86, 0.89, 0.94))
+    miolo.add_child(_rotulo_tamanho)
+    var cursor_tamanho := _cursor(170.0, 270.0, 5.0, VirtualJoystickScript.tamanho)
+    cursor_tamanho.value_changed.connect(_mudar_tamanho)
+    miolo.add_child(cursor_tamanho)
+
+    _rotulo_zona_morta = _rotulo("", 15, Color(0.86, 0.89, 0.94))
+    miolo.add_child(_rotulo_zona_morta)
+    var cursor_zona := _cursor(0.03, 0.30, 0.01, VirtualJoystickScript.zona_morta)
+    cursor_zona.value_changed.connect(_mudar_zona_morta)
+    miolo.add_child(cursor_zona)
+
+    _rotulo_opacidade = _rotulo("", 15, Color(0.86, 0.89, 0.94))
+    miolo.add_child(_rotulo_opacidade)
+    var cursor_op := _cursor(0.25, 1.0, 0.05, VirtualJoystickScript.opacidade)
+    cursor_op.value_changed.connect(_mudar_opacidade)
+    miolo.add_child(cursor_op)
+    _mostrar_direcional()
+
     # -------------------------------------------------------------- medidor
     # O MEDIDOR. Enquanto a conversa sobre desempenho for "travou" de um lado e
     # "aqui roda" do outro, ninguem sai do lugar. Com quadros por segundo,
@@ -293,6 +324,7 @@ func _aplicar_guardado_na_cena() -> void:
     aplicar(get_tree(), _escolhido)
     definir_volume(_volume)
     IsometricCamera.sensibilidade = _sensibilidade
+    _aplicar_no_direcional()
     if _camera_gta:
         _escolher_camera(true)
     if _medidor_ligado:
@@ -399,6 +431,42 @@ func _mostrar_sensibilidade() -> void:
         _rotulo_sensibilidade.text = "Sensibilidade da câmera  %d%%" % int(round(fracao * 100.0))
 
 
+func _direcional() -> Node:
+    return get_tree().root.find_child("VirtualJoystick", true, false)
+
+
+func _mudar_tamanho(valor: float) -> void:
+    VirtualJoystickScript.tamanho = valor
+    _aplicar_no_direcional()
+
+
+func _mudar_zona_morta(valor: float) -> void:
+    VirtualJoystickScript.zona_morta = valor
+    _aplicar_no_direcional()
+
+
+func _mudar_opacidade(valor: float) -> void:
+    VirtualJoystickScript.opacidade = valor
+    _aplicar_no_direcional()
+
+
+func _aplicar_no_direcional() -> void:
+    var j := _direcional()
+    if j and j.has_method("aplicar_preferencias"):
+        j.aplicar_preferencias()
+    _mostrar_direcional()
+    _gravar()
+
+
+func _mostrar_direcional() -> void:
+    if _rotulo_tamanho:
+        _rotulo_tamanho.text = "Tamanho do direcional  %d px" % int(VirtualJoystickScript.tamanho)
+    if _rotulo_zona_morta:
+        _rotulo_zona_morta.text = "Zona morta  %d%%" % int(round(VirtualJoystickScript.zona_morta * 100.0))
+    if _rotulo_opacidade:
+        _rotulo_opacidade.text = "Transparência  %d%%" % int(round(VirtualJoystickScript.opacidade * 100.0))
+
+
 ## Troca a camera e guarda a escolha.
 func _escolher_camera(gta: bool) -> void:
     _camera_gta = gta
@@ -422,15 +490,22 @@ func _alternar_medidor() -> void:
 
 func _montar_medidor() -> void:
     _medidor = Label.new()
-    _medidor.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-    _medidor.offset_left = -300.0
-    _medidor.offset_right = -12.0
-    _medidor.offset_top = 250.0
+    # A ESQUERDA, e nao mais a direita.
+    #
+    # No canto direito ele caia exatamente em cima da coluna do minimapa: o
+    # rotulo ocupava y 250 a 372 e ali moram "Trocar para Wins", "Mapa do
+    # Reino", "MISSOES" e os dois botoes de mochila e engrenagem. Quem deixava
+    # o medidor ligado ficava com quatro botoes ilegiveis por baixo do numero.
+    # A faixa esquerda abaixo do botao da DG esta livre em toda proporcao.
+    _medidor.set_anchors_preset(Control.PRESET_TOP_LEFT)
+    _medidor.offset_left = 18.0
+    _medidor.offset_right = 320.0
+    _medidor.offset_top = 190.0
     # SEM ISTO O ROTULO NASCE COM ALTURA ZERO. Com ancora no topo, "offset_top"
     # sem "offset_bottom" deixa o retangulo invertido, e o texto existe mas nao
     # aparece — foi o que aconteceu na primeira tentativa.
-    _medidor.offset_bottom = 360.0
-    _medidor.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    _medidor.offset_bottom = 320.0
+    _medidor.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
     _medidor.add_theme_font_size_override("font_size", 15)
     _medidor.add_theme_color_override("font_color", Color(0.68, 1.0, 0.72))
     _medidor.add_theme_color_override("font_outline_color", Color(0.0, 0.05, 0.0))
@@ -492,6 +567,9 @@ func _gravar() -> void:
     arquivo.set_value("video", "medidor", _medidor_ligado)
     arquivo.set_value("audio", "volume", _volume)
     arquivo.set_value("controles", "sensibilidade", _sensibilidade)
+    arquivo.set_value("controles", "zona_morta", VirtualJoystickScript.zona_morta)
+    arquivo.set_value("controles", "tamanho_direcional", VirtualJoystickScript.tamanho)
+    arquivo.set_value("controles", "opacidade_direcional", VirtualJoystickScript.opacidade)
     arquivo.save(ARQUIVO)
 
 

@@ -23,6 +23,38 @@ static func ajustar_base(base: Control, tamanho_design: Vector2, viewport: Vecto
     base.position = (viewport - tamanho_design * fator) * 0.5
 
 
+## Encosta um controle num canto da tela, ja com o recuo do aparelho.
+##
+## Existe para os controles do polegar — direcional, botao de voo, roda de
+## combate — pararem de calcular a margem cada um por conta. Era assim que o
+## botao de voo continuava colado em 36 px enquanto o direcional passou a
+## respeitar o recuo: os dois se encontraram e ficaram um por cima do outro.
+##
+## `empilhar` afasta o controle do canto na vertical, para uma peca ficar acima
+## da outra na mesma coluna.
+static func encostar_no_canto(c: Control, tamanho: Vector2, viewport: Vector2,
+        esquerda: bool, embaixo: bool, empilhar := 0.0) -> void:
+    if c == null or viewport.x <= 0.0 or viewport.y <= 0.0:
+        return
+    var margem := recuo(viewport) + 10.0
+    c.anchor_left = 0.0 if esquerda else 1.0
+    c.anchor_right = c.anchor_left
+    c.anchor_top = 1.0 if embaixo else 0.0
+    c.anchor_bottom = c.anchor_top
+    if esquerda:
+        c.offset_left = margem
+        c.offset_right = margem + tamanho.x
+    else:
+        c.offset_right = -margem
+        c.offset_left = -margem - tamanho.x
+    if embaixo:
+        c.offset_bottom = -margem - empilhar
+        c.offset_top = c.offset_bottom - tamanho.y
+    else:
+        c.offset_top = margem + empilhar
+        c.offset_bottom = c.offset_top + tamanho.y
+
+
 static func ajustar_container(container: Control, viewport: Vector2) -> void:
     if container == null:
         return

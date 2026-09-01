@@ -31,12 +31,24 @@ var _viu_toque := false
 
 @export var outer_radius := 85.0
 @export var knob_radius := 34.0
-@export var deadzone := 0.1
 
-const LADO := 210.0
+## AS PREFERENCIAS DO POLEGAR, escolhidas nos ajustes.
+##
+## Estaticas pela mesma razao da sensibilidade da camera: o controle nasce da
+## cena e nao ha por onde injetar a escolha antes do _ready — e so existe um
+## direcional de cada vez. Cada uma mexe numa coisa diferente e todas as tres
+## foram pedidas: mao grande quer o circulo maior, dedo tremido quer a zona
+## morta maior, e quem acha que o controle tapa o cenario quer ele mais apagado.
+static var zona_morta := 0.10
+static var tamanho := 210.0
+static var opacidade := 1.0
+
+const LADO_PADRAO := 210.0
+const LADO_MINIMO := 170.0
+const LADO_MAXIMO := 270.0
 
 func _ready() -> void:
-    custom_minimum_size = Vector2(LADO, LADO)
+    aplicar_preferencias()
     knob_position = size * 0.5
     _target_knob = knob_position
     _acomodar_na_tela()
@@ -56,16 +68,25 @@ func _ready() -> void:
 ## por controle.
 func _acomodar_na_tela() -> void:
     var tela := get_viewport().get_visible_rect().size
-    var margem := AreaSeguraUI.recuo(tela) + 10.0
-    anchor_left = 0.0
-    anchor_right = 0.0
-    anchor_top = 1.0
-    anchor_bottom = 1.0
-    offset_left = margem
-    offset_right = margem + LADO
-    offset_top = -LADO - margem
-    offset_bottom = -margem
+    AreaSeguraUI.encostar_no_canto(self, Vector2(tamanho, tamanho), tela, true, true)
     queue_redraw()
+
+
+## Poe em vigor o que o jogador escolheu. O raio do circulo e o do botao seguem
+## o tamanho: escalar so a moldura deixaria o botao perdido dentro dela.
+func aplicar_preferencias() -> void:
+    tamanho = clampf(tamanho, LADO_MINIMO, LADO_MAXIMO)
+    var proporcao: float = tamanho / LADO_PADRAO
+    outer_radius = 85.0 * proporcao
+    knob_radius = 34.0 * proporcao
+    custom_minimum_size = Vector2(tamanho, tamanho)
+    size = custom_minimum_size
+    modulate.a = clampf(opacidade, 0.25, 1.0)
+    _target_knob = size * 0.5
+    if not _is_dragging:
+        knob_position = _target_knob
+    if is_inside_tree():
+        _acomodar_na_tela()
 
 
 ## So redesenha enquanto ha o que animar.
@@ -178,10 +199,10 @@ func _update_joystick(pointer_position: Vector2) -> void:
     _target_knob = center + offset
     
     var norm_dist := dist / outer_radius
-    if norm_dist < deadzone:
+    if norm_dist < zona_morta:
         movement_vector = Vector2.ZERO
     else:
-        var remapped := (norm_dist - deadzone) / (1.0 - deadzone)
+        var remapped := (norm_dist - zona_morta) / (1.0 - zona_morta)
         movement_vector = offset.normalized() * clampf(remapped, 0.0, 1.0)
 
 func _release_joystick() -> void:

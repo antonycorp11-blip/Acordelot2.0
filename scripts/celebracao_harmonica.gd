@@ -10,8 +10,15 @@ var _tween: Tween
 
 
 func _ready() -> void:
-    set_anchors_preset(Control.PRESET_FULL_RECT)
+    # ANCORA **E** MARGEM. `set_anchors_preset` mexe so nas ancoras: o retangulo
+    # continuava com o tamanho que tinha antes, e o cartao, centrado nesse
+    # retangulo errado, nascia com metade fora da tela pela esquerda e pelo alto
+    # — medido em x -140 e y -82. Como ele so aparece ao subir de nivel, dava
+    # para nao notar ate acontecer.
+    set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     mouse_filter = Control.MOUSE_FILTER_IGNORE
+    get_viewport().size_changed.connect(func():
+        set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT))
     _cartao = PanelContainer.new()
     _cartao.set_anchors_preset(Control.PRESET_CENTER)
     _cartao.offset_left = -280

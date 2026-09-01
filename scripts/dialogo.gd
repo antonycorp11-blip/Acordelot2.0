@@ -155,14 +155,42 @@ func comecar(id: String) -> bool:
     var dados: Dictionary = JSON.parse_string(arquivo.get_as_text())
     if dados == null or not dados.has(id):
         return false
-    _falas = dados[id]
+    _falas = (dados[id] as Array).duplicate(true)
     if _falas.is_empty():
         return false
+    # A TAREFA DO DIA SAI PELA BOCA DE QUEM ESTA NA FRENTE.
+    #
+    # O diario funcionava, mas so aparecia num contador no canto da tela: as
+    # tarefas tinham dono na lore — Dorn, o Sr. Antony, o bardo — e nenhum deles
+    # dizia nada. Quem esta no mundo hoje sao a Mirella e o Renaldo, entao sao
+    # eles que passam o recado, na propria folha de retrato deles. Quando os
+    # outros entrarem, e so casar o "dono" da tarefa com o elenco da NPC aqui.
+    var recado := _recado_do_diario()
+    if recado != "":
+        var ultima: Dictionary = (_falas[_falas.size() - 1] as Dictionary).duplicate()
+        ultima["texto"] = recado
+        _falas.append(ultima)
     _indice = 0
     _ativo = true
     _mostrar(true)
     _pintar()
     return true
+
+
+## O que falta hoje, em uma frase. Vazio quando nao ha diario ou ja fechou o dia.
+func _recado_do_diario() -> String:
+    var diario := get_node_or_null("/root/Diario")
+    if diario == null or diario.missoes.is_empty():
+        return ""
+    if diario.concluidas() >= diario.missoes.size():
+        return "O reino já teve o que precisava de você hoje. Descanse — amanhã há mais."
+    for missao in diario.missoes:
+        if int(missao["feito"]) >= int(missao["meta"]):
+            continue
+        return "A propósito: %s %s (%d de %d)" % [
+            str(missao["dono"]).to_lower() if str(missao["dono"]).begins_with("Os ") else "%s pediu:" % str(missao["dono"]),
+            str(missao["texto"]), int(missao["feito"]), int(missao["meta"])]
+    return ""
 
 
 func avancar() -> void:
