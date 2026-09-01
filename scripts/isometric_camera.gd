@@ -64,6 +64,10 @@ func usar_modo_gta(sim: bool) -> void:
         _camera.rotation_degrees = _giro_pouso
         _camera.fov = _fov_pouso
 var _toques: Dictionary = {}
+## Mesma razao do direcional: com o rato emulado a partir do toque, o arrasto
+## girava a camera duas vezes — uma pelo ScreenDrag e outra pelo MouseMotion.
+## A sensibilidade saia o dobro do que os ajustes diziam.
+var _viu_toque := false
 
 func _ready() -> void:
     _camera = get_child(0) as Camera3D
@@ -82,10 +86,11 @@ func _unhandled_input(event: InputEvent) -> void:
             _mudar_zoom(-0.10)
         elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
             _mudar_zoom(0.10)
-    elif event is InputEventMouseMotion and modo_gta:
+    elif event is InputEventMouseMotion and modo_gta and not _viu_toque:
         if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
             _giro_desejado -= event.relative.x * sensibilidade
     elif event is InputEventScreenTouch:
+        _viu_toque = true
         if event.pressed:
             _toques[event.index] = event.position
         else:

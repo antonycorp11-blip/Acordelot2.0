@@ -207,7 +207,10 @@ static func _riscar_as_vias(imagem: Image, mundo: Node, dados: Dictionary,
 static func _carimbar_as_pecas(imagem: Image, regiao: Node3D,
 		metros_por_pixel: float, meia: float) -> void:
 	for peca in regiao.find_children("*", "Node3D", true, false):
-		var nome := String(peca.name)
+		# Pelo metadado, nao pelo nome: irmao homonimo perde o nome para um
+		# "@Node3D@2199" gerado pelo motor, e era assim que a segunda casa de
+		# cada tipo desaparecia da carta.
+		var nome := String(peca.get_meta("tag", peca.name))
 		var cor: Color
 		var largura := 2.0
 		var edificio := false

@@ -110,23 +110,51 @@ void vertex() {
 
 void fragment() {
     vec2 uv = world_pos.xz / meters_per_tile;
-    
+
     vec3 col_grass = texture(grass_texture, uv).rgb;
+    // A MESMA GRAMA NUMA SEGUNDA ESCALA, e a repeticao some.
+    //
+    // O ladrilho tem 3,2 m e a zona tem 160: a mesma imagem aparecia CINQUENTA
+    // vezes de ponta a ponta, e o olho enxerga esse xadrez de longe melhor do
+    // que enxerga a grama. Somar a mesma textura numa escala grande e
+    // incomensuravel com a pequena quebra o padrao — o par so volta a se repetir
+    // depois de centenas de metros, isto e, nunca dentro de uma zona. Custa uma
+    // busca de textura, que e barato perto de mais uma oitava de ruido.
+    vec3 col_grass_largo = texture(grass_texture, uv * 0.287).rgb;
     vec3 col_dirt  = texture(dirt_texture, uv).rgb;
     vec3 col_stone = texture(stone_texture, uv * 1.12).rgb;
     vec3 col_rock  = texture(rock_texture, uv * 0.65).rgb;
-    
+
     // Variação suave de tom verdejante
     float macro = fbm(world_pos.xz / 42.0);
+    // A mistura das duas escalas VARIA com o mesmo ruido macro que ja existe:
+    // proporcao fixa so lavaria o contraste, e ruido proprio custaria mais.
+    col_grass = mix(col_grass, col_grass_largo, 0.26 + macro * 0.34);
+
     vec3 grass_varied = mix(col_grass * tint_lush * 1.02, col_grass * tint_dry * 0.98, macro * 0.4);
     // Detalhe pequeno devolve leitura ao gramado sem textura maior. Usa uma
     // unica amostra de ruido e continua barato no Web.
     float detalhe = noise(world_pos.xz / 2.4);
     grass_varied *= mix(0.95, 1.04, detalhe);
-    
-    // Caminhos orgânicos de terra batida
-    float path_noise = smoothstep(0.48, 0.56, fbm(world_pos.xz / 18.0));
+
+    // MANCHAS SECAS. Onde o macro sobe muito, o capim amarela e deixa entrever
+    // a terra. Reaproveita o `macro` ja calculado: e so ler outra faixa dele.
+    float seco = smoothstep(0.55, 0.80, macro);
+    grass_varied = mix(grass_varied, mix(col_grass * tint_dry * 0.92, col_dirt, 0.35), seco * 0.55);
+
+    // Caminhos orgânicos de terra batida. O ruido e lido UMA vez e serve a duas
+    // leituras: a trilha estreita e a clareira de terra batida mais larga.
+    float terra_bruta = fbm(world_pos.xz / 18.0);
+    float path_noise = smoothstep(0.48, 0.56, terra_bruta);
+    float clareira_de_terra = smoothstep(0.60, 0.75, terra_bruta);
     vec3 base_color = mix(grass_varied, col_dirt, path_noise * 0.38);
+    base_color = mix(base_color, col_dirt * 0.94, clareira_de_terra * 0.45);
+
+    // CASCALHO: pedrinha onde a terra ja aparece. Nao sao malhas — e a textura
+    // de rocha que ja foi buscada, entrando so nos pontos altos do ruido fino.
+    // Dezenas de pedras de verdade custariam desenho; isto custa uma mistura.
+    float cascalho = clareira_de_terra * smoothstep(0.62, 0.92, detalhe);
+    base_color = mix(base_color, col_rock * 0.88, cascalho * 0.40);
 
     float distancia_estrada = 999.0;
     if (quantidade_caminhos > 0) distancia_estrada = min(distancia_estrada, distancia_segmento(pos_local.xz, caminho_0));
@@ -144,6 +172,15 @@ void fragment() {
     if (quantidade_caminhos > 0) {
         float desgaste = (fbm(pos_local.xz / 4.0) - 0.5) * 1.2;
         float mascara_estrada = 1.0 - smoothstep(4.2 + desgaste, 5.5 + desgaste, distancia_estrada);
+        // A BEIRA DA ESTRADA, pisada mas ainda com capim.
+        //
+        // Antes a estrada acabava numa linha: de um lado terra, do outro
+        // gramado cheio. Estrada de verdade tem acostamento — o mato rala onde
+        // o pe passa raspando. Sai do mesmo `desgaste` e da mesma distancia ja
+        // calculados, entao nao custa ruido nenhum a mais.
+        float acostamento = 1.0 - smoothstep(5.5 + desgaste, 9.5 + desgaste, distancia_estrada);
+        base_color = mix(base_color, col_dirt * 0.90,
+                         max(acostamento - mascara_estrada, 0.0) * 0.42);
         vec3 material_estrada = mix(col_dirt * 0.80, col_stone * 0.70, caminho_de_pedra);
         base_color = mix(base_color, material_estrada, mascara_estrada * 0.95);
     }
@@ -182,7 +219,18 @@ void fragment() {
                               max(secundaria_1, secundaria_2)), 0.0, 1.0);
         // Terra batida, um tom mais escura que a de fora: chao pisado escurece.
         // Ou pedra, quando a zona pede calcamento.
+        // Calcada pisada em volta da via, pela mesma razao do acostamento da
+        // estrada: rua que termina numa linha reta parece adesivo no gramado.
+        float beira = clamp(max(max(
+            (1.0 - smoothstep(meia + 0.5, meia + 3.6, abs(pos_local.x)))
+                * (1.0 - smoothstep(via_principal.y - 3.0, via_principal.y, abs(pos_local.z))),
+            1.0 - smoothstep(via_principal.z + 0.6 + franja,
+                             via_principal.z + 3.8 + franja, length(pos_local.xz))),
+            (1.0 - smoothstep(meia_t + 0.5, meia_t + 3.2, abs(pos_local.z - via_travessa.x)))
+                * (1.0 - smoothstep(via_travessa.y - 3.0, via_travessa.y, abs(pos_local.x)))),
+            0.0, 1.0);
         vec3 cor_da_via = mix(col_dirt * 0.82, col_stone * 0.70, via_de_pedra);
+        base_color = mix(base_color, col_dirt * 0.88, max(beira - via, 0.0) * 0.45);
         base_color = mix(base_color, cor_da_via, via * 0.92);
     }
     

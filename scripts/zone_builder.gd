@@ -199,7 +199,7 @@ func construir_zona(zone_data: Dictionary) -> void:
     _plantar_vegetacao_baixa()
     _plantar_mato_pbr()
     _plantar_grama_texturizada_nova()
-    _construir_detalhes_floresta_inicial()
+    _construir_pedras_do_chao()
     _construir_barreiras_perimetro_arvores_reais()
     # Vila, cidade e santuario nao criam ninho. O jogador reclamou de Shiker
     # dentro da vila: parte vinha do gerador que segue o heroi, parte nascia
@@ -1996,12 +1996,27 @@ func _dentro_de_clareira(p: Vector2, margem: float = 0.0) -> bool:
     return false
 
 
-## Pedras com textura real, todas em um único lote. Elas marcam o riacho e as
-## bordas das clareiras sem adicionar dezenas de nós ou materiais exclusivos.
-func _construir_detalhes_floresta_inicial() -> void:
-    if str(_zone_data.get("id", "")) != "zone_floresta_despertar":
+## Pedras com textura real, todas em um único lote (uma chamada de desenho).
+##
+## ISTO SO ACONTECIA NUMA ZONA. A funcao comecava com um `if` no id da Floresta
+## do Despertar e voltava em todas as outras — as treze zonas declaram
+## `rock_count`, de 4 a 58, e doze delas nunca viram uma pedra. Era metade da
+## queixa de "terreno parece uma textura repetida": nao havia NADA no chao para
+## quebrar o gramado.
+##
+## O `if` existia por um motivo real, que agora esta resolvido: o sorteio lia
+## `river_paths[0]` sem conferir se a zona tem rio, e teria estourado o indice
+## em qualquer zona seca.
+func _construir_pedras_do_chao() -> void:
+    var quantidade := int(_zone_data.get("rock_count", 0))
+    # Cidade tem calcamento, nao matacao. Umas poucas nos cantos bastam.
+    var e_cidade: bool = (_zone_data.get("biome") == "cidade"
+        or str(_zone_data.get("layout_id", "")) != "")
+    if e_cidade:
+        quantidade = mini(quantidade, 6)
+    if quantidade <= 0:
         return
-    var quantidade := int(_zone_data.get("rock_count", 28))
+
     var pedra := SphereMesh.new()
     pedra.radius = 0.75
     pedra.height = 1.15
@@ -2016,27 +2031,53 @@ func _construir_detalhes_floresta_inicial() -> void:
     multi.transform_format = MultiMesh.TRANSFORM_3D
     multi.mesh = pedra
     multi.instance_count = quantidade
+
+    var rios: Array = _zone_data.get("river_paths", [])
+    var tem_agua: bool = bool(_zone_data.get("water", false))
+    var nivel_agua: float = float(_zone_data.get("water_level", -2.0))
     var rng := RandomNumberGenerator.new()
-    rng.seed = 741903
+    rng.seed = hash(str(_zone_data.get("id", "zona"))) + 741903
+
+    var postos := 0
     for i in quantidade:
         var p := Vector2.ZERO
+        var achou := false
         for tentativa in 18:
-            if i < int(quantidade * 0.55):
-                var caminhos: Array = _zone_data.get("river_paths", [])
-                var rio: Array = caminhos[0]
+            # Metade acompanha a margem do rio, quando ha rio: pedra em beira
+            # d'agua e o que faz o riacho parecer cavado e nao pintado.
+            if not rios.is_empty() and i < int(quantidade * 0.55):
+                var rio: Array = rios[rng.randi() % rios.size()]
+                if rio.size() < 2:
+                    continue
                 var trecho := rng.randi_range(0, rio.size() - 2)
                 var a := Vector2(float(rio[trecho][0]), float(rio[trecho][1]))
                 var b := Vector2(float(rio[trecho + 1][0]), float(rio[trecho + 1][1]))
-                p = a.lerp(b, rng.randf()) + Vector2(rng.randf_range(-7.0, 7.0), rng.randf_range(-7.0, 7.0))
+                p = a.lerp(b, rng.randf()) + Vector2(
+                    rng.randf_range(-7.0, 7.0), rng.randf_range(-7.0, 7.0))
             else:
                 p = Vector2(rng.randf_range(-68.0, 68.0), rng.randf_range(-68.0, 68.0))
-            if not _perto_da_rede(p, "road_paths", 6.5) and not _dentro_de_clareira(p, 1.5):
-                break
-        var escala := Vector3(rng.randf_range(0.55, 1.25), rng.randf_range(0.38, 0.82), rng.randf_range(0.60, 1.35))
+            if _bloqueia_circulacao(p, 1.0) or _dentro_de_clareira(p, 1.5):
+                continue
+            if tem_agua and calcular_altura(p.x, p.y) < nivel_agua + 0.3:
+                continue
+            achou = true
+            break
+        if not achou:
+            continue
+        var escala := Vector3(rng.randf_range(0.55, 1.25), rng.randf_range(0.38, 0.82),
+            rng.randf_range(0.60, 1.35))
         var base := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(escala)
-        multi.set_instance_transform(i, Transform3D(base, Vector3(p.x, calcular_altura(p.x, p.y) + 0.10, p.y)))
+        multi.set_instance_transform(postos,
+            Transform3D(base, Vector3(p.x, calcular_altura(p.x, p.y) + 0.10, p.y)))
+        postos += 1
+    if postos == 0:
+        return
+    # So o que foi de fato posto entra no lote: instancia sobrando fica na
+    # origem da zona, empilhada, e vira um monte de pedra no meio do mapa.
+    multi.visible_instance_count = postos
+
     var lote := MultiMeshInstance3D.new()
-    lote.name = "PedrasDaFloresta"
+    lote.name = "PedrasDoChao"
     lote.multimesh = multi
     lote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     lote.visibility_range_end = 52.0
@@ -2311,6 +2352,16 @@ func _instanciar_prop_3d(path: String, tag: String, altura_alvo: float, escala_m
         
     var suporte := Node3D.new()
     suporte.name = tag
+    # O NOME NAO E IDENTIDADE CONFIAVEL, e a carta do minimapa dependia dele.
+    #
+    # Dois irmaos nao podem ter o mesmo nome: ao plantar a segunda "casa_pedra"
+    # da vila, o Godot descarta o nome pedido e batiza o no de "@Node3D@2199".
+    # A carta da zona classifica peca por nome — entao ela carimbava a PRIMEIRA
+    # casa de cada tipo e ignorava todas as repetidas. Numa vila de doze casas
+    # com sete tipos, cinco casas sumiam do mapa; na capital, muito mais.
+    #
+    # A etiqueta vai no metadado, que ninguem renomeia.
+    suporte.set_meta("tag", tag)
     suporte.add_child(modelo)
     
     # Medição da caixa AABB orientada real

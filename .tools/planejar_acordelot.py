@@ -35,6 +35,31 @@ DESTINO = os.path.join(RAIZ, "data", "urban_refinement.json")
 IDENT = "acordelot_centro_v2"
 M = "res://models/"
 
+# A PEGADA REAL DE CADA CASA, em metros, DEPOIS de normalizada pela altura-alvo
+# da tabela ALTURA_POR_TAG do zone_builder. Medida no proprio GLB, nao chutada:
+# e ela que decide o espacamento do quarteirao. Casa girada 90 graus apresenta a
+# LARGURA para a rua na direcao do eixo da rua, por isso as duas medidas.
+#   tag: (largura em x local, fundo em z local)
+PEGADA = {
+    "casa_pedra": (8.46, 6.20),
+    "casa_larga": (9.75, 4.27),
+    "casa_alta": (3.29, 4.82),
+    "solar": (12.43, 12.17),
+    "casa_taipa": (5.06, 11.89),
+    "casarao": (7.15, 12.95),
+    "taverna": (7.74, 10.15),
+}
+MODELO = {
+    "casa_pedra": "casa_pedra", "casa_larga": "medieval_house_3",
+    "casa_alta": "medieval_house_1", "solar": "casa_solar",
+    "casa_taipa": "casa_taipa", "casarao": "casarao_madeira",
+    "taverna": "taverna",
+}
+# Quanto de quintal entre duas casas da mesma fileira. Dois metros e meio le
+# como vila apertada de verdade; abaixo disso as paredes se encostam e acima de
+# quatro volta a virar casa solta no campo.
+VAO_ENTRE_CASAS = 2.5
+
 # A malha viaria, em metros. Meia-largura de cada via e alcance dela.
 MEIA_AVENIDA = 6.0
 MEIA_TRAVESSA = 5.5
@@ -69,6 +94,48 @@ def casa(nome_indice, x, z, giro, fachada):
         "rotation": giro,
         "fachada": [fachada[0], round(float(fachada[1]), 2), float(fachada[2])],
     }
+
+
+def casa_do_quarteirao(tag, x, z, giro, fachada):
+    """Uma casa da vila, com a linha de fachada que o construtor vai respeitar."""
+    return {
+        "tag": tag,
+        "model": M + MODELO[tag] + ".glb",
+        "position": [round(x, 2), round(z, 2)],
+        "rotation": giro,
+        "fachada": [fachada[0], round(float(fachada[1]), 2), float(fachada[2])],
+    }
+
+
+def fileira(tags, eixo, linha, lado, giro, inicio, sentido):
+    """UM QUARTEIRAO: casas ombro a ombro ao longo de uma rua.
+
+    O passo entre duas casas sai da PEGADA das duas, nao de um numero fixo: e o
+    que permite encostar um solar de 12,4 m num casebre de 3,3 m sem deixar
+    buraco de gramado no meio nem enfiar parede dentro de parede. Era esse
+    numero fixo — vinte e dois metros entre casas — que fazia a vila parecer
+    duas fileiras de casas isoladas em vez de rua.
+
+    `eixo` diz se a rua corre em x ou em z; `linha` e a coordenada da fachada;
+    `lado` diz de que lado da linha o lote esta.
+    """
+    pecas = []
+    andar = float(inicio)
+    anterior = None
+    for tag in tags:
+        largura = PEGADA[tag][0] if eixo == "z" else PEGADA[tag][0]
+        if anterior is not None:
+            andar += sentido * ((anterior + largura) * 0.5 + VAO_ENTRE_CASAS)
+        if eixo == "z":
+            # Rua corre em x; a fachada e uma linha em z.
+            pecas.append(casa_do_quarteirao(tag, andar, linha + 6.0 * lado, giro,
+                                            ("z", linha, lado)))
+        else:
+            # Rua corre em z; a fachada e uma linha em x.
+            pecas.append(casa_do_quarteirao(tag, linha + 6.0 * lado, andar, giro,
+                                            ("x", linha, lado)))
+        anterior = largura
+    return pecas
 
 
 def prop(tag, modelo, x, z, giro=0):
@@ -148,6 +215,117 @@ def luzes():
     return pontos
 
 
+# ---------------------------------------------------------------------------
+# AS TRES VILAS
+#
+# A planta anterior delas era literalmente duas colunas de casas em x = +-15 e
+# +-16, uma a cada vinte e dois metros ao longo da avenida. Medido: vizinho mais
+# proximo a 22 m e 285 m2 de terreno por casa. Isso nao e vila, e um corredor de
+# casas isoladas — e era a queixa exata de "enormes terrenos vazios entre uma
+# casa e outra".
+#
+# Aqui cada vila tem NUCLEOS: quarteiroes curtos de tres a quatro casas ombro a
+# ombro numa rua, com quintal atras, e vazio de verdade entre um nucleo e outro.
+# O vazio deixa de ser terreno abandonado e vira o campo em volta do povoado.
+# ---------------------------------------------------------------------------
+
+VILAS = {
+    "vila_caminho_v2": {
+        "raio": 48.0,
+        "vias": {"principal": [4.5, 50.0], "largo": 10.0,
+                 "travessas": [0.0, 4.0, 42.0], "pedra": False},
+        # (tags, eixo, linha da fachada, lado, giro, x/z inicial, sentido)
+        "quarteiroes": [
+            (["casa_pedra", "casa_alta", "casa_larga"], "z", -9.0, -1.0, 0, -14.0, -1),
+            (["taverna", "casa_taipa"], "z", -9.0, -1.0, 0, 14.0, 1),
+            (["casarao", "casa_pedra"], "z", 9.0, 1.0, 180, -14.0, -1),
+            (["casa_larga", "solar"], "z", 9.0, 1.0, 180, 14.0, 1),
+            (["casa_taipa", "casa_alta"], "x", -10.0, -1.0, 90, -30.0, -1),
+            (["casa_larga"], "x", 10.0, 1.0, 270, 30.0, 1),
+        ],
+        "quintais": [("carroca", -26.0, -20.0, 100), ("barris", -23.0, -18.5, 25),
+                     ("caixotes", 25.0, -19.0, 200), ("barris", 24.0, 20.0, 310),
+                     ("caixotes", -25.0, 21.0, 70), ("banco", -8.5, 8.5, 315),
+                     ("banco", 8.5, 8.5, 45)],
+        "pinheiros": [(-40.0, -40.0), (40.0, -40.0), (-40.0, 40.0), (40.0, 40.0)],
+        "npcs": [["mirella", 6.2, -8.0, 250.0, "mirella_boas_vindas"]],
+    },
+    "mercado_caminho_v2": {
+        "raio": 48.0,
+        "vias": {"principal": [5.0, 48.0], "largo": 13.0,
+                 "travessas": [0.0, 5.0, 44.0], "pedra": False},
+        "quarteiroes": [
+            (["taverna", "casa_larga", "casa_alta"], "z", -11.0, -1.0, 0, -17.0, -1),
+            (["casa_pedra", "casa_taipa"], "z", -11.0, -1.0, 0, 17.0, 1),
+            (["casarao", "casa_pedra"], "z", 11.0, 1.0, 180, -17.0, -1),
+            (["solar", "casa_larga"], "z", 11.0, 1.0, 180, 17.0, 1),
+            (["casa_alta", "casa_taipa"], "x", -11.0, -1.0, 90, -30.0, -1),
+        ],
+        "quintais": [("carroca", -27.0, -21.0, 110), ("carroca", 27.0, 21.0, 290),
+                     ("barris", -24.0, -19.0, 30), ("caixotes", 25.0, -20.0, 210),
+                     ("banco", -10.0, 10.0, 315), ("banco", 10.0, 10.0, 45)],
+        "pinheiros": [(-40.0, -38.0), (40.0, -38.0), (-40.0, 38.0), (40.0, 38.0)],
+        "npcs": [],
+    },
+    "arredores_v2": {
+        "raio": 52.0,
+        "vias": {"principal": [4.5, 58.0], "largo": 10.0,
+                 "travessas": [8.0, 4.0, 44.0], "pedra": False},
+        # Povoado de fora dos muros: dois nucleos pequenos e uma granja isolada,
+        # que e o que "arredores" quer dizer — nao uma terceira vila igual.
+        "quarteiroes": [
+            (["casa_pedra", "casa_alta", "casa_larga"], "z", -1.0, -1.0, 0, -15.0, -1),
+            (["casarao", "casa_taipa"], "z", -1.0, -1.0, 0, 15.0, 1),
+            (["casa_larga", "casa_pedra"], "z", 17.0, 1.0, 180, -15.0, -1),
+            (["solar"], "z", 17.0, 1.0, 180, 15.0, 1),
+            (["casa_alta", "casa_taipa"], "x", -10.0, -1.0, 90, -34.0, -1),
+        ],
+        "quintais": [("carroca", -26.0, -26.0, 95), ("barris", -23.0, -24.0, 20),
+                     ("caixotes", 26.0, -25.0, 205), ("carroca", 27.0, 30.0, 285),
+                     ("banco", -9.0, 26.0, 315), ("banco", 9.0, 26.0, 45)],
+        "pinheiros": [(-42.0, -42.0), (42.0, -42.0), (-42.0, 44.0), (42.0, 44.0)],
+        "npcs": [],
+    },
+}
+
+
+def montar_vila(dados):
+    pecas = []
+    for tags, eixo, linha, lado, giro, inicio, sentido in dados["quarteiroes"]:
+        pecas += fileira(tags, eixo, linha, lado, giro, inicio, sentido)
+    for tag, x, z, giro in dados["quintais"]:
+        pecas.append(prop(tag, tag.replace("carroca", "carroca_vila")
+                          .replace("barris", "barris_vila")
+                          .replace("caixotes", "caixotes_vila")
+                          .replace("banco", "banco_vila"), x, z, giro))
+    pecas.append(prop("poco", "poco_vila", 0.0, 0.0, 0))
+    for x, z in dados["pinheiros"]:
+        pecas.append(prop("pinheiro", "pine_tree", x, z, 0))
+    return pecas
+
+
+def luzes_da_vila(dados):
+    """Postes ao longo das ruas que a vila realmente tem."""
+    vias = dados["vias"]
+    meia = vias["principal"][0]
+    alcance = vias["principal"][1]
+    pontos = []
+    z = -alcance + 12.0
+    while z <= alcance - 12.0:
+        if abs(z) > vias["largo"] - 2.0:
+            pontos += [[round(-meia - 2.5, 1), round(z, 1)],
+                       [round(meia + 2.5, 1), round(z, 1)]]
+        z += 22.0
+    tz, tmeia, talcance = vias["travessas"]
+    x = -talcance + 14.0
+    while x <= talcance - 14.0:
+        if abs(x) > vias["largo"] - 2.0:
+            pontos += [[round(x, 1), round(tz - tmeia - 2.5, 1)],
+                       [round(x, 1), round(tz + tmeia + 2.5, 1)]]
+        x += 24.0
+    return pontos
+
+
 def main():
     with open(DESTINO) as arquivo:
         dados = json.load(arquivo)
@@ -164,6 +342,17 @@ def main():
     }
     praca["luzes"] = luzes()
     dados["layouts"][IDENT] = fileiras() + quintais()
+
+    for ident, vila in VILAS.items():
+        p = dados["pracas"].setdefault(ident, {})
+        p["raio"] = vila["raio"]
+        p["so_com_textura"] = True
+        p["vias"] = vila["vias"]
+        p["luzes"] = luzes_da_vila(vila)
+        p["npcs"] = vila["npcs"]
+        dados["layouts"][ident] = montar_vila(vila)
+        print("%s: %d pecas, %d postes" % (ident, len(dados["layouts"][ident]),
+                                           len(p["luzes"])))
 
     with open(DESTINO, "w") as arquivo:
         json.dump(dados, arquivo, ensure_ascii=False, indent=1)

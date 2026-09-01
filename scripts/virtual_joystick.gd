@@ -9,6 +9,26 @@ var knob_position := Vector2.ZERO
 var _target_knob := Vector2.ZERO
 var _is_dragging := false
 
+## UM DONO POR VEZ — E O DEDO GANHA DO RATO.
+##
+## AQUI ESTAVA O BUG. `_is_dragging` era ligado tanto pelo toque quanto pelo
+## rato, e o ramo de `InputEventMouseMotion` so perguntava por ele. No celular o
+## Godot emula rato a partir do toque, e um Control que recebeu o clique
+## continua recebendo o movimento MESMO FORA DO RETANGULO DELE. Resultado: com o
+## primeiro dedo segurando o direcional, arrastar o SEGUNDO dedo para girar a
+## camera chegava neste ramo e chamava `_update_joystick` com a posicao do dedo
+## da camera. O knob pulava para la e a trajetoria do heroi ia junto — sem
+## ninguem ter mexido no direcional.
+##
+## Agora quem pega o controle primeiro manda ate soltar, e depois do primeiro
+## toque de verdade o rato e ignorado: aparelho que tem dedo nao precisa do rato
+## emulado. No computador nada se perde, porque o projeto liga
+## `emulate_touch_from_mouse` e o rato entra pelo caminho do toque.
+const SEM_DONO := -2
+const DONO_RATO := -1
+var _dono := SEM_DONO
+var _viu_toque := false
+
 @export var outer_radius := 85.0
 @export var knob_radius := 34.0
 @export var deadzone := 0.1
@@ -70,25 +90,38 @@ func _process(delta: float) -> void:
 
 func _gui_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
-        if event.pressed and touch_index == -1:
-            touch_index = event.index
-            _is_dragging = true
-            _update_joystick(event.position)
-            accept_event()
-        elif not event.pressed and event.index == touch_index:
-            _release_joystick()
-            accept_event()
-    elif event is InputEventScreenDrag and event.index == touch_index:
-        _update_joystick(event.position)
-        accept_event()
-    elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+        _viu_toque = true
         if event.pressed:
-            _is_dragging = true
-            _update_joystick(event.position)
+            if _dono == SEM_DONO:
+                _dono = event.index
+                touch_index = event.index
+                _is_dragging = true
+                _update_joystick(event.position)
+            accept_event()
         else:
+            # So o dono solta o controle. Sem esta guarda, levantar o dedo da
+            # camera zerava o direcional de quem continuava andando.
+            if _dono == event.index:
+                _release_joystick()
+            accept_event()
+    elif event is InputEventScreenDrag:
+        if _dono == event.index:
+            _update_joystick(event.position)
+            accept_event()
+    elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+        if _viu_toque:
+            return
+        if event.pressed:
+            if _dono == SEM_DONO:
+                _dono = DONO_RATO
+                _is_dragging = true
+                _update_joystick(event.position)
+        elif _dono == DONO_RATO:
             _release_joystick()
         accept_event()
-    elif event is InputEventMouseMotion and _is_dragging:
+    elif event is InputEventMouseMotion:
+        if _viu_toque or _dono != DONO_RATO:
+            return
         _update_joystick(event.position)
         accept_event()
 
@@ -113,6 +146,7 @@ func _update_joystick(pointer_position: Vector2) -> void:
 func _release_joystick() -> void:
     set_process(true)
     touch_index = -1
+    _dono = SEM_DONO
     _is_dragging = false
     movement_vector = Vector2.ZERO
     _target_knob = size * 0.5

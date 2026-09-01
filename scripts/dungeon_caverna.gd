@@ -70,6 +70,34 @@ func _ready() -> void:
     _criar_botao_hud()
 
 
+## A PLANTA, num grid que fecha.
+##
+## A anterior nao fechava. Os modulos do kit medem 20 m (sala grande), 12 m
+## (sala pequena) e 8 m (corredor), e a planta antiga punha corredor em x = 32 e
+## 40 para alcancar uma sala centrada em x = 50: o corredor terminava em 44 e a
+## sala comecava em 40, quatro metros DENTRO um do outro. Media isso em dez
+## juncoes. Modulo dentro de modulo e parede dentro de parede — e como um
+## corredor de quatro metros de vao livre passa a parecer um funil.
+##
+## Aqui cada peca encosta na seguinte com a folga de 0,23 m que o proprio kit
+## desenhou, e nada mais. As contas estao anotadas em cada linha: sempre a
+## borda de quem veio antes.
+##
+## A OUTRA METADE DO PROBLEMA ERA O BICHO. Dois golems nasciam no corredor de
+## entrada, que tem 4 m de vao: com a capsula do golem no meio, sobrava um metro
+## de cada lado e o jogador tinha de raspar na parede para passar. Nenhum bicho
+## nasce em corredor agora — corredor e passagem, sala e onde se briga. E a
+## posicao sai do CENTRO de um modulo de sala, com folga da parede, em vez do
+## cos/sen de indice que a versao anterior usava e que nao sabia onde havia
+## parede.
+
+## Vao livre do corredor, medido na malha: as paredes comem quase metade dos 8 m
+## do modulo. E o numero que decide que corredor nao e lugar de encontro.
+const VAO_DO_CORREDOR := 4.1
+## Folga da parede para qualquer coisa que nasca dentro de uma sala.
+const FOLGA_DA_PAREDE := 3.5
+
+
 func _construir_dungeon() -> void:
     _dungeon = Node3D.new()
     _dungeon.name = "CavernaDaPrimeiraRessonancia"
@@ -78,252 +106,182 @@ func _construir_dungeon() -> void:
     _dungeon.process_mode = Node.PROCESS_MODE_DISABLED
     add_child(_dungeon)
 
-    # --- ESTÁGIO 1: ENTRADA & SALÕES COM CORREDORES AMPLIADOS ---
-    # 1. Câmara de Entrada e Corredor Longo de Entrada (32 metros de imersão)
-    _modulo(SALA_PEQUENA, Vector3(0, 0, 78))
-    _corredor_z([68.0, 60.0, 52.0, 44.0])
-    _modulo(PORTAO, Vector3(0, 0, 39))
+    # ---------------------------------------------------------- ESTAGIO 1
+    # ENTRADA -> corredor curto -> SALA A (primeiro encontro) -> corredor ->
+    # SALAO B (com duas alas de tesouro) -> corredor -> ARENA DO CHEFE.
+    _modulo(SALA_PEQUENA, Vector3(0, 0, 78))          # z 72,0 .. 84,0
+    _corredor_z([68.0, 60.0])                         # z 55,9 .. 72,1
+    _modulo(PORTAO, Vector3(0, 0, 56.0))              # o arco fica na emenda
+    var sala_a := _salao(Vector3(0, 0, 36), 1, 2)     # 20x40   z 15,9 .. 56,1
+    _corredor_z([12.0, 4.0])                          # z -0,1 .. 16,1
+    var salao_b := _salao(Vector3(0, 0, -20), 3, 2)   # 60x40   z -40,1 .. 0,1
 
-    # 2. Grande Salão Central (60m x 40m)
-    _salao(Vector3(0, 0, 18), 3, 2)
+    # Alas: saem da borda x = +-30 do salao, alinhadas com a porta do modulo.
+    #
+    # Camara GRANDE, e nao a pequena. A sala de 12 m tem so 6 m de vao livre
+    # depois das paredes: com um golem e um bau dentro, o jogador nao tinha por
+    # onde circular para lutar — era o mesmo aperto do corredor, com porta.
+    _corredor_x([34.0, 42.0], -10.0)                  # x 29,9 .. 46,1
+    _modulo(SALA_GRANDE_B, Vector3(56, 0, -10))       # x 46,0 .. 66,0
+    _corredor_x([-34.0, -42.0], -30.0)
+    _modulo(SALA_GRANDE_B, Vector3(-56, 0, -30))
 
-    # 3. Asa Leste: Corredor de transição + Câmara de Batalha + Câmara do Tesouro
-    _corredor_x([32.0, 40.0], 18.0)
-    _modulo(SALA_GRANDE_B, Vector3(50, 0, 18))
-    _corredor_z([6.0, -2.0, -10.0], 50.0)
-    _modulo(SALA_PEQUENA_B, Vector3(50, 0, -18))
+    _corredor_z([-44.0, -52.0])                       # z -56,1 .. -39,9
+    _modulo(PORTAO, Vector3(0, 0, -56.0))
+    var arena := _salao(Vector3(0, 0, -76), 3, 2)     # 60x40   z -96,1 .. -55,9
 
-    # 4. Asa Oeste: Corredor de transição + Câmara de Batalha + Câmara do Tesouro
-    _corredor_x([-32.0, -40.0], 18.0)
-    _modulo(SALA_GRANDE_B, Vector3(-50, 0, 18))
-    _corredor_z([30.0, 38.0, 46.0], -50.0)
-    _modulo(SALA_PEQUENA_B, Vector3(-50, 0, 54))
-
-    # 5. Corredor Sul para a Arena do Chefe (32 metros de tensão)
-    _corredor_z([-8.0, -16.0, -24.0, -32.0])
-    _modulo(PORTAO, Vector3(0, 0, -39))
-
-    # 6. Salão da Arena do Chefe (60m x 40m)
-    _salao(Vector3(0, 0, -60), 3, 2)
-
-    # --- LAJE VISUAL E COLISÃO CONTÍNUA (ZERO FRESTAS) ---
-    # A laje cobre toda a extensão da masmorra com colisor e malha de rocha texturizada
-    _laje_visual_e_solida(Vector3(0, -0.2, 10), Vector3(190, 0.4, 200))
-    _cercar(Vector3(0, 0, 10), Vector2(190, 200))
+    _laje_visual_e_solida(Vector3(0, -0.2, -4), Vector3(156, 0.4, 196))
+    _cercar(Vector3(0, 0, -4), Vector2(156, 196))
     _vazio_preto()
 
-    # --- ILUMINAÇÃO & TOCHAS DO ESTÁGIO 1 ---
-    var tochas_estagio_1 := [
-        [-4.7, 76.0, 0.0], [4.7, 76.0, PI],
-        [-3.4, 64.0, 0.0], [3.4, 64.0, PI],
-        [-3.4, 48.0, 0.0], [3.4, 48.0, PI],
-        [-18.0, 34.0, 0.0], [18.0, 34.0, PI],
-        [-18.0, 2.0, 0.0], [18.0, 2.0, PI],
-        [32.0, 15.0, -PI * 0.5], [32.0, 21.0, PI * 0.5],
-        [48.0, 24.0, 0.0], [48.0, 12.0, PI],
-        [47.0, -2.0, 0.0], [53.0, -2.0, PI],
-        [48.0, -14.0, 0.0], [48.0, -22.0, PI],
-        [-32.0, 15.0, -PI * 0.5], [-32.0, 21.0, PI * 0.5],
-        [-48.0, 24.0, 0.0], [-48.0, 12.0, PI],
-        [-47.0, 38.0, 0.0], [-53.0, 38.0, PI],
-        [-48.0, 50.0, 0.0], [-48.0, 58.0, PI],
-        [-3.4, -12.0, 0.0], [3.4, -12.0, PI],
-        [-3.4, -28.0, 0.0], [3.4, -28.0, PI],
-        [-18.0, -44.0, 0.0], [18.0, -44.0, PI],
-        [-18.0, -76.0, 0.0], [18.0, -76.0, PI],
-        [0.0, -78.0, PI]
+    _acender_as_salas(sala_a + salao_b + arena)
+    _acender_o_corredor([Vector3(0, 0, 64), Vector3(0, 0, 8), Vector3(0, 0, -48)])
+    _acender_o_corredor([Vector3(38, 0, -10), Vector3(-38, 0, -30)], true)
+    _acender_as_salas([Vector3(56, 0, -10), Vector3(-56, 0, -30)])
+
+    _enfeitar(sala_a, [Color(0.6, 0.4, 1.0), Color(0.4, 0.7, 1.0)])
+    _enfeitar(salao_b, [Color(0.8, 0.4, 1.0), Color(0.4, 0.8, 1.0), Color(1.0, 0.5, 0.8)])
+    _enfeitar(arena, [Color(1.0, 0.4, 0.7), Color(0.4, 0.7, 1.0)])
+    _enfeitar([Vector3(56, 0, -10), Vector3(-56, 0, -30)], [Color(0.4, 0.9, 1.0)], 6.5)
+
+    # BAUS: um por ala, e o do fundo da arena.
+    _bau(Vector3(56.0, 0.0, -6.0), 350, true)
+    _bau(Vector3(-56.0, 0.0, -26.0), 350, true)
+    _bau(Vector3(0.0, 0.0, -90.0), 600, true)
+
+    # MONSTROS. Nenhum em corredor; todos a partir do centro de um modulo.
+    for onde in [Vector3(-5, 1.1, 48), Vector3(5, 1.1, 40), Vector3(-5, 1.1, 26)]:
+        _shiker(onde, 0)                              # primeiro encontro, leve
+    var guardas_b := [
+        [Vector3(-20, 1.1, -12), 1], [Vector3(20, 1.1, -8), 0],
+        [Vector3(-20, 1.1, -32), 3], [Vector3(0, 1.1, -33), 1],
+        [Vector3(20, 1.1, -31), 3],
     ]
-    for d in tochas_estagio_1:
-        _tocha(Vector3(d[0], 0.0, d[1]), d[2])
+    for g in guardas_b:
+        _shiker(g[0], int(g[1]))
+    _shiker(Vector3(56, 1.1, -14), 3)                 # guarda de cada ala
+    _shiker(Vector3(-56, 1.1, -34), 3)
 
-    # --- CRISTAIS DE RESSONÂNCIA MÁGICA (ATMOSFERA) ---
-    var cristais_e1 := [
-        [Vector3(-3.2, 0.0, 72.0), 0.4, 0.9, Color(0.6, 0.4, 1.0)],
-        [Vector3(3.2, 0.0, 56.0), 1.2, 1.1, Color(0.4, 0.7, 1.0)],
-        [Vector3(-26.0, 0.0, 24.0), 0.8, 1.3, Color(0.8, 0.4, 1.0)],
-        [Vector3(26.0, 0.0, 12.0), -0.5, 1.2, Color(0.4, 0.8, 1.0)],
-        [Vector3(56.0, 0.0, 18.0), 0.3, 1.4, Color(1.0, 0.5, 0.8)],
-        [Vector3(50.0, 0.0, -22.0), -1.1, 1.5, Color(0.4, 0.9, 1.0)],
-        [Vector3(-56.0, 0.0, 18.0), 1.5, 1.4, Color(0.7, 0.3, 1.0)],
-        [Vector3(-50.0, 0.0, 58.0), 0.6, 1.5, Color(0.9, 0.4, 0.9)],
-        [Vector3(-3.2, 0.0, -20.0), 0.2, 1.0, Color(0.4, 0.6, 1.0)],
-        [Vector3(3.2, 0.0, -32.0), -0.7, 1.1, Color(0.8, 0.3, 1.0)],
-        [Vector3(-25.0, 0.0, -68.0), 0.5, 1.6, Color(1.0, 0.4, 0.7)],
-        [Vector3(25.0, 0.0, -68.0), -0.8, 1.6, Color(0.4, 0.7, 1.0)],
-    ]
-    for cr in cristais_e1:
-        _cristal(cr[0], cr[1], cr[2], cr[3])
-
-    # --- SUPRIMENTOS & DECORAÇÕES REALISTAS ---
-    _pilha_provisoes(Vector3(-3.2, 0.0, 68.0), 0.2)
-    _pilha_provisoes(Vector3(3.2, 0.0, 48.0), -0.4)
-    _pilha_provisoes(Vector3(-24.0, 0.0, 32.0), 0.6)
-    _pilha_provisoes(Vector3(24.0, 0.0, 4.0), -0.3)
-    _pilha_provisoes(Vector3(46.0, 0.0, 14.0), 0.5)
-    _pilha_provisoes(Vector3(-46.0, 0.0, 22.0), -0.5)
-    _pilha_provisoes(Vector3(46.0, 0.0, -14.0), 0.8)
-    _pilha_provisoes(Vector3(-46.0, 0.0, 50.0), -0.8)
-    _pilha_provisoes(Vector3(-3.2, 0.0, -16.0), 0.3)
-    _pilha_provisoes(Vector3(3.2, 0.0, -28.0), -0.6)
-    _pilha_provisoes(Vector3(-24.0, 0.0, -56.0), 0.4)
-    _pilha_provisoes(Vector3(24.0, 0.0, -56.0), -0.4)
-
-    _prop(CAVEIRA_MESH, Vector3(6.0, 0.04, -68.0), 0.4, 1.35)
-    _prop(CAVEIRA_MESH, Vector3(-5.0, 0.04, -58.0), -0.7, 1.2)
-    _prop(CAVEIRA_MESH, Vector3(48.0, 0.04, -16.0), 0.3, 1.25)
-    _prop(CAVEIRA_MESH, Vector3(-48.0, 0.04, 52.0), -0.5, 1.25)
-
-    # --- BAÚS DE RECOMPENSA DO ESTÁGIO 1 ---
-    _bau(Vector3(-50.0, 0.0, 18.0), 250, false)
-    _bau(Vector3(50.0, 0.0, 18.0), 350, true)
-    _bau(Vector3(-50.0, 0.0, 54.0), 400, true)
-    _bau(Vector3(50.0, 0.0, -18.0), 400, true)
-    _bau(Vector3(0.0, 0.0, -74.0), 600, true)
-
-    # --- MONSTROS DO ESTÁGIO 1 (SHIKERS & GOLEMS) ---
-    # Golems de guarda logo no corredor de entrada (o jogador encontra imediatamente ao descer!)
-    _shiker(Vector3(0.0, 1.1, 56.0), 3)
-    _shiker(Vector3(0.0, 1.1, 40.0), 3)
-
-    var salas_estagio_1 := [
-        Vector3(-20, 0, 28), Vector3(0, 0, 28), Vector3(20, 0, 28),
-        Vector3(-20, 0, 8), Vector3(20, 0, 8),
-        Vector3(50, 0, 18), Vector3(-50, 0, 18),
-        Vector3(50, 0, -18), Vector3(-50, 0, 54),
-        Vector3(-20, 0, -50), Vector3(20, 0, -50),
-        Vector3(-20, 0, -70), Vector3(20, 0, -70),
-    ]
-    for i in salas_estagio_1.size():
-        var canto := Vector3(cos(float(i) * 1.7) * 4.0, 1.1, sin(float(i) * 2.3) * 4.0)
-        # Nas salas centrais, alas laterais e antes do chefe
-        var tipo_bicho := 3 if (i in [1, 5, 6, 7, 8, 11]) else (0 if i % 2 == 0 else 1)
-        _shiker(salas_estagio_1[i] + canto, tipo_bicho)
-    _vestir_salas(salas_estagio_1)
-
-    # Chefe do Estágio 1 ladeado por Golems de Pedra
-    _shiker(Vector3(-14.0, 1.1, -64.0), 3)
-    _shiker(Vector3(14.0, 1.1, -64.0), 3)
-    var chefe := _shiker(Vector3(0.0, 1.1, -64.0), 2)
+    _shiker(Vector3(-20, 1.1, -68), 3)
+    _shiker(Vector3(20, 1.1, -68), 3)
+    _shiker(Vector3(-16, 1.1, -80), 1)
+    _shiker(Vector3(16, 1.1, -80), 1)
+    var chefe := _shiker(Vector3(0.0, 1.1, -80.0), 2)
     chefe.call_deferred("tornar_super_shiker")
 
+    _vestir_salas(salao_b + arena)
     _construir_segundo_estagio()
 
 
-## O SEGUNDO ESTAGIO, com o salao maior do jogo.
+## O SEGUNDO ESTAGIO: antessala, salao com duas criptas a oeste e o santuario.
 const ESTAGIO_2 := Vector3(0.0, 0.0, -180.0)
-const ENTRADA_ESTAGIO_2 := Vector3(0.0, 1.15, -142.0)
+const ENTRADA_ESTAGIO_2 := Vector3(0.0, 1.15, -144.0)
 
 func _construir_segundo_estagio() -> void:
     var o := ESTAGIO_2
 
-    # 1. Corredor longo de descida ao Estágio 2 (32m)
-    _corredor_z([o.z + 36.0, o.z + 28.0, o.z + 20.0, o.z + 12.0])
-    _modulo(PORTAO, o + Vector3(0, 0, 7))
+    _corredor_z([o.z + 36.0, o.z + 28.0])                 # z o+23,9 .. o+40,1
+    _modulo(PORTAO, o + Vector3(0, 0, 24.0))
+    var antessala := _salao(o + Vector3(0, 0, 4), 1, 2)   # 20x40  z o-16,1 .. o+14,1
+    _corredor_z([o.z - 20.0, o.z - 28.0])                 # z o-32,1 .. o-15,9
+    var salao_c := _salao(o + Vector3(0, 0, -52), 3, 2)   # 60x40  z o-72,1 .. o-31,9
 
-    # 2. Grande Salão Principal do Estágio 2 (60m x 40m)
-    _salao(o + Vector3(0, 0, -14), 3, 2)
+    # As criptas do oeste, uma atras da outra, saindo da borda x = -30.
+    _corredor_x([-34.0, -42.0], o.z - 42.0)               # x -46,1 .. -29,9
+    _modulo(SALA_GRANDE_B, o + Vector3(-56, 0, -42))      # x -66,0 .. -46,0
+    _corredor_x([-70.0, -78.0], o.z - 42.0)               # x -82,1 .. -65,9
+    _modulo(SALA_GRANDE_B, o + Vector3(-92, 0, -42))      # x -102,0 .. -82,0
 
-    # 3. Criptas e Câmaras Ocultas no Oeste com corredor de transição
-    _corredor_x([o.x - 32.0, o.x - 40.0], o.z - 14.0)
-    _modulo(SALA_GRANDE_B, o + Vector3(-52, 0, -14))
-    _corredor_x([o.x - 64.0, o.x - 72.0], o.z - 14.0)
-    _modulo(SALA_GRANDE_B, o + Vector3(-84, 0, -14))
+    _corredor_z([o.z - 76.0, o.z - 84.0])                 # z o-88,1 .. o-71,9
+    _modulo(PORTAO, o + Vector3(0, 0, -88.0))
+    var santuario := _salao(o + Vector3(0, 0, -108), 3, 2)
 
-    # 4. Corredor longo para a Câmara do Guardião Ancestral (32m)
-    _corredor_z([o.z - 40.0, o.z - 48.0, o.z - 56.0, o.z - 64.0])
-    _modulo(PORTAO, o + Vector3(0, 0, -69))
+    _laje_visual_e_solida(o + Vector3(-36, -0.2, -41), Vector3(144, 0.4, 186))
+    _cercar(o + Vector3(-36, 0, -41), Vector2(144, 186))
 
-    # 5. Santuário do Guardião Ancestral (60m x 40m)
-    _salao(o + Vector3(0, 0, -90), 3, 2)
+    _acender_as_salas(antessala + salao_c + santuario
+        + [o + Vector3(-56, 0, -42), o + Vector3(-92, 0, -42)])
+    _acender_o_corredor([o + Vector3(0, 0, 32), o + Vector3(0, 0, -24),
+        o + Vector3(0, 0, -80)])
+    _acender_o_corredor([o + Vector3(-38, 0, -42), o + Vector3(-74, 0, -42)], true)
 
-    # --- LAJE VISUAL E FÍSICA DO ESTÁGIO 2 ---
-    _laje_visual_e_solida(o + Vector3(-20, -0.2, -30), Vector3(230, 0.4, 200))
-    _cercar(o + Vector3(-20, 0, -30), Vector2(230, 200))
+    _enfeitar(antessala, [Color(0.5, 0.8, 1.0), Color(0.9, 0.4, 1.0)])
+    _enfeitar(salao_c, [Color(0.4, 0.9, 0.8), Color(1.0, 0.6, 0.3), Color(0.8, 0.3, 1.0)])
+    _enfeitar([o + Vector3(-56, 0, -42), o + Vector3(-92, 0, -42)],
+        [Color(1.0, 0.3, 0.9), Color(1.0, 0.8, 0.4)])
+    _enfeitar(santuario, [Color(1.0, 0.8, 0.4), Color(0.4, 0.9, 1.0)])
 
-    # --- ILUMINAÇÃO & TOCHAS DO ESTÁGIO 2 ---
-    var tochas_estagio_2 := [
-        [-3.4, 32.0, 0.0], [3.4, 32.0, PI],
-        [-3.4, 16.0, 0.0], [3.4, 16.0, PI],
-        [-27.0, -2.0, 0.0], [27.0, -2.0, PI],
-        [-27.0, -26.0, 0.0], [27.0, -26.0, PI],
-        [-34.0, -10.0, -PI * 0.5], [-34.0, -18.0, PI * 0.5],
-        [-52.0, -2.0, 0.0], [-52.0, -26.0, PI],
-        [-66.0, -10.0, -PI * 0.5], [-66.0, -18.0, PI * 0.5],
-        [-84.0, -2.0, 0.0], [-84.0, -26.0, PI],
-        [-3.4, -44.0, 0.0], [3.4, -44.0, PI],
-        [-3.4, -60.0, 0.0], [3.4, -60.0, PI],
-        [-27.0, -78.0, 0.0], [27.0, -78.0, PI],
-        [-27.0, -102.0, 0.0], [27.0, -102.0, PI],
-        [0.0, -108.0, PI]
-    ]
-    for d in tochas_estagio_2:
-        _tocha(o + Vector3(d[0], 0.0, d[1]), d[2])
-
-    # --- CRISTAIS DO ESTÁGIO 2 (FORMAÇÕES RARAS) ---
-    var cristais_e2 := [
-        [Vector3(3.2, 0.0, 24.0), 0.7, 1.2, Color(0.5, 0.8, 1.0)],
-        [Vector3(-3.2, 0.0, 14.0), -0.5, 1.1, Color(0.9, 0.4, 1.0)],
-        [Vector3(26.0, 0.0, -14.0), 0.3, 1.6, Color(0.4, 0.9, 0.8)],
-        [Vector3(-52.0, 0.0, -6.0), 1.2, 1.5, Color(1.0, 0.6, 0.3)],
-        [Vector3(-84.0, 0.0, -14.0), -0.8, 1.8, Color(1.0, 0.3, 0.9)],
-        [Vector3(-3.2, 0.0, -46.0), 0.4, 1.2, Color(0.4, 0.7, 1.0)],
-        [Vector3(3.2, 0.0, -58.0), -0.9, 1.3, Color(0.8, 0.3, 1.0)],
-        [Vector3(-25.0, 0.0, -96.0), 0.6, 1.8, Color(1.0, 0.8, 0.4)],
-        [Vector3(25.0, 0.0, -96.0), -0.6, 1.8, Color(0.4, 0.9, 1.0)],
-    ]
-    for cr in cristais_e2:
-        _cristal(o + cr[0], cr[1], cr[2], cr[3])
-
-    # --- DECORAÇÕES DO ESTÁGIO 2 ---
-    _pilha_provisoes(o + Vector3(-3.2, 0.0, 26.0), 0.3)
-    _pilha_provisoes(o + Vector3(3.2, 0.0, 18.0), -0.4)
-    _pilha_provisoes(o + Vector3(-24.0, 0.0, -8.0), 0.2)
-    _pilha_provisoes(o + Vector3(23.0, 0.0, -18.0), -0.3)
-    _pilha_provisoes(o + Vector3(-54.0, 0.0, -8.0), 0.4)
-    _pilha_provisoes(o + Vector3(-78.0, 0.0, -18.0), -0.2)
-    _pilha_provisoes(o + Vector3(-3.2, 0.0, -42.0), 0.5)
-    _pilha_provisoes(o + Vector3(3.2, 0.0, -54.0), -0.3)
-    _pilha_provisoes(o + Vector3(-24.0, 0.0, -84.0), 0.4)
-    _pilha_provisoes(o + Vector3(24.0, 0.0, -84.0), -0.4)
-
-    _prop(CAVEIRA_MESH, o + Vector3(-6.0, 0.04, -94.0), 0.7, 1.4)
-    _prop(CAVEIRA_MESH, o + Vector3(5.0, 0.04, -98.0), -0.4, 1.3)
-    _prop(CAVEIRA_MESH, o + Vector3(-82.0, 0.04, -14.0), 0.2, 1.5)
-
-    # --- BAÚS DO ESTÁGIO 2 ---
-    _bau(o + Vector3(-84.0, 0.0, -14.0), 750, true)
-    _bau(o + Vector3(26.0, 0.0, -24.0), 500, true)
+    _bau(o + Vector3(-56.0, 0.0, -38.0), 500, true)
+    _bau(o + Vector3(-92.0, 0.0, -44.0), 750, true)
+    _bau(o + Vector3(26.0, 0.0, -62.0), 500, true)
     # O tesouro do fundo: e ele que registra a incursao como concluida.
-    _bau(o + Vector3(0.0, 0.0, -102.0), 1000, true, true)
+    _bau(o + Vector3(0.0, 0.0, -122.0), 1000, true, true)
 
-    # --- MONSTROS DO ESTÁGIO 2 (GOLEMS CRISTALINOS & COLOSSOS) ---
-    var salas_estagio_2 := [
-        Vector3(-20, 0, -4), Vector3(20, 0, -4), Vector3(-20, 0, -24),
-        Vector3(20, 0, -24), Vector3(0, 0, -14), Vector3(-52, 0, -14),
-        Vector3(-84, 0, -14), Vector3(-20, 0, -80), Vector3(20, 0, -80),
-        Vector3(-20, 0, -100), Vector3(20, 0, -100),
-    ]
-    for i in salas_estagio_2.size():
-        var canto := Vector3(cos(float(i) * 2.1) * 5.0, 1.1, sin(float(i) * 1.3) * 5.0)
-        # Distribui Golems Cristalinos (4), Shikers Anciãos (2) e Colossos (5)
-        var tipo_bicho := 4 if (i in [0, 2, 5, 7]) else (5 if (i in [6, 10]) else 2)
-        _shiker(o + salas_estagio_2[i] + canto, tipo_bicho)
-    var absolutos_2 := []
-    for v in salas_estagio_2:
-        absolutos_2.append(o + v)
-    _vestir_salas(absolutos_2)
+    _shiker(o + Vector3(-5, 1.1, 8), 4)
+    _shiker(o + Vector3(5, 1.1, -6), 4)
+    for g in [[Vector3(-20, 1.1, -44), 4], [Vector3(0, 1.1, -55), 2],
+              [Vector3(20, 1.1, -40), 2], [Vector3(20, 1.1, -62), 4]]:
+        _shiker(o + g[0], int(g[1]))
+    _shiker(o + Vector3(-56, 1.1, -46), 5)
+    _shiker(o + Vector3(-92, 1.1, -38), 4)
+    _shiker(o + Vector3(-92, 1.1, -48), 5)
 
-    # Guardião Ancestral ladeado por Colossos
-    _shiker(o + Vector3(-16.0, 1.1, -94.0), 4)
-    _shiker(o + Vector3(16.0, 1.1, -94.0), 4)
-    var guardiao := _shiker(o + Vector3(0.0, 1.1, -94.0), 5)
+    _shiker(o + Vector3(-20, 1.1, -100), 4)
+    _shiker(o + Vector3(20, 1.1, -100), 4)
+    _shiker(o + Vector3(-16, 1.1, -112), 4)
+    _shiker(o + Vector3(16, 1.1, -112), 4)
+    var guardiao := _shiker(o + Vector3(0.0, 1.1, -112.0), 5)
     guardiao.call_deferred("tornar_super_shiker")
 
-    # Portas de transição entre estágios
-    _porta_de_estagio(Vector3(0.0, 0.0, -80.0), ORIGEM + ENTRADA_ESTAGIO_2,
-        "⬇  DESCER AO SEGUNDO ESTÁGIO")
-    _porta_de_estagio(o + Vector3(0.0, 0.0, 40.0), ORIGEM + Vector3(0.0, 1.15, -48.0),
-        "⬆  VOLTAR AO PRIMEIRO ESTÁGIO")
+    _vestir_salas(salao_c + santuario)
+
+    # Portas de transicao entre estagios, nas bordas de fundo de cada arena.
+    _porta_de_estagio(Vector3(0.0, 0.0, -94.0), ORIGEM + ENTRADA_ESTAGIO_2,
+        "DESCER AO SEGUNDO ESTAGIO")
+    _porta_de_estagio(o + Vector3(0.0, 0.0, 12.0), ORIGEM + Vector3(0.0, 1.15, -70.0),
+        "VOLTAR AO PRIMEIRO ESTAGIO")
+
+
+## Duas tochas por sala, nas paredes laterais — derivadas da planta, e nao de uma
+## lista escrita a mao. A lista antiga tinha 33 posicoes fixas que ja nao batiam
+## com sala nenhuma depois que os modulos se moveram: havia tocha acesa no meio
+## do nada e sala grande sem nenhuma.
+func _acender_as_salas(centros: Array) -> void:
+    for c in centros:
+        var centro: Vector3 = c
+        _tocha(centro + Vector3(-8.6, 0.0, 0.0), 0.0)
+        _tocha(centro + Vector3(8.6, 0.0, 0.0), PI)
+
+
+## Tochas de corredor, uma de cada lado do vao. `deitado` vale para o corredor
+## que corre em X.
+func _acender_o_corredor(pontos: Array, deitado := false) -> void:
+    for p in pontos:
+        var onde: Vector3 = p
+        if deitado:
+            _tocha(onde + Vector3(0.0, 0.0, -3.4), -PI * 0.5)
+            _tocha(onde + Vector3(0.0, 0.0, 3.4), PI * 0.5)
+        else:
+            _tocha(onde + Vector3(-3.4, 0.0, 0.0), 0.0)
+            _tocha(onde + Vector3(3.4, 0.0, 0.0), PI)
+
+
+## Cristal e pilha de provisoes dentro de cada sala, longe da parede e longe do
+## meio (onde o jogador anda e onde o bicho nasce).
+func _enfeitar(centros: Array, cores: Array, alcance := 6.5) -> void:
+    var i := 0
+    for c in centros:
+        var centro: Vector3 = c
+        var cor: Color = cores[i % cores.size()]
+        var giro := float(i) * 1.3
+        _cristal(centro + Vector3(cos(giro) * alcance, 0.0, sin(giro) * alcance),
+            giro, 1.1 + float(i % 3) * 0.2, cor)
+        _pilha_provisoes(centro + Vector3(-cos(giro) * alcance, 0.0, -sin(giro) * alcance),
+            -giro)
+        if i % 3 == 0:
+            _prop(CAVEIRA_MESH, centro + Vector3(sin(giro) * alcance, 0.04,
+                -cos(giro) * alcance), giro, 1.3)
+        i += 1
 
 
 ## Laje visual e sólida: uma base contínua com colisão e malha de rocha texturizada.
@@ -394,13 +352,22 @@ func _corredor_x(posicoes_x: Array, z := 0.0) -> void:
         _modulo(CORREDOR, Vector3(float(x), 0, z), 0.0)
 
 
-func _salao(centro: Vector3, colunas: int, linhas: int) -> void:
+## Monta um salao e DEVOLVE o centro de cada modulo.
+##
+## Devolver a lista e o que permite tocha, cristal e bicho sairem da propria
+## planta. Antes cada um tinha a sua lista de coordenadas escrita a mao, e as
+## tres desencontravam da geometria assim que um modulo saia do lugar.
+func _salao(centro: Vector3, colunas: int, linhas: int) -> Array:
     var lado := 20.0
+    var centros: Array = []
     for i in colunas:
         for j in linhas:
-            _modulo(SALA_GRANDE, Vector3(
+            var onde := Vector3(
                 centro.x + (float(i) - (colunas - 1) * 0.5) * lado, 0,
-                centro.z + (float(j) - (linhas - 1) * 0.5) * lado))
+                centro.z + (float(j) - (linhas - 1) * 0.5) * lado)
+            _modulo(SALA_GRANDE, onde)
+            centros.append(onde)
+    return centros
 
 
 func _porta_de_estagio(onde: Vector3, destino: Vector3, rotulo: String) -> void:

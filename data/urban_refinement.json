@@ -12,58 +12,50 @@
     "travessas": [
      0.0,
      4.0,
-     55.0
+     42.0
     ],
     "pedra": false
    },
    "luzes": [
     [
-     -7,
-     -40
+     -7.0,
+     -38.0
     ],
     [
-     7,
-     -40
+     7.0,
+     -38.0
     ],
     [
-     -7,
-     -16
+     -7.0,
+     -16.0
     ],
     [
-     7,
-     -16
+     7.0,
+     -16.0
     ],
     [
-     -7,
-     16
+     -7.0,
+     28.0
     ],
     [
-     7,
-     16
+     7.0,
+     28.0
     ],
     [
-     -7,
-     40
+     -28.0,
+     -6.5
     ],
     [
-     7,
-     40
+     -28.0,
+     6.5
     ],
     [
-     -36,
-     -6
+     20.0,
+     -6.5
     ],
     [
-     -36,
-     6
-    ],
-    [
-     36,
-     -6
-    ],
-    [
-     36,
-     6
+     20.0,
+     6.5
     ]
    ],
    "tochas": [],
@@ -231,58 +223,50 @@
     "travessas": [
      0.0,
      5.0,
-     52.0
+     44.0
     ],
     "pedra": false
    },
    "luzes": [
     [
-     -8,
-     -36
+     -7.5,
+     -36.0
     ],
     [
-     8,
-     -36
+     7.5,
+     -36.0
     ],
     [
-     -8,
-     -14
+     -7.5,
+     -14.0
     ],
     [
-     8,
-     -14
+     7.5,
+     -14.0
     ],
     [
-     -8,
-     14
+     -7.5,
+     30.0
     ],
     [
-     8,
-     14
+     7.5,
+     30.0
     ],
     [
-     -8,
-     36
+     -30.0,
+     -7.5
     ],
     [
-     8,
-     36
+     -30.0,
+     7.5
     ],
     [
-     -35,
-     -7
+     18.0,
+     -7.5
     ],
     [
-     -35,
-     7
-    ],
-    [
-     35,
-     -7
-    ],
-    [
-     35,
-     7
+     18.0,
+     7.5
     ]
    ],
    "tochas": [],
@@ -301,42 +285,58 @@
     "travessas": [
      8.0,
      4.0,
-     55.0
+     44.0
     ],
     "pedra": false
    },
    "luzes": [
     [
-     -7,
-     -42
+     -7.0,
+     -46.0
     ],
     [
-     7,
-     -42
+     7.0,
+     -46.0
     ],
     [
-     -7,
-     -12
+     -7.0,
+     -24.0
     ],
     [
-     7,
-     -12
+     7.0,
+     -24.0
     ],
     [
-     -30,
-     1
+     -7.0,
+     20.0
     ],
     [
-     -30,
-     15
+     7.0,
+     20.0
     ],
     [
-     30,
-     1
+     -7.0,
+     42.0
     ],
     [
-     30,
-     15
+     7.0,
+     42.0
+    ],
+    [
+     -30.0,
+     1.5
+    ],
+    [
+     -30.0,
+     14.5
+    ],
+    [
+     18.0,
+     1.5
+    ],
+    [
+     18.0,
+     14.5
     ]
    ],
    "tochas": [],
@@ -350,143 +350,239 @@
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     -15,
-     -38
+     -14.0,
+     -15.0
     ],
-    "rotation": 90
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -9.0,
+     -1.0
+    ]
    },
    {
     "tag": "casa_alta",
     "model": "res://models/medieval_house_1.glb",
     "position": [
-     15,
-     -38
+     -22.38,
+     -15.0
     ],
-    "rotation": 270
-   },
-   {
-    "tag": "casarao",
-    "model": "res://models/casarao_madeira.glb",
-    "position": [
-     -15,
-     -16
-    ],
-    "rotation": 90
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -9.0,
+     -1.0
+    ]
    },
    {
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     15,
-     -16
+     -31.39,
+     -15.0
     ],
-    "rotation": 270
-   },
-   {
-    "tag": "casa_pedra",
-    "model": "res://models/casa_pedra.glb",
-    "position": [
-     -15,
-     16
-    ],
-    "rotation": 90
-   },
-   {
-    "tag": "solar",
-    "model": "res://models/casa_solar.glb",
-    "position": [
-     15,
-     16
-    ],
-    "rotation": 270
-   },
-   {
-    "tag": "casa_taipa",
-    "model": "res://models/casa_taipa.glb",
-    "position": [
-     -15,
-     38
-    ],
-    "rotation": 90
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -9.0,
+     -1.0
+    ]
    },
    {
     "tag": "taverna",
     "model": "res://models/taverna.glb",
     "position": [
-     15,
-     38
+     14.0,
+     -15.0
     ],
-    "rotation": 270
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -9.0,
+     -1.0
+    ]
    },
    {
-    "tag": "poco",
-    "model": "res://models/poco_vila.glb",
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
     "position": [
-     0,
-     0
+     22.9,
+     -15.0
     ],
-    "rotation": 0
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -9.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casarao",
+    "model": "res://models/casarao_madeira.glb",
+    "position": [
+     -14.0,
+     15.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     9.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     -24.3,
+     15.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     9.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     14.0,
+     15.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     9.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "solar",
+    "model": "res://models/casa_solar.glb",
+    "position": [
+     27.59,
+     15.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     9.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -16.0,
+     -30.0
+    ],
+    "rotation": 90,
+    "fachada": [
+     "x",
+     -10.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -16.0,
+     -36.67
+    ],
+    "rotation": 90,
+    "fachada": [
+     "x",
+     -10.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     16.0,
+     30.0
+    ],
+    "rotation": 270,
+    "fachada": [
+     "x",
+     10.0,
+     1.0
+    ]
    },
    {
     "tag": "carroca",
     "model": "res://models/carroca_vila.glb",
     "position": [
-     -34,
-     -14
+     -26.0,
+     -20.0
     ],
-    "rotation": 20
+    "rotation": 100
    },
    {
     "tag": "barris",
     "model": "res://models/barris_vila.glb",
     "position": [
-     34,
-     14
+     -23.0,
+     -18.5
     ],
-    "rotation": 0
+    "rotation": 25
    },
    {
     "tag": "caixotes",
     "model": "res://models/caixotes_vila.glb",
     "position": [
-     -33,
-     16
+     25.0,
+     -19.0
     ],
-    "rotation": 0
+    "rotation": 200
+   },
+   {
+    "tag": "barris",
+    "model": "res://models/barris_vila.glb",
+    "position": [
+     24.0,
+     20.0
+    ],
+    "rotation": 310
+   },
+   {
+    "tag": "caixotes",
+    "model": "res://models/caixotes_vila.glb",
+    "position": [
+     -25.0,
+     21.0
+    ],
+    "rotation": 70
    },
    {
     "tag": "banco",
     "model": "res://models/banco_vila.glb",
     "position": [
-     33,
-     -16
+     -8.5,
+     8.5
     ],
-    "rotation": 270
+    "rotation": 315
    },
    {
-    "tag": "pinheiro",
-    "model": "res://models/pine_tree.glb",
+    "tag": "banco",
+    "model": "res://models/banco_vila.glb",
     "position": [
-     -45,
-     -34
+     8.5,
+     8.5
     ],
-    "rotation": 0
+    "rotation": 45
    },
    {
-    "tag": "pinheiro",
-    "model": "res://models/pine_tree.glb",
+    "tag": "poco",
+    "model": "res://models/poco_vila.glb",
     "position": [
-     45,
-     -34
-    ],
-    "rotation": 0
-   },
-   {
-    "tag": "pinheiro",
-    "model": "res://models/pine_tree.glb",
-    "position": [
-     -45,
-     34
+     0.0,
+     0.0
     ],
     "rotation": 0
    },
@@ -494,8 +590,35 @@
     "tag": "pinheiro",
     "model": "res://models/pine_tree.glb",
     "position": [
-     45,
-     34
+     -40.0,
+     -40.0
+    ],
+    "rotation": 0
+   },
+   {
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     40.0,
+     -40.0
+    ],
+    "rotation": 0
+   },
+   {
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     -40.0,
+     40.0
+    ],
+    "rotation": 0
+   },
+   {
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     40.0,
+     40.0
     ],
     "rotation": 0
    }
@@ -1006,6 +1129,15 @@
     ]
    },
    {
+    "tag": "poco",
+    "model": "res://models/poco_vila.glb",
+    "position": [
+     0.0,
+     0.0
+    ],
+    "rotation": 0
+   },
+   {
     "tag": "banco",
     "model": "res://models/banco_vila.glb",
     "position": [
@@ -1137,127 +1269,254 @@
     "tag": "taverna",
     "model": "res://models/taverna.glb",
     "position": [
-     -16,
-     -34
+     -17.0,
+     -17.0
     ],
-    "rotation": 90
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -11.0,
+     -1.0
+    ]
    },
    {
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     16,
-     -34
+     -28.25,
+     -17.0
     ],
-    "rotation": 270
-   },
-   {
-    "tag": "casa_pedra",
-    "model": "res://models/casa_pedra.glb",
-    "position": [
-     -16,
-     -16
-    ],
-    "rotation": 90
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -11.0,
+     -1.0
+    ]
    },
    {
     "tag": "casa_alta",
     "model": "res://models/medieval_house_1.glb",
     "position": [
-     16,
-     -16
+     -37.27,
+     -17.0
     ],
-    "rotation": 270
-   },
-   {
-    "tag": "casarao",
-    "model": "res://models/casarao_madeira.glb",
-    "position": [
-     -16,
-     16
-    ],
-    "rotation": 90
-   },
-   {
-    "tag": "casa_taipa",
-    "model": "res://models/casa_taipa.glb",
-    "position": [
-     16,
-     16
-    ],
-    "rotation": 270
-   },
-   {
-    "tag": "solar",
-    "model": "res://models/casa_solar.glb",
-    "position": [
-     -16,
-     36
-    ],
-    "rotation": 90
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -11.0,
+     -1.0
+    ]
    },
    {
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     16,
-     36
+     17.0,
+     -17.0
     ],
-    "rotation": 270
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -11.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     26.26,
+     -17.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -11.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casarao",
+    "model": "res://models/casarao_madeira.glb",
+    "position": [
+     -17.0,
+     17.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     11.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     -27.3,
+     17.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     11.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "solar",
+    "model": "res://models/casa_solar.glb",
+    "position": [
+     17.0,
+     17.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     11.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_larga",
+    "model": "res://models/medieval_house_3.glb",
+    "position": [
+     30.59,
+     17.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     11.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -17.0,
+     -30.0
+    ],
+    "rotation": 90,
+    "fachada": [
+     "x",
+     -11.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -17.0,
+     -36.67
+    ],
+    "rotation": 90,
+    "fachada": [
+     "x",
+     -11.0,
+     -1.0
+    ]
    },
    {
     "tag": "carroca",
     "model": "res://models/carroca_vila.glb",
     "position": [
-     -34,
-     -10
+     -27.0,
+     -21.0
     ],
-    "rotation": 20
+    "rotation": 110
    },
    {
     "tag": "carroca",
     "model": "res://models/carroca_vila.glb",
     "position": [
-     34,
-     10
+     27.0,
+     21.0
     ],
-    "rotation": 200
+    "rotation": 290
    },
    {
     "tag": "barris",
     "model": "res://models/barris_vila.glb",
     "position": [
-     -30,
-     15
+     -24.0,
+     -19.0
     ],
-    "rotation": 0
+    "rotation": 30
    },
    {
     "tag": "caixotes",
     "model": "res://models/caixotes_vila.glb",
     "position": [
-     30,
-     -15
+     25.0,
+     -20.0
+    ],
+    "rotation": 210
+   },
+   {
+    "tag": "banco",
+    "model": "res://models/banco_vila.glb",
+    "position": [
+     -10.0,
+     10.0
+    ],
+    "rotation": 315
+   },
+   {
+    "tag": "banco",
+    "model": "res://models/banco_vila.glb",
+    "position": [
+     10.0,
+     10.0
+    ],
+    "rotation": 45
+   },
+   {
+    "tag": "poco",
+    "model": "res://models/poco_vila.glb",
+    "position": [
+     0.0,
+     0.0
     ],
     "rotation": 0
    },
    {
-    "tag": "banco",
-    "model": "res://models/banco_vila.glb",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     -13,
-     0
+     -40.0,
+     -38.0
     ],
-    "rotation": 90
+    "rotation": 0
    },
    {
-    "tag": "banco",
-    "model": "res://models/banco_vila.glb",
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
     "position": [
-     13,
-     0
+     40.0,
+     -38.0
     ],
-    "rotation": 270
+    "rotation": 0
+   },
+   {
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     -40.0,
+     38.0
+    ],
+    "rotation": 0
+   },
+   {
+    "tag": "pinheiro",
+    "model": "res://models/pine_tree.glb",
+    "position": [
+     40.0,
+     38.0
+    ],
+    "rotation": 0
    }
   ],
   "arredores_v2": [
@@ -1265,116 +1524,202 @@
     "tag": "casa_pedra",
     "model": "res://models/casa_pedra.glb",
     "position": [
-     -15,
-     -42
+     -15.0,
+     -7.0
     ],
-    "rotation": 90
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -1.0,
+     -1.0
+    ]
    },
    {
     "tag": "casa_alta",
     "model": "res://models/medieval_house_1.glb",
     "position": [
-     15,
-     -42
+     -23.38,
+     -7.0
     ],
-    "rotation": 270
-   },
-   {
-    "tag": "casarao",
-    "model": "res://models/casarao_madeira.glb",
-    "position": [
-     -15,
-     -20
-    ],
-    "rotation": 90
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -1.0,
+     -1.0
+    ]
    },
    {
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     15,
-     -20
+     -32.39,
+     -7.0
     ],
-    "rotation": 270
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -1.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casarao",
+    "model": "res://models/casarao_madeira.glb",
+    "position": [
+     15.0,
+     -7.0
+    ],
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -1.0,
+     -1.0
+    ]
    },
    {
     "tag": "casa_taipa",
     "model": "res://models/casa_taipa.glb",
     "position": [
-     -15,
-     25
+     23.61,
+     -7.0
     ],
-    "rotation": 90
-   },
-   {
-    "tag": "solar",
-    "model": "res://models/casa_solar.glb",
-    "position": [
-     15,
-     25
-    ],
-    "rotation": 270
-   },
-   {
-    "tag": "casa_alta",
-    "model": "res://models/medieval_house_1.glb",
-    "position": [
-     -42,
-     22
-    ],
-    "rotation": 180
-   },
-   {
-    "tag": "casa_pedra",
-    "model": "res://models/casa_pedra.glb",
-    "position": [
-     42,
-     22
-    ],
-    "rotation": 180
-   },
-   {
-    "tag": "casarao",
-    "model": "res://models/casarao_madeira.glb",
-    "position": [
-     -40,
-     42
-    ],
-    "rotation": 0
+    "rotation": 0,
+    "fachada": [
+     "z",
+     -1.0,
+     -1.0
+    ]
    },
    {
     "tag": "casa_larga",
     "model": "res://models/medieval_house_3.glb",
     "position": [
-     40,
-     42
+     -15.0,
+     23.0
     ],
-    "rotation": 0
+    "rotation": 180,
+    "fachada": [
+     "z",
+     17.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_pedra",
+    "model": "res://models/casa_pedra.glb",
+    "position": [
+     -26.61,
+     23.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     17.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "solar",
+    "model": "res://models/casa_solar.glb",
+    "position": [
+     15.0,
+     23.0
+    ],
+    "rotation": 180,
+    "fachada": [
+     "z",
+     17.0,
+     1.0
+    ]
+   },
+   {
+    "tag": "casa_alta",
+    "model": "res://models/medieval_house_1.glb",
+    "position": [
+     -16.0,
+     -34.0
+    ],
+    "rotation": 90,
+    "fachada": [
+     "x",
+     -10.0,
+     -1.0
+    ]
+   },
+   {
+    "tag": "casa_taipa",
+    "model": "res://models/casa_taipa.glb",
+    "position": [
+     -16.0,
+     -40.67
+    ],
+    "rotation": 90,
+    "fachada": [
+     "x",
+     -10.0,
+     -1.0
+    ]
    },
    {
     "tag": "carroca",
     "model": "res://models/carroca_vila.glb",
     "position": [
-     -31,
-     4
+     -26.0,
+     -26.0
     ],
-    "rotation": 80
+    "rotation": 95
    },
    {
     "tag": "barris",
     "model": "res://models/barris_vila.glb",
     "position": [
-     31,
-     2
+     -23.0,
+     -24.0
     ],
-    "rotation": 0
+    "rotation": 20
    },
    {
     "tag": "caixotes",
     "model": "res://models/caixotes_vila.glb",
     "position": [
-     -30,
-     34
+     26.0,
+     -25.0
+    ],
+    "rotation": 205
+   },
+   {
+    "tag": "carroca",
+    "model": "res://models/carroca_vila.glb",
+    "position": [
+     27.0,
+     30.0
+    ],
+    "rotation": 285
+   },
+   {
+    "tag": "banco",
+    "model": "res://models/banco_vila.glb",
+    "position": [
+     -9.0,
+     26.0
+    ],
+    "rotation": 315
+   },
+   {
+    "tag": "banco",
+    "model": "res://models/banco_vila.glb",
+    "position": [
+     9.0,
+     26.0
+    ],
+    "rotation": 45
+   },
+   {
+    "tag": "poco",
+    "model": "res://models/poco_vila.glb",
+    "position": [
+     0.0,
+     0.0
     ],
     "rotation": 0
    },
@@ -1382,8 +1727,8 @@
     "tag": "pinheiro",
     "model": "res://models/pine_tree.glb",
     "position": [
-     -55,
-     -28
+     -42.0,
+     -42.0
     ],
     "rotation": 0
    },
@@ -1391,8 +1736,8 @@
     "tag": "pinheiro",
     "model": "res://models/pine_tree.glb",
     "position": [
-     55,
-     -28
+     42.0,
+     -42.0
     ],
     "rotation": 0
    },
@@ -1400,8 +1745,8 @@
     "tag": "pinheiro",
     "model": "res://models/pine_tree.glb",
     "position": [
-     -56,
-     52
+     -42.0,
+     44.0
     ],
     "rotation": 0
    },
@@ -1409,8 +1754,8 @@
     "tag": "pinheiro",
     "model": "res://models/pine_tree.glb",
     "position": [
-     56,
-     52
+     42.0,
+     44.0
     ],
     "rotation": 0
    }
