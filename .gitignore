@@ -38,3 +38,6 @@ builds/web/*.import
 kenney_modular-dungeon-kit_1.0.zip
 Updated Modular Dungeon*.zip
 *_4k.blend.zip
+
+# Ambiente Python das ferramentas de malha (recriavel, ver NOTAS_CAVALEIRO.md)
+.tools/venv3d/
