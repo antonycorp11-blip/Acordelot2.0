@@ -13,6 +13,10 @@ class_name UiTema
 # ---------------------------------------------------------------- a tela base
 ## A TELA DE PROJETO. Tudo e desenhado nestas medidas e depois escalado para o
 ## aparelho — e o que as telas v3 ja faziam, e agora vale para todas.
+## Pelo caminho, nao pelo nome global: o nome so existe depois que o editor
+## varre o projeto, e isso quebra exportacao limpa.
+const FiligranaScript := preload("res://scripts/ui_filigrana.gd")
+
 const CANVAS := Vector2(1600.0, 900.0)
 
 # -------------------------------------------------------------------- as cores
@@ -150,31 +154,29 @@ static func moldura_da_tela() -> StyleBox:
     return e
 
 
-## Poe os quatro cantos ornamentados do kit sobre um painel, cada um no seu
-## tamanho de arquivo e espelhado para o canto certo. Nada estica.
-static func ornamentar_cantos(pai: Control, nome := "moldura_canto_01") -> void:
-    var tex := arte(nome)
-    if tex == null:
-        return
-    var medida := Vector2(tex.get_width(), tex.get_height())
-    for canto in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
-        var t := TextureRect.new()
-        t.texture = tex
-        t.custom_minimum_size = medida
-        t.size = medida
-        t.flip_h = canto.x == 1
-        t.flip_v = canto.y == 1
-        t.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        t.modulate = Color(1, 1, 1, 0.9)
-        t.anchor_left = float(canto.x)
-        t.anchor_right = float(canto.x)
-        t.anchor_top = float(canto.y)
-        t.anchor_bottom = float(canto.y)
-        t.offset_left = 4.0 if canto.x == 0 else -medida.x - 4.0
-        t.offset_right = t.offset_left + medida.x
-        t.offset_top = 4.0 if canto.y == 0 else -medida.y - 4.0
-        t.offset_bottom = t.offset_top + medida.y
-        pai.add_child(t)
+## O ORNAMENTO DA MOLDURA, DESENHADO.
+##
+## Isto colava `moldura_canto_01.png` nas quatro quinas, cada peca posicionada
+## por um par de offsets calculado a mao. O dono reprovou o resultado — arte
+## fraca e encaixe sempre errado — e a causa e estrutural: quatro pecas soltas
+## contra um retangulo que muda de tamanho nao tem como cair sempre no lugar.
+##
+## Quem desenha agora e `UiFiligrana`, a partir do proprio retangulo do no: fio
+## duplo na borda, cantoneira nas quinas, losango nas juntas e a pauta musical
+## quase apagada atras. Zero textura, zero offset a acertar. A assinatura
+## continua a mesma para nao mexer em quem chama.
+static func ornamentar_cantos(pai: Control, _nome := "") -> void:
+    var filigrana: Control = FiligranaScript.new("borda")
+    filigrana.name = "Filigrana"
+    pai.add_child(filigrana)
+
+
+## A pauta e as notas que correm ATRAS do conteudo. Entra junto com as camadas
+## de fundo, nao com o ornamento da borda.
+static func pauta_de_fundo(pai: Control) -> void:
+    var fundo: Control = FiligranaScript.new("fundo")
+    fundo.name = "PautaDeFundo"
+    pai.add_child(fundo)
 
 
 ## A placa que fica atras do titulo da pagina.
@@ -435,6 +437,11 @@ static func fundo_em_camadas(pai: Control) -> void:
     var grao := _camada(tex_ruido, 0.055)
     grao.stretch_mode = TextureRect.STRETCH_TILE
     pai.add_child(grao)
+
+    # A PAUTA MUSICAL POR TRAS DE TUDO. E o que amarra a interface ao assunto do
+    # jogo sem custar uma imagem: um jogo de educacao musical nao deveria ter
+    # fundo de menu generico.
+    pauta_de_fundo(pai)
 
 
 static func _camada(tex: Texture2D, alfa: float) -> TextureRect:

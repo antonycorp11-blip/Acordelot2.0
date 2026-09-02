@@ -94,7 +94,6 @@ func _montar() -> void:
     decoracao.mouse_filter = Control.MOUSE_FILTER_IGNORE
     moldura.add_child(decoracao)
     T.fundo_em_camadas(decoracao)
-    T.ornamentar_cantos(decoracao)
 
     var coluna := VBoxContainer.new()
     coluna.add_theme_constant_override("separation", 0)
@@ -118,6 +117,13 @@ func _montar() -> void:
 
     coluna.add_child(T.espaco(8))
     coluna.add_child(_montar_navbar())
+
+    # O ORNAMENTO DA MOLDURA VEM POR ULTIMO, e por isso fica por cima.
+    #
+    # Junto com as camadas de fundo ele era tapado pelo primeiro painel que
+    # encostasse na borda — e as paginas ocupam a largura toda. Aqui ele e o
+    # ultimo filho, desenha depois de tudo e nao come toque nenhum.
+    T.ornamentar_cantos(moldura)
     _acomodar()
 
 
