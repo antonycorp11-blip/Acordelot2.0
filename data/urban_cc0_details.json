@@ -1,66 +1,1964 @@
 {
-  "vila_caminho_v2": [
-    {"tag":"barril_cc0","model":"res://models/cc0/urban/Barrel.gltf","position":[-25,-39],"rotation":18},
-    {"tag":"caixote_cc0","model":"res://models/cc0/urban/Crate_Wooden.gltf","position":[25,-37],"rotation":-12},
-    {"tag":"banco_cc0","model":"res://models/cc0/urban/Bench.gltf","position":[-9,-7],"rotation":90},
-    {"tag":"banco_cc0","model":"res://models/cc0/urban/Bench.gltf","position":[9,7],"rotation":270},
-    {"tag":"banca_cc0","model":"res://models/cc0/urban/Stall_Empty.gltf","position":[-29,3],"rotation":90},
-    {"tag":"carroca_cc0","model":"res://models/cc0/village/Prop_Wagon.gltf","position":[31,-27],"rotation":205},
-    {"tag":"cerca_cc0","model":"res://models/cc0/village/Prop_WoodenFence_Single.gltf","position":[-34,-27],"rotation":0},
-    {"tag":"cerca_cc0","model":"res://models/cc0/village/Prop_WoodenFence_Extension2.gltf","position":[-34,28],"rotation":0},
-    {"tag":"caixote_cc0","model":"res://models/cc0/urban/FarmCrate_Apple.gltf","position":[26,20],"rotation":32},
-    {"tag":"barril_cc0","model":"res://models/cc0/urban/Barrel_Apples.gltf","position":[-26,19],"rotation":0},
-    {"tag":"balde_cc0","model":"res://models/cc0/urban/Bucket_Wooden_1.gltf","position":[-22,-15],"rotation":0},
-    {"tag":"videira_cc0","model":"res://models/cc0/village/Prop_Vine2.gltf","position":[-20,17],"rotation":90}
-  ],
-  "acordelot_centro_v2": [
-    {"tag":"banca_cc0","model":"res://models/cc0/urban/Stall_Cart_Empty.gltf","position":[-28,-8],"rotation":0},
-    {"tag":"banca_cc0","model":"res://models/cc0/urban/Stall_Empty.gltf","position":[28,8],"rotation":180},
-    {"tag":"banco_cc0","model":"res://models/cc0/urban/Bench.gltf","position":[-11,-10],"rotation":0},
-    {"tag":"banco_cc0","model":"res://models/cc0/urban/Bench.gltf","position":[11,10],"rotation":180},
-    {"tag":"estandarte_cc0","model":"res://models/cc0/urban/Banner_1.gltf","position":[-10,-52],"rotation":90},
-    {"tag":"estandarte_cc0","model":"res://models/cc0/urban/Banner_2.gltf","position":[10,-52],"rotation":270},
-    {"tag":"estandarte_cc0","model":"res://models/cc0/urban/Banner_1.gltf","position":[-10,52],"rotation":90},
-    {"tag":"estandarte_cc0","model":"res://models/cc0/urban/Banner_2.gltf","position":[10,52],"rotation":270},
-    {"tag":"oficina_cc0","model":"res://models/cc0/urban/Anvil_Log.gltf","position":[-66,-42],"rotation":20},
-    {"tag":"oficina_cc0","model":"res://models/cc0/urban/Workbench.gltf","position":[-65,-36],"rotation":0},
-    {"tag":"carroca_cc0","model":"res://models/cc0/village/Prop_Wagon.gltf","position":[48,38],"rotation":160},
-    {"tag":"barril_cc0","model":"res://models/cc0/urban/Barrel.gltf","position":[48,31],"rotation":0},
-    {"tag":"caixote_cc0","model":"res://models/cc0/urban/Crate_Wooden.gltf","position":[-65,30],"rotation":14},
-    {"tag":"caixote_cc0","model":"res://models/cc0/urban/FarmCrate_Carrot.gltf","position":[48,-30],"rotation":-20},
-    {"tag":"barril_cc0","model":"res://models/cc0/urban/Barrel_Apples.gltf","position":[-65,-30],"rotation":0},
-    {"tag":"banca_cc0","model":"res://models/cc0/urban/Stall_Empty.gltf","position":[-42,8],"rotation":180},
-    {"tag":"banca_cc0","model":"res://models/cc0/urban/Stall_Empty.gltf","position":[42,-8],"rotation":0},
-    {"tag":"banco_cc0","model":"res://models/cc0/urban/Bench.gltf","position":[-34,8],"rotation":180},
-    {"tag":"banco_cc0","model":"res://models/cc0/urban/Bench.gltf","position":[34,-8],"rotation":0},
-    {"tag":"bau_cc0","model":"res://models/cc0/urban/Chest_Wood.gltf","position":[-58,48],"rotation":90},
-    {"tag":"mesa_cc0","model":"res://models/cc0/urban/Table_Large.gltf","position":[48,-57],"rotation":0},
-    {"tag":"videira_cc0","model":"res://models/cc0/village/Prop_Vine1.gltf","position":[-54,-20],"rotation":0},
-    {"tag":"videira_cc0","model":"res://models/cc0/village/Prop_Vine4.gltf","position":[54,20],"rotation":180},
-    {"tag":"cerca_cc0","model":"res://models/cc0/village/Prop_WoodenFence_Extension1.gltf","position":[-69,8],"rotation":90},
-    {"tag":"cerca_cc0","model":"res://models/cc0/village/Prop_WoodenFence_Extension1.gltf","position":[50,-9],"rotation":90}
-  ],
-  "mercado_caminho_v2": [
-    {"tag":"banca_cc0","model":"res://models/cc0/urban/Stall_Empty.gltf","position":[-29,-5],"rotation":90},
-    {"tag":"banca_cc0","model":"res://models/cc0/urban/Stall_Cart_Empty.gltf","position":[29,5],"rotation":270},
-    {"tag":"caixote_cc0","model":"res://models/cc0/urban/FarmCrate_Apple.gltf","position":[-27,10],"rotation":18},
-    {"tag":"caixote_cc0","model":"res://models/cc0/urban/FarmCrate_Carrot.gltf","position":[27,-10],"rotation":-18},
-    {"tag":"barril_cc0","model":"res://models/cc0/urban/Barrel_Apples.gltf","position":[-29,18],"rotation":0},
-    {"tag":"barril_cc0","model":"res://models/cc0/urban/Barrel.gltf","position":[29,-18],"rotation":0},
-    {"tag":"banco_cc0","model":"res://models/cc0/urban/Bench.gltf","position":[-9,9],"rotation":0},
-    {"tag":"banco_cc0","model":"res://models/cc0/urban/Bench.gltf","position":[9,-9],"rotation":180},
-    {"tag":"carroca_cc0","model":"res://models/cc0/village/Prop_Wagon.gltf","position":[-36,34],"rotation":70},
-    {"tag":"estandarte_cc0","model":"res://models/cc0/urban/Banner_1.gltf","position":[-8,-42],"rotation":90},
-    {"tag":"estandarte_cc0","model":"res://models/cc0/urban/Banner_2.gltf","position":[8,-42],"rotation":270}
-  ],
-  "arredores_v2": [
-    {"tag":"oficina_cc0","model":"res://models/cc0/urban/Workbench.gltf","position":[-31,-8],"rotation":90},
-    {"tag":"oficina_cc0","model":"res://models/cc0/urban/Anvil_Log.gltf","position":[-34,-4],"rotation":45},
-    {"tag":"carroca_cc0","model":"res://models/cc0/village/Prop_Wagon.gltf","position":[32,17],"rotation":190},
-    {"tag":"caixote_cc0","model":"res://models/cc0/urban/FarmCrate_Empty.gltf","position":[-31,31],"rotation":12},
-    {"tag":"barril_cc0","model":"res://models/cc0/urban/Barrel.gltf","position":[31,31],"rotation":0},
-    {"tag":"cerca_cc0","model":"res://models/cc0/village/Prop_WoodenFence_Extension2.gltf","position":[-52,5],"rotation":90},
-    {"tag":"cerca_cc0","model":"res://models/cc0/village/Prop_WoodenFence_Extension2.gltf","position":[52,5],"rotation":90},
-    {"tag":"balde_cc0","model":"res://models/cc0/urban/Bucket_Wooden_1.gltf","position":[22,-21],"rotation":0}
-  ]
+ "vila_caminho_v2": [
+  {
+   "tag": "barril_cc0",
+   "model": "res://models/cc0/urban/Barrel.gltf",
+   "position": [
+    -25,
+    -39
+   ],
+   "rotation": 18
+  },
+  {
+   "tag": "caixote_cc0",
+   "model": "res://models/cc0/urban/Crate_Wooden.gltf",
+   "position": [
+    25,
+    -37
+   ],
+   "rotation": -12
+  },
+  {
+   "tag": "banco_cc0",
+   "model": "res://models/cc0/urban/Bench.gltf",
+   "position": [
+    -9,
+    -7
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "banco_cc0",
+   "model": "res://models/cc0/urban/Bench.gltf",
+   "position": [
+    9,
+    7
+   ],
+   "rotation": 270
+  },
+  {
+   "tag": "banca_cc0",
+   "model": "res://models/cc0/urban/Stall_Empty.gltf",
+   "position": [
+    -29,
+    3
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "carroca_cc0",
+   "model": "res://models/cc0/village/Prop_Wagon.gltf",
+   "position": [
+    31,
+    -27
+   ],
+   "rotation": 205
+  },
+  {
+   "tag": "cerca_cc0",
+   "model": "res://models/cc0/village/Prop_WoodenFence_Single.gltf",
+   "position": [
+    -34,
+    -27
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "cerca_cc0",
+   "model": "res://models/cc0/village/Prop_WoodenFence_Extension2.gltf",
+   "position": [
+    -34,
+    28
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "caixote_cc0",
+   "model": "res://models/cc0/urban/FarmCrate_Apple.gltf",
+   "position": [
+    26,
+    20
+   ],
+   "rotation": 32
+  },
+  {
+   "tag": "barril_cc0",
+   "model": "res://models/cc0/urban/Barrel_Apples.gltf",
+   "position": [
+    -26,
+    19
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "balde_cc0",
+   "model": "res://models/cc0/urban/Bucket_Wooden_1.gltf",
+   "position": [
+    -22,
+    -15
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "videira_cc0",
+   "model": "res://models/cc0/village/Prop_Vine2.gltf",
+   "position": [
+    -20,
+    17
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    -10.1,
+    -23.8
+   ],
+   "rotation": 295.6,
+   "scale": 1.19
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    -5.3,
+    -19.4
+   ],
+   "rotation": 170.2,
+   "scale": 1.09
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -24.0,
+    -24.7
+   ],
+   "rotation": 71.1,
+   "scale": 1.07
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -20.3,
+    -5.2
+   ],
+   "rotation": 28.4,
+   "scale": 1.05
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    -31.6,
+    -4.4
+   ],
+   "rotation": 60.9,
+   "scale": 0.91
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -23.7,
+    -6.9
+   ],
+   "rotation": 234.9,
+   "scale": 1.05
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    22.2,
+    -23.2
+   ],
+   "rotation": 254.2,
+   "scale": 1.29
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    17.3,
+    -25.3
+   ],
+   "rotation": 45.9,
+   "scale": 1.09
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    11.3,
+    -25.2
+   ],
+   "rotation": 4.8,
+   "scale": 1.3
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    21.6,
+    -7.3
+   ],
+   "rotation": 75.3,
+   "scale": 1.14
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    29.8,
+    -10.8
+   ],
+   "rotation": 355.3,
+   "scale": 0.96
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -12.9,
+    3.5
+   ],
+   "rotation": 94.8,
+   "scale": 0.97
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -19.8,
+    5.4
+   ],
+   "rotation": 356.6,
+   "scale": 0.85
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -11.3,
+    26.6
+   ],
+   "rotation": 351.6,
+   "scale": 0.99
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -34.1,
+    16.3
+   ],
+   "rotation": 202.6,
+   "scale": 1.04
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -30.8,
+    9.1
+   ],
+   "rotation": 180.8,
+   "scale": 0.96
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    4.9,
+    20.7
+   ],
+   "rotation": 268.6,
+   "scale": 1.16
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    18.7,
+    5.0
+   ],
+   "rotation": 244.4,
+   "scale": 1.13
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    27.4,
+    25.6
+   ],
+   "rotation": 79.0,
+   "scale": 1.06
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    31.3,
+    24.1
+   ],
+   "rotation": 237.8,
+   "scale": 1.25
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    24.6,
+    5.5
+   ],
+   "rotation": 287.8,
+   "scale": 0.86
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    -24.3,
+    -28.8
+   ],
+   "rotation": 193.0,
+   "scale": 0.9
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -8.3,
+    -30.8
+   ],
+   "rotation": 138.3,
+   "scale": 0.98
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -8.3,
+    -40.0
+   ],
+   "rotation": 260.9,
+   "scale": 1.18
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    8.1,
+    24.0
+   ],
+   "rotation": 228.5,
+   "scale": 0.94
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    6.3,
+    27.8
+   ],
+   "rotation": 142.2,
+   "scale": 1.06
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    25.5,
+    32.7
+   ],
+   "rotation": 85.2,
+   "scale": 1.0
+  }
+ ],
+ "acordelot_centro_v2": [
+  {
+   "tag": "banca_cc0",
+   "model": "res://models/cc0/urban/Stall_Cart_Empty.gltf",
+   "position": [
+    -28,
+    -8
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "banca_cc0",
+   "model": "res://models/cc0/urban/Stall_Empty.gltf",
+   "position": [
+    28,
+    8
+   ],
+   "rotation": 180
+  },
+  {
+   "tag": "banco_cc0",
+   "model": "res://models/cc0/urban/Bench.gltf",
+   "position": [
+    -11,
+    -10
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "banco_cc0",
+   "model": "res://models/cc0/urban/Bench.gltf",
+   "position": [
+    11,
+    10
+   ],
+   "rotation": 180
+  },
+  {
+   "tag": "estandarte_cc0",
+   "model": "res://models/cc0/urban/Banner_1.gltf",
+   "position": [
+    -10,
+    -52
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "estandarte_cc0",
+   "model": "res://models/cc0/urban/Banner_2.gltf",
+   "position": [
+    10,
+    -52
+   ],
+   "rotation": 270
+  },
+  {
+   "tag": "estandarte_cc0",
+   "model": "res://models/cc0/urban/Banner_1.gltf",
+   "position": [
+    -10,
+    52
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "estandarte_cc0",
+   "model": "res://models/cc0/urban/Banner_2.gltf",
+   "position": [
+    10,
+    52
+   ],
+   "rotation": 270
+  },
+  {
+   "tag": "oficina_cc0",
+   "model": "res://models/cc0/urban/Anvil_Log.gltf",
+   "position": [
+    -66,
+    -42
+   ],
+   "rotation": 20
+  },
+  {
+   "tag": "oficina_cc0",
+   "model": "res://models/cc0/urban/Workbench.gltf",
+   "position": [
+    -65,
+    -36
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "carroca_cc0",
+   "model": "res://models/cc0/village/Prop_Wagon.gltf",
+   "position": [
+    48,
+    38
+   ],
+   "rotation": 160
+  },
+  {
+   "tag": "barril_cc0",
+   "model": "res://models/cc0/urban/Barrel.gltf",
+   "position": [
+    48,
+    31
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "caixote_cc0",
+   "model": "res://models/cc0/urban/Crate_Wooden.gltf",
+   "position": [
+    -65,
+    30
+   ],
+   "rotation": 14
+  },
+  {
+   "tag": "caixote_cc0",
+   "model": "res://models/cc0/urban/FarmCrate_Carrot.gltf",
+   "position": [
+    48,
+    -30
+   ],
+   "rotation": -20
+  },
+  {
+   "tag": "barril_cc0",
+   "model": "res://models/cc0/urban/Barrel_Apples.gltf",
+   "position": [
+    -65,
+    -30
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "banca_cc0",
+   "model": "res://models/cc0/urban/Stall_Empty.gltf",
+   "position": [
+    -42,
+    8
+   ],
+   "rotation": 180
+  },
+  {
+   "tag": "banca_cc0",
+   "model": "res://models/cc0/urban/Stall_Empty.gltf",
+   "position": [
+    42,
+    -8
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "banco_cc0",
+   "model": "res://models/cc0/urban/Bench.gltf",
+   "position": [
+    -34,
+    8
+   ],
+   "rotation": 180
+  },
+  {
+   "tag": "banco_cc0",
+   "model": "res://models/cc0/urban/Bench.gltf",
+   "position": [
+    34,
+    -8
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "bau_cc0",
+   "model": "res://models/cc0/urban/Chest_Wood.gltf",
+   "position": [
+    -58,
+    48
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "mesa_cc0",
+   "model": "res://models/cc0/urban/Table_Large.gltf",
+   "position": [
+    48,
+    -57
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "videira_cc0",
+   "model": "res://models/cc0/village/Prop_Vine1.gltf",
+   "position": [
+    -54,
+    -20
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "videira_cc0",
+   "model": "res://models/cc0/village/Prop_Vine4.gltf",
+   "position": [
+    54,
+    20
+   ],
+   "rotation": 180
+  },
+  {
+   "tag": "cerca_cc0",
+   "model": "res://models/cc0/village/Prop_WoodenFence_Extension1.gltf",
+   "position": [
+    -69,
+    8
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "cerca_cc0",
+   "model": "res://models/cc0/village/Prop_WoodenFence_Extension1.gltf",
+   "position": [
+    50,
+    -9
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -11.3,
+    -19.4
+   ],
+   "rotation": 170.2,
+   "scale": 1.2
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -9.5,
+    -15.1
+   ],
+   "rotation": 136.0,
+   "scale": 1.12
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -40.8,
+    -4.5
+   ],
+   "rotation": 97.6,
+   "scale": 1.12
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -36.4,
+    -5.1
+   ],
+   "rotation": 44.9,
+   "scale": 1.21
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -51.6,
+    -7.2
+   ],
+   "rotation": 189.4,
+   "scale": 1.08
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -47.6,
+    -7.0
+   ],
+   "rotation": 194.5,
+   "scale": 1.16
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    15.7,
+    -5.5
+   ],
+   "rotation": 134.4,
+   "scale": 1.28
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    27.7,
+    -4.1
+   ],
+   "rotation": 316.0,
+   "scale": 1.17
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    40.0,
+    -4.5
+   ],
+   "rotation": 86.0,
+   "scale": 0.99
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    56.9,
+    -10.7
+   ],
+   "rotation": 252.7,
+   "scale": 0.96
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    50.2,
+    -24.5
+   ],
+   "rotation": 79.5,
+   "scale": 1.21
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -25.8,
+    3.9
+   ],
+   "rotation": 301.2,
+   "scale": 1.21
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -20.2,
+    2.6
+   ],
+   "rotation": 290.1,
+   "scale": 1.04
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -49.8,
+    5.9
+   ],
+   "rotation": 340.2,
+   "scale": 0.96
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -58.3,
+    20.0
+   ],
+   "rotation": 3.6,
+   "scale": 1.03
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    14.4,
+    21.0
+   ],
+   "rotation": 328.3,
+   "scale": 1.01
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    15.9,
+    8.3
+   ],
+   "rotation": 57.4,
+   "scale": 1.01
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    24.8,
+    5.3
+   ],
+   "rotation": 52.3,
+   "scale": 1.12
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    39.9,
+    5.8
+   ],
+   "rotation": 248.0,
+   "scale": 1.18
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -19.1,
+    -39.2
+   ],
+   "rotation": 126.3,
+   "scale": 1.26
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -7.6,
+    -23.4
+   ],
+   "rotation": 93.6,
+   "scale": 1.26
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    -29.6,
+    -42.1
+   ],
+   "rotation": 82.3,
+   "scale": 1.12
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -25.9,
+    -40.7
+   ],
+   "rotation": 284.1,
+   "scale": 1.07
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -37.5,
+    -42.0
+   ],
+   "rotation": 263.7,
+   "scale": 1.07
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -49.9,
+    -40.0
+   ],
+   "rotation": 322.8,
+   "scale": 1.24
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -42.5,
+    -41.6
+   ],
+   "rotation": 7.7,
+   "scale": 1.2
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    9.2,
+    -40.4
+   ],
+   "rotation": 61.0,
+   "scale": 0.94
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    23.6,
+    -39.2
+   ],
+   "rotation": 169.7,
+   "scale": 1.06
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    34.6,
+    -42.3
+   ],
+   "rotation": 202.9,
+   "scale": 0.96
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    40.9,
+    -40.2
+   ],
+   "rotation": 206.5,
+   "scale": 1.12
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    52.0,
+    -30.1
+   ],
+   "rotation": 333.2,
+   "scale": 0.97
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    51.2,
+    -36.1
+   ],
+   "rotation": 358.2,
+   "scale": 1.04
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -32.7,
+    -51.4
+   ],
+   "rotation": 178.6,
+   "scale": 1.05
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    -43.1,
+    -52.0
+   ],
+   "rotation": 56.7,
+   "scale": 1.02
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    24.4,
+    -52.6
+   ],
+   "rotation": 28.8,
+   "scale": 0.98
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    32.8,
+    -53.0
+   ],
+   "rotation": 358.8,
+   "scale": 1.3
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    37.0,
+    -52.6
+   ],
+   "rotation": 51.2,
+   "scale": 0.94
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    55.7,
+    -58.8
+   ],
+   "rotation": 282.2,
+   "scale": 0.93
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    54.7,
+    -54.8
+   ],
+   "rotation": 48.0,
+   "scale": 0.92
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    51.7,
+    -51.8
+   ],
+   "rotation": 259.9,
+   "scale": 1.16
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -14.0,
+    42.2
+   ],
+   "rotation": 48.2,
+   "scale": 1.3
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -20.7,
+    39.3
+   ],
+   "rotation": 103.0,
+   "scale": 1.15
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -43.5,
+    41.1
+   ],
+   "rotation": 295.0,
+   "scale": 0.95
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -56.1,
+    30.6
+   ],
+   "rotation": 64.1,
+   "scale": 1.17
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -49.9,
+    40.2
+   ],
+   "rotation": 215.5,
+   "scale": 0.88
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    7.1,
+    24.2
+   ],
+   "rotation": 105.2,
+   "scale": 1.3
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    12.0,
+    39.9
+   ],
+   "rotation": 34.8,
+   "scale": 1.07
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    18.7,
+    42.3
+   ],
+   "rotation": 270.5,
+   "scale": 1.22
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    22.6,
+    41.4
+   ],
+   "rotation": 240.1,
+   "scale": 0.86
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    30.2,
+    38.7
+   ],
+   "rotation": 186.3,
+   "scale": 1.09
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    34.4,
+    39.1
+   ],
+   "rotation": 85.2,
+   "scale": 1.01
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    38.7,
+    41.5
+   ],
+   "rotation": 331.5,
+   "scale": 1.29
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -28.3,
+    50.3
+   ],
+   "rotation": 104.6,
+   "scale": 1.27
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    -33.3,
+    53.2
+   ],
+   "rotation": 31.5,
+   "scale": 1.14
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -38.3,
+    51.3
+   ],
+   "rotation": 99.6,
+   "scale": 1.12
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -51.8,
+    54.4
+   ],
+   "rotation": 59.5,
+   "scale": 1.21
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -43.3,
+    51.4
+   ],
+   "rotation": 283.8,
+   "scale": 1.09
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    37.6,
+    50.2
+   ],
+   "rotation": 100.3,
+   "scale": 0.96
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    43.0,
+    52.1
+   ],
+   "rotation": 177.9,
+   "scale": 1.07
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    34.2,
+    52.0
+   ],
+   "rotation": 171.6,
+   "scale": 0.98
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -10.2,
+    -65.9
+   ],
+   "rotation": 34.0,
+   "scale": 1.2
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    -15.4,
+    -48.3
+   ],
+   "rotation": 295.0,
+   "scale": 0.96
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    6.8,
+    -60.5
+   ],
+   "rotation": 50.9,
+   "scale": 1.27
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    9.1,
+    -65.2
+   ],
+   "rotation": 30.1,
+   "scale": 0.92
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -20.1,
+    49.3
+   ],
+   "rotation": 45.6,
+   "scale": 1.3
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -6.6,
+    57.8
+   ],
+   "rotation": 328.3,
+   "scale": 1.31
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    7.7,
+    65.7
+   ],
+   "rotation": 211.6,
+   "scale": 0.95
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    5.3,
+    56.9
+   ],
+   "rotation": 260.8,
+   "scale": 1.0
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    21.3,
+    48.5
+   ],
+   "rotation": 121.5,
+   "scale": 1.09
+  }
+ ],
+ "mercado_caminho_v2": [
+  {
+   "tag": "banca_cc0",
+   "model": "res://models/cc0/urban/Stall_Empty.gltf",
+   "position": [
+    -29,
+    -5
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "banca_cc0",
+   "model": "res://models/cc0/urban/Stall_Cart_Empty.gltf",
+   "position": [
+    29,
+    5
+   ],
+   "rotation": 270
+  },
+  {
+   "tag": "caixote_cc0",
+   "model": "res://models/cc0/urban/FarmCrate_Apple.gltf",
+   "position": [
+    -27,
+    10
+   ],
+   "rotation": 18
+  },
+  {
+   "tag": "caixote_cc0",
+   "model": "res://models/cc0/urban/FarmCrate_Carrot.gltf",
+   "position": [
+    27,
+    -10
+   ],
+   "rotation": -18
+  },
+  {
+   "tag": "barril_cc0",
+   "model": "res://models/cc0/urban/Barrel_Apples.gltf",
+   "position": [
+    -29,
+    18
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "barril_cc0",
+   "model": "res://models/cc0/urban/Barrel.gltf",
+   "position": [
+    29,
+    -18
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "banco_cc0",
+   "model": "res://models/cc0/urban/Bench.gltf",
+   "position": [
+    -9,
+    9
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "banco_cc0",
+   "model": "res://models/cc0/urban/Bench.gltf",
+   "position": [
+    9,
+    -9
+   ],
+   "rotation": 180
+  },
+  {
+   "tag": "carroca_cc0",
+   "model": "res://models/cc0/village/Prop_Wagon.gltf",
+   "position": [
+    -36,
+    34
+   ],
+   "rotation": 70
+  },
+  {
+   "tag": "estandarte_cc0",
+   "model": "res://models/cc0/urban/Banner_1.gltf",
+   "position": [
+    -8,
+    -42
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "estandarte_cc0",
+   "model": "res://models/cc0/urban/Banner_2.gltf",
+   "position": [
+    8,
+    -42
+   ],
+   "rotation": 270
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -23.6,
+    -6.9
+   ],
+   "rotation": 175.0,
+   "scale": 1.25
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -15.6,
+    -5.2
+   ],
+   "rotation": 214.0,
+   "scale": 1.31
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -29.3,
+    -27.8
+   ],
+   "rotation": 103.6,
+   "scale": 1.0
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -34.4,
+    -7.7
+   ],
+   "rotation": 96.5,
+   "scale": 1.03
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -33.6,
+    -25.2
+   ],
+   "rotation": 304.9,
+   "scale": 0.86
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -42.8,
+    -25.4
+   ],
+   "rotation": 52.3,
+   "scale": 1.12
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    15.5,
+    -25.6
+   ],
+   "rotation": 241.9,
+   "scale": 1.13
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    20.8,
+    -26.2
+   ],
+   "rotation": 255.2,
+   "scale": 0.95
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    34.3,
+    -14.6
+   ],
+   "rotation": 191.8,
+   "scale": 0.99
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    32.1,
+    -22.5
+   ],
+   "rotation": 5.2,
+   "scale": 1.0
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -24.1,
+    27.1
+   ],
+   "rotation": 237.8,
+   "scale": 1.13
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -11.6,
+    26.6
+   ],
+   "rotation": 49.8,
+   "scale": 1.16
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -17.3,
+    6.0
+   ],
+   "rotation": 193.3,
+   "scale": 1.17
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -36.3,
+    11.3
+   ],
+   "rotation": 185.7,
+   "scale": 1.08
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    -29.3,
+    26.0
+   ],
+   "rotation": 21.1,
+   "scale": 1.19
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    12.5,
+    6.5
+   ],
+   "rotation": 111.9,
+   "scale": 0.96
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    20.2,
+    6.3
+   ],
+   "rotation": 82.3,
+   "scale": 1.12
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    17.9,
+    28.4
+   ],
+   "rotation": 337.4,
+   "scale": 1.12
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    33.2,
+    6.6
+   ],
+   "rotation": 320.1,
+   "scale": 1.24
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    36.9,
+    26.2
+   ],
+   "rotation": 317.8,
+   "scale": 0.91
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    28.4,
+    27.6
+   ],
+   "rotation": 33.7,
+   "scale": 1.16
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    -7.8,
+    -30.1
+   ],
+   "rotation": 232.1,
+   "scale": 1.05
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    -24.5,
+    -26.3
+   ],
+   "rotation": 107.8,
+   "scale": 1.16
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -25.6,
+    -40.5
+   ],
+   "rotation": 96.1,
+   "scale": 1.2
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -24.7,
+    -34.2
+   ],
+   "rotation": 295.2,
+   "scale": 1.28
+  }
+ ],
+ "arredores_v2": [
+  {
+   "tag": "oficina_cc0",
+   "model": "res://models/cc0/urban/Workbench.gltf",
+   "position": [
+    -31,
+    -8
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "oficina_cc0",
+   "model": "res://models/cc0/urban/Anvil_Log.gltf",
+   "position": [
+    -34,
+    -4
+   ],
+   "rotation": 45
+  },
+  {
+   "tag": "carroca_cc0",
+   "model": "res://models/cc0/village/Prop_Wagon.gltf",
+   "position": [
+    32,
+    17
+   ],
+   "rotation": 190
+  },
+  {
+   "tag": "caixote_cc0",
+   "model": "res://models/cc0/urban/FarmCrate_Empty.gltf",
+   "position": [
+    -31,
+    31
+   ],
+   "rotation": 12
+  },
+  {
+   "tag": "barril_cc0",
+   "model": "res://models/cc0/urban/Barrel.gltf",
+   "position": [
+    31,
+    31
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "cerca_cc0",
+   "model": "res://models/cc0/village/Prop_WoodenFence_Extension2.gltf",
+   "position": [
+    -52,
+    5
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "cerca_cc0",
+   "model": "res://models/cc0/village/Prop_WoodenFence_Extension2.gltf",
+   "position": [
+    52,
+    5
+   ],
+   "rotation": 90
+  },
+  {
+   "tag": "balde_cc0",
+   "model": "res://models/cc0/urban/Bucket_Wooden_1.gltf",
+   "position": [
+    22,
+    -21
+   ],
+   "rotation": 0
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    -15.0,
+    -16.4
+   ],
+   "rotation": 128.7,
+   "scale": 0.9
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -7.6,
+    -12.7
+   ],
+   "rotation": 183.6,
+   "scale": 1.0
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -21.2,
+    -15.5
+   ],
+   "rotation": 277.5,
+   "scale": 1.04
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -25.2,
+    -15.3
+   ],
+   "rotation": 84.2,
+   "scale": 0.89
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -30.4,
+    -17.3
+   ],
+   "rotation": 202.9,
+   "scale": 0.87
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -30.6,
+    4.2
+   ],
+   "rotation": 209.2,
+   "scale": 0.94
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -26.8,
+    2.0
+   ],
+   "rotation": 264.7,
+   "scale": 0.95
+  },
+  {
+   "tag": "banco_vazio",
+   "model": "res://models/banco_vila.glb",
+   "position": [
+    23.0,
+    -16.5
+   ],
+   "rotation": 268.5,
+   "scale": 1.11
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    15.4,
+    5.3
+   ],
+   "rotation": 270.0,
+   "scale": 1.05
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    19.4,
+    4.7
+   ],
+   "rotation": 174.9,
+   "scale": 1.08
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    31.1,
+    -11.5
+   ],
+   "rotation": 358.2,
+   "scale": 1.04
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    29.0,
+    0.0
+   ],
+   "rotation": 183.7,
+   "scale": 1.19
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -20.7,
+    31.2
+   ],
+   "rotation": 246.5,
+   "scale": 0.87
+  },
+  {
+   "tag": "pinheiro_vazio",
+   "model": "res://models/pine_tree.glb",
+   "position": [
+    -21.6,
+    13.6
+   ],
+   "rotation": 234.6,
+   "scale": 0.9
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    -13.4,
+    12.7
+   ],
+   "rotation": 164.8,
+   "scale": 1.18
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -26.6,
+    32.1
+   ],
+   "rotation": 199.1,
+   "scale": 1.15
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -35.5,
+    23.2
+   ],
+   "rotation": 256.8,
+   "scale": 1.26
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    20.7,
+    31.7
+   ],
+   "rotation": 216.9,
+   "scale": 1.1
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    12.5,
+    11.6
+   ],
+   "rotation": 141.6,
+   "scale": 1.05
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    5.3,
+    21.0
+   ],
+   "rotation": 179.8,
+   "scale": 1.2
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -14.7,
+    -24.5
+   ],
+   "rotation": 156.4,
+   "scale": 1.21
+  },
+  {
+   "tag": "arbusto_vazio",
+   "model": "res://models/fantasy_bush_1787078968444.glb",
+   "position": [
+    -23.8,
+    -30.1
+   ],
+   "rotation": 322.6,
+   "scale": 1.08
+  },
+  {
+   "tag": "caixotes_vazio",
+   "model": "res://models/caixotes_vila.glb",
+   "position": [
+    -8.0,
+    -37.4
+   ],
+   "rotation": 327.8,
+   "scale": 1.06
+  },
+  {
+   "tag": "barris_vazio",
+   "model": "res://models/barris_vila.glb",
+   "position": [
+    -8.5,
+    -43.2
+   ],
+   "rotation": 279.4,
+   "scale": 1.09
+  }
+ ]
 }

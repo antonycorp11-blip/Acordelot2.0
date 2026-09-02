@@ -243,34 +243,44 @@ func _ao_terminar_animacao(nome: StringName) -> void:
     _animador.play("wins/parado", MISTURA)
 
 ## Skill 1 — Pulso de Comando: onda curta que interrompe o grupo ao redor.
+## Skill 1 — Sopro Dissonante: empurra e deixa LENTO.
+##
+## As tres habilidades ja aplicavam controle e nenhuma dizia isso na tela. Agora
+## cada uma tem um efeito com nome proprio e o bicho anuncia qual levou: esta
+## tira metade da velocidade por quatro segundos, o que muda como voce se
+## posiciona em vez de so empurrar.
 func ativar_aura_azul() -> void:
     if _atacando:
         return
     _cantar()
-    _mostrar_onda(6.0, Color(0.25, 0.78, 1.0))
+    _mostrar_onda(6.6, Color(0.25, 0.78, 1.0))
+    _fagulhas_da_voz(Color(0.35, 0.82, 1.0), 34)
     for bicho in get_tree().get_nodes_in_group("bicho"):
-        if is_instance_valid(bicho) and global_position.distance_to(bicho.global_position) <= 6.0:
+        if is_instance_valid(bicho) and global_position.distance_to(bicho.global_position) <= 6.6:
             var afastar: Vector3 = (bicho.global_position - global_position).normalized()
-            bicho.levar_dano(_dano_atual() * 0.80, afastar)
+            bicho.levar_dano(_dano_atual() * 0.95, afastar)
             if bicho.has_method("aplicar_controle"):
-                bicho.aplicar_controle(1.55, afastar, 2.0)
+                bicho.aplicar_controle(4.0, afastar, 2.4, 0.5,
+                    "LENTO", Color(0.35, 0.82, 1.0))
 
 ## Skill 2 — Coro Prisional: puxa inimigos proximos para o centro e silencia.
 func ativar_espada_gigante() -> void:
     if _atacando:
         return
     _cantar()
-    _mostrar_onda(7.4, Color(0.72, 0.34, 1.0))
+    _mostrar_onda(7.8, Color(0.72, 0.34, 1.0))
     _mostrar_coro()
+    _fagulhas_da_voz(Color(0.78, 0.42, 1.0), 46)
     for bicho in get_tree().get_nodes_in_group("bicho"):
         if not is_instance_valid(bicho):
             continue
         var ate: Vector3 = bicho.global_position - global_position
         ate.y = 0.0
-        if ate.length() <= 7.4:
-            bicho.levar_dano(_dano_atual(), Vector3.ZERO)
+        if ate.length() <= 7.8:
+            bicho.levar_dano(_dano_atual() * 1.15, Vector3.ZERO)
             if bicho.has_method("aplicar_controle"):
-                bicho.aplicar_controle(2.4, -ate.normalized(), 5.5)
+                bicho.aplicar_controle(2.6, -ate.normalized(), 5.5, 0.0,
+                    "PRESO", Color(0.78, 0.42, 1.0))
 
 ## Skill 3 — Climax da Voz: rajada direcionada, dano e forte afastamento.
 func lancar_raio_kamehameha(direcao := Vector3.ZERO) -> void:
@@ -278,8 +288,49 @@ func lancar_raio_kamehameha(direcao := Vector3.ZERO) -> void:
         return
     _cantar()
     var frente := direcao.normalized() if direcao.length_squared() > 0.01 else global_basis.z.normalized()
-    _atingir_cone(2.0, 16.0, 82.0, 1.25, frente, 10.0)
+    _atingir_cone(2.3, 17.0, 82.0, 1.6, frente, 11.0)
     _mostrar_climax(frente)
+    _fagulhas_da_voz(Color(1.0, 0.86, 0.42), 40)
+
+## A VOZ DEIXA RASTRO. Um pulso de fagulhas subindo do chao em volta da Wins,
+## na cor da habilidade: e o que separa uma skill da outra de relance, antes
+## mesmo de o nome do efeito aparecer na cabeca do bicho.
+func _fagulhas_da_voz(cor: Color, quantas: int) -> void:
+    var p := CPUParticles3D.new()
+    p.amount = quantas
+    p.lifetime = 0.9
+    p.one_shot = true
+    p.explosiveness = 0.85
+    p.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+    p.emission_ring_axis = Vector3.UP
+    p.emission_ring_radius = 1.7
+    p.emission_ring_inner_radius = 0.5
+    p.emission_ring_height = 0.3
+    p.direction = Vector3.UP
+    p.spread = 12.0
+    p.initial_velocity_min = 2.2
+    p.initial_velocity_max = 5.0
+    p.gravity = Vector3(0.0, -1.4, 0.0)
+    p.scale_amount_min = 0.35
+    p.scale_amount_max = 0.9
+    var q := QuadMesh.new()
+    q.size = Vector2(0.24, 0.24)
+    var m := StandardMaterial3D.new()
+    m.albedo_texture = load("res://textures/brilho_poste.png")
+    m.albedo_color = cor
+    m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+    m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+    m.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    q.material = m
+    p.mesh = q
+    p.position.y = 0.1
+    add_child(p)
+    p.emitting = true
+    get_tree().create_timer(1.6).timeout.connect(func():
+        if is_instance_valid(p): p.queue_free())
+
 
 func _cantar() -> void:
     _atacando = true
@@ -341,7 +392,8 @@ func _atingir_cone(mult: float, alcance: float, abertura: float, controle: float
             continue
         bicho.levar_dano(_dano_atual() * mult, ate.normalized())
         if controle > 0.0 and bicho.has_method("aplicar_controle"):
-            bicho.aplicar_controle(controle, ate.normalized(), empurrao)
+            bicho.aplicar_controle(controle, ate.normalized(), empurrao, 0.0,
+                "SILENCIADO", Color(1.0, 0.86, 0.42))
 
 func _dano_atual() -> float:
     var progresso := get_node_or_null("/root/Progresso")

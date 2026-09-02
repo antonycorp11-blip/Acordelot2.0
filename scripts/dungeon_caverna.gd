@@ -172,17 +172,17 @@ func _construir_dungeon() -> void:
 
     # MONSTROS. Nenhum em corredor — corredor e passagem, sala e onde se briga.
     for onde in [Vector3(-9, 1.1, 40), Vector3(9, 1.1, 30), Vector3(-6, 1.1, 22)]:
-        _shiker(onde, 0)
+        _ninho(onde, 0, 3, 4.5)
     for g in [[Vector3(-14, 1.1, -16), 1], [Vector3(14, 1.1, -14), 0],
               [Vector3(-15, 1.1, -40), 3], [Vector3(0, 1.1, -42), 1],
               [Vector3(15, 1.1, -38), 3]]:
-        _shiker(g[0], int(g[1]))
-    _shiker(Vector3(60, 1.1, -34), 3)
-    _shiker(Vector3(-60, 1.1, -34), 3)
-    _shiker(Vector3(-16, 1.1, -88), 3)
-    _shiker(Vector3(16, 1.1, -88), 3)
-    _shiker(Vector3(-13, 1.1, -106), 1)
-    _shiker(Vector3(13, 1.1, -106), 1)
+        _ninho(g[0], int(g[1]), 4, 5.5)
+    _ninho(Vector3(60, 1.1, -34), 3, 4, 5.0)
+    _ninho(Vector3(-60, 1.1, -34), 3, 4, 5.0)
+    _ninho(Vector3(-16, 1.1, -88), 3, 4, 5.0)
+    _ninho(Vector3(16, 1.1, -88), 3, 4, 5.0)
+    _ninho(Vector3(-13, 1.1, -106), 1, 3, 4.0)
+    _ninho(Vector3(13, 1.1, -106), 1, 3, 4.0)
     var chefe := _shiker(Vector3(0.0, 1.1, -106.0), 2)
     chefe.call_deferred("tornar_super_shiker")
 
@@ -233,15 +233,15 @@ func _construir_segundo_estagio() -> void:
     # O tesouro do fundo: e ele que registra a incursao como concluida.
     _bau(o + Vector3(0.0, 0.0, -110.0), 1000, true, true)
 
-    _shiker(o + Vector3(-8, 1.1, 52), 4)
-    _shiker(o + Vector3(8, 1.1, 42), 4)
+    _ninho(o + Vector3(-8, 1.1, 52), 4, 4, 5.0)
+    _ninho(o + Vector3(8, 1.1, 42), 4, 4, 5.0)
     for g in [[Vector3(-16, 1.1, -4), 4], [Vector3(0, 1.1, -22), 2],
               [Vector3(16, 1.1, -2), 2], [Vector3(16, 1.1, -28), 4]]:
-        _shiker(o + g[0], int(g[1]))
-    _shiker(o + Vector3(-66, 1.1, -20), 5)
-    _shiker(o + Vector3(-122, 1.1, -8), 4)
-    _shiker(o + Vector3(-122, 1.1, -20), 5)
-    _shiker(o + Vector3(-18, 1.1, -80), 4)
+        _ninho(o + g[0], int(g[1]), 4, 5.5)
+    _ninho(o + Vector3(-66, 1.1, -20), 5, 3, 5.0)
+    _ninho(o + Vector3(-122, 1.1, -8), 4, 4, 5.0)
+    _ninho(o + Vector3(-122, 1.1, -20), 5, 3, 5.0)
+    _ninho(o + Vector3(-18, 1.1, -80), 4, 4, 5.0)
     _shiker(o + Vector3(18, 1.1, -80), 4)
     _shiker(o + Vector3(-14, 1.1, -98), 4)
     _shiker(o + Vector3(14, 1.1, -98), 4)
@@ -675,6 +675,28 @@ func _bau(onde: Vector3, recompensa: int, ouro: bool, fecha_a_dg := false) -> vo
     _dungeon.add_child(bau)
 
 
+## UM NINHO NO LUGAR DE UM BICHO SOLTO.
+##
+## A caverna tinha um monstro por marca — quinze no mapa inteiro. Numa sala de
+## vinte metros isso e um bicho a cada tanto, e o jogador atravessa a briga sem
+## nunca estar cercado. O ninho espalha companheiros em volta da marca e SO
+## aceita ponto que esteja sobre o piso da sala, entao ninguem nasce dentro da
+## pedra nem no corredor.
+func _ninho(centro: Vector3, tipo: int, quantos := 3, raio := 5.0) -> void:
+    _shiker(centro, tipo)
+    var voltas := 0
+    var postos := 0
+    while postos < quantos - 1 and voltas < quantos * 8:
+        voltas += 1
+        var angulo: float = TAU * float(voltas) / 7.0 + randf() * 0.9
+        var d: float = raio * (0.45 + randf() * 0.55)
+        var ponto := centro + Vector3(cos(angulo) * d, 0.0, sin(angulo) * d)
+        if not _sobre_piso_da_dg(ponto, 1.2):
+            continue
+        _shiker(ponto, tipo)
+        postos += 1
+
+
 func _shiker(onde: Vector3, tipo: int) -> Node3D:
     var inimigo := BICHO.new()
     inimigo.position = onde
@@ -800,11 +822,32 @@ func _criar_botao_hud() -> void:
 ## O nivel recomendado nao existia e era a pergunta que a tela nao respondia:
 ## "eu aguento esta?". Sem ela a escolha de dificuldade e chute, e chute errado
 ## na Cacofonia custa a incursao inteira.
+## A CAVERNA MEDE QUEM ENTRA.
+##
+## A tabela era fixa: numeros escritos para o comeco do jogo, multiplicados por
+## uma constante. O heroi cresce sem teto — nivel, atributo, Eco, talento — e a
+## caverna ficava parada, ate virar hitkill. Agora o multiplicador nasce do
+## PODER DE LUTA no momento de entrar, e estes tres valores sao so o quanto
+## acima ou abaixo do seu proprio nivel voce quer brigar.
 const DIFICULDADES := [
-    ["SERENA", 0.75, 1.0, 1, "Para conhecer a caverna. Shikers com menos vida."],
-    ["DISSONANTE", 1.0, 1.4, 5, "O equilibrio da caverna. Recompensa cheia."],
-    ["CACOFONIA", 2.6, 2.2, 12, "Batem mais forte e aguentam mais. Espolio dobrado."],
+    ["SERENA", 0.70, 1.0, 1, "Abaixo do seu poder. Para conhecer a caverna."],
+    ["DISSONANTE", 1.0, 1.5, 5, "Na medida do seu poder. Recompensa cheia."],
+    ["CACOFONIA", 1.45, 2.4, 12, "Acima do seu poder. Espólio dobrado."],
 ]
+
+## O QUE A CAVERNA QUER DE CADA BICHO, por tipo de monstro.
+##
+## `GOLPES` e quantos golpes do heroi ele deve aguentar; `SEGUNDOS` e em quanto
+## tempo ele derrubaria o heroi sozinho, coladinho, sem ninguem se mexer. Os dois
+## sao lidos com o ataque, a vida e a DEFESA reais de quem esta entrando, entao
+## a briga tem o mesmo peso no nivel 5 e no 50 — que era o pedido.
+##
+## O Colosso derruba em quinze segundos: com tres deles numa sala, ficar parado
+## e morte em cinco. E ai que entra desviar e escolher quem cai primeiro.
+const GOLPES := [2, 3, 5, 4, 6, 9]
+const SEGUNDOS := [44.0, 34.0, 24.0, 30.0, 21.0, 15.0]
+## Quanto tempo passa entre dois golpes de um bicho, medido: animacao + pausa.
+const CADENCIA := 2.4
 
 const KIT_UI := "res://textures/ui/kit/"
 const FONTE_UI := "res://fontes/Cinzel.ttf"
@@ -961,7 +1004,19 @@ func _cartao_dificuldade(i: int) -> Control:
     topo.add_child(nivel)
 
     var numeros := Label.new()
-    numeros.text = "vida ×%.2f      espólio ×%.1f" % [float(d[1]), float(d[2])]
+    # O cartao mostra o que a caverna vai VALER para este heroi, e nao a
+    # constante da tabela: e a diferenca entre "×1,45" e "vida ×3,1  dano ×5,2".
+    # O cartao diz o que a caverna vai custar A VOCE, e nao a constante da
+    # tabela: quantos golpes um Shiker aguenta e em quanto tempo um Colosso te
+    # derruba, com os seus numeros de agora.
+    var leve := alvos_do_bicho(0, i)
+    var pesado := alvos_do_bicho(5, i)
+    var prog_cartao := get_node_or_null("/root/Progresso")
+    var atq: float = 50.0
+    if prog_cartao and prog_cartao.has_method("estatisticas"):
+        atq = maxf(float(prog_cartao.estatisticas().get("ataque", 50)), 1.0)
+    numeros.text = "Shiker: %d golpes   ·   Colosso derruba em %ds   ·   espólio ×%.1f" % [
+        int(ceil(float(leve[0]) / atq)), int(SEGUNDOS[5] / float(d[1])), float(d[2])]
     numeros.add_theme_font_size_override("font_size", 13)
     numeros.add_theme_color_override("font_color", Color(0.76, 0.82, 0.90))
     dentro.add_child(numeros)
@@ -1063,24 +1118,35 @@ func _atualizar_cartoes() -> void:
                 Color(1.0, 0.95, 0.80) if escolhido else Color(0.72, 0.78, 0.86))
 
 
-## A CAVERNA ACOMPANHA QUEM ENTRA.
-##
-## A tabela de dificuldade era fixa: "Cacofonia" multiplicava por 1,6 a vida de
-## um bicho cujos numeros foram escritos para o nivel 1. O heroi cresce sem
-## teto — vida, ataque e sobretudo DEFESA, que corta o dano recebido pela
-## metade la pelo nivel 20 — e a caverna ficava para tras sozinha. Um fator de
-## nivel modesto, com teto, mantem a briga de pe sem virar parede: no nivel 1
-## nada muda, e no 20 o bicho vale uma vez e meia.
-func _aplicar_dificuldade() -> void:
-    var fator: float = float(DIFICULDADES[_dificuldade][1])
+## O que um bicho deste tipo deve valer para o heroi que esta entrando.
+## Devolve [vida, dano por golpe ja considerando a defesa dele].
+func alvos_do_bicho(tipo: int, qual := -1) -> Array:
+    var tier: float = float(DIFICULDADES[qual if qual >= 0 else _dificuldade][1])
     var progresso := get_node_or_null("/root/Progresso")
-    if progresso:
-        fator *= minf(1.0 + float(progresso.nivel - 1) * 0.04, 1.9)
+    if progresso == null or not progresso.has_method("estatisticas"):
+        return [200.0, 20.0]
+    var e: Dictionary = progresso.estatisticas()
+    var ataque: float = maxf(float(e.get("ataque", 50)), 1.0)
+    var vida_heroi: float = maxf(float(e.get("vida_maxima", 300)), 1.0)
+    var defesa: float = maxf(float(e.get("defesa", 0)), 0.0)
+    var i: int = clampi(tipo, 0, GOLPES.size() - 1)
+
+    var vida: float = ataque * float(GOLPES[i]) * tier
+    # O dano e calculado ANTES da defesa cortar: o alvo e o que o jogador vai
+    # sentir, nao o numero cru. Sem isto, defesa alta zerava a ameaca.
+    var passa: float = 100.0 / (100.0 + defesa)
+    var por_segundo: float = vida_heroi / (SEGUNDOS[i] / tier)
+    var dano: float = por_segundo * CADENCIA / maxf(passa, 0.05)
+    return [vida, dano]
+
+
+func _aplicar_dificuldade() -> void:
     for inimigo in _inimigos:
         if not is_instance_valid(inimigo):
             continue
-        if inimigo.has_method("ajustar_por_dificuldade"):
-            inimigo.ajustar_por_dificuldade(fator)
+        if inimigo.has_method("calibrar"):
+            var alvo := alvos_do_bicho(int(inimigo.monster_type))
+            inimigo.calibrar(float(alvo[0]), float(alvo[1]))
 
 
 func _alternar() -> void:

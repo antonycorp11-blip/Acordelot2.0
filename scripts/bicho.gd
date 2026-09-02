@@ -493,6 +493,7 @@ func _physics_process(delta: float) -> void:
         _ja_pisou = true
         
     var agora := Time.get_ticks_msec() / 1000.0
+    _atualizar_marca_de_controle()
     if agora < _atordoado_ate:
         velocity.x = move_toward(velocity.x, 0.0, 12.0 * delta)
         velocity.z = move_toward(velocity.z, 0.0, 12.0 * delta)
@@ -509,7 +510,7 @@ func _physics_process(delta: float) -> void:
         var dist := ate.length()
         
         if dist < raio_de_atencao and dist > DISTANCIA_DE_PARADA:
-            desejada = ate.normalized() * _velocidade
+            desejada = ate.normalized() * _velocidade * _freio_da_lentidao()
             var target_angle := atan2(ate.x, ate.z)
             rotation.y = lerp_angle(rotation.y, target_angle, 8.0 * delta)
         elif dist <= DISTANCIA_DE_PARADA:
@@ -755,23 +756,123 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
 
 ## Controle de grupo leve usado pela classe da Voz. Reusa o mesmo relógio de
 ## atordoamento da IA e a velocidade existente; não cria estado ou física nova.
-func aplicar_controle(duracao: float, direcao := Vector3.ZERO, forca := 0.0) -> void:
-    _atordoado_ate = maxf(_atordoado_ate,
-        Time.get_ticks_msec() / 1000.0 + maxf(duracao, 0.0))
+## CONTROLE QUE SE VE.
+##
+## As tres habilidades da Wins ja atordoavam e empurravam desde sempre, e nada
+## na tela dizia isso: o bicho parava por dois segundos e o jogador nao tinha
+## como saber se foi a habilidade, se travou ou se ele estava so pensando. Uma
+## habilidade de controle que nao se anuncia nao existe para quem joga.
+##
+## Agora o efeito tem NOME e prazo em cima da cabeca, cor propria e uma barra
+## que escorre com o tempo restante. `lentidao` e o segundo tipo de controle:
+## em vez de parar, o bicho anda devagar — e isso tambem aparece.
+func aplicar_controle(duracao: float, direcao := Vector3.ZERO, forca := 0.0,
+        lentidao := 0.0, rotulo := "ATORDOADO", cor := Color(0.55, 0.80, 1.0)) -> void:
+    var agora := Time.get_ticks_msec() / 1000.0
+    if lentidao > 0.0:
+        _lentidao = maxf(_lentidao, clampf(lentidao, 0.0, 0.9))
+        _lentidao_ate = maxf(_lentidao_ate, agora + maxf(duracao, 0.0))
+    else:
+        _atordoado_ate = maxf(_atordoado_ate, agora + maxf(duracao, 0.0))
     if direcao.length_squared() > 0.01 and forca > 0.0:
         var plano := direcao
         plano.y = 0.0
         velocity += plano.normalized() * forca
+    _mostrar_controle(rotulo, cor, duracao)
 
 
-## A dificuldade tambem pesa no BRACO, nao so na vida e na habilidade. Antes o
-## nivel mais duro deixava o bicho mais resistente e batia igual — e com o golpe
-## corpo a corpo zerado, "Cacofonia" era so uma briga mais longa.
-func ajustar_por_dificuldade(fator: float) -> void:
-    vida_maxima *= fator
+var _lentidao := 0.0
+var _lentidao_ate := -1.0
+var _marca_de_controle: Label3D = null
+var _barra_de_controle: MeshInstance3D = null
+var _controle_ate := -1.0
+var _controle_total := 1.0
+
+func _mostrar_controle(rotulo: String, cor: Color, duracao: float) -> void:
+    if _suporte_da_barra == null:
+        return
+    if _marca_de_controle == null or not is_instance_valid(_marca_de_controle):
+        _marca_de_controle = Label3D.new()
+        _marca_de_controle.font_size = 15
+        _marca_de_controle.outline_size = 5
+        _marca_de_controle.outline_modulate = Color(0.02, 0.02, 0.06, 0.95)
+        _marca_de_controle.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+        _marca_de_controle.position.y = 0.30
+        _suporte_da_barra.add_child(_marca_de_controle)
+        _barra_de_controle = _quadro(cor, LARGURA_DA_BARRA - 0.03, 0.035, 2)
+        _barra_de_controle.position.y = 0.20
+        _suporte_da_barra.add_child(_barra_de_controle)
+    _marca_de_controle.text = rotulo
+    _marca_de_controle.modulate = cor
+    _marca_de_controle.visible = true
+    _barra_de_controle.visible = true
+    var mat := (_barra_de_controle.mesh as QuadMesh).material as StandardMaterial3D
+    if mat:
+        mat.albedo_color = Color(cor.r, cor.g, cor.b, 0.95)
+    _controle_total = maxf(duracao, 0.05)
+    _controle_ate = Time.get_ticks_msec() / 1000.0 + _controle_total
+
+
+## Escorre a barrinha do efeito e some quando acaba. Roda junto com a vigia que
+## ja existe, entao nao acrescenta um _process por bicho.
+func _freio_da_lentidao() -> float:
+    if _lentidao <= 0.0:
+        return 1.0
+    if Time.get_ticks_msec() / 1000.0 >= _lentidao_ate:
+        _lentidao = 0.0
+        return 1.0
+    return 1.0 - _lentidao
+
+
+func _atualizar_marca_de_controle() -> void:
+    if _marca_de_controle == null or not is_instance_valid(_marca_de_controle):
+        return
+    if not _marca_de_controle.visible:
+        return
+    var falta: float = _controle_ate - Time.get_ticks_msec() / 1000.0
+    if falta <= 0.0:
+        _marca_de_controle.visible = false
+        _barra_de_controle.visible = false
+        return
+    var quadro := _barra_de_controle.mesh as QuadMesh
+    if quadro:
+        var largura: float = (LARGURA_DA_BARRA - 0.03) * clampf(falta / _controle_total, 0.0, 1.0)
+        quadro.size = Vector2(maxf(largura, 0.001), 0.035)
+        quadro.center_offset = Vector3(
+            -(LARGURA_DA_BARRA - 0.03 - largura) * 0.5, 0.0, 0.004)
+
+
+## VIDA E BRACO CRESCEM EM RITMOS DIFERENTES.
+##
+## Um so fator para os dois deixava a escolha ruim: subir o bastante para o
+## bicho ameacar transformava cada briga numa serragem de dez minutos. O dano
+## acompanha o poder do jogador quase por inteiro — e o que faz ter de desviar —
+## e a vida acompanha bem menos, para a luta continuar tendo fim.
+## CALIBRAGEM POR ALVO, e nao por multiplicador.
+##
+## Multiplicar a tabela nunca ia fechar: o heroi cresce em ataque E em defesa, e
+## a defesa corta o dano recebido pela metade — entao um fator que deixasse o
+## bicho ameacador transformava a vida dele numa parede de trinta e sete golpes.
+## Aqui a caverna diz o que QUER: quantos golpes este bicho deve aguentar deste
+## heroi, e em quantos segundos ele derrubaria este heroi sozinho. Os numeros
+## saem disso. Serve para qualquer construcao de personagem, hoje e no nivel 60.
+func calibrar(vida_alvo: float, dano_por_golpe: float) -> void:
+    var proporcao: float = dano_por_golpe / maxf(_dano_do_corpo, 0.01)
+    vida_maxima = maxf(vida_alvo, 1.0)
     vida = vida_maxima
-    _forca_da_area *= fator
-    _dano_do_corpo *= fator
+    _dano_do_corpo = dano_por_golpe
+    _forca_da_area *= proporcao
+    if _hp_label_3d:
+        _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+    _pintar_barra()
+
+
+func ajustar_por_dificuldade(fator_vida: float, fator_dano := -1.0) -> void:
+    var dano: float = fator_vida if fator_dano < 0.0 else fator_dano
+    vida_maxima *= fator_vida
+    vida = vida_maxima
+    _forca_da_area *= dano
+    _dano_do_corpo *= dano
     if _hp_label_3d:
         _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
     _pintar_barra()
