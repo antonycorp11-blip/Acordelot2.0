@@ -803,7 +803,7 @@ func _criar_botao_hud() -> void:
 const DIFICULDADES := [
     ["SERENA", 0.75, 1.0, 1, "Para conhecer a caverna. Shikers com menos vida."],
     ["DISSONANTE", 1.0, 1.4, 5, "O equilibrio da caverna. Recompensa cheia."],
-    ["CACOFONIA", 1.6, 2.2, 12, "Batem mais forte e aguentam mais. Espolio dobrado."],
+    ["CACOFONIA", 2.6, 2.2, 12, "Batem mais forte e aguentam mais. Espolio dobrado."],
 ]
 
 const KIT_UI := "res://textures/ui/kit/"
@@ -1063,8 +1063,19 @@ func _atualizar_cartoes() -> void:
                 Color(1.0, 0.95, 0.80) if escolhido else Color(0.72, 0.78, 0.86))
 
 
+## A CAVERNA ACOMPANHA QUEM ENTRA.
+##
+## A tabela de dificuldade era fixa: "Cacofonia" multiplicava por 1,6 a vida de
+## um bicho cujos numeros foram escritos para o nivel 1. O heroi cresce sem
+## teto — vida, ataque e sobretudo DEFESA, que corta o dano recebido pela
+## metade la pelo nivel 20 — e a caverna ficava para tras sozinha. Um fator de
+## nivel modesto, com teto, mantem a briga de pe sem virar parede: no nivel 1
+## nada muda, e no 20 o bicho vale uma vez e meia.
 func _aplicar_dificuldade() -> void:
     var fator: float = float(DIFICULDADES[_dificuldade][1])
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso:
+        fator *= minf(1.0 + float(progresso.nivel - 1) * 0.04, 1.9)
     for inimigo in _inimigos:
         if not is_instance_valid(inimigo):
             continue

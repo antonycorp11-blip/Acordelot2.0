@@ -79,6 +79,7 @@ func _ready() -> void:
     var cfg: Dictionary = MONSTROS_CONFIG[monster_type % MONSTROS_CONFIG.size()]
     _prefixo_anim = str(cfg.get("prefixo", "shiker"))
     vida_maxima = float(cfg.get("hp", 200.0))
+    _dano_do_corpo = float(cfg.get("dano", 14.0))
     vida = vida_maxima
     _velocidade = float(cfg.get("velocidade", VELOCIDADE))
     
@@ -269,8 +270,35 @@ func _golpear() -> void:
     if _anim_player.has_animation(chave):
         _animacao_atual = anim_golpe
         _anim_player.play(chave, 0.15)
-        _ataque_ate = Time.get_ticks_msec() / 1000.0 \
-            + _anim_player.get_animation(chave).length + PAUSA_DO_GOLPE
+        var duracao: float = _anim_player.get_animation(chave).length
+        _ataque_ate = Time.get_ticks_msec() / 1000.0 + duracao + PAUSA_DO_GOLPE
+        _marcar_impacto(duracao * FRACAO_DO_IMPACTO)
+
+
+## O GOLPE CORPO A CORPO NAO MACHUCAVA NINGUEM.
+##
+## `_golpear` tocava a animacao e parava ali: o bicho levantava a garra, o
+## jogador via o ataque acontecer e a vida nao mexia. O unico dano que existia
+## vinha da habilidade em area, e ela so roda para `monster_type >= 1` — ou
+## seja, o Shiker comum, que e o bicho que o jogador mais encontra, nunca causou
+## dano nenhum em toda a existencia do jogo.
+##
+## Aqui o golpe passa a acertar no meio da animacao, e so se o jogador ainda
+## estiver ao alcance: quem sai de perto durante o movimento escapa, que e o que
+## faz recuar valer alguma coisa.
+const FRACAO_DO_IMPACTO := 0.45
+const ALCANCE_DO_CORPO := 2.9
+
+func _marcar_impacto(atraso: float) -> void:
+    await get_tree().create_timer(maxf(atraso, 0.05)).timeout
+    if _morrendo or not is_instance_valid(self) or _jogador == null:
+        return
+    if not is_instance_valid(_jogador):
+        return
+    var perto: float = ALCANCE_DO_CORPO + _altura_do_corpo() * 0.25
+    if global_position.distance_to(_jogador.global_position) > perto:
+        return
+    _bater_no_heroi(_dano_do_corpo)
 
 
 const ALTURA_SOBRE_A_CABECA := 0.42
@@ -515,6 +543,9 @@ const ALCANCE_DA_AREA := 10.0
 var _proxima_area := 3.0
 var _raio_da_area := 3.2
 var _forca_da_area := 28.0
+## O dano do golpe corpo a corpo. Sai da mesma tabela de monstros que ja define
+## vida e habilidade — nao e numero novo, e o que sempre esteve la sem uso.
+var _dano_do_corpo := 14.0
 
 func _pensar_no_golpe(delta: float) -> void:
     if monster_type < 1 or _morrendo or _jogador == null:
@@ -733,10 +764,14 @@ func aplicar_controle(duracao: float, direcao := Vector3.ZERO, forca := 0.0) -> 
         velocity += plano.normalized() * forca
 
 
+## A dificuldade tambem pesa no BRACO, nao so na vida e na habilidade. Antes o
+## nivel mais duro deixava o bicho mais resistente e batia igual — e com o golpe
+## corpo a corpo zerado, "Cacofonia" era so uma briga mais longa.
 func ajustar_por_dificuldade(fator: float) -> void:
     vida_maxima *= fator
     vida = vida_maxima
     _forca_da_area *= fator
+    _dano_do_corpo *= fator
     if _hp_label_3d:
         _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
     _pintar_barra()
@@ -757,6 +792,7 @@ func tornar_super_shiker() -> void:
     scale = Vector3.ONE * 1.7
     _velocidade = 4.6
     _forca_da_area = 55.0
+    _dano_do_corpo = 42.0
     _atordoamento_maximo = 0.18
     if _name_label_3d:
         _name_label_3d.text = _nome_personalizado
