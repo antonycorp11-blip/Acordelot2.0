@@ -49,7 +49,7 @@ const ATRIBUTOS := {"forca": "Força", "destreza": "Destreza",
     "vitalidade": "Vitalidade", "ressonancia": "Ressonância",
     "percepcao": "Percepção"}
 ## Os cinco degraus da trilha de maestria. Sao eles que acendem as estrelas.
-const MARCOS := [10, 20, 30, 40, 60]
+const MARCOS := [10, 20, 30, 40, 50, 60]
 ## Quantos discos a fileira de heróis mostra. Dois estao jogaveis; o resto sao
 ## lugares vazios e apagados, como no desenho — nao personagens fingidos.
 const LUGARES_DE_HEROI := 10
@@ -317,13 +317,28 @@ func _item_de_menu(id: String, texto: String) -> Button:
     brilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
     brilho.visible = false
     brilho.draw.connect(func() -> void:
-        var passos := 22
+        # Degrade azul da esquerda para o nada, com a PONTA DIREITA REDONDA — e o
+        # `rounded-r-full` do desenho. Um StyleBox nao faz degrade e uma textura
+        # so para isto seria arquivo a mais no pacote, entao vai em faixas: perto
+        # da ponta a faixa encolhe na vertical e desenha a curva.
+        var raio := brilho.size.y * 0.5
+        var reto: float = maxf(brilho.size.x - raio, 1.0)
+        var passos := 26
         for i in passos:
             var f := float(i) / float(passos)
-            var x := brilho.size.x * f
-            var largura := brilho.size.x / float(passos) + 1.0
+            var x := reto * f
+            var largura := reto / float(passos) + 1.0
             brilho.draw_rect(Rect2(x, 0.0, largura, brilho.size.y),
                 Color(0.23, 0.42, 0.85, 0.42 * (1.0 - f)))
+        var fatias := 14
+        for i in fatias:
+            var f2 := float(i) / float(fatias)
+            var dy := raio * (1.0 - sqrt(maxf(1.0 - f2 * f2, 0.0)))
+            var alfa: float = 0.42 * (1.0 - (reto + raio * f2) / brilho.size.x)
+            brilho.draw_rect(
+                Rect2(reto + raio * f2, dy, raio / float(fatias) + 1.0,
+                    brilho.size.y - dy * 2.0),
+                Color(0.23, 0.42, 0.85, maxf(alfa, 0.0)))
         brilho.draw_rect(Rect2(0.0, 0.0, 4.0, brilho.size.y), Color(0.38, 0.65, 1.0, 0.95)))
     brilho.resized.connect(brilho.queue_redraw)
     b.add_child(brilho)
@@ -357,9 +372,9 @@ func _item_de_menu(id: String, texto: String) -> Button:
 func _montar_coluna_direita() -> void:
     var coluna := VBoxContainer.new()
     coluna.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
-    coluna.offset_left = -390.0
-    coluna.offset_right = -30.0
-    coluna.offset_top = 112.0
+    coluna.offset_left = -382.0
+    coluna.offset_right = -32.0
+    coluna.offset_top = 124.0
     coluna.offset_bottom = -104.0
     coluna.add_theme_constant_override("separation", 5)
     add_child(coluna)
@@ -385,14 +400,23 @@ func _montar_coluna_direita() -> void:
     var rotulo_poder := T.rotulo_simples("PODER DE LUTA", 13, Color(0.62, 0.67, 0.76))
     rotulo_poder.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     lado.add_child(rotulo_poder)
+    var fila_poder := HBoxContainer.new()
+    fila_poder.alignment = BoxContainer.ALIGNMENT_END
+    fila_poder.add_theme_constant_override("separation", 8)
+    fila_poder.add_child(_icone(26.0, "lira", OURO))
     _poder = T.rotulo_simples("0", 32, OURO)
-    _poder.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     _poder.add_theme_font_override("font", T.fonte_display())
-    lado.add_child(_poder)
+    fila_poder.add_child(_poder)
+    lado.add_child(fila_poder)
     topo.add_child(lado)
 
+    var fila_harmonia := HBoxContainer.new()
+    fila_harmonia.add_theme_constant_override("separation", 6)
+    fila_harmonia.add_child(_icone(16.0, "raio", OURO))
     var harmonia := T.rotulo_simples("Poder da Harmonia", 15, Color(0.62, 0.67, 0.76))
-    coluna.add_child(harmonia)
+    harmonia.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    fila_harmonia.add_child(harmonia)
+    coluna.add_child(fila_harmonia)
     coluna.add_child(T.espaco(4))
 
     # --- bloco de nivel, entre dois filetes
@@ -400,10 +424,18 @@ func _montar_coluna_direita() -> void:
     coluna.add_child(T.espaco(3))
     var fila_nivel := HBoxContainer.new()
     fila_nivel.add_theme_constant_override("separation", 8)
+    var palavra := T.rotulo_simples("Nível", 16, Color(0.72, 0.77, 0.84))
+    palavra.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    fila_nivel.add_child(palavra)
     _nivel = T.rotulo_simples("", 22, Color.WHITE)
     _nivel.add_theme_font_override("font", T.fonte_display())
-    _nivel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _nivel.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     fila_nivel.add_child(_nivel)
+    fila_nivel.add_child(_icone(17.0, "info", Color(0.55, 0.60, 0.70)))
+    var vazio := Control.new()
+    vazio.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    vazio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    fila_nivel.add_child(vazio)
     _xp = T.rotulo_simples("", 15, Color(0.62, 0.67, 0.76))
     _xp.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     fila_nivel.add_child(_xp)
@@ -411,13 +443,21 @@ func _montar_coluna_direita() -> void:
 
     var trilho := ColorRect.new()
     trilho.color = Color(0.10, 0.12, 0.18, 0.9)
-    trilho.custom_minimum_size.y = 6.0
+    trilho.custom_minimum_size.y = 11.0
     coluna.add_child(trilho)
     _barra_cheia = ColorRect.new()
     _barra_cheia.color = Color(0.38, 0.65, 0.98)
     _barra_cheia.set_anchors_preset(Control.PRESET_LEFT_WIDE)
     _barra_cheia.mouse_filter = Control.MOUSE_FILTER_IGNORE
     trilho.add_child(_barra_cheia)
+    var selo := T.rotulo_simples("EXP", 11, Color(0.82, 0.92, 1.0))
+    selo.add_theme_color_override("font_outline_color", Color(0.02, 0.04, 0.09, 0.95))
+    selo.add_theme_constant_override("outline_size", 3)
+    selo.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+    selo.offset_left = 4.0
+    selo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    selo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    trilho.add_child(selo)
     coluna.add_child(T.espaco(3))
     coluna.add_child(_filete())
     coluna.add_child(T.espaco(4))
@@ -428,6 +468,13 @@ func _montar_coluna_direita() -> void:
     coluna.add_child(_miolo)
 
     _botao_detalhes = _botao_de_contorno("Detalhes")
+    var lupa := _icone(17.0, "lupa", Color(0.80, 0.84, 0.90))
+    lupa.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+    lupa.offset_left = -34.0
+    lupa.offset_right = -17.0
+    lupa.offset_top = -8.5
+    lupa.offset_bottom = 8.5
+    _botao_detalhes.add_child(lupa)
     _botao_detalhes.pressed.connect(_alternar_detalhes)
     coluna.add_child(_botao_detalhes)
     coluna.add_child(T.espaco(6))
@@ -436,6 +483,7 @@ func _montar_coluna_direita() -> void:
         Color(0.62, 0.67, 0.76)))
     _materiais = HBoxContainer.new()
     _materiais.add_theme_constant_override("separation", 10)
+    _materiais.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     coluna.add_child(_materiais)
     coluna.add_child(T.espaco(6))
 
@@ -461,6 +509,28 @@ func _montar_coluna_direita() -> void:
     _acao.pressed.connect(_agir)
     rodape.add_child(_acao)
     coluna.add_child(rodape)
+
+
+## Um icone desenhado, do tamanho pedido. Existe porque metade dos simbolos do
+## desenho — lupa, raio, informacao — nao tem arte no kit, e escrever o caractere
+## num Label depende de a fonte ter o glifo. A padrao nao tem.
+func _icone(lado: float, qual: String, cor: Color) -> Control:
+    if qual == "lira" and ResourceLoader.exists("res://textures/ui/kit/nav/lira.png"):
+        var t := TextureRect.new()
+        t.texture = load("res://textures/ui/kit/nav/lira.png")
+        t.custom_minimum_size = Vector2(lado, lado)
+        t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+        t.modulate = cor
+        t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        return t
+    var c := Control.new()
+    c.custom_minimum_size = Vector2(lado, lado)
+    c.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    c.draw.connect(func(): _desenhar_icone(c, qual, cor))
+    return c
 
 
 func _filete() -> Control:
@@ -497,7 +567,7 @@ func _botao_dourado(texto: String) -> Button:
     b.add_theme_font_override("font", T.fonte_display())
     b.add_theme_font_size_override("font_size", 20)
     b.add_theme_color_override("font_color", Color(0.10, 0.08, 0.02))
-    b.add_theme_color_override("font_disabled_color", Color(0.30, 0.27, 0.18))
+    b.add_theme_color_override("font_disabled_color", Color(0.72, 0.68, 0.55))
     var e := StyleBoxFlat.new()
     e.bg_color = OURO
     e.border_color = OURO_CLARO
@@ -586,6 +656,25 @@ func _montar_rodape_esquerdo() -> void:
     _cartao_arma.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _cartao_arma.add_theme_constant_override("separation", 1)
     dentro.add_child(_cartao_arma)
+
+    # O disco na ponta direita do cartao, como no desenho.
+    var ponta := Panel.new()
+    ponta.custom_minimum_size = Vector2(32, 32)
+    ponta.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    var ep := StyleBoxFlat.new()
+    ep.bg_color = Color(0.05, 0.07, 0.12, 0.5)
+    ep.border_color = Color(0.42, 0.46, 0.54, 0.85)
+    ep.set_border_width_all(1)
+    ep.set_corner_radius_all(16)
+    ponta.add_theme_stylebox_override("panel", ep)
+    var nota := _icone(18.0, "lira", Color(0.62, 0.67, 0.76))
+    nota.set_anchors_preset(Control.PRESET_FULL_RECT)
+    nota.offset_left = 7.0
+    nota.offset_top = 7.0
+    nota.offset_right = -7.0
+    nota.offset_bottom = -7.0
+    ponta.add_child(nota)
+    dentro.add_child(ponta)
     canto.add_child(cartao)
 
 
@@ -653,7 +742,7 @@ func _desenhar_estrela(no: Control, raio: float, cor: Color) -> void:
 
 
 func _pintar_nivel() -> void:
-    _nivel.text = "Nível %d / %d" % [_progresso.nivel, int(_progresso.NIVEL_MAXIMO)]
+    _nivel.text = "%d / %d" % [_progresso.nivel, int(_progresso.NIVEL_MAXIMO)]
     var falta: float = maxf(float(_progresso.xp_para_nivel()), 1.0)
     _xp.text = "%s / %s" % [_milhar(_progresso.experiencia), _milhar(int(falta))]
     _barra_cheia.anchor_right = clampf(float(_progresso.experiencia) / falta, 0.0, 1.0)
@@ -666,8 +755,23 @@ func _pintar_arma() -> void:
     _cartao_arma.add_child(T.rotulo_simples("Espadachim da Harmonia", 16, Color.WHITE))
     _cartao_arma.add_child(T.rotulo_simples(
         String(_progresso.arma_equipada), 14, Color(0.62, 0.67, 0.76)))
-    _cartao_arma.add_child(T.rotulo_simples(
-        "Nível da Arma %d" % int(_progresso.nivel_da_arma), 13, Color(0.55, 0.60, 0.70)))
+    var fila := HBoxContainer.new()
+    fila.add_theme_constant_override("separation", 3)
+    for i in 3:
+        var estrela := Control.new()
+        estrela.custom_minimum_size = Vector2(13, 13)
+        estrela.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+        estrela.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        var acesa: bool = i < int(_progresso.nivel_da_arma)
+        estrela.draw.connect(func(): _desenhar_estrela(estrela, 6.0,
+            OURO if acesa else Color(0.32, 0.35, 0.42)))
+        fila.add_child(estrela)
+    var nivel_arma := T.rotulo_simples(
+        "Nível da Arma %d" % int(_progresso.nivel_da_arma), 13, Color(0.55, 0.60, 0.70))
+    nivel_arma.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    fila.add_child(T.espaco(0))
+    fila.add_child(nivel_arma)
+    _cartao_arma.add_child(fila)
 
 
 func _pintar_materiais() -> void:
@@ -692,8 +796,10 @@ func _quadro_de_material(id: String, quanto: int) -> Control:
     var tem: int = _progresso.quantidade(id)
     var caixa := VBoxContainer.new()
     caixa.add_theme_constant_override("separation", 2)
+    caixa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     var moldura := Panel.new()
     moldura.custom_minimum_size = Vector2(54, 54)
+    moldura.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
     var e := StyleBoxFlat.new()
     e.bg_color = Color(0.07, 0.09, 0.14, 0.80)
     e.border_color = OURO if tem >= quanto else Color(0.42, 0.46, 0.54, 0.9)
@@ -843,6 +949,13 @@ func _desenhar_icone(no: Control, qual: String, cor: Color) -> void:
             no.draw_arc(c, 7.5 * k, 0.0, TAU, 24, cor, 1.6 * k, true)
         "talentos":
             _desenhar_estrela(no, 9.0 * k, cor)
+        "lupa":
+            no.draw_arc(c + Vector2(-1, -1) * k, 6.0 * k, 0.0, TAU, 20, cor, 1.7 * k, true)
+            no.draw_line(c + Vector2(3.2, 3.2) * k, c + Vector2(8, 8) * k, cor, 2.0 * k, true)
+        "info":
+            no.draw_arc(c, 8.0 * k, 0.0, TAU, 22, cor, 1.5 * k, true)
+            no.draw_circle(c + Vector2(0, -4) * k, 1.2 * k, cor)
+            no.draw_line(c + Vector2(0, -1) * k, c + Vector2(0, 5) * k, cor, 1.8 * k, true)
         "perfil":
             no.draw_circle(c + Vector2(0, -3) * k, 4.2 * k, cor)
             no.draw_colored_polygon(PackedVector2Array([
