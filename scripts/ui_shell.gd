@@ -29,6 +29,11 @@ const MARGEM := 10.0
 
 var _base: Control
 var _cabecalho: HBoxContainer
+## A caixa do cabecalho e a do miolo, guardadas para a pagina que desenha o
+## proprio topo poder pedir a tela inteira. Ver `_ajustar_moldura_da_pagina`.
+var _caixa_do_cabecalho: Control
+var _meio: MarginContainer
+var _espaco_do_cabecalho: Control
 var _titulo: Label
 var _extras: HBoxContainer
 var _conteudo: Control
@@ -99,14 +104,17 @@ func _montar() -> void:
     coluna.add_theme_constant_override("separation", 0)
     moldura.add_child(coluna)
 
-    coluna.add_child(_montar_cabecalho())
-    coluna.add_child(T.espaco(10))
+    _caixa_do_cabecalho = _montar_cabecalho()
+    coluna.add_child(_caixa_do_cabecalho)
+    _espaco_do_cabecalho = T.espaco(10)
+    coluna.add_child(_espaco_do_cabecalho)
 
     var meio := MarginContainer.new()
     meio.size_flags_vertical = Control.SIZE_EXPAND_FILL
     for lado in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
         meio.add_theme_constant_override(lado, int(MARGEM))
     coluna.add_child(meio)
+    _meio = meio
 
     _conteudo = Control.new()
     _conteudo.name = "Conteudo"
@@ -351,10 +359,33 @@ func abrir(id: String) -> void:
             _extras.add_child(extra)
     if nova.has_method("ao_abrir"):
         nova.ao_abrir()
+    _ajustar_moldura_da_pagina(nova)
     _pintar_navbar()
     _acomodar()
     _animar_entrada(nova)
     pagina_trocada.emit(id)
+
+
+## QUEM DESENHA O PROPRIO TOPO FICA COM A TELA INTEIRA.
+##
+## O cabecalho da casca — titulo, abas de heroi e o fechar — serve para as
+## paginas que sao conteudo dentro de uma moldura. A ficha de personagem nao e
+## isso: nela o heroi ocupa o fundo de ponta a ponta e o titulo, os retratos e o
+## fechar flutuam POR CIMA dele. Com o cabecalho da casca no lugar, o desenho
+## teria dois titulos e dois botoes de fechar empilhados.
+##
+## Entao a pagina que implementa `desenha_o_proprio_topo` recebe a area inteira,
+## sem cabecalho e sem margem. A navbar de baixo fica: sem ela nao ha caminho
+## entre as telas no celular.
+func _ajustar_moldura_da_pagina(pagina: Control) -> void:
+    var sozinha: bool = pagina.has_method("desenha_o_proprio_topo")
+    if _caixa_do_cabecalho:
+        _caixa_do_cabecalho.visible = not sozinha
+    if _espaco_do_cabecalho:
+        _espaco_do_cabecalho.visible = not sozinha
+    if _meio:
+        for lado in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+            _meio.add_theme_constant_override(lado, 0 if sozinha else int(MARGEM))
 
 
 ## A TROCA GANHA NOVENTA MILISSEGUNDOS DE VIDA.
