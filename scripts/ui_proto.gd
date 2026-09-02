@@ -25,6 +25,12 @@ const VIOLET := Color("a452ea")
 const GREEN := Color("79df67")
 const VERMELHO := Color("ff434f")
 
+## As telas sao desenhadas em 900 px de altura e depois reduzidas no celular.
+## Os tamanhos originais (9–14 px) viravam 5–7 px fisicos. Esta escala nao e
+## um zoom da tela: ela preserva a composicao e garante corpo legivel ao toque.
+static func tamanho_legivel(tamanho: int) -> int:
+    return maxi(int(round(float(tamanho) * 1.25)), tamanho + 12)
+
 const RARIDADE := {
     "Comum": Color("8290a6"), "Incomum": Color("79df67"), "Raro": Color("46c7f4"),
     "Épico": Color("a452ea"), "Lendário": Color("f1cf78"), "Valioso": Color("f1cf78"),
@@ -65,7 +71,7 @@ static func recheio(filho: Control, quanto: int) -> MarginContainer:
 static func rotulo(texto: String, tamanho := 14, cor := IVORY, quebrar := false) -> Label:
     var l := Label.new()
     l.text = texto
-    l.add_theme_font_size_override("font_size", tamanho)
+    l.add_theme_font_size_override("font_size", tamanho_legivel(tamanho))
     l.add_theme_color_override("font_color", cor)
     l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if quebrar else TextServer.AUTOWRAP_OFF
     l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -95,7 +101,7 @@ static func botao(texto: String, variante := "quiet") -> Button:
     var b := Button.new()
     b.text = texto
     b.focus_mode = Control.FOCUS_NONE
-    b.add_theme_font_size_override("font_size", 13)
+    b.add_theme_font_size_override("font_size", tamanho_legivel(13))
     b.add_theme_color_override("font_color", IVORY)
     b.add_theme_color_override("font_hover_color", GOLD_BRIGHT)
     b.add_theme_color_override("font_disabled_color", Color(IVORY.r, IVORY.g, IVORY.b, 0.34))
@@ -112,7 +118,11 @@ static func cabecalho(sobre: String, titulo: String, fim := "") -> Control:
     var col := VBoxContainer.new()
     col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     col.add_child(sobrancelha(sobre))
-    col.add_child(rotulo(titulo, 26, IVORY))
+    var titulo_label := rotulo(titulo, 26, IVORY)
+    var fonte_titulo := load("res://fontes/Cinzel.ttf")
+    if fonte_titulo:
+        titulo_label.add_theme_font_override("font", fonte_titulo)
+    col.add_child(titulo_label)
     linha.add_child(col)
     if fim != "":
         linha.add_child(rotulo(fim, 11, GOLD_BRIGHT))

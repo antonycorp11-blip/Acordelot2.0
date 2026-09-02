@@ -18,6 +18,7 @@ class_name UiShell
 
 const T := preload("res://scripts/ui_tema.gd")
 const AreaSeguraUI := preload("res://scripts/area_segura_ui.gd")
+const PalcoScript := preload("res://scripts/palco_akles.gd")
 
 signal pagina_trocada(id: String)
 signal fechado
@@ -33,6 +34,7 @@ var _extras: HBoxContainer
 var _conteudo: Control
 var _navbar: HBoxContainer
 var _botoes_heroi: Dictionary = {}
+var _retratos_heroi: Dictionary = {}
 var _heroi_atual := "akles"
 
 var _paginas: Dictionary = {}      # id -> {"no": Control, "botao": Button, "nome": String}
@@ -150,15 +152,36 @@ func _montar_cabecalho() -> Control:
     # e abre a ficha correspondente.
     var elenco := HBoxContainer.new()
     elenco.add_theme_constant_override("separation", 6)
-    for dados in [["akles", "Akles"], ["wins", "Wins"]]:
+    for dados in [["akles", "Akles", "Maestro"], ["wins", "Wins", "Guardiã"]]:
         var id := String(dados[0])
-        var b := T.botao(String(dados[1]), T.SECUNDARIO, 48.0)
-        b.custom_minimum_size = Vector2(92, 48)
+        var b := T.botao("", T.SECUNDARIO, 58.0)
+        b.custom_minimum_size = Vector2(142, 58)
+        b.add_theme_stylebox_override("normal",
+            T.painel(Color(0.035, 0.060, 0.110, 0.96), T.OURO_ARO, 8, 1, 4))
+        b.add_theme_stylebox_override("hover",
+            T.painel(Color(0.075, 0.115, 0.190, 0.98), T.OURO_FORTE, 8, 2, 4))
+        b.add_theme_stylebox_override("pressed",
+            T.painel(Color(0.095, 0.125, 0.190, 0.98), Color.WHITE, 8, 2, 4))
         b.pressed.connect(_selecionar_heroi.bind(id))
+        var ficha := HBoxContainer.new()
+        ficha.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT,
+            Control.PRESET_MODE_MINSIZE, 5)
+        ficha.add_theme_constant_override("separation", 6)
+        ficha.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        b.add_child(ficha)
+        var retrato: PalcoAkles = PalcoScript.new(true, id)
+        retrato.custom_minimum_size = Vector2(48, 48)
+        ficha.add_child(retrato)
+        _retratos_heroi[id] = retrato
+        var textos := VBoxContainer.new()
+        textos.alignment = BoxContainer.ALIGNMENT_CENTER
+        textos.add_theme_constant_override("separation", 0)
+        ficha.add_child(textos)
+        textos.add_child(T.rotulo(String(dados[1]), T.NOME_ITEM, T.TEXTO))
         elenco.add_child(b)
         _botoes_heroi[id] = b
-    var mais := T.botao("＋ Heróis", T.SECUNDARIO, 48.0)
-    mais.custom_minimum_size = Vector2(82, 48)
+    var mais := T.botao("＋ Heróis", T.SECUNDARIO, 58.0)
+    mais.custom_minimum_size = Vector2(100, 58)
     mais.disabled = true
     elenco.add_child(mais)
     _cabecalho.add_child(elenco)
@@ -212,7 +235,10 @@ func _pintar_elenco() -> void:
         var b: Button = _botoes_heroi[id]
         var ativo := String(id) == _heroi_atual
         b.add_theme_color_override("font_color", T.OURO_FORTE if ativo else T.TEXTO_FRACO)
-        b.modulate = Color(1.08, 1.02, 0.82) if ativo else Color(0.72, 0.76, 0.84)
+        b.add_theme_stylebox_override("normal", T.painel(
+            Color(0.15, 0.115, 0.045, 0.98) if ativo else Color(0.035, 0.060, 0.110, 0.96),
+            T.OURO_FORTE if ativo else T.OURO_ARO, 8, 2 if ativo else 1, 4))
+        b.modulate = Color.WHITE
 
 
 func _montar_navbar() -> Control:
@@ -238,6 +264,8 @@ func registrar(id: String, nome: String, icone: String, no: Control) -> void:
     if _paginas.has(id):
         return
     no.set_anchors_preset(Control.PRESET_FULL_RECT)
+    # Conteudo rolavel nunca pode desenhar por cima da navegacao inferior.
+    no.clip_contents = true
     no.visible = false
     _conteudo.add_child(no)
 
@@ -290,6 +318,8 @@ func abrir(id: String) -> void:
     if not _paginas.has(id):
         return
     visible = true
+    for retrato in _retratos_heroi.values():
+        (retrato as PalcoAkles).ligar()
     if _atual == id:
         _pintar_navbar()
         return
@@ -387,6 +417,8 @@ func _montar_aviso() -> void:
 
 func fechar_tudo() -> void:
     visible = false
+    for retrato in _retratos_heroi.values():
+        (retrato as PalcoAkles).desligar()
     if _paginas.has(_atual):
         var atual: Control = _paginas[_atual]["no"]
         if atual.has_method("ao_fechar"):
@@ -422,7 +454,19 @@ func _pintar_navbar() -> void:
 func _acomodar() -> void:
     if _base == null:
         return
-    AreaSeguraUI.ajustar_base(_base, T.CANVAS, get_viewport().get_visible_rect().size)
+    var viewport := get_viewport().get_visible_rect().size
+    var margem := AreaSeguraUI.recuo(viewport)
+    var area := Vector2(maxf(1.0, viewport.x - margem * 2.0),
+        maxf(1.0, viewport.y - margem * 2.0))
+    # Celulares atuais em paisagem sao bem mais largos que 16:9. Antes o menu
+    # continuava preso a 1600x900, criava barras vazias laterais e encolhia toda
+    # a tipografia. A altura permanece a do layout aprovado e apenas a largura
+    # cresce, deixando paineis centrais aproveitarem a tela inteira.
+    var largura_adaptada := clampf(T.CANVAS.y * area.x / area.y,
+        T.CANVAS.x, 2160.0)
+    var canvas_adaptado := Vector2(largura_adaptada, T.CANVAS.y)
+    _base.size = canvas_adaptado
+    AreaSeguraUI.ajustar_base(_base, canvas_adaptado, viewport)
 
 
 func _unhandled_input(evento: InputEvent) -> void:

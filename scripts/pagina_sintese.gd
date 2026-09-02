@@ -65,7 +65,7 @@ func _montar() -> void:
     conceito.texture = load("res://textures/ui/concepts/synthesis-forge-bg.png")
     conceito.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     conceito.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-    conceito.modulate = Color(0.72, 0.78, 0.94, 0.28)
+    conceito.modulate = Color(0.82, 0.88, 1.0, 0.62)
     conceito.mouse_filter = Control.MOUSE_FILTER_IGNORE
     meio.add_child(conceito)
     var cm := VBoxContainer.new()
@@ -126,7 +126,7 @@ func _linha_da_nota(nota: String) -> Control:
     var ativa: bool = nota == _escolhida
 
     var b := P.botao("", "item")
-    b.custom_minimum_size.y = 56
+    b.custom_minimum_size.y = 72
     b.add_theme_stylebox_override("normal", P.estilo(
         Color("0d1b30d9") if ativa else Color("07101fdc"),
         P.GOLD_BRIGHT if ativa else Color("56462f"), 2 if ativa else 1, 1))

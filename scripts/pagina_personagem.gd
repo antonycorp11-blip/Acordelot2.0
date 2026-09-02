@@ -60,21 +60,6 @@ func _montar() -> void:
     pagina.add_theme_constant_override("separation", 12)
     add_child(pagina)
 
-    var seletor := HBoxContainer.new()
-    seletor.alignment = BoxContainer.ALIGNMENT_CENTER
-    seletor.add_theme_constant_override("separation", 8)
-    pagina.add_child(seletor)
-    for dados in [["akles", "Akles", "Maestro da Vigília"], ["wins", "Wins", "Guardiã da Aurora"]]:
-        var b := P.botao("%s\n%s" % [String(dados[1]), String(dados[2])], "quiet")
-        b.custom_minimum_size = Vector2(210, 52)
-        b.pressed.connect(_escolher_heroi.bind(String(dados[0])))
-        seletor.add_child(b)
-        _botoes_heroi[String(dados[0])] = b
-    var futuro := P.botao("＋ Próximos heróis", "quiet")
-    futuro.custom_minimum_size = Vector2(180, 52)
-    futuro.disabled = true
-    seletor.add_child(futuro)
-
     var alto := HBoxContainer.new()
     alto.size_flags_vertical = Control.SIZE_EXPAND_FILL
     alto.add_theme_constant_override("separation", 12)
@@ -102,6 +87,15 @@ func _montar() -> void:
     _palco_caixa = Control.new()
     _palco_caixa.clip_contents = true
     meio.add_child(_palco_caixa)
+
+    var fundo_palco := TextureRect.new()
+    fundo_palco.texture = load("res://textures/ui/concepts/character-stage-bg.png")
+    fundo_palco.set_anchors_preset(Control.PRESET_FULL_RECT)
+    fundo_palco.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    fundo_palco.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+    fundo_palco.modulate = Color(0.78, 0.84, 1.0, 0.86)
+    fundo_palco.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _palco_caixa.add_child(fundo_palco)
 
     var ident := VBoxContainer.new()
     ident.position = Vector2(16, 12)
@@ -164,7 +158,7 @@ func _montar() -> void:
 
     # -------------------------------------------------------------- trilha
     var faixa := P.painel(Color("081221ed"))
-    faixa.custom_minimum_size.y = 150
+    faixa.custom_minimum_size.y = 112
     pagina.add_child(faixa)
     var cf := HBoxContainer.new()
     cf.add_theme_constant_override("separation", 18)
@@ -270,7 +264,7 @@ func _recriar_palco() -> void:
     _palco.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     # O modelo vem antes da identificação para o texto permanecer por cima.
     _palco_caixa.add_child(_palco)
-    _palco_caixa.move_child(_palco, 0)
+    _palco_caixa.move_child(_palco, 1)
     if visible:
         _palco.ligar()
 
@@ -281,10 +275,6 @@ func _nome_heroi() -> String:
 
 func _pintar() -> void:
     if _progresso == null: return
-    for id in _botoes_heroi:
-        var botao: Button = _botoes_heroi[id]
-        botao.add_theme_stylebox_override("normal", P.estilo_de_botao(
-            "gold" if String(id) == _selecionado else "quiet"))
     var falta := float(_progresso.xp_para_nivel())
     _nivel.text = "Nível %d" % _progresso.nivel
     _papel_no_palco.text = "GUARDIÃ DA AURORA" if _selecionado == "wins" else "MAESTRO DA VIGÍLIA"

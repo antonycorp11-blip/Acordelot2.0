@@ -1110,6 +1110,26 @@ func _tirar_print() -> void:
     if OS.get_cmdline_user_args().has("--inv"):
         _shell.abrir("inventario")
         await get_tree().create_timer(0.4).timeout
+    # QA visual responsivo: `-- --shot --ui=personagem` abre qualquer pagina
+    # do shell oficial antes da captura. Mantem a verificacao no proprio jogo,
+    # em vez de depender de um prototipo separado.
+    for argumento in OS.get_cmdline_user_args():
+        if argumento.begins_with("--ui="):
+            var pagina_ui := argumento.trim_prefix("--ui=")
+            if _shell:
+                _shell.abrir(pagina_ui)
+                await get_tree().create_timer(0.7).timeout
+    if OS.get_cmdline_user_args().has("--galeria-ui") and DisplayServer.get_name() != "headless":
+        for pagina_ui in ["personagem", "inventario", "sintese", "forja_escalas"]:
+            _shell.abrir(pagina_ui)
+            await get_tree().create_timer(0.8).timeout
+            var captura_ui := get_viewport().get_texture().get_image()
+            if captura_ui:
+                captura_ui.save_png("user://ui-mobile-%s.png" % pagina_ui)
+                print("SHOT UI ", pagina_ui, " ", ProjectSettings.globalize_path(
+                    "user://ui-mobile-%s.png" % pagina_ui))
+        get_tree().quit()
+        return
     if OS.get_cmdline_user_args().has("--mapa"):
         _shell.abrir("mapa")
         await get_tree().create_timer(0.5).timeout

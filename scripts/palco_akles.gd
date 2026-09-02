@@ -14,7 +14,7 @@ class_name PalcoAkles
 ## Altura em que o modelo e normalizado dentro do palco, em metros.
 const ALTURA := 1.75
 ## Quanto o palco inteiro balanca, em graus para cada lado, e em que ritmo.
-const BALANCO := 32.0
+const BALANCO := 10.0
 const RITMO := 0.5
 
 var _mundo: Node3D
@@ -72,9 +72,9 @@ func _init(compacto := false, personagem := "akles") -> void:
     _palco.add_child(quente)
 
     _mundo = Node3D.new()
-    # DE FRENTE PARA QUEM OLHA. O FBX nasce olhando para -Z e a camera fica em
-    # +Z: sem esta meia volta o jogador ve as costas do proprio personagem.
-    _mundo.rotation.y = PI
+    # Os FBX usados pelo jogo ja nascem voltados para a camera em +Z. A meia
+    # volta aplicada durante a integracao invertia os dois modelos no celular.
+    _mundo.rotation.y = 0.0
     _palco.add_child(_mundo)
 
     var cena_path := "res://personagem/wins_base.fbx" if personagem_id == "wins" \
@@ -140,7 +140,7 @@ func desligar() -> void:
 func _process(delta: float) -> void:
     if _balancando and _mundo:
         _fase += delta * RITMO
-        _mundo.rotation.y = PI + deg_to_rad(BALANCO) * sin(_fase)
+        _mundo.rotation.y = deg_to_rad(BALANCO) * sin(_fase)
 
 
 func _medir(raiz: Node3D) -> AABB:

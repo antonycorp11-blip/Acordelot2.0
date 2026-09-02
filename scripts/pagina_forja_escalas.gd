@@ -96,7 +96,7 @@ func _cartao_escala(indice: int) -> Button:
         if _progresso.quantidade("nota_" + String(nota)) > 0:
             prontas += 1
     var b := P.botao("", "item")
-    b.custom_minimum_size.y = 92
+    b.custom_minimum_size.y = 118
     b.add_theme_stylebox_override("normal", P.estilo(
         Color(CORES[indice], 0.11) if indice == _escolhida else Color("07101fdc"),
         CORES[indice] if indice == _escolhida else Color("56462f"),
