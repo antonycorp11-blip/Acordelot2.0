@@ -35,6 +35,7 @@ var _caixa_do_cabecalho: Control
 var _meio: MarginContainer
 var _espaco_do_cabecalho: Control
 var _titulo: Label
+var _sobretitulo: Label
 var _extras: HBoxContainer
 var _conteudo: Control
 var _navbar: HBoxContainer
@@ -156,7 +157,8 @@ func _montar_cabecalho() -> Control:
     pilha_do_titulo.add_theme_constant_override("separation", 0)
     pilha_do_titulo.alignment = BoxContainer.ALIGNMENT_CENTER
     _cabecalho.add_child(pilha_do_titulo)
-    pilha_do_titulo.add_child(T.sobrancelha("Arquivo do Maestro"))
+    _sobretitulo = T.sobrancelha("Arquivo do Maestro")
+    pilha_do_titulo.add_child(_sobretitulo)
     _titulo = T.rotulo("", T.TITULO_PAGINA, T.OURO_FORTE)
     _titulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     pilha_do_titulo.add_child(_titulo)
@@ -351,6 +353,8 @@ func abrir(id: String) -> void:
     nova.process_mode = Node.PROCESS_MODE_INHERIT
     nova.visible = true
     _titulo.text = String(_paginas[id]["nome"]).to_upper()
+    _sobretitulo.text = String(nova.subtitulo_da_pagina()).to_upper() \
+        if nova.has_method("subtitulo_da_pagina") else "ARQUIVO DO MAESTRO"
     for filho in _extras.get_children():
         _extras.remove_child(filho)
     if nova.has_method("cabecalho_extra"):

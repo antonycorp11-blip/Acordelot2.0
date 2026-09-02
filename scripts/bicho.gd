@@ -1,6 +1,8 @@
 extends CharacterBody3D
 class_name Bicho
 
+signal derrotado(inimigo: Node)
+
 ## Inimigos de Acordelot 2.0: Shikers e Golems da Caverna.
 const CENA_SHIKER := preload("res://personagem/shiker_base.fbx")
 const BIBLIOTECA_SHIKER := preload("res://personagem/shiker_anims.res")
@@ -9,6 +11,8 @@ const PELE_SHIKER := preload("res://personagem/shiker_cor.png")
 const CENA_GOLEM := preload("res://personagem/golem_base.fbx")
 const BIBLIOTECA_GOLEM := preload("res://personagem/golem_anims.res")
 const PELE_GOLEM := preload("res://personagem/golem_cor.png")
+const CENA_CAVALEIRO := "res://scenes/cavaleiro_chefe.tscn"
+const ProjetilCavaleiroScript := preload("res://scripts/projetil_cavaleiro.gd")
 
 const BRILHO := preload("res://textures/brilho_poste.png")
 
@@ -28,6 +32,13 @@ const MONSTROS_CONFIG := [
      "altura": 2.6, "hp": 720.0, "dano": 46.0, "aura": Color(0.45, 0.70, 1.0), "velocidade": 3.0},
     {"nome": "Colosso Ancestral", "cena": CENA_GOLEM, "biblioteca": BIBLIOTECA_GOLEM, "pele": PELE_GOLEM, "prefixo": "golem",
      "altura": 3.3, "hp": 1800.0, "dano": 65.0, "aura": Color(1.0, 0.85, 0.35), "velocidade": 3.4},
+    # 6: chefe cavaleiro. O wrapper preserva as tres texturas do GLB e cria as
+    # animacoes diretamente no rig Tripo.
+    {"nome": "Cavaleiro da Nota Silenciada", "cena": CENA_CAVALEIRO,
+     "biblioteca": null, "pele": null, "prefixo": "cavaleiro",
+     "altura": 2.3, "hp": 2400.0, "dano": 72.0,
+     "aura": Color(0.52, 0.34, 1.0), "velocidade": 3.7,
+     "preservar_materiais": true},
 ]
 
 @export var monster_type: int = 0
@@ -66,6 +77,13 @@ var _colado_no_jogador := false
 var _atordoamento_maximo := ATORDOAMENTO
 var _ataque_ate := -1.0
 var _nome_personalizado := ""
+var _forma_do_cavaleiro := 1
+var _invulneravel_ate := -1.0
+var _apresentou_cavaleiro := false
+## Chefes regionais entregam o espolio pela tela de conclusao. Isto impede que
+## o drop comum e o premio da batalha paguem a mesma morte duas vezes.
+var recompensa_controlada_externamente := false
+var _fala_ate := -1.0
 
 static var _estoque: Array = []
 
@@ -96,7 +114,11 @@ func _ready() -> void:
 
 
 func _construir_modelo(cfg: Dictionary) -> void:
-    var cena_modelo: PackedScene = cfg.get("cena", CENA_SHIKER)
+    # O chefe regional pesa muito mais que um Shiker. O caminho dele permanece
+    # como String na tabela e so e carregado quando o encontro realmente nasce;
+    # abrir o jogo no centro de Acordelot nao paga esse custo.
+    var recurso = cfg.get("cena", CENA_SHIKER)
+    var cena_modelo: PackedScene = load(String(recurso)) if recurso is String else recurso
     _modelo = cena_modelo.instantiate()
     add_child(_modelo)
     _vestir(cfg)
@@ -134,6 +156,8 @@ func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
 
 
 func _vestir(cfg: Dictionary) -> void:
+    if bool(cfg.get("preservar_materiais", false)):
+        return
     var tex: Texture2D = cfg.get("pele", PELE_SHIKER)
     var mat := StandardMaterial3D.new()
     mat.albedo_texture = tex
@@ -368,7 +392,7 @@ func _construir_barra_vida_3d(cfg: Dictionary) -> void:
     _suporte_da_barra.add_child(_name_label_3d)
 
     _hp_label_3d = Label3D.new()
-    _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+    _hp_label_3d.text = _texto_da_vida()
     _hp_label_3d.font_size = 13
     _hp_label_3d.outline_size = 4
     _hp_label_3d.modulate = Color(0.95, 0.75, 0.75)
@@ -416,6 +440,11 @@ func _pintar_barra() -> void:
         return
     quadro.size = Vector2(maxf(util * fracao, 0.001), ALTURA_DA_BARRA - 0.03)
     quadro.center_offset = Vector3(-util * (1.0 - fracao) * 0.5, 0.0, 0.0)
+
+
+func _texto_da_vida() -> String:
+    var fase := ("%s  ·  " % _forma_do_cavaleiro) if monster_type == 6 else ""
+    return "%s%d / %d" % [fase, int(vida), int(vida_maxima)]
 
 
 ## SO PENSA QUEM ESTA PERTO.
@@ -549,6 +578,9 @@ var _forca_da_area := 28.0
 var _dano_do_corpo := 14.0
 
 func _pensar_no_golpe(delta: float) -> void:
+    if monster_type == 6:
+        _pensar_no_golpe_do_cavaleiro(delta)
+        return
     if monster_type < 1 or _morrendo or _jogador == null:
         return
     _proxima_area -= delta
@@ -567,6 +599,71 @@ func _pensar_no_golpe(delta: float) -> void:
         _investida(ate.normalized())
     else:
         _marcar_area(_jogador.global_position)
+
+
+func _pensar_no_golpe_do_cavaleiro(delta: float) -> void:
+    if _morrendo or _jogador == null or not is_instance_valid(_jogador):
+        return
+    if not _apresentou_cavaleiro:
+        _apresentou_cavaleiro = true
+        _falar("Acordelot ainda chama isto de musica? Mostre-me uma cadencia digna.")
+    _proxima_area -= delta
+    if _proxima_area > 0.0:
+        return
+    var ate := _jogador.global_position - global_position
+    ate.y = 0.0
+    var distancia := ate.length()
+    if distancia > 27.0 or distancia < 0.1:
+        return
+    _proxima_area = randf_range(2.2, 3.7) if _forma_do_cavaleiro == 2 \
+        else randf_range(3.4, 5.2)
+    var sorte := randf()
+    if distancia > 5.0 or sorte < (0.62 if _forma_do_cavaleiro == 2 else 0.42):
+        _lancar_corte(ate.normalized())
+    elif sorte < 0.78:
+        _marcar_area(_jogador.global_position)
+    else:
+        _investida(ate.normalized())
+
+
+func _lancar_corte(direcao: Vector3) -> void:
+    _tocar("ataque_2", 0.12)
+    _ataque_ate = Time.get_ticks_msec() / 1000.0 + 2.15
+    if Time.get_ticks_msec() / 1000.0 >= _fala_ate and randf() < 0.34:
+        _falar(["Escute o vazio entre as notas.", "Seu ritmo termina aqui.",
+            "A dissonancia tambem corta."].pick_random())
+    var alvo_guardado := _jogador
+    var origem_guardada := global_position + Vector3.UP * 1.25
+    await get_tree().create_timer(0.78 if _forma_do_cavaleiro == 1 else 0.58).timeout
+    if _morrendo or not is_instance_valid(self):
+        return
+    var proj: Node3D = ProjetilCavaleiroScript.new()
+    get_parent().add_child(proj)
+    proj.global_position = origem_guardada + direcao * 1.35
+    proj.call("configurar", direcao, _forca_da_area * 0.82, self, alvo_guardado,
+        _forma_do_cavaleiro == 2)
+
+
+func _falar(texto: String) -> void:
+    _fala_ate = Time.get_ticks_msec() / 1000.0 + 4.5
+    var fala := Label3D.new()
+    fala.text = texto
+    fala.font_size = 22
+    fala.outline_size = 7
+    fala.modulate = Color(0.86, 0.78, 1.0)
+    fala.outline_modulate = Color(0.04, 0.015, 0.10, 0.98)
+    fala.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    fala.no_depth_test = true
+    fala.top_level = true
+    add_child(fala)
+    fala.global_position = global_position + Vector3.UP * 3.35
+    var tw := create_tween()
+    tw.tween_interval(2.8)
+    tw.tween_property(fala, "modulate:a", 0.0, 0.45)
+    tw.tween_callback(fala.queue_free)
+    var hud := get_tree().get_first_node_in_group("player_hud")
+    if hud and hud.has_method("anunciar"):
+        hud.anunciar("Cavaleiro — " + texto)
 
 
 func _marcar_area(onde: Vector3) -> void:
@@ -730,6 +827,8 @@ func _achar_jogador() -> Node3D:
 func levar_dano(quantidade: float, direcao: Vector3) -> void:
     if vida <= 0.0:
         return
+    if Time.get_ticks_msec() / 1000.0 < _invulneravel_ate:
+        return
 
     # Levar tiro acorda: o raio alcanca mais longe que o raio de dormir, e um
     # bicho que continuasse dormindo levaria dano sem nunca reagir.
@@ -737,7 +836,7 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
 
     vida = maxf(0.0, vida - quantidade)
     if _hp_label_3d:
-        _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+        _hp_label_3d.text = _texto_da_vida()
     _pintar_barra()
         
     _criar_popup_dano(quantidade)
@@ -750,8 +849,36 @@ func levar_dano(quantidade: float, direcao: Vector3) -> void:
     
     _piscar_dano()
     
-    if vida <= 0.0:
+    if vida <= 0.0 and monster_type == 6 and _forma_do_cavaleiro == 1:
+        _entrar_na_segunda_forma()
+    elif vida <= 0.0:
         _morrer()
+
+
+func _entrar_na_segunda_forma() -> void:
+    _forma_do_cavaleiro = 2
+    vida = vida_maxima
+    _invulneravel_ate = Time.get_ticks_msec() / 1000.0 + 2.1
+    _atordoado_ate = _invulneravel_ate
+    _ataque_ate = _invulneravel_ate
+    _proxima_area = 1.4
+    _velocidade *= 1.18
+    _forca_da_area *= 1.20
+    _dano_do_corpo *= 1.12
+    _nome_personalizado = "Cavaleiro da Nota Silenciada  ·  II"
+    if _name_label_3d:
+        _name_label_3d.text = _nome_personalizado
+        _name_label_3d.modulate = Color(0.78, 0.58, 1.0)
+    if _aura: _aura.visible = true
+    if _fagulhas:
+        _fagulhas.visible = true
+        _fagulhas.emitting = true
+        _fagulhas.amount = 48
+    if _hp_label_3d:
+        _hp_label_3d.text = _texto_da_vida()
+    _pintar_barra()
+    _falar("A primeira voz caiu. Agora ouvira a nota que Acordelot tentou apagar.")
+    _rugir()
 
 
 ## Controle de grupo leve usado pela classe da Voz. Reusa o mesmo relógio de
@@ -863,7 +990,7 @@ func calibrar(vida_alvo: float, dano_por_golpe: float) -> void:
     _dano_do_corpo = dano_por_golpe
     _forca_da_area *= proporcao
     if _hp_label_3d:
-        _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+        _hp_label_3d.text = _texto_da_vida()
     _pintar_barra()
 
 
@@ -874,13 +1001,34 @@ func ajustar_por_dificuldade(fator_vida: float, fator_dano := -1.0) -> void:
     _forca_da_area *= dano
     _dano_do_corpo *= dano
     if _hp_label_3d:
-        _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+        _hp_label_3d.text = _texto_da_vida()
     _pintar_barra()
 
 
 ## Marca de chefe. E ela que faz a briga de cinco mil e quatrocentos de vida
 ## valer alguma coisa alem do drop de um bicho comum.
 var _e_chefe := false
+
+func tornar_cavaleiro_chefe() -> void:
+    _e_chefe = true
+    _nome_personalizado = "Cavaleiro da Nota Silenciada  ·  I"
+    vida_maxima = 7200.0
+    vida = vida_maxima
+    scale = Vector3.ONE * 1.12
+    _velocidade = 3.9
+    _forca_da_area = 68.0
+    _dano_do_corpo = 58.0
+    _atordoamento_maximo = 0.08
+    if _aura: _aura.visible = false
+    if _fagulhas:
+        _fagulhas.visible = false
+        _fagulhas.emitting = false
+    if _name_label_3d:
+        _name_label_3d.text = _nome_personalizado
+        _name_label_3d.modulate = Color(0.90, 0.82, 1.0)
+    if _hp_label_3d:
+        _hp_label_3d.text = _texto_da_vida()
+    _pintar_barra()
 
 func tornar_super_shiker() -> void:
     _e_chefe = true
@@ -899,7 +1047,7 @@ func tornar_super_shiker() -> void:
         _name_label_3d.text = _nome_personalizado
         _name_label_3d.modulate = Color(1.0, 0.50, 0.92)
     if _hp_label_3d:
-        _hp_label_3d.text = "%d / %d" % [int(vida), int(vida_maxima)]
+        _hp_label_3d.text = _texto_da_vida()
     _pintar_barra()
 
 
@@ -949,10 +1097,10 @@ func _altura_do_corpo() -> float:
     return float(cfg.get("altura", 2.2))
 
 
-const CLAVES_POR_FORMA := [[1, 50], [2, 100], [3, 200], [2, 120], [3, 220], [5, 400]]
+const CLAVES_POR_FORMA := [[1, 50], [2, 100], [3, 200], [2, 120], [3, 220], [5, 400], [8, 650]]
 const MoedaScript := preload("res://scripts/moeda_pve.gd")
 const FragmentoDropScript := preload("res://scripts/fragmento_drop.gd")
-const CHANCE_DE_FRAGMENTO := [0.25, 0.55, 1.0, 0.45, 0.75, 1.0]
+const CHANCE_DE_FRAGMENTO := [0.25, 0.55, 1.0, 0.45, 0.75, 1.0, 1.0]
 const ALTURAS := [
     "do", "do_sustenido", "re", "re_sustenido", "mi", "fa",
     "fa_sustenido", "sol", "sol_sustenido", "la", "la_sustenido", "si",
@@ -982,11 +1130,14 @@ func _largar_premio_de_chefe() -> void:
     var progresso := get_node_or_null("/root/Progresso")
     if progresso == null:
         return
-    var chave := "nucleo_maestro" if monster_type >= 3 else "selo_regente"
     var ganhos: Array[String] = []
-    if progresso.quantidade(chave) <= 0:
-        progresso.adicionar_recurso(chave, 1)
-        ganhos.append("Núcleo do Maestro" if monster_type >= 3 else "Selo do Regente")
+    # O Cavaleiro tera um item proprio, ainda em producao. Enquanto ele nao
+    # existe, nao rouba o Nucleo do Colosso nem cria um placeholder no save.
+    if monster_type != 6:
+        var chave := "nucleo_maestro" if monster_type >= 3 else "selo_regente"
+        if progresso.quantidade(chave) <= 0:
+            progresso.adicionar_recurso(chave, 1)
+            ganhos.append("Núcleo do Maestro" if monster_type >= 3 else "Selo do Regente")
 
     progresso.adicionar_recurso("claves", 900 if monster_type >= 3 else 500)
     ganhos.append("%d Claves" % (900 if monster_type >= 3 else 500))
@@ -1081,11 +1232,15 @@ func _morrer() -> void:
     if diario:
         # O prefixo da animacao ja diz que criatura e esta: "shiker" ou "golem".
         diario.registrar("derrotar", 1, _prefixo_anim)
-    _largar_clave()
-    _largar_fragmento()
-    _dar_experiencia()
-    if _e_chefe:
-        _largar_premio_de_chefe()
+    if not recompensa_controlada_externamente:
+        _largar_clave()
+        _largar_fragmento()
+        _dar_experiencia()
+        if _e_chefe:
+            _largar_premio_de_chefe()
+    derrotado.emit(self)
+    if monster_type == 6:
+        _falar("Talvez... a proxima nota ainda pertença a voces.")
     _morrendo = true
     if _hp_label_3d: _hp_label_3d.visible = false
     if _name_label_3d: _name_label_3d.visible = false

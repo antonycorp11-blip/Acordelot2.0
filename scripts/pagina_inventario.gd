@@ -1,7 +1,8 @@
 extends Control
 class_name PaginaInventario
-## O INVENTARIO NO FORMATO APROVADO: perfil a esquerda, colecao no meio,
-## detalhe a direita.
+## O INVENTARIO NO FORMATO STITCH: filtros a esquerda, bolsa no centro e
+## detalhe a direita. O perfil pertence a pagina Personagem e nao disputa o
+## espaco da grade.
 ##
 ## O desenho e o do prototipo do Codex — painel com fio de bronze, sobrancelha,
 ## cartao de item com a nota no canto, barra de lotacao no rodape. O CONTEUDO e
@@ -13,7 +14,7 @@ const P := preload("res://scripts/ui_proto.gd")
 const PalcoScript := preload("res://scripts/palco_akles.gd")
 const CATALOGO := preload("res://scripts/inventory_ui.gd")
 
-const COLUNAS := 4
+const COLUNAS := 6
 const CAPACIDADE := 150
 
 var _progresso: Node
@@ -40,6 +41,9 @@ var _botao_usar: Button
 var _botao_descartar: Button
 var _confirmacao: PanelContainer
 var _selo_claves: Label
+var _selo_ocupacao: Label
+var _selo_materiais: Label
+var _selo_fragmentos: Label
 var _selos: HBoxContainer
 
 
@@ -61,71 +65,58 @@ func ao_fechar() -> void:
     if _palco:
         _palco.desligar()
 
+func subtitulo_da_pagina() -> String: return "Bolsa e recursos"
+
 
 func cabecalho_extra() -> Control:
     _selos = HBoxContainer.new()
     _selos.add_theme_constant_override("separation", 18)
-    _selo_claves = P.rotulo("", 15, P.GOLD_BRIGHT)
+    _selo_ocupacao = P.rotulo("", 12, P.IVORY)
+    _selos.add_child(_selo_ocupacao)
+    _selo_claves = P.rotulo("", 13, P.GOLD_BRIGHT)
     _selos.add_child(_selo_claves)
+    _selo_materiais = P.rotulo("", 12, Color("c878ef"))
+    _selos.add_child(_selo_materiais)
+    _selo_fragmentos = P.rotulo("", 12, Color("ff9257"))
+    _selos.add_child(_selo_fragmentos)
     return _selos
 
 
 func _montar() -> void:
     var linha := HBoxContainer.new()
     linha.set_anchors_preset(Control.PRESET_FULL_RECT)
-    linha.add_theme_constant_override("separation", 12)
+    linha.add_theme_constant_override("separation", 16)
     add_child(linha)
 
-    # ------------------------------------------------------------- perfil
-    var perfil := P.painel()
-    perfil.custom_minimum_size.x = 250
-    linha.add_child(perfil)
-    _caixa_perfil = VBoxContainer.new()
-    _caixa_perfil.add_theme_constant_override("separation", 9)
-    perfil.add_child(P.recheio(_caixa_perfil, 15))
-
-    _palco = PalcoScript.new(true)
-    _palco.custom_minimum_size = Vector2(205, 172)
-    _caixa_perfil.add_child(_palco)
-    var nome := P.rotulo("Akles", 27, P.IVORY)
-    nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _caixa_perfil.add_child(nome)
-    var papel := P.rotulo("Maestro da Vigília", 12, P.GOLD)
-    papel.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _caixa_perfil.add_child(papel)
-    _barra_vida = P.linha_de_barra("♥", 1.0, P.VERMELHO, "")
-    _caixa_perfil.add_child(_barra_vida)
-    _barra_xp = P.linha_de_barra("♪", 0.0, P.CYAN, "")
-    _caixa_perfil.add_child(_barra_xp)
-    _caixa_perfil.add_child(P.risco())
-    _caixa_perfil.add_child(P.sobrancelha("EQUIPADO"))
-    _equipados = HBoxContainer.new()
-    _equipados.add_theme_constant_override("separation", 6)
-    _caixa_perfil.add_child(_equipados)
-    _caixa_perfil.add_child(P.espaco_elastico())
-    _poder = P.rotulo("", 12, P.GOLD_BRIGHT)
-    _poder.add_theme_stylebox_override("normal", P.estilo(Color("0a1426"), Color("7c6239"), 1, 2))
-    _caixa_perfil.add_child(_poder)
+    # ------------------------------------------------------------- filtros
+    var filtros_painel := PanelContainer.new()
+    filtros_painel.custom_minimum_size.x = 260
+    filtros_painel.add_theme_stylebox_override("panel",
+        P.estilo(Color("061126aa"), Color("80643955"), 1, 2))
+    linha.add_child(filtros_painel)
+    var filtros := VBoxContainer.new()
+    filtros.add_theme_constant_override("separation", 8)
+    filtros_painel.add_child(P.recheio(filtros, 12))
+    filtros.add_child(P.sobrancelha("CATEGORIAS"))
+    for nome_filtro in CATALOGO.FILTROS:
+        var b := P.botao(String(nome_filtro).to_upper(), "quiet")
+        b.custom_minimum_size.y = 46
+        b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+        b.pressed.connect(_escolher_filtro.bind(String(nome_filtro)))
+        filtros.add_child(b)
+        _botoes_filtro[String(nome_filtro)] = b
+    filtros.add_child(P.espaco_elastico())
 
     # ---------------------------------------------------------- colecao
     var colecao := P.painel()
     colecao.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    colecao.size_flags_stretch_ratio = 1.7
     linha.add_child(colecao)
     var cc := VBoxContainer.new()
     cc.add_theme_constant_override("separation", 8)
     colecao.add_child(P.recheio(cc, 16))
-    _titulo_colecao = P.cabecalho("COLEÇÃO HARMÔNICA", "Fragmentos & relíquias", "")
+    _titulo_colecao = P.cabecalho("BOLSA", "Itens & relíquias", "")
     cc.add_child(_titulo_colecao)
-
-    var filtros := HBoxContainer.new()
-    filtros.add_theme_constant_override("separation", 8)
-    cc.add_child(filtros)
-    for nome_filtro in CATALOGO.FILTROS:
-        var b := P.botao(String(nome_filtro))
-        b.custom_minimum_size.y = 38
-        b.pressed.connect(_escolher_filtro.bind(String(nome_filtro)))
-        filtros.add_child(b)
-        _botoes_filtro[String(nome_filtro)] = b
 
     var rol := ScrollContainer.new()
     rol.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -151,11 +142,16 @@ func _montar() -> void:
 
     # ---------------------------------------------------------- detalhe
     var detalhe := P.painel()
-    detalhe.custom_minimum_size.x = 310
+    detalhe.custom_minimum_size.x = 390
     linha.add_child(detalhe)
+    var rolagem_detalhe := ScrollContainer.new()
+    rolagem_detalhe.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    rolagem_detalhe.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    detalhe.add_child(rolagem_detalhe)
     _caixa_detalhe = VBoxContainer.new()
+    _caixa_detalhe.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _caixa_detalhe.add_theme_constant_override("separation", 9)
-    detalhe.add_child(P.recheio(_caixa_detalhe, 16))
+    rolagem_detalhe.add_child(P.recheio(_caixa_detalhe, 16))
 
     _escolher_filtro("Todos")
 
@@ -177,7 +173,8 @@ func _selecionar(id: String) -> void:
 func _repintar() -> void:
     if _progresso == null or _grade == null:
         return
-    _pintar_perfil()
+    if _barra_vida:
+        _pintar_perfil()
     _pintar_grade()
     _pintar_detalhe()
 
@@ -253,6 +250,18 @@ func _pintar_grade() -> void:
     _rodape.text = "%d de %d espaços ocupados" % [ocupados, CAPACIDADE]
     if _selo_claves:
         _selo_claves.text = "◉  %s Claves" % _milhar(_progresso.quantidade("claves"))
+    if _selo_ocupacao:
+        _selo_ocupacao.text = "▣  %d / %d" % [ocupados, CAPACIDADE]
+    if _selo_materiais:
+        var materiais := 0
+        var fragmentos := 0
+        for it in CATALOGO.ITENS_DE_RECURSO:
+            var id := String(it[0])
+            var qtd: int = _progresso.quantidade(id)
+            if String(it[4]) == "material": materiais += qtd
+            if id.begins_with("fragmento_"): fragmentos += qtd
+        _selo_materiais.text = "♦  %s Materiais" % _curto(materiais)
+        _selo_fragmentos.text = "◒  %s Frag." % _curto(fragmentos)
     for filho in _titulo_colecao.get_children():
         if filho is Label and (filho as Label).get_index() == 1:
             (filho as Label).text = "▣  %d / %d" % [ocupados, CAPACIDADE]
@@ -269,7 +278,7 @@ func _cartao(it: Array) -> Button:
     var b := P.botao("", "item")
     # As quatro colunas DIVIDEM a largura. Com largura minima fixa a quarta
     # sobrava para fora e era cortada pela rolagem.
-    b.custom_minimum_size = Vector2(110, 132)
+    b.custom_minimum_size = Vector2(92, 112)
     b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     b.clip_contents = true
     b.add_theme_stylebox_override("normal", P.estilo(Color(cor, 0.055),
@@ -280,7 +289,7 @@ func _cartao(it: Array) -> Button:
     col.mouse_filter = Control.MOUSE_FILTER_IGNORE
     col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 8)
     col.add_child(P.rotulo(raridade.to_upper(), 10, cor))
-    var img := P.arte(_caminho_da_arte(String(it[2])), Vector2(100, 78))
+    var img := P.arte(_caminho_da_arte(String(it[2])), Vector2(80, 62))
     img.size_flags_vertical = Control.SIZE_EXPAND_FILL
     col.add_child(img)
     var qtd := P.rotulo(_curto(_progresso.quantidade(id)), 13, P.IVORY)
@@ -392,6 +401,13 @@ func _usar() -> void:
     var ficha := _ficha(_selecionado)
     if ficha.is_empty() or _progresso == null:
         return
+    if _selecionado == "pocao_cura" and _progresso.quantidade(_selecionado) > 0:
+        var hud_pocao := get_tree().get_first_node_in_group("player_hud")
+        if hud_pocao and hud_pocao.has_method("curar"):
+            hud_pocao.curar(hud_pocao.max_health * 0.35)
+            _progresso.adicionar_recurso(_selecionado, -1)
+            _avisar("Poção utilizada", "+35% de vida")
+        return
     if _progresso.ACORDES.has(_selecionado):
         var fracao: float = _progresso.usar_acorde(_selecionado)
         if fracao > 0.0:
@@ -412,7 +428,8 @@ func _usar() -> void:
 
 
 func _pode_descartar(id: String, tipo: String) -> bool:
-    if tipo == "ferramenta" or id in ["selo_regente", "nucleo_maestro"]:
+    if tipo == "ferramenta" or id in ["selo_regente", "nucleo_maestro",
+            "emblema_nota_silenciada"]:
         return false
     if _diario:
         for missao in _diario.missoes:

@@ -31,7 +31,8 @@ const PARTITURAS := {
 }
 const REQUISITOS_ASCENSAO := {
     20: {"partitura_harmonica": 3, "selo_regente": 1},
-    40: {"partitura_magistral": 5, "nucleo_maestro": 1},
+    40: {"partitura_magistral": 5, "nucleo_maestro": 1,
+        "emblema_nota_silenciada": 1},
 }
 const ATRIBUTOS_INICIAIS := {
     "forca": 8,
@@ -56,6 +57,8 @@ const RECURSOS_INICIAIS := {
     "escala_la_menor": 0,
     "selo_regente": 0,
     "nucleo_maestro": 0,
+    "emblema_nota_silenciada": 0,
+    "pocao_cura": 0,
     "fragmento_do": 0,
     "fragmento_corrompido_do": 0,
     "fragmento_do_sustenido": 0,

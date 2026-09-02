@@ -62,6 +62,7 @@ func _ready() -> void:
         _modelo.add_child(_animador)
     _normalizar()
     _encaixar_espada()
+    _criar_animacoes()
 
 
 ## O modelo nasce com uma unidade de altura. Aqui ele vira gente do tamanho de
@@ -147,3 +148,81 @@ func esqueleto() -> Skeleton3D:
 
 func animador() -> AnimationPlayer:
     return _animador
+
+
+# ---------------------------------------------------------------- animacoes
+## Este rig nao fala Mixamo. As poses abaixo sao DELTAS sobre o descanso do
+## proprio Tripo, escritas nos ossos dele; assim nenhuma importacao troca UV,
+## peso ou o encaixe da espada. O ataque reserva mais de meio segundo para o
+## aviso e outro tanto para a recuperacao, deixando a esquiva ser uma decisao.
+func _criar_animacoes() -> void:
+    if _animador == null or _esqueleto == null:
+        return
+    if _animador.has_animation_library("cavaleiro"):
+        return
+    var lib := AnimationLibrary.new()
+    lib.add_animation("parado", _animacao(2.4, true, {
+        "Spine02": [[0.0, 1.2, 2.4], [_q(Vector3.RIGHT, -2), _q(Vector3.RIGHT, 2), _q(Vector3.RIGHT, -2)]],
+        "R_Upperarm": [[0.0, 1.2, 2.4], [_q(Vector3.FORWARD, -3), _q(Vector3.FORWARD, 2), _q(Vector3.FORWARD, -3)]],
+    }))
+    lib.add_animation("andar", _passos(1.0, 20.0, 13.0))
+    lib.add_animation("correr", _passos(0.68, 34.0, 24.0))
+    lib.add_animation("atacar", _animacao(1.55, false, {
+        "Waist": [[0.0, 0.48, 0.72, 1.55], [_q(Vector3.UP, 0), _q(Vector3.UP, -28), _q(Vector3.UP, 38), _q(Vector3.UP, 0)]],
+        "Spine02": [[0.0, 0.48, 0.72, 1.55], [_q(Vector3.RIGHT, 0), _q(Vector3.RIGHT, -18), _q(Vector3.RIGHT, 24), _q(Vector3.RIGHT, 0)]],
+        "R_Upperarm": [[0.0, 0.48, 0.72, 1.55], [_q(Vector3.FORWARD, 0), _q(Vector3.FORWARD, -72), _q(Vector3.FORWARD, 68), _q(Vector3.FORWARD, 0)]],
+        "R_Forearm": [[0.0, 0.48, 0.72, 1.55], [_q(Vector3.RIGHT, 0), _q(Vector3.RIGHT, -42), _q(Vector3.RIGHT, 18), _q(Vector3.RIGHT, 0)]],
+        "L_Upperarm": [[0.0, 0.48, 0.72, 1.55], [_q(Vector3.FORWARD, 0), _q(Vector3.FORWARD, 22), _q(Vector3.FORWARD, -18), _q(Vector3.FORWARD, 0)]],
+    }))
+    lib.add_animation("ataque_1", lib.get_animation("atacar").duplicate())
+    lib.add_animation("ataque_2", _animacao(1.85, false, {
+        "Waist": [[0.0, 0.62, 0.92, 1.85], [_q(Vector3.UP, 0), _q(Vector3.UP, -48), _q(Vector3.UP, 56), _q(Vector3.UP, 0)]],
+        "Spine02": [[0.0, 0.62, 0.92, 1.85], [_q(Vector3.FORWARD, 0), _q(Vector3.FORWARD, -24), _q(Vector3.FORWARD, 28), _q(Vector3.FORWARD, 0)]],
+        "R_Upperarm": [[0.0, 0.62, 0.92, 1.85], [_q(Vector3.UP, 0), _q(Vector3.UP, -82), _q(Vector3.UP, 88), _q(Vector3.UP, 0)]],
+        "R_Forearm": [[0.0, 0.62, 0.92, 1.85], [_q(Vector3.RIGHT, 0), _q(Vector3.RIGHT, -34), _q(Vector3.RIGHT, 14), _q(Vector3.RIGHT, 0)]],
+    }))
+    lib.add_animation("morrer", _animacao(2.0, false, {
+        "Hip": [[0.0, 0.55, 1.35, 2.0], [_q(Vector3.RIGHT, 0), _q(Vector3.RIGHT, -15), _q(Vector3.RIGHT, 76), _q(Vector3.RIGHT, 88)]],
+        "Spine02": [[0.0, 0.55, 1.35, 2.0], [_q(Vector3.FORWARD, 0), _q(Vector3.FORWARD, 12), _q(Vector3.FORWARD, -18), _q(Vector3.FORWARD, -20)]],
+        "R_Upperarm": [[0.0, 0.55, 1.35, 2.0], [_q(Vector3.FORWARD, 0), _q(Vector3.FORWARD, 24), _q(Vector3.FORWARD, 58), _q(Vector3.FORWARD, 64)]],
+        "L_Upperarm": [[0.0, 0.55, 1.35, 2.0], [_q(Vector3.FORWARD, 0), _q(Vector3.FORWARD, -24), _q(Vector3.FORWARD, -58), _q(Vector3.FORWARD, -64)]],
+    }))
+    _animador.add_animation_library("cavaleiro", lib)
+
+
+func _passos(duracao: float, perna: float, braco: float) -> Animation:
+    var meio := duracao * 0.5
+    return _animacao(duracao, true, {
+        "L_Thigh": [[0.0, meio, duracao], [_q(Vector3.RIGHT, perna), _q(Vector3.RIGHT, -perna), _q(Vector3.RIGHT, perna)]],
+        "R_Thigh": [[0.0, meio, duracao], [_q(Vector3.RIGHT, -perna), _q(Vector3.RIGHT, perna), _q(Vector3.RIGHT, -perna)]],
+        "L_Calf": [[0.0, meio, duracao], [_q(Vector3.RIGHT, -perna * 0.45), _q(Vector3.RIGHT, perna * 0.55), _q(Vector3.RIGHT, -perna * 0.45)]],
+        "R_Calf": [[0.0, meio, duracao], [_q(Vector3.RIGHT, perna * 0.55), _q(Vector3.RIGHT, -perna * 0.45), _q(Vector3.RIGHT, perna * 0.55)]],
+        "L_Upperarm": [[0.0, meio, duracao], [_q(Vector3.RIGHT, -braco), _q(Vector3.RIGHT, braco), _q(Vector3.RIGHT, -braco)]],
+        "R_Upperarm": [[0.0, meio, duracao], [_q(Vector3.RIGHT, braco), _q(Vector3.RIGHT, -braco), _q(Vector3.RIGHT, braco)]],
+    })
+
+
+func _animacao(duracao: float, repetir: bool, faixas: Dictionary) -> Animation:
+    var a := Animation.new()
+    a.length = duracao
+    a.loop_mode = Animation.LOOP_LINEAR if repetir else Animation.LOOP_NONE
+    # AnimationPlayer resolve faixas a partir de `root_node` (por padrao, seu
+    # pai), e nao a partir dele mesmo. Usar get_path_to no player acrescentava
+    # um `../` e todas as faixas apontavam para fora do modelo.
+    var raiz_da_animacao := _animador.get_node_or_null(_animador.root_node)
+    var caminho := str(raiz_da_animacao.get_path_to(_esqueleto)) \
+        if raiz_da_animacao else str(_animador.get_path_to(_esqueleto))
+    for osso in faixas:
+        if _esqueleto.find_bone(String(osso)) < 0:
+            continue
+        var dados: Array = faixas[osso]
+        var faixa := a.add_track(Animation.TYPE_ROTATION_3D)
+        a.track_set_path(faixa, NodePath(caminho + ":" + String(osso)))
+        a.track_set_interpolation_type(faixa, Animation.INTERPOLATION_CUBIC_ANGLE)
+        for i in (dados[0] as Array).size():
+            a.rotation_track_insert_key(faixa, float(dados[0][i]), dados[1][i])
+    return a
+
+
+func _q(eixo: Vector3, graus: float) -> Quaternion:
+    return Quaternion(eixo.normalized(), deg_to_rad(graus))

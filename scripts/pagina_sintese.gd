@@ -14,7 +14,7 @@ const PUROS_POR_NOTA := 30
 
 var _progresso: Node
 var _escolhida := "do"
-var _lista: VBoxContainer
+var _lista: GridContainer
 var _forja_nome: Label
 var _forja_pedra: TextureRect
 var _forja_estado: Label
@@ -35,28 +35,33 @@ func _ready() -> void:
 func ao_abrir() -> void:
     _pintar()
 
+func subtitulo_da_pagina() -> String: return "Atelie de notas e fragmentos"
+
 
 func _montar() -> void:
     var linha := HBoxContainer.new()
     linha.set_anchors_preset(Control.PRESET_FULL_RECT)
-    linha.add_theme_constant_override("separation", 12)
+    linha.add_theme_constant_override("separation", 20)
     add_child(linha)
 
     var esq := P.painel()
-    esq.custom_minimum_size.x = 268
+    esq.custom_minimum_size.x = 470
     linha.add_child(esq)
     var ce := VBoxContainer.new()
-    ce.add_theme_constant_override("separation", 6)
+    ce.add_theme_constant_override("separation", 10)
     esq.add_child(P.recheio(ce, 14))
-    ce.add_child(P.cabecalho("NOTAS DESCOBERTAS", "Receitas", "12"))
+    ce.add_child(P.cabecalho("SELECIONAR NOTA", "Famílias harmônicas", "12"))
     var rol := ScrollContainer.new()
     rol.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
     rol.size_flags_vertical = Control.SIZE_EXPAND_FILL
     ce.add_child(rol)
-    _lista = VBoxContainer.new()
+    _lista = GridContainer.new()
+    _lista.columns = 3
     _lista.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    _lista.add_theme_constant_override("separation", 6)
+    _lista.add_theme_constant_override("h_separation", 10)
+    _lista.add_theme_constant_override("v_separation", 10)
     rol.add_child(_lista)
+    ce.add_child(P.rotulo("Fragmentos purificados da mesma família formam uma Nota Sintetizada.", 9, P.MUTED, true))
 
     var meio := P.painel(Color("08162ce8"))
     meio.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -71,47 +76,44 @@ func _montar() -> void:
     var cm := VBoxContainer.new()
     cm.add_theme_constant_override("separation", 6)
     meio.add_child(P.recheio(cm, 16))
-    cm.add_child(P.sobrancelha("1 NOTA = 30 FRAGMENTOS DA MESMA FAMÍLIA"))
+    var instrucao := P.sobrancelha("PURIFIQUE FRAGMENTOS CORROMPIDOS PARA SINTETIZAR NOVAS NOTAS")
+    instrucao.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    cm.add_child(instrucao)
     _forja_nome = P.rotulo("", 27, P.IVORY)
+    _forja_nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     cm.add_child(_forja_nome)
-    _forja_pedra = P.arte("", Vector2(0, 230))
-    _forja_pedra.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    cm.add_child(_forja_pedra)
     _forja_estado = P.rotulo("", 12, P.GREEN)
     _forja_estado.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     cm.add_child(_forja_estado)
     _bolhas = HBoxContainer.new()
-    _bolhas.add_theme_constant_override("separation", 14)
+    _bolhas.add_theme_constant_override("separation", 28)
     _bolhas.alignment = BoxContainer.ALIGNMENT_CENTER
+    _bolhas.size_flags_vertical = Control.SIZE_EXPAND_FILL
     cm.add_child(_bolhas)
-    cm.add_child(P.espaco_elastico())
+    _forja_pedra = P.arte("", Vector2.ZERO)
+    _forja_pedra.visible = false
+    cm.add_child(_forja_pedra)
     var acoes := HBoxContainer.new()
-    acoes.add_theme_constant_override("separation", 10)
+    acoes.add_theme_constant_override("separation", 28)
     cm.add_child(acoes)
-    _purificar = P.botao("Purificar fragmento", "primary")
-    _purificar.custom_minimum_size.y = 48
+    _purificar = P.botao("PURIFICAR  ·  CLAVES", "violet")
+    _purificar.custom_minimum_size.y = 58
     _purificar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _purificar.pressed.connect(_ao_purificar)
     acoes.add_child(_purificar)
-    _condensar = P.botao("Formar nota", "violet")
-    _condensar.custom_minimum_size.y = 48
+    _condensar = P.botao("SINTETIZAR NOTA", "gold")
+    _condensar.custom_minimum_size.y = 58
     _condensar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _condensar.pressed.connect(_ao_condensar)
     acoes.add_child(_condensar)
 
-    var dir := P.painel()
-    dir.custom_minimum_size.x = 300
-    linha.add_child(dir)
     var rol_d := ScrollContainer.new()
+    rol_d.custom_minimum_size.y = 110
     rol_d.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-    var folga := P.recheio(rol_d, 14)
-    # A barra de rolagem ocupa a direita e encostava nos numeros. Estes doze
-    # pixels a mais sao o lugar dela.
-    folga.add_theme_constant_override("margin_right", 26)
-    dir.add_child(folga)
+    cm.add_child(rol_d)
     _direita = VBoxContainer.new()
     _direita.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    _direita.add_theme_constant_override("separation", 8)
+    _direita.add_theme_constant_override("separation", 3)
     rol_d.add_child(_direita)
 
 
@@ -126,31 +128,31 @@ func _linha_da_nota(nota: String) -> Control:
     var ativa: bool = nota == _escolhida
 
     var b := P.botao("", "item")
-    b.custom_minimum_size.y = 72
+    b.custom_minimum_size = Vector2(132, 142)
     b.add_theme_stylebox_override("normal", P.estilo(
         Color("0d1b30d9") if ativa else Color("07101fdc"),
         P.GOLD_BRIGHT if ativa else Color("56462f"), 2 if ativa else 1, 1))
     b.pressed.connect(func(): _escolher(nota))
 
-    var caixa := HBoxContainer.new()
+    var caixa := VBoxContainer.new()
     caixa.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 6)
     caixa.add_theme_constant_override("separation", 8)
     caixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
     b.add_child(caixa)
-    var pedra := P.arte(_cristal(nota), Vector2(34, 34))
+    var pedra := P.arte(_cristal(nota), Vector2(62, 62))
+    pedra.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
     pedra.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     pedra.modulate = Color(1, 1, 1, 1.0 if corrompido + limpo + pronta > 0 else 0.4)
     caixa.add_child(pedra)
-    var col := VBoxContainer.new()
-    col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    col.add_theme_constant_override("separation", 1)
-    caixa.add_child(col)
-    col.add_child(P.rotulo(String(ROTULO.get(nota, nota)), 14,
-        P.GOLD_BRIGHT if ativa else P.IVORY))
-    col.add_child(P.rotulo("%d puro · %d nota" % [limpo, pronta], 9, P.MUTED))
-    caixa.add_child(P.rotulo("%d / %d" % [limpo, PUROS_POR_NOTA], 11,
-        P.GREEN if limpo >= PUROS_POR_NOTA else P.MUTED))
+    var nome := P.rotulo(String(ROTULO.get(nota, nota)), 14, P.GOLD_BRIGHT if ativa else P.IVORY)
+    nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    caixa.add_child(nome)
+    var contas := Label.new()
+    contas.text = "CORR. %d\nPURO %d  ·  NOTA %d" % [corrompido, limpo, pronta]
+    contas.add_theme_font_size_override("font_size", 14)
+    contas.add_theme_color_override("font_color", P.MUTED)
+    contas.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    caixa.add_child(contas)
     return b
 
 
@@ -158,14 +160,21 @@ func _bolha(rotulo: String, quanto: int, cor: Color) -> Control:
     var col := VBoxContainer.new()
     col.add_theme_constant_override("separation", 2)
     var disco := PanelContainer.new()
-    disco.custom_minimum_size = Vector2(66, 66)
+    disco.custom_minimum_size = Vector2(190, 235)
     disco.add_theme_stylebox_override("panel", P.estilo(
         Color(cor.r * 0.16, cor.g * 0.16, cor.b * 0.20, 0.9),
-        Color(cor.r, cor.g, cor.b, 0.8 if quanto > 0 else 0.3), 1, 33))
-    var n := P.rotulo(str(quanto), 22, P.IVORY if quanto > 0 else P.MUTED)
+        Color(cor.r, cor.g, cor.b, 0.8 if quanto > 0 else 0.3), 1, 8))
+    var dentro := VBoxContainer.new()
+    dentro.alignment = BoxContainer.ALIGNMENT_CENTER
+    dentro.add_child(P.espaco_elastico())
+    var pedra := P.arte(_cristal(_escolhida), Vector2(130, 130))
+    pedra.modulate = Color(cor.r, cor.g, cor.b, 1.0 if quanto > 0 else 0.28)
+    dentro.add_child(pedra)
+    var n := P.rotulo("POSSUI  %d" % quanto, 11, P.IVORY if quanto > 0 else P.MUTED)
     n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    n.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    disco.add_child(n)
+    dentro.add_child(n)
+    dentro.add_child(P.espaco_elastico())
+    disco.add_child(dentro)
     col.add_child(disco)
     var r := P.sobrancelha(rotulo)
     r.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

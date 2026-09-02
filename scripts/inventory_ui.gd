@@ -61,6 +61,8 @@ const ITENS_DE_RECURSO := [
     ["partitura_magistral", "Partitura Magistral", "item/partitura", "Épico", "consumivel", "Concede 1.500 XP ao Akles ou participa da ascensão do nível 40."],
     ["selo_regente", "Selo do Regente", "item/runa", "Épico", "material", "Item de chefe necessário para superar a ascensão do nível 20."],
     ["nucleo_maestro", "Núcleo do Maestro", "item/cristal_acorde", "Lendário", "material", "Item de chefe necessário para superar a ascensão do nível 40."],
+    ["emblema_nota_silenciada", "Emblema da Nota Silenciada", "res://textures/items/emblema_nota_silenciada.png", "Lendário", "material", "Insígnia do cavaleiro que guardou o silêncio entre as notas. Material de ascensão do nível 40."],
+    ["pocao_cura", "Poção de Cura", "item/pocao_vida", "Incomum", "consumivel", "Preparado de ervas de Acordelot. Recupera vida durante a exploração."],
     ["alma_eco_do", "Alma do Eco de Dó", "item/cristal_do", "Épico", "material", "Essência rara necessária para futuramente invocar o Eco de Dó."],
     ["alma_eco_do_sustenido", "Alma do Eco de Dó#", "item/cristal_do", "Épico", "material", "Essência rara de um Eco de Dó sustenido."],
     ["alma_eco_re", "Alma do Eco de Ré", "item/cristal_re", "Épico", "material", "Essência rara de um Eco de Ré."],

@@ -40,6 +40,7 @@ const DungeonCavernaScript := preload("res://scripts/dungeon_caverna.gd")
 const GeradorDeBichosScript := preload("res://scripts/gerador_de_bichos.gd")
 const CeuCompatibilidadeScript := preload("res://scripts/ceu_compatibilidade.gd")
 const PortalCavernaScript := preload("res://scripts/portal_caverna.gd")
+const ChefeRegionalScript := preload("res://scripts/chefe_regional.gd")
 var _gerador_bichos: GeradorDeBichos = null
 const FRAMES_ECOS := {
     "do": preload("res://resources/eco_do_nascente_frames.tres"),
@@ -59,6 +60,7 @@ const FRAMES_ECOS := {
 var _npc_perto: Node = null
 ## A boca de caverna ao alcance, se houver. Divide o mesmo botao com a conversa.
 var _portal_perto: Node = null
+var _chefe_perto: Node = null
 var _btn_ataque: Node = null
 var _dialogo: Node = null
 var _shell: CanvasLayer = null
@@ -108,6 +110,8 @@ func _ready() -> void:
         _btn_ataque.pressed.connect(func():
             if _npc_perto != null:
                 _conversar()
+            elif _chefe_perto != null:
+                _chefe_perto.abrir_desafio()
             elif _portal_perto != null:
                 _entrar_pelo_portal()
             elif _player and _player.has_method("atacar"):
@@ -290,6 +294,7 @@ func _ready() -> void:
     # Depois do mundo montado: o portal precisa do relevo para saber onde e o
     # chao, e o relevo so responde certo com a grade de celulas ja carregada.
     call_deferred("_semear_portais")
+    call_deferred("_semear_cavaleiro_regional")
 
 
 ## O AVISO DE PROGRESSO, que nao existia em lugar nenhum.
@@ -1258,6 +1263,26 @@ func _ao_sair_do_portal(portal: Node) -> void:
     _pintar_botao()
 
 
+## O Cavaleiro e um chefe de regiao, nao uma sala da DG. Ele guarda uma
+## clareira da Floresta dos Ecos e fica dormente ate o desafio ser aceito.
+func _semear_cavaleiro_regional() -> void:
+    if get_node_or_null("CavaleiroRegional"):
+        return
+    var encontro := ChefeRegionalScript.new()
+    encontro.name = "CavaleiroRegional"
+    add_child(encontro)
+    # Clareira declarada no layout da Floresta dos Ecos: longe da estrada e
+    # sem derrubar a mata para abrir uma arena nova.
+    var p := Vector3(116.0, 0.0, 56.0)
+    encontro.global_position = Vector3(p.x, Relevo.altura(p.x, p.z) + 0.15, p.z)
+    encontro.jogador_chegou.connect(func(qual):
+        _chefe_perto = qual
+        _pintar_botao())
+    encontro.jogador_saiu.connect(func(qual):
+        if _chefe_perto == qual: _chefe_perto = null
+        _pintar_botao())
+
+
 func _entrar_pelo_portal() -> void:
     var caverna := get_node_or_null("DungeonCaverna")
     if caverna and caverna.has_method("abrir_tela_de_entrada"):
@@ -1300,11 +1325,14 @@ func _pintar_botao() -> void:
     if _btn_ataque == null:
         return
     var conversando: bool = _npc_perto != null and (_dialogo == null or not _dialogo.esta_ativo())
-    var na_boca: bool = not conversando and _portal_perto != null
+    var desafiando: bool = not conversando and _chefe_perto != null
+    var na_boca: bool = not conversando and not desafiando and _portal_perto != null
     if conversando:
         _btn_ataque.modulate = Color(0.62, 1.0, 0.72)
     elif na_boca:
         _btn_ataque.modulate = Color(0.82, 0.62, 1.0)
+    elif desafiando:
+        _btn_ataque.modulate = Color(1.0, 0.72, 0.32)
     else:
         _btn_ataque.modulate = Color.WHITE
 
@@ -1319,4 +1347,4 @@ func _pintar_botao() -> void:
         legenda.offset_top = -18.0
         legenda.mouse_filter = Control.MOUSE_FILTER_IGNORE
         _btn_ataque.add_child(legenda)
-    legenda.text = "Conversar" if conversando else ("Entrar na caverna" if na_boca else "")
+    legenda.text = "Conversar" if conversando else ("Aceitar desafio" if desafiando else ("Entrar na caverna" if na_boca else ""))
