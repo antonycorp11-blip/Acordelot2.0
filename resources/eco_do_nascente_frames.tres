@@ -40,12 +40,12 @@ animations = [{
 "frames": [{"duration": 1.0, "texture": ExtResource("1_idle_frame_00")}, {"duration": 1.0, "texture": ExtResource("2_idle_frame_01")}, {"duration": 1.0, "texture": ExtResource("3_idle_frame_02")}, {"duration": 1.0, "texture": ExtResource("4_idle_frame_03")}, {"duration": 1.0, "texture": ExtResource("5_idle_frame_04")}],
 "loop": true,
 "name": &"idle",
-"speed": 7.0
+"speed": 4.5
 }, {
 "frames": [{"duration": 1.0, "texture": ExtResource("6_walk_frame_00")}, {"duration": 1.0, "texture": ExtResource("7_walk_frame_01")}, {"duration": 1.0, "texture": ExtResource("8_walk_frame_02")}, {"duration": 1.0, "texture": ExtResource("9_walk_frame_03")}, {"duration": 1.0, "texture": ExtResource("10_walk_frame_04")}, {"duration": 1.0, "texture": ExtResource("11_walk_frame_05")}, {"duration": 1.0, "texture": ExtResource("12_walk_frame_06")}, {"duration": 1.0, "texture": ExtResource("13_walk_frame_07")}],
 "loop": true,
 "name": &"walk",
-"speed": 9.0
+"speed": 7.5
 }, {
 "frames": [{"duration": 1.0, "texture": ExtResource("14_run_frame_00")}, {"duration": 1.0, "texture": ExtResource("15_run_frame_01")}, {"duration": 1.0, "texture": ExtResource("16_run_frame_02")}, {"duration": 1.0, "texture": ExtResource("17_run_frame_03")}, {"duration": 1.0, "texture": ExtResource("18_run_frame_04")}, {"duration": 1.0, "texture": ExtResource("19_run_frame_05")}],
 "loop": true,

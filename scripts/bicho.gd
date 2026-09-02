@@ -742,7 +742,12 @@ func ajustar_por_dificuldade(fator: float) -> void:
     _pintar_barra()
 
 
+## Marca de chefe. E ela que faz a briga de cinco mil e quatrocentos de vida
+## valer alguma coisa alem do drop de um bicho comum.
+var _e_chefe := false
+
 func tornar_super_shiker() -> void:
+    _e_chefe = true
     if monster_type >= 3:
         _nome_personalizado = "Colosso Guardião da Caverna"
     else:
@@ -825,12 +830,54 @@ const ALTURAS := [
 ## O valor sai dos numeros que ja definem o bicho — vida e dano da tabela de
 ## monstros —, entao um tier mais forte vale mais sem precisar de uma segunda
 ## tabela para alguem esquecer de atualizar.
+## O QUE O CHEFE PAGA.
+##
+## Ele tinha 5.400 de vida, 55 de dano em area — e largava exatamente o mesmo
+## que um Shiker de campo aberto, porque nao existia tabela propria. Pior: o
+## Selo do Regente e o Nucleo do Maestro, exigidos na ascensao de nivel 20 e 40,
+## NAO EXISTIAM em lugar nenhum do jogo. Nenhum inimigo, nenhum bau, nenhuma
+## missao os entregava, e a progressao morria no 20 sem aviso.
+##
+## Agora nascem aqui: o chefe Shiker guarda o Selo, o Colosso guarda o Nucleo.
+## Um por conta: quem ja tem nao recebe de novo, entao nao ha o que farmar — a
+## briga vale pelas Claves e pela Alma, e o item de ascensao cai uma vez so.
+func _largar_premio_de_chefe() -> void:
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return
+    var chave := "nucleo_maestro" if monster_type >= 3 else "selo_regente"
+    var ganhos: Array[String] = []
+    if progresso.quantidade(chave) <= 0:
+        progresso.adicionar_recurso(chave, 1)
+        ganhos.append("Núcleo do Maestro" if monster_type >= 3 else "Selo do Regente")
+
+    progresso.adicionar_recurso("claves", 900 if monster_type >= 3 else 500)
+    ganhos.append("%d Claves" % (900 if monster_type >= 3 else 500))
+
+    # Uma Alma garantida: e a moeda de quem quer completar a escala, e o chefe
+    # e o unico lugar onde ela nao depende de sorte.
+    var notas: Array = progresso.ECOS.keys()
+    if not notas.is_empty():
+        var qual := String(notas[randi() % notas.size()])
+        progresso.adicionar_recurso("alma_eco_" + qual, 1)
+        ganhos.append("Alma de %s" % String(progresso.ECOS[qual]["nome"]))
+
+    var casca := get_tree().root.find_child("UiShell", true, false)
+    if casca and casca.has_method("avisar"):
+        casca.avisar("Guardião derrotado", ",  ".join(ganhos))
+    var hud := get_tree().get_first_node_in_group("player_hud")
+    if hud and hud.has_method("anunciar"):
+        hud.anunciar("Guardião derrotado — " + ",  ".join(ganhos))
+
+
 func _dar_experiencia() -> void:
     var progresso := get_node_or_null("/root/Progresso")
     if progresso == null or not progresso.has_method("ganhar_experiencia"):
         return
     var cfg: Dictionary = MONSTROS_CONFIG[monster_type % MONSTROS_CONFIG.size()]
     var xp := int(float(cfg.get("hp", 140.0)) * 0.18 + float(cfg.get("dano", 14.0)) * 1.2)
+    if _e_chefe:
+        xp *= 12
     if xp <= 0:
         return
     progresso.ganhar_experiencia(xp)
@@ -900,6 +947,8 @@ func _morrer() -> void:
     _largar_clave()
     _largar_fragmento()
     _dar_experiencia()
+    if _e_chefe:
+        _largar_premio_de_chefe()
     _morrendo = true
     if _hp_label_3d: _hp_label_3d.visible = false
     if _name_label_3d: _name_label_3d.visible = false

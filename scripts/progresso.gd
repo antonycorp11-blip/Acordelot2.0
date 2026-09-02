@@ -47,6 +47,8 @@ const RECURSOS_INICIAIS := {
     "partitura_menor": 0,
     "partitura_harmonica": 0,
     "partitura_magistral": 0,
+    "acorde_cura": 0,
+    "acorde_vigor": 0,
     "selo_regente": 0,
     "nucleo_maestro": 0,
     "fragmento_do": 0,
@@ -271,9 +273,20 @@ func equipar_eco(dados: Dictionary) -> bool:
     var id := str(dados.get("id", ""))
     if id.is_empty() or id not in ecos_descobertos:
         return false
+    # O PODER DO ECO SAI DA TABELA, NAO DE QUEM CHAMOU.
+    #
+    # A tela de Ecos mandava "poder = 60 + descobertos * 8" — um numero de
+    # regra de jogo calculado dentro de um botao de interface. Agora o Progresso
+    # decide, a partir da funcao harmonica da nota, e a tela so mostra.
+    var ficha: Dictionary = ECOS.get(id, {})
+    var soma := 0.0
+    for chave in ficha.get("bonus", {}):
+        soma += float(ficha["bonus"][chave])
     eco_equipado = {
-        "id": id, "nome": str(dados.get("nome", id.capitalize())),
-        "forma": 1, "poder": int(dados.get("poder", 0)),
+        "id": id, "nome": str(ficha.get("nome", dados.get("nome", id.capitalize()))),
+        "forma": 1, "poder": int(soma),
+        "raridade": str(ficha.get("raridade", "Comum")),
+        "funcao": str(ficha.get("funcao", "")),
         "arte": str(dados.get("arte", "")),
         "habilidade": str(dados.get("habilidade", "")),
         "buff": str(dados.get("buff", "")),
@@ -380,19 +393,196 @@ func valor_atributo(id: String) -> int:
     return total
 
 
+# ------------------------------------------------------------------ acordes
+## TRES NOTAS SOAM JUNTAS E VIRAM UM ACORDE.
+##
+## O jogo se chama AcordeLot e ate aqui acorde era so o nome. Aqui ele e a
+## receita: a triade maior de Do — primeiro, terceiro e quinto graus, Do-Mi-Sol
+## — vira o frasco que devolve vida. A menor troca o Mi por Mi bemol e, como o
+## jogo trabalha com sustenidos, o Re# ocupa esse lugar: mesma altura, outro
+## nome. Quem monta o acorde no jogo esta montando o acorde de verdade.
+##
+## E a unica cura carregavel que existe. Antes so havia roubo de vida preso a um
+## buff de dez segundos.
+const ACORDES := {
+    "acorde_cura": {
+        "nome": "Acorde de Cura", "graus": "I · III · V",
+        "notas": ["do", "mi", "sol"],
+        "licao": "Tríade maior de Dó: a fundamental, a terça e a quinta.",
+        "custo_claves": 150, "efeito": "Restaura 45% da vida.",
+    },
+    "acorde_vigor": {
+        "nome": "Acorde de Vigor", "graus": "I · ♭III · V",
+        "notas": ["do", "re_sustenido", "sol"],
+        "licao": "Tríade menor de Dó: a terça desce meio tom e o acorde escurece.",
+        "custo_claves": 260, "efeito": "Restaura 25% da vida e concede escudo.",
+    },
+}
+
+## Quanto de vida cada acorde devolve, em fracao do maximo.
+const CURA_DO_ACORDE := {"acorde_cura": 0.45, "acorde_vigor": 0.25}
+
+
+func pode_montar_acorde(id: String) -> bool:
+    if not ACORDES.has(id):
+        return false
+    var receita: Dictionary = ACORDES[id]
+    if quantidade("claves") < int(receita["custo_claves"]):
+        return false
+    for nota in receita["notas"]:
+        if quantidade("nota_" + String(nota)) < 1:
+            return false
+    return true
+
+
+func montar_acorde(id: String) -> bool:
+    if not pode_montar_acorde(id):
+        return false
+    var receita: Dictionary = ACORDES[id]
+    recursos["claves"] = quantidade("claves") - int(receita["custo_claves"])
+    for nota in receita["notas"]:
+        recursos["nota_" + String(nota)] = quantidade("nota_" + String(nota)) - 1
+    recursos[id] = quantidade(id) + 1
+    salvar()
+    alterado.emit()
+    return true
+
+
+## Consome um acorde e devolve quanto de vida ele vale, em fracao do maximo.
+## Quem chama aplica na HUD — o Progresso nao conhece barra de vida.
+func usar_acorde(id: String) -> float:
+    if not ACORDES.has(id) or quantidade(id) < 1:
+        return 0.0
+    recursos[id] = quantidade(id) - 1
+    salvar()
+    alterado.emit()
+    return float(CURA_DO_ACORDE.get(id, 0.0))
+
+
+# --------------------------------------------------------------- os doze Ecos
+## O ECO VALE PELO QUE A NOTA DELE E DENTRO DA ESCALA.
+##
+## Aqui a raridade nao foi sorteada: ela sai da funcao harmonica. Numa
+## tonalidade, as notas nao tem o mesmo peso — a tonica e o repouso, a dominante
+## e a tensao que pede resolucao, a sensivel puxa de volta para a tonica, e as
+## notas cromaticas (os sustenidos) sao de passagem, ficam de fora do campo
+## diatonico. Essa hierarquia e uma das primeiras coisas que se aprende em
+## harmonia, e virou a hierarquia de poder do jogo: quem coleciona percebe a
+## regra antes de alguem explicar.
+##
+## O bonus tambem segue a funcao, nao so o numero:
+##   tonica      -> vida e defesa      (repouso, o que sustenta)
+##   dominante   -> ataque e critico   (tensao, o que ataca)
+##   subdominante-> poder harmonico    (o afastamento, a preparacao)
+##   sensivel    -> dano critico       (o puxao agudo para a tonica)
+##   cromaticas  -> ressonancia/coleta (notas de passagem, quem transita)
+const ECOS := {
+    "do": {"nome": "Dó", "grau": "I", "funcao": "Tônica", "raridade": "Lendário",
+        "licao": "O repouso da tonalidade. Toda frase quer voltar para cá.",
+        "bonus": {"vida_maxima": 170, "defesa": 18, "ataque": 12, "poder_harmonico": 20}},
+    "re": {"nome": "Ré", "grau": "II", "funcao": "Supertônica", "raridade": "Raro",
+        "licao": "Prepara a dominante. Raramente é destino, quase sempre caminho.",
+        "bonus": {"vida_maxima": 45, "ataque": 9, "defesa": 6, "poder_harmonico": 10}},
+    "mi": {"nome": "Mi", "grau": "III", "funcao": "Mediante", "raridade": "Raro",
+        "licao": "É ela que decide se o acorde soa maior ou menor.",
+        "bonus": {"ataque": 12, "critico": 1.2, "vida_maxima": 35, "poder_harmonico": 8}},
+    "fa": {"nome": "Fá", "grau": "IV", "funcao": "Subdominante", "raridade": "Épico",
+        "licao": "Afasta do repouso sem criar tensão. É o segundo pilar do tom.",
+        "bonus": {"poder_harmonico": 34, "vida_maxima": 80, "defesa": 9, "ataque": 10}},
+    "sol": {"nome": "Sol", "grau": "V", "funcao": "Dominante", "raridade": "Épico",
+        "licao": "A maior tensão da tonalidade. Existe para resolver na tônica.",
+        "bonus": {"ataque": 24, "critico": 2.2, "dano_critico": 15, "vida_maxima": 40}},
+    "la": {"nome": "Lá", "grau": "VI", "funcao": "Superdominante", "raridade": "Raro",
+        "licao": "O relativo menor mora aqui: mesma armadura, outro humor.",
+        "bonus": {"vida_maxima": 60, "critico": 1.0, "ataque": 8, "poder_harmonico": 10}},
+    "si": {"nome": "Si", "grau": "VII", "funcao": "Sensível", "raridade": "Épico",
+        "licao": "Fica a meio tom da tônica e puxa para ela. Nunca descansa.",
+        "bonus": {"dano_critico": 26, "critico": 2.0, "ataque": 14, "poder_harmonico": 12}},
+    "do_sustenido": {"nome": "Dó#", "grau": "#I", "funcao": "Cromática", "raridade": "Incomum",
+        "licao": "Fora do campo diatônico: nota de passagem entre Dó e Ré.",
+        "bonus": {"poder_harmonico": 12, "vida_maxima": 25, "ataque": 4}},
+    "re_sustenido": {"nome": "Ré#", "grau": "#II", "funcao": "Cromática", "raridade": "Incomum",
+        "licao": "Entre Ré e Mi. Colore a passagem sem pertencer ao tom.",
+        "bonus": {"poder_harmonico": 12, "critico": 0.6, "ataque": 5}},
+    "fa_sustenido": {"nome": "Fá#", "grau": "#IV", "funcao": "Cromática", "raridade": "Incomum",
+        "licao": "O trítono a partir de Dó — o intervalo mais instável da escala.",
+        "bonus": {"ataque": 8, "dano_critico": 8, "poder_harmonico": 8}},
+    "sol_sustenido": {"nome": "Sol#", "grau": "#V", "funcao": "Cromática", "raridade": "Incomum",
+        "licao": "Entre Sol e Lá. Empresta tensão a quem passa por ela.",
+        "bonus": {"critico": 0.8, "ataque": 6, "vida_maxima": 22}},
+    "la_sustenido": {"nome": "Lá#", "grau": "#VI", "funcao": "Cromática", "raridade": "Incomum",
+        "licao": "Vizinha da sensível. Aparece quando a música muda de tom.",
+        "bonus": {"dano_critico": 10, "poder_harmonico": 9, "vida_maxima": 20}},
+}
+
+## O QUE A COLECAO INTEIRA VALE.
+##
+## Um eco equipado por vez faria o jogador guardar o Dó e nunca mais capturar
+## nada. Entao cada Eco DESCOBERTO paga um pouco para sempre, e fechar a escala
+## paga de novo: dominar as sete naturais e uma conquista de verdade em musica,
+## e as doze fecham o cromatismo.
+const POR_ECO_DESCOBERTO := {"vida_maxima": 10, "poder_harmonico": 3, "ataque": 2}
+const NATURAIS := ["do", "re", "mi", "fa", "sol", "la", "si"]
+const BONUS_ESCALA_DIATONICA := {"vida_maxima": 90, "ataque": 14, "poder_harmonico": 25, "defesa": 8}
+const BONUS_ESCALA_CROMATICA := {"vida_maxima": 160, "ataque": 26, "poder_harmonico": 45,
+    "defesa": 14, "critico": 2.0, "dano_critico": 20}
+
+
+## Soma tudo que os Ecos dao: o equipado por inteiro, mais o pouco de cada um
+## que ja foi descoberto, mais os fechamentos de escala.
+func bonus_dos_ecos() -> Dictionary:
+    var total := {"ataque": 0.0, "vida_maxima": 0.0, "defesa": 0.0,
+        "critico": 0.0, "dano_critico": 0.0, "poder_harmonico": 0.0}
+
+    var equipado := str(eco_equipado.get("id", ""))
+    if ECOS.has(equipado):
+        for chave in ECOS[equipado]["bonus"]:
+            total[chave] = total.get(chave, 0.0) + float(ECOS[equipado]["bonus"][chave])
+
+    for id in ecos_descobertos:
+        for chave in POR_ECO_DESCOBERTO:
+            total[chave] = total.get(chave, 0.0) + float(POR_ECO_DESCOBERTO[chave])
+
+    if tem_a_escala_diatonica():
+        for chave in BONUS_ESCALA_DIATONICA:
+            total[chave] = total.get(chave, 0.0) + float(BONUS_ESCALA_DIATONICA[chave])
+    if ecos_descobertos.size() >= ECOS.size():
+        for chave in BONUS_ESCALA_CROMATICA:
+            total[chave] = total.get(chave, 0.0) + float(BONUS_ESCALA_CROMATICA[chave])
+    return total
+
+
+func tem_a_escala_diatonica() -> bool:
+    for nota in NATURAIS:
+        if nota not in ecos_descobertos:
+            return false
+    return true
+
+
+## A ficha do Eco, para a interface mostrar sem inventar numero.
+func ficha_do_eco(id: String) -> Dictionary:
+    return ECOS.get(id, {})
+
+
 func estatisticas() -> Dictionary:
     var forca := valor_atributo("forca")
     var destreza := valor_atributo("destreza")
     var vitalidade := valor_atributo("vitalidade")
     var ressonancia := valor_atributo("ressonancia")
     var percepcao := valor_atributo("percepcao")
+    # O QUE OS ECOS DAO ENTRA AQUI, e nao num numero solto de vitrine. Antes o
+    # eco equipado so somava um "poder" que a propria tela de Ecos inventava —
+    # sessenta mais oito por eco descoberto, calculado dentro do botao. Agora o
+    # bonus e do dominio do Progresso, sai da tabela de funcao harmonica e
+    # aparece de verdade em ataque, vida, defesa e critico.
+    var eco := bonus_dos_ecos()
     return {
-        "ataque": 18 + nivel * 3 + forca * 4 + destreza,
-        "vida_maxima": 160 + nivel * 14 + vitalidade * 22,
-        "defesa": 4 + vitalidade * 2 + destreza,
-        "critico": 3.0 + destreza * 0.55 + percepcao * 0.35,
-        "dano_critico": 135.0 + forca * 1.5,
-        "poder_harmonico": ressonancia * 5 + percepcao * 2 + nivel * 2,
+        "ataque": 18 + nivel * 3 + forca * 4 + destreza + int(eco["ataque"]),
+        "vida_maxima": 160 + nivel * 14 + vitalidade * 22 + int(eco["vida_maxima"]),
+        "defesa": 4 + vitalidade * 2 + destreza + int(eco["defesa"]),
+        "critico": 3.0 + destreza * 0.55 + percepcao * 0.35 + eco["critico"],
+        "dano_critico": 135.0 + forca * 1.5 + eco["dano_critico"],
+        "poder_harmonico": ressonancia * 5 + percepcao * 2 + nivel * 2 + int(eco["poder_harmonico"]),
         "coleta": 100.0 + percepcao * 2.0,
     }
 

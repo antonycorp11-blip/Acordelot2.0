@@ -54,6 +54,8 @@ const ITENS_DE_RECURSO := [
     ["ressonador", "Ressonador Harmônico", "item/runa", "Raro", "ferramenta", "Ferramenta durável usada para extrair fragmentos e Almas dos Ecos."],
     ["madeira", "Madeira", "item/bolsa", "Comum", "material", "Material coletado de árvores e galhos aproveitáveis."],
     ["pedra", "Pedra", "item/minerio", "Comum", "material", "Material bruto obtido em veios e rochas."],
+    ["acorde_cura", "Acorde de Cura", "item/acorde_cura", "Raro", "consumivel", "Tríade maior de Dó (Dó · Mi · Sol). Restaura 45% da vida."],
+    ["acorde_vigor", "Acorde de Vigor", "item/acorde_vigor", "Épico", "consumivel", "Tríade menor de Dó (Dó · Ré# · Sol). Restaura 25% da vida e concede escudo."],
     ["partitura_menor", "Partitura Menor", "item/partitura", "Incomum", "consumivel", "Concede 100 XP ao Akles."],
     ["partitura_harmonica", "Partitura Harmônica", "item/partitura", "Raro", "consumivel", "Concede 500 XP ao Akles ou participa da ascensão do nível 20."],
     ["partitura_magistral", "Partitura Magistral", "item/partitura", "Épico", "consumivel", "Concede 1.500 XP ao Akles ou participa da ascensão do nível 40."],

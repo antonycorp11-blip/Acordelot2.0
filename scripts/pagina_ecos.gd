@@ -10,6 +10,7 @@ const ROTULO := {"do": "Dó", "do_sustenido": "Dó#", "re": "Ré", "re_sustenido
 var _progresso: Node
 var _colecao: Label
 var _grade: GridContainer
+var _escalas: HBoxContainer
 
 func _ready() -> void:
     _progresso = get_node_or_null("/root/Progresso")
@@ -27,6 +28,13 @@ func _montar() -> void:
     col.add_child(T.cabeca_de_painel("Vozes do Caminho", "Ecos"))
     _colecao = T.rotulo_simples("", 17, T.SOBRANCELHA)
     col.add_child(_colecao)
+    # AS DUAS ESCALAS. Fechar as sete naturais e fechar as doze sao conquistas
+    # separadas, e mostrar as duas em aberto e o que faz querer capturar a
+    # proxima — inclusive as cromaticas, que sozinhas valem menos.
+    _escalas = HBoxContainer.new()
+    _escalas.add_theme_constant_override("separation", 8)
+    col.add_child(_escalas)
+    col.add_child(T.espaco(4))
 
     # SEM ROLAGEM E SEM SOBRA. Doze ecos em quatro por tres, e os cartoes
     # crescem para ocupar a area inteira — a tela deitada tinha altura de sobra
@@ -46,7 +54,20 @@ func _pintar() -> void:
         _grade.remove_child(a)
         a.queue_free()
     var achados: Array = _progresso.ecos_descobertos
-    _colecao.text = "Coleção  %d / 12" % achados.size()
+    _colecao.text = "Cada Eco descoberto fortalece o Akles para sempre; o equipado dá o bônus inteiro."
+    for antigo in _escalas.get_children():
+        _escalas.remove_child(antigo)
+        antigo.queue_free()
+    var naturais := 0
+    for nota in _progresso.NATURAIS:
+        if nota in achados: naturais += 1
+    var diatonica: bool = naturais >= _progresso.NATURAIS.size()
+    var cromatica: bool = achados.size() >= _progresso.ECOS.size()
+    _escalas.add_child(T.chip("Coleção  %d / 12" % achados.size(), T.SOBRANCELHA.lightened(0.3)))
+    _escalas.add_child(T.chip("Escala diatônica  %d / 7" % naturais,
+        T.GANHO if diatonica else T.SOBRANCELHA))
+    _escalas.add_child(T.chip("Cromática  %d / 12" % achados.size(),
+        T.GANHO if cromatica else T.SOBRANCELHA))
     var equipado := String(_progresso.eco_equipado.get("id", ""))
     for nota in NOTAS:
         _grade.add_child(_cartao(String(nota), achados, equipado))
@@ -137,6 +158,10 @@ func _cartao(id: String, achados: Array, equipado: String) -> Control:
     rodape.mouse_filter = Control.MOUSE_FILTER_IGNORE
     caixa.add_child(rodape)
 
+    var ficha: Dictionary = _progresso.ficha_do_eco(id)
+    var raridade := String(ficha.get("raridade", "Comum"))
+    var cor_da_raridade: Color = T.RARIDADE.get(raridade, T.RARIDADE["Comum"])
+
     var nome := T.rotulo(String(ROTULO.get(id, id)), T.NOME_ITEM,
         T.OURO_FORTE if tem else Color(0.55, 0.60, 0.70))
     nome.add_theme_font_override("font", T.fonte_titulo())
@@ -146,8 +171,9 @@ func _cartao(id: String, achados: Array, equipado: String) -> Control:
 
     var alma: int = _progresso.quantidade("alma_eco_" + id)
     var estado := T.rotulo("Equipado" if e_o_equipado else (
-        "Alma  %d" % alma if tem else "Não ressoado"), T.LEGENDA,
-        T.OURO if e_o_equipado else T.TEXTO_FRACO)
+        "%s · %s" % [raridade, String(ficha.get("funcao", ""))] if tem
+        else "Não ressoado"), T.LEGENDA,
+        T.OURO if e_o_equipado else (cor_da_raridade.lightened(0.25) if tem else T.TEXTO_FRACO))
     estado.add_theme_color_override("font_outline_color", Color(0.0, 0.01, 0.03, 0.9))
     estado.add_theme_constant_override("outline_size", 4)
     rodape.add_child(estado)
@@ -155,10 +181,12 @@ func _cartao(id: String, achados: Array, equipado: String) -> Control:
     var aro := Panel.new()
     aro.set_anchors_preset(Control.PRESET_FULL_RECT)
     aro.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    # A BORDA E A RARIDADE. Assim a hierarquia da escala se le na grade inteira
+    # de uma olhada, antes de qualquer texto.
     aro.add_theme_stylebox_override("panel", T.painel(
         Color(0, 0, 0, 0),
-        T.OURO if e_o_equipado else (Color(0.32, 0.42, 0.58, 0.8) if tem else Color(0.15, 0.19, 0.27)),
-        12, 3 if e_o_equipado else 1, 0))
+        T.OURO if e_o_equipado else (cor_da_raridade if tem else Color(0.15, 0.19, 0.27)),
+        12, 3 if e_o_equipado else (2 if tem else 1), 0))
     caixa.add_child(aro)
 
     # O CARTAO INTEIRO E O BOTAO. Botao dentro de cartao era mais um retangulo
@@ -167,12 +195,28 @@ func _cartao(id: String, achados: Array, equipado: String) -> Control:
     toque.set_anchors_preset(Control.PRESET_FULL_RECT)
     toque.focus_mode = Control.FOCUS_NONE
     toque.disabled = not tem or e_o_equipado
-    toque.tooltip_text = "" if tem else "Ressoe este Eco no mundo para descobri-lo."
+    # A LICAO E O BONUS moram no toque demorado: quem quiser so jogar, joga;
+    # quem quiser entender por que o Sol vale mais que o Sol#, tem onde ler.
+    var partes: Array[String] = []
+    partes.append("%s  ·  %s (%s)" % [raridade, String(ficha.get("funcao", "")),
+        String(ficha.get("grau", ""))])
+    partes.append(String(ficha.get("licao", "")))
+    var linhas: Array[String] = []
+    for chave in ficha.get("bonus", {}):
+        linhas.append("+%s %s" % [str(ficha["bonus"][chave]), String(chave).replace("_", " ")])
+    if not linhas.is_empty():
+        partes.append("Equipado concede:  " + ",  ".join(linhas))
+    if not tem:
+        partes.append("Ressoe este Eco no mundo para descobri-lo.")
+    toque.tooltip_text = "\n".join(partes)
     for estado_do_botao in ["normal", "hover", "pressed", "focus", "disabled"]:
         toque.add_theme_stylebox_override(estado_do_botao, StyleBoxEmpty.new())
     toque.add_theme_stylebox_override("hover", T.painel(Color(1.0, 0.86, 0.45, 0.10), T.OURO, 12, 2, 0))
     toque.pressed.connect(func():
-        _progresso.equipar_eco({"id": id, "nome": "Eco de " + String(ROTULO.get(id, id)),
-            "poder": 60 + achados.size() * 8}))
+        _progresso.equipar_eco({"id": id})
+        var casca := get_tree().root.find_child("UiShell", true, false)
+        if casca and casca.has_method("avisar"):
+            casca.avisar("Eco equipado", "%s — %s (%s)" % [
+                String(ROTULO.get(id, id)), String(ficha.get("funcao", "")), raridade]))
     caixa.add_child(toque)
     return caixa

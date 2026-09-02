@@ -33,6 +33,14 @@ var _xp_cheio: ColorRect
 var _xp_label: Label
 var _nivel_label: Label
 var _poder_label: Label
+## Quanto tempo sem apanhar antes de a vida voltar a subir, e o quanto ela sobe.
+const ESPERA_PARA_REGENERAR := 6.0
+const REGENERACAO_POR_SEGUNDO := 0.045
+
+## Avisa quem cuida do mundo que a vida chegou a zero.
+signal caiu
+
+var _ultimo_dano_em := 0.0
 var _escudo := 0.0
 var _escudo_ate := 0.0
 
@@ -79,13 +87,24 @@ func _ready() -> void:
 ## So corre enquanto ha escudo para expirar. A HUD passa a maior parte da partida
 ## sem nada a fazer por quadro, e um _process ligado o tempo todo para conferir
 ## um cronometro parado e custo puro num aparelho que ja esta no limite.
-func _process(_delta: float) -> void:
-    if _escudo <= 0.0:
-        set_process(false)
-        return
-    if Time.get_ticks_msec() / 1000.0 >= _escudo_ate:
+func _process(delta: float) -> void:
+    var agora := Time.get_ticks_msec() / 1000.0
+    if _escudo > 0.0 and agora >= _escudo_ate:
         _escudo = 0.0
         _pintar_vida()
+
+    # A HARMONIA SE REFAZ SOZINHA FORA DA BRIGA.
+    #
+    # Ate aqui existia UMA fonte de cura no jogo inteiro: roubo de vida enquanto
+    # a aura azul estava ligada. Com o dano do bicho passando a valer, o jogador
+    # sangrava e nao tinha resposta nenhuma — so morrer, sem nem existir morte.
+    # A regeneracao so comeca depois de alguns segundos sem apanhar, entao ela
+    # nao apaga o perigo do combate: ela devolve o jogo depois dele.
+    if current_health > 0.0 and current_health < max_health and agora - _ultimo_dano_em >= ESPERA_PARA_REGENERAR:
+        current_health = minf(current_health + max_health * REGENERACAO_POR_SEGUNDO * delta, max_health)
+        _pintar_vida()
+
+    if _escudo <= 0.0 and (current_health >= max_health or current_health <= 0.0):
         set_process(false)
 
 
@@ -549,11 +568,25 @@ func curar(qtd: float) -> void:
     _pintar_vida()
 
 
+## Devolve o heroi inteiro. Chamada por quem trata a queda.
+func reerguer() -> void:
+    current_health = max_health
+    _escudo = 0.0
+    _ultimo_dano_em = 0.0
+    _pintar_vida()
+
+
 func tomar_dano(qtd: float) -> void:
+    if current_health <= 0.0:
+        return
     var absorvido := minf(_escudo, qtd)
     _escudo -= absorvido
     current_health = clampf(current_health - (qtd - absorvido), 0.0, max_health)
+    _ultimo_dano_em = Time.get_ticks_msec() / 1000.0
     _pintar_vida()
+    set_process(true)
+    if current_health <= 0.0:
+        caiu.emit()
 
 
 func conceder_escudo(qtd: float) -> void:

@@ -195,6 +195,12 @@ func _ready() -> void:
     _hud_ressonancia = RessonanciaHUDScript.new()
     _hud_ressonancia.name = "HUDRessonancia"
     add_child(_hud_ressonancia)
+    var hud_da_vida := get_tree().get_first_node_in_group("player_hud")
+    if hud_da_vida and hud_da_vida.has_signal("caiu") \
+            and not hud_da_vida.caiu.is_connected(_ao_cair):
+        hud_da_vida.caiu.connect(_ao_cair)
+    _ultimo_lugar_seguro = _player.global_position if _player else Vector3.ZERO
+
     _hud_ressonancia.ressoar_iniciado.connect(func(): _ressonando = true)
     _hud_ressonancia.ressoar_parado.connect(func(): _ressonando = false)
     _sorte_captura.randomize()
@@ -506,6 +512,14 @@ func _process(delta: float) -> void:
     if _ate_buscar_eco <= 0.0:
         _ate_buscar_eco = 0.25
         _buscar_eco_para_captura()
+
+    # ONDE ELE ESTAVA EM PAZ. Guardar o ponto so quando nao ha bicho por perto
+    # evita renascer dentro da briga que acabou de matar o jogador — que e o
+    # jeito mais rapido de transformar uma morte em cinco.
+    _ate_marcar_lugar -= delta
+    if _ate_marcar_lugar <= 0.0:
+        _ate_marcar_lugar = 1.5
+        _marcar_lugar_seguro()
     if not _ressonando:
         _progresso_ressonancia = maxf(0.0, _progresso_ressonancia - delta * 0.20)
         return
@@ -516,11 +530,116 @@ func _process(delta: float) -> void:
     if progresso == null or progresso.quantidade("ressonador") <= 0:
         _ressonando = false
         return
+    # RESSOAR VIROU AFINAR.
+    #
+    # Antes era segurar o dedo e esperar quatro segundos e meio: nao havia o que
+    # acertar, nao havia o que aprender, e capturar o decimo Eco era igual ao
+    # primeiro. Agora um ponteiro varre a faixa e a barra so anda depressa
+    # enquanto ele esta DENTRO da janela — que estreita conforme a captura
+    # avanca, como afinar de verdade fica mais fino perto do ponto. Segurar
+    # parado ainda funciona, so que devagar: o jogo pede pericia sem punir quem
+    # nao tem.
     var bonus := 1.0 + maxf(0.0, float(progresso.valor_atributo("ressonancia")) - 6.0) * 0.02
-    _progresso_ressonancia += delta / 4.5 * bonus
-    _mostrar_estado_ressonancia()
+    _fase_da_afinacao += delta * VELOCIDADE_DO_PONTEIRO
+    var ponteiro: float = sin(_fase_da_afinacao)
+    var janela: float = lerpf(0.38, 0.14, _progresso_ressonancia)
+    var afinado: bool = absf(ponteiro) <= janela
+    if afinado:
+        _tempo_afinado += delta
+        if not _estava_afinado:
+            _tocar_a_nota_do_eco()
+    _estava_afinado = afinado
+    _tempo_ressoando += delta
+    _progresso_ressonancia += delta / 4.5 * bonus * (2.0 if afinado else 0.42)
+    _mostrar_estado_ressonancia(ponteiro, janela, afinado)
     if _progresso_ressonancia >= 1.0:
         _concluir_ressonancia()
+
+
+## A QUEDA.
+##
+## Ate ontem a vida do heroi nunca baixava, entao nao existia morte — e quando
+## eu liguei o dano do bicho, o jogo passou a permitir chegar a zero e seguir
+## andando. Aqui a queda finalmente significa alguma coisa, e de proposito nao
+## significa MUITO: perde-se um decimo das Claves e volta-se ao ultimo lugar
+## calmo, com a vida cheia. Num jogo cuja materia e aprender musica, punir
+## forte a tentativa e o caminho errado.
+var _ultimo_lugar_seguro := Vector3.ZERO
+var _ate_marcar_lugar := 1.5
+var _caido := false
+var _veu_da_queda: ColorRect = null
+
+func _marcar_lugar_seguro() -> void:
+    if _player == null or _caido:
+        return
+    for b in get_tree().get_nodes_in_group("bicho"):
+        if is_instance_valid(b) and b.global_position.distance_to(_player.global_position) < 16.0:
+            return
+    _ultimo_lugar_seguro = _player.global_position
+
+
+func _ao_cair() -> void:
+    if _caido:
+        return
+    _caido = true
+    if _player:
+        _player.set_physics_process(false)
+        _player.velocity = Vector3.ZERO
+
+    var perdidas := 0
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso:
+        perdidas = int(progresso.quantidade("claves") * 0.10)
+        if perdidas > 0:
+            progresso.adicionar_recurso("claves", -perdidas)
+
+    _montar_veu()
+    var tw := create_tween()
+    tw.tween_property(_veu_da_queda, "modulate:a", 1.0, 0.45)
+    tw.tween_callback(func():
+        if _player:
+            _player.global_position = _ultimo_lugar_seguro + Vector3.UP * 0.6
+            _player.velocity = Vector3.ZERO
+        var hud := get_tree().get_first_node_in_group("player_hud")
+        if hud and hud.has_method("reerguer"):
+            hud.reerguer())
+    tw.tween_interval(0.9)
+    tw.tween_property(_veu_da_queda, "modulate:a", 0.0, 0.6)
+    tw.tween_callback(func():
+        _caido = false
+        if _player:
+            _player.set_physics_process(true)
+        var casca := get_tree().root.find_child("UiShell", true, false)
+        if casca and casca.has_method("avisar") and perdidas > 0:
+            casca.avisar("A harmonia se desfez", "Você perdeu %d Claves na queda" % perdidas))
+
+
+func _montar_veu() -> void:
+    if _veu_da_queda and is_instance_valid(_veu_da_queda):
+        _veu_da_queda.modulate.a = 0.0
+        return
+    var camada := CanvasLayer.new()
+    camada.layer = 90
+    add_child(camada)
+    _veu_da_queda = ColorRect.new()
+    _veu_da_queda.color = Color(0.02, 0.01, 0.03, 1.0)
+    _veu_da_queda.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _veu_da_queda.mouse_filter = Control.MOUSE_FILTER_STOP
+    _veu_da_queda.modulate.a = 0.0
+    camada.add_child(_veu_da_queda)
+    var aviso := Label.new()
+    aviso.text = "A harmonia se desfez"
+    aviso.add_theme_font_override("font", load("res://fontes/Cinzel.ttf"))
+    aviso.add_theme_font_size_override("font_size", 34)
+    aviso.add_theme_color_override("font_color", Color(0.90, 0.80, 0.62))
+    aviso.set_anchors_preset(Control.PRESET_CENTER)
+    aviso.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    aviso.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    aviso.offset_left = -300.0
+    aviso.offset_right = 300.0
+    aviso.offset_top = -30.0
+    aviso.offset_bottom = 30.0
+    _veu_da_queda.add_child(aviso)
 
 
 func _buscar_eco_para_captura() -> void:
@@ -548,7 +667,36 @@ func _buscar_eco_para_captura() -> void:
         _mostrar_estado_ressonancia()
 
 
-func _mostrar_estado_ressonancia() -> void:
+## O PONTEIRO E A JANELA. Sao o unico estado novo da ressonancia, e vivem aqui
+## para o HUD continuar sendo so desenho.
+const VELOCIDADE_DO_PONTEIRO := 3.1
+var _fase_da_afinacao := 0.0
+var _tempo_afinado := 0.0
+var _tempo_ressoando := 0.0
+var _estava_afinado := false
+var _voz_da_nota: AudioStreamPlayer = null
+
+## Toca a nota do Eco no instante em que o ponteiro entra na janela. E o
+## reforco que transforma o minijogo em treino de ouvido: acertar SOA.
+func _tocar_a_nota_do_eco() -> void:
+    if _eco_captura == null or not is_instance_valid(_eco_captura):
+        return
+    var caminho := "res://audio/nota_%s.wav" % str(_eco_captura.eco_id).replace("_sustenido", "")
+    if not ResourceLoader.exists(caminho):
+        return
+    if _voz_da_nota == null or not is_instance_valid(_voz_da_nota):
+        _voz_da_nota = AudioStreamPlayer.new()
+        _voz_da_nota.volume_db = -7.0
+        add_child(_voz_da_nota)
+    _voz_da_nota.stream = load(caminho)
+    # A sustenida sobe meio tom a partir da natural: um semitom e a raiz doze de
+    # dois. O jogo nao tem gravacao das cinco cromaticas, e afinar a natural e
+    # mais honesto do que tocar a nota errada.
+    _voz_da_nota.pitch_scale = 1.0595 if str(_eco_captura.eco_id).ends_with("_sustenido") else 1.0
+    _voz_da_nota.play()
+
+
+func _mostrar_estado_ressonancia(ponteiro := 0.0, janela := 0.3, afinado := false) -> void:
     if _eco_captura == null or not is_instance_valid(_eco_captura):
         return
     var progresso := get_node_or_null("/root/Progresso")
@@ -557,7 +705,8 @@ func _mostrar_estado_ressonancia() -> void:
         "sol_sustenido":"Sol#", "la":"Lá", "la_sustenido":"Lá#", "si":"Si"}
     var id := str(_eco_captura.eco_id)
     _hud_ressonancia.mostrar_eco("Eco de " + str(nomes.get(id, id)), _progresso_ressonancia,
-        progresso != null and progresso.quantidade("ressonador") > 0)
+        progresso != null and progresso.quantidade("ressonador") > 0,
+        ponteiro, janela, afinado)
 
 
 func _concluir_ressonancia() -> void:
@@ -569,16 +718,29 @@ func _concluir_ressonancia() -> void:
     _progresso_ressonancia = 0.0
     if progresso == null:
         return
-    var fragmentos := _sorte_captura.randi_range(2, 4)
+    # A QUALIDADE DA AFINACAO PAGA. Quem ficou dentro da janela leva mais
+    # fragmento e tem chance bem maior de Alma — que e o que falta para fechar a
+    # escala. Ressoar de qualquer jeito continua valendo; ressoar bem vale mais.
+    var qualidade: float = 0.0 if _tempo_ressoando <= 0.0 \
+        else clampf(_tempo_afinado / _tempo_ressoando, 0.0, 1.0)
+    _tempo_afinado = 0.0
+    _tempo_ressoando = 0.0
+    _estava_afinado = false
+    var fragmentos := _sorte_captura.randi_range(2, 4) + int(round(qualidade * 3.0))
     progresso.adicionar_recurso("fragmento_" + id, fragmentos)
-    var chance_alma := minf(0.18, 0.08 + float(progresso.valor_atributo("ressonancia")) * 0.003)
+    var chance_alma := minf(0.45, 0.08 + float(progresso.valor_atributo("ressonancia")) * 0.003
+        + qualidade * 0.22)
     var ganhou_alma := _sorte_captura.randf() < chance_alma
     if ganhou_alma:
         progresso.adicionar_recurso("alma_eco_" + id, 1)
     var diario := get_node_or_null("/root/Diario")
     if diario:
         diario.registrar("capturar_eco", 1, id)
-    _hud_ressonancia.recompensa("+%d fragmentos%s" % [fragmentos, "  •  +1 Alma rara" if ganhou_alma else ""])
+    _hud_ressonancia.recompensa("Afinação %d%%   •   +%d fragmentos%s" % [
+        int(qualidade * 100.0), fragmentos, "  •  +1 Alma rara" if ganhou_alma else ""])
+    var casca := get_tree().root.find_child("UiShell", true, false)
+    if casca and casca.has_method("avisar") and ganhou_alma:
+        casca.avisar("Alma capturada", "Alma do Eco de %s" % str(id).replace("_sustenido", "#"))
     eco.play_disappear()
     _reaparecer_eco_depois(eco)
 

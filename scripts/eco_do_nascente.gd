@@ -95,7 +95,14 @@ func _process(delta: float) -> void:
     if _longe_da_camera:
         return
     _tempo_flutuacao += delta
-    visual.position.y = _altura_visual_inicial + sin(_tempo_flutuacao * TAU / periodo_flutuacao) * amplitude_flutuacao
+    var fase := _tempo_flutuacao * TAU / periodo_flutuacao
+    visual.position.y = _altura_visual_inicial + sin(fase) * amplitude_flutuacao
+    # RESPIRAR. Cinco quadros de idle a sete por segundo tremiam; a quatro e
+    # meio ficaram lentos demais sozinhos. Uma dilatacao minima fora de fase com
+    # a flutuacao devolve a vida sem depender de quadro novo — o bicho sobe,
+    # incha um triz e volta, que e o que o olho le como respiracao.
+    var respiro: float = 1.0 + sin(fase * 0.5 + 0.9) * 0.022
+    visual.scale = Vector3(respiro, 1.0 + (respiro - 1.0) * 1.4, respiro)
 
     if _alvo_seguidor and is_instance_valid(_alvo_seguidor) and not _acao_uma_vez:
         _processar_seguidor()

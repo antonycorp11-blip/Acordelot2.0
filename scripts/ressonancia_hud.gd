@@ -9,6 +9,28 @@ var _nome: Label
 var _barra: ProgressBar
 var _botao: Button
 var _aviso: Label
+var _afinador: Control
+var _ponteiro := 0.0
+var _janela := 0.3
+var _afinado := false
+
+
+func _desenhar_afinador() -> void:
+    if _afinador == null:
+        return
+    var r := _afinador.size
+    var meio := r.y * 0.5
+    _afinador.draw_line(Vector2(0, meio), Vector2(r.x, meio), Color(0.30, 0.36, 0.48, 0.9), 2.0)
+    # A janela: a faixa em que o Eco responde. Ela encolhe conforme a captura
+    # avanca, entao o fim exige mais pontaria que o comeco.
+    var meia := _janela * r.x * 0.5
+    var cor_janela: Color = Color(1.0, 0.84, 0.42, 0.85) if _afinado else Color(0.55, 0.62, 0.75, 0.55)
+    _afinador.draw_rect(Rect2(r.x * 0.5 - meia, 1.0, meia * 2.0, r.y - 2.0),
+        Color(cor_janela.r, cor_janela.g, cor_janela.b, 0.18), true)
+    _afinador.draw_rect(Rect2(r.x * 0.5 - meia, 1.0, meia * 2.0, r.y - 2.0), cor_janela, false, 1.5)
+    var x: float = r.x * 0.5 + _ponteiro * r.x * 0.5
+    var cor_ponteiro: Color = Color(1.0, 0.92, 0.58) if _afinado else Color(0.86, 0.90, 1.0)
+    _afinador.draw_line(Vector2(x, 0.0), Vector2(x, r.y), cor_ponteiro, 2.5, true)
 
 
 func _ready() -> void:
@@ -48,6 +70,17 @@ func _ready() -> void:
     _barra.max_value = 1.0
     _barra.show_percentage = false
     linha.add_child(_barra)
+
+    # A REGUA DE AFINACAO.
+    #
+    # Um ponteiro varrendo e uma janela dourada que estreita. E o desenho de um
+    # afinador, de proposito: quem ja viu um afinador entende sem instrucao, e
+    # quem nunca viu aprende o que significa "estar dentro do tom".
+    _afinador = Control.new()
+    _afinador.custom_minimum_size = Vector2(230, 16)
+    _afinador.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _afinador.draw.connect(_desenhar_afinador)
+    linha.add_child(_afinador)
     _botao = Button.new()
     _botao.text = "RESSOAR"
     _botao.custom_minimum_size = Vector2(102, 40)
@@ -63,7 +96,13 @@ func _ready() -> void:
     visible = false
 
 
-func mostrar_eco(nome_eco: String, progresso: float, tem_ressonador: bool) -> void:
+func mostrar_eco(nome_eco: String, progresso: float, tem_ressonador: bool,
+        ponteiro := 0.0, janela := 0.3, afinado := false) -> void:
+    _ponteiro = ponteiro
+    _janela = janela
+    _afinado = afinado
+    if _afinador:
+        _afinador.queue_redraw()
     visible = true
     _nome.text = "RESSONÂNCIA  •  " + nome_eco
     _barra.value = clampf(progresso, 0.0, 1.0)

@@ -143,7 +143,7 @@ func _montar() -> void:
     cd.add_child(_resultado)
     cd.add_child(T.espaco(10))
     cd.add_child(T.sobrancelha("Estudo"))
-    cd.add_child(T.titulo_do_proto("Partituras", 24))
+    cd.add_child(T.titulo_do_proto("Receitas", 24))
     # AS PARTITURAS ROLAM DENTRO DA PROPRIA COLUNA.
     #
     # Com os custos em cima e tres partituras embaixo, a coluna pedia 717 px de
@@ -330,8 +330,81 @@ func _pintar() -> void:
     for antigo in _partituras.get_children():
         _partituras.remove_child(antigo)
         antigo.queue_free()
+    # OS ACORDES VEM PRIMEIRO: sao a unica cura carregavel do jogo, e a razao
+    # de condensar nota deixou de ser so acumular.
+    _partituras.add_child(T.sobrancelha("Acordes"))
+    for id in _progresso.ACORDES:
+        _partituras.add_child(_cartao_do_acorde(String(id)))
+    _partituras.add_child(T.espaco(6))
+    _partituras.add_child(T.sobrancelha("Partituras"))
     for tipo in _progresso.PARTITURAS:
         _partituras.add_child(_cartao_da_partitura(String(tipo)))
+
+
+## O cartao do acorde mostra as tres notas que ele pede — e o grau de cada uma.
+## Quem monta o Acorde de Cura tres vezes aprende, sem aula, que a triade maior
+## e primeiro, terceiro e quinto graus.
+func _cartao_do_acorde(id: String) -> Control:
+    var receita: Dictionary = _progresso.ACORDES[id]
+    var pode: bool = _progresso.pode_montar_acorde(id)
+    var tem: int = _progresso.quantidade(id)
+
+    var p := PanelContainer.new()
+    var e := StyleBoxFlat.new()
+    e.bg_color = Color(0.055, 0.085, 0.145, 0.55) if pode else Color(0.03, 0.045, 0.08, 0.40)
+    e.border_color = T.OURO_ARO if pode else Color(0.14, 0.18, 0.26, 0.7)
+    e.set_border_width_all(1)
+    e.set_corner_radius_all(3)
+    e.content_margin_left = 10
+    e.content_margin_right = 10
+    e.content_margin_top = 8
+    e.content_margin_bottom = 8
+    p.add_theme_stylebox_override("panel", e)
+
+    var col := VBoxContainer.new()
+    col.add_theme_constant_override("separation", 3)
+    p.add_child(col)
+    var topo := HBoxContainer.new()
+    topo.add_theme_constant_override("separation", 6)
+    col.add_child(topo)
+    var titulo := T.rotulo_simples(String(receita["nome"]), 18, T.OURO_FORTE)
+    titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    topo.add_child(titulo)
+    topo.add_child(T.chip(String(receita["graus"]), T.CIANO))
+
+    # As tres pedras da receita, lado a lado: e a leitura mais rapida do acorde.
+    var notas := HBoxContainer.new()
+    notas.add_theme_constant_override("separation", 4)
+    col.add_child(notas)
+    for nota in receita["notas"]:
+        var pedra := TextureRect.new()
+        pedra.texture = _cristal(String(nota))
+        pedra.custom_minimum_size = Vector2(26, 26)
+        pedra.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        pedra.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        pedra.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        var falta: bool = _progresso.quantidade("nota_" + String(nota)) < 1
+        pedra.modulate = Color(1, 1, 1, 0.35 if falta else 1.0)
+        pedra.tooltip_text = String(ROTULO.get(nota, nota))
+        notas.add_child(pedra)
+    var custo := T.rotulo_simples("%d Claves   ·   tem %d"
+        % [int(receita["custo_claves"]), tem], 14, T.SOBRANCELHA)
+    custo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    custo.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    notas.add_child(custo)
+
+    var b := T.botao("Montar acorde", T.SECUNDARIO, 34.0)
+    b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    b.disabled = not pode
+    b.tooltip_text = "%s\n%s\n%s" % [String(receita["licao"]),
+        String(receita["efeito"]), "Consome uma nota de cada e %d Claves."
+        % int(receita["custo_claves"])]
+    b.pressed.connect(func():
+        if _progresso.montar_acorde(id):
+            _avisar("Acorde montado", "%s  ·  %s" % [String(receita["nome"]),
+                String(receita["graus"])]))
+    col.add_child(b)
+    return p
 
 
 func _cartao_da_partitura(tipo: String) -> Control:

@@ -551,6 +551,19 @@ func _usar() -> void:
     var ficha := _ficha(_selecionado)
     if ficha.is_empty() or _progresso == null:
         return
+    # ACORDE CURA. O Progresso decide quanto; a pagina so entrega na barra.
+    if _progresso.ACORDES.has(_selecionado):
+        var fracao: float = _progresso.usar_acorde(_selecionado)
+        if fracao > 0.0:
+            var hud := get_tree().get_first_node_in_group("player_hud")
+            if hud and hud.has_method("curar"):
+                hud.curar(hud.max_health * fracao)
+            if _selecionado == "acorde_vigor" and hud and hud.has_method("conceder_escudo"):
+                hud.conceder_escudo(hud.max_health * 0.20)
+            _avisar("Harmonia restaurada", "%s  ·  +%d%% de vida"
+                % [String(ficha[1]), int(fracao * 100.0)])
+        return
+
     for tipo in _progresso.PARTITURAS:
         if String(_progresso.PARTITURAS[tipo]["recurso"]) == _selecionado:
             _progresso.usar_partitura(String(tipo))
