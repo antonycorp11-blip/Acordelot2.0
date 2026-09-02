@@ -28,6 +28,15 @@ const CATALOGO := preload("res://scripts/inventory_ui.gd")
 const FUNDO := "res://textures/ui/concepts/personagem-bg.png"
 const FUNDO_RESERVA := "res://textures/ui/concepts/character-stage-bg.png"
 const CORPO := "res://textures/dialogo/akles_corpo.png"
+const ARMA_GRANDE := "res://textures/ui/kit/equip/espada.png"
+
+## A CABECA DO AKLES DENTRO DA ARTE DE CORPO INTEIRO.
+##
+## Medido no proprio arquivo, nao chutado: o desenho comeca em y 29, os ombros
+## entram em y 129, e a cabeca ocupa x de 244 a 325. O quadrado abaixo e centrado
+## nisso com uma folga para o cabelo. O recorte anterior era largo demais e o
+## rosto saia torto no disco do seletor.
+const RECORTE_DA_CABECA := Rect2(0.3984, 0.0221, 0.1910, 0.1432)
 
 const OURO := Color("d4af37")
 const OURO_CLARO := Color("f3e5ab")
@@ -71,6 +80,8 @@ var _materiais: HBoxContainer
 var _claves: Label
 var _acao: Button
 var _cartao_arma: VBoxContainer
+var _heroi: TextureRect
+var _arma_no_palco: TextureRect
 
 
 ## A casca le este metodo para ceder a tela inteira: sem cabecalho dela, sem
@@ -128,10 +139,38 @@ func _montar_cenario() -> void:
     heroi.anchor_bottom = 1.0
     heroi.offset_left = -300.0
     heroi.offset_right = 300.0
-    heroi.offset_top = 40.0
+    # COMECA ABAIXO DA FILEIRA DE HEROIS.
+    #
+    # A 40 px o topo da arte caia dentro da barra de cima e a cabeca do Akles
+    # passava por tras dos discos do seletor. A fileira termina em 92; daqui
+    # para baixo o cenario e so dele.
+    heroi.offset_top = 100.0
     heroi.offset_bottom = -56.0
     heroi.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(heroi)
+    _heroi = heroi
+
+    # A ARMA OCUPA O PALCO QUANDO A ABA E "ARMA".
+    #
+    # Ela tambem sobe de nivel, entao merece o mesmo espaco que o personagem:
+    # quem esta mexendo na arma quer ver a arma, nao o dono dela.
+    var arma := TextureRect.new()
+    if ResourceLoader.exists(ARMA_GRANDE):
+        arma.texture = load(ARMA_GRANDE)
+    arma.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    arma.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    arma.anchor_left = 0.5
+    arma.anchor_right = 0.5
+    arma.anchor_top = 0.0
+    arma.anchor_bottom = 1.0
+    arma.offset_left = -240.0
+    arma.offset_right = 240.0
+    arma.offset_top = 130.0
+    arma.offset_bottom = -110.0
+    arma.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    arma.visible = false
+    add_child(arma)
+    _arma_no_palco = arma
 
 
 func _montar_topo() -> void:
@@ -269,8 +308,11 @@ func _disco_de_heroi(indice: int) -> Control:
                 # So a cabeca, medida na arte de corpo inteiro.
                 var corte := AtlasTexture.new()
                 corte.atlas = arte
-                corte.region = Rect2(arte.get_width() * 0.36, arte.get_height() * 0.015,
-                    arte.get_width() * 0.28, arte.get_height() * 0.135)
+                corte.region = Rect2(
+                    arte.get_width() * RECORTE_DA_CABECA.position.x,
+                    arte.get_height() * RECORTE_DA_CABECA.position.y,
+                    arte.get_width() * RECORTE_DA_CABECA.size.x,
+                    arte.get_height() * RECORTE_DA_CABECA.size.y)
                 rosto.texture = corte
             else:
                 rosto.texture = arte
@@ -792,41 +834,67 @@ func _pintar_materiais() -> void:
         _materiais.add_child(_quadro_de_material(String(id), int(pedidos[id])))
 
 
+## O QUADRO DE MATERIAL AGORA E BOTAO.
+##
+## Maior — 76 px contra 54 — e clicavel: tocar diz o que aquele material e e
+## para que serve, lendo o catalogo. Antes era um quadradinho mudo, e o jogador
+## via "0 / 3" sem ter como descobrir o que precisava buscar.
+const LADO_DO_MATERIAL := 76.0
+
 func _quadro_de_material(id: String, quanto: int) -> Control:
     var tem: int = _progresso.quantidade(id)
-    var caixa := VBoxContainer.new()
-    caixa.add_theme_constant_override("separation", 2)
-    caixa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    var moldura := Panel.new()
-    moldura.custom_minimum_size = Vector2(54, 54)
-    moldura.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-    var e := StyleBoxFlat.new()
-    e.bg_color = Color(0.07, 0.09, 0.14, 0.80)
-    e.border_color = OURO if tem >= quanto else Color(0.42, 0.46, 0.54, 0.9)
-    e.set_border_width_all(1)
-    e.set_corner_radius_all(5)
-    moldura.add_theme_stylebox_override("panel", e)
+    var nome := id
+    var descricao := ""
     var arte := ""
     for dados in CATALOGO.ITENS_DE_RECURSO:
         if String(dados[0]) == id:
+            nome = String(dados[1])
             var caminho := String(dados[2])
             arte = caminho if caminho.begins_with("res://") \
                 else "res://textures/ui/kit/%s.png" % caminho
+            descricao = String(dados[5]) if dados.size() > 5 else ""
             break
+
+    var caixa := VBoxContainer.new()
+    caixa.add_theme_constant_override("separation", 3)
+    caixa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+    var moldura := Button.new()
+    moldura.custom_minimum_size = Vector2(LADO_DO_MATERIAL, LADO_DO_MATERIAL)
+    moldura.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+    moldura.focus_mode = Control.FOCUS_NONE
+    moldura.tooltip_text = "%s — %d de %d" % [nome, tem, quanto]
+    var e := StyleBoxFlat.new()
+    e.bg_color = Color(0.07, 0.09, 0.14, 0.80)
+    e.border_color = OURO if tem >= quanto else Color(0.42, 0.46, 0.54, 0.9)
+    e.set_border_width_all(2 if tem >= quanto else 1)
+    e.set_corner_radius_all(6)
+    moldura.add_theme_stylebox_override("normal", e)
+    moldura.add_theme_stylebox_override("focus", e)
+    var aceso := e.duplicate() as StyleBoxFlat
+    aceso.bg_color = Color(0.13, 0.17, 0.26, 0.92)
+    aceso.border_color = OURO_CLARO
+    moldura.add_theme_stylebox_override("hover", aceso)
+    moldura.add_theme_stylebox_override("pressed", aceso)
+    moldura.pressed.connect(func():
+        var casca := get_tree().root.find_child("UiShell", true, false)
+        if casca and casca.has_method("avisar"):
+            casca.avisar("%s   %d / %d" % [nome, tem, quanto], descricao))
+
     if ResourceLoader.exists(arte):
         var img := TextureRect.new()
         img.texture = load(arte)
         img.set_anchors_preset(Control.PRESET_FULL_RECT)
-        img.offset_left = 8.0
-        img.offset_top = 8.0
-        img.offset_right = -8.0
-        img.offset_bottom = -8.0
+        img.offset_left = 9.0
+        img.offset_top = 9.0
+        img.offset_right = -9.0
+        img.offset_bottom = -9.0
         img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
         img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
         img.mouse_filter = Control.MOUSE_FILTER_IGNORE
         moldura.add_child(img)
     caixa.add_child(moldura)
-    var conta := T.rotulo_simples("%d / %d" % [tem, quanto], 14,
+    var conta := T.rotulo_simples("%d / %d" % [tem, quanto], 15,
         Color.WHITE if tem >= quanto else Color(0.62, 0.67, 0.76))
     conta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     caixa.add_child(conta)
@@ -881,6 +949,10 @@ func _pintar_miolo(stats: Dictionary) -> void:
                 _miolo_dos_atributos()
             else:
                 _miolo_das_estatisticas(stats)
+    if _heroi:
+        _heroi.visible = _aba != "arma"
+    if _arma_no_palco:
+        _arma_no_palco.visible = _aba == "arma"
     _botao_detalhes.visible = _aba == "atributos"
     _botao_detalhes.text = "Ver estatísticas" if _mostrando_atributos else "Detalhes"
 
@@ -993,6 +1065,7 @@ func _miolo_dos_atributos() -> void:
 
 func _miolo_da_arma() -> void:
     _miolo.add_child(T.rotulo_simples(String(_progresso.arma_equipada), 21, Color.WHITE))
+    _miolo.add_child(T.rotulo_simples("Espadachim da Harmonia", 15, Color(0.62, 0.67, 0.76)))
     _miolo.add_child(_linha("espada", "Nível da Arma",
         str(int(_progresso.nivel_da_arma)), Color("f87171")))
     _miolo.add_child(_linha("losango", "Poder que ela soma",
