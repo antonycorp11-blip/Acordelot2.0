@@ -35,6 +35,7 @@ const DesempenhoAdaptativoScript := preload("res://scripts/desempenho_adaptativo
 const DungeonCavernaScript := preload("res://scripts/dungeon_caverna.gd")
 const GeradorDeBichosScript := preload("res://scripts/gerador_de_bichos.gd")
 const CeuCompatibilidadeScript := preload("res://scripts/ceu_compatibilidade.gd")
+const PortalCavernaScript := preload("res://scripts/portal_caverna.gd")
 var _gerador_bichos: GeradorDeBichos = null
 const FRAMES_ECOS := {
     "do": preload("res://resources/eco_do_nascente_frames.tres"),
@@ -52,6 +53,8 @@ const FRAMES_ECOS := {
 
 ## A NPC ao alcance, se houver. E ela que decide o que o botao de ataque faz.
 var _npc_perto: Node = null
+## A boca de caverna ao alcance, se houver. Divide o mesmo botao com a conversa.
+var _portal_perto: Node = null
 var _btn_ataque: Node = null
 var _dialogo: Node = null
 var _shell: CanvasLayer = null
@@ -101,6 +104,8 @@ func _ready() -> void:
         _btn_ataque.pressed.connect(func():
             if _npc_perto != null:
                 _conversar()
+            elif _portal_perto != null:
+                _entrar_pelo_portal()
             elif _player and _player.has_method("atacar"):
                 _player.atacar()
         )
@@ -232,13 +237,15 @@ func _ready() -> void:
             if _player and _player.has_method("usar_skill"):
                 _player.usar_skill(1)
         )
-        
+        _criar_capa_de_recarga(btn_skill1 as Control, 1)
+
     var btn_skill2 := find_child("BtnSkill2", true, false)
     if btn_skill2:
         btn_skill2.pressed.connect(func():
             if _player and _player.has_method("usar_skill"):
                 _player.usar_skill(2)
         )
+        _criar_capa_de_recarga(btn_skill2 as Control, 2)
         
     # O raio ganha mira por arrasto, no gesto do Brawl Stars.
     #
@@ -270,10 +277,15 @@ func _ready() -> void:
             if _player and _player.has_method("usar_skill"):
                 _player.usar_skill(3, direcao)
         )
+        _criar_capa_de_recarga(alvo, 3)
         
     var joystick := find_child("VirtualJoystick", true, false)
     if joystick:
         joystick.add_to_group("virtual_joystick")
+
+    # Depois do mundo montado: o portal precisa do relevo para saber onde e o
+    # chao, e o relevo so responde certo com a grade de celulas ja carregada.
+    call_deferred("_semear_portais")
 
 
 ## O AVISO DE PROGRESSO, que nao existia em lugar nenhum.
@@ -403,6 +415,74 @@ func _sincronizar_eco_companheiro(_forcar := false) -> void:
     _atualizar_botao_skill_eco()
 
 
+## A ESPERA PRECISA APARECER NO BOTAO.
+##
+## Uma habilidade que nao sai e um botao quebrado, a menos que o jogador VEJA
+## por que ela nao saiu. A capa e uma sombra que desce do topo do botao ao ritmo
+## do relogio, com os segundos que faltam no meio — o mesmo desenho que a quarta
+## habilidade, a do Eco, ja usava; nada de vocabulario novo na tela.
+##
+## Nao mexe em `disabled` nem em `modulate` de proposito: quem manda nesses dois
+## e o desbloqueio da habilidade, e duas mãos no mesmo estado acabam brigando —
+## a espera apagaria um botao que o talento tinha acabado de acender.
+var _capas_de_recarga := {}
+
+func _criar_capa_de_recarga(botao: Control, indice: int) -> void:
+    if botao == null:
+        return
+    var capa := Control.new()
+    capa.name = "CapaDeRecarga"
+    capa.set_anchors_preset(Control.PRESET_FULL_RECT)
+    capa.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    capa.visible = false
+    botao.add_child(capa)
+
+    var sombra := ColorRect.new()
+    sombra.color = Color(0.02, 0.03, 0.07, 0.72)
+    sombra.set_anchors_preset(Control.PRESET_FULL_RECT)
+    sombra.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    capa.add_child(sombra)
+
+    var numero := Label.new()
+    numero.set_anchors_preset(Control.PRESET_FULL_RECT)
+    numero.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    numero.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    numero.add_theme_font_size_override("font_size", 24)
+    numero.add_theme_color_override("font_color", Color(0.98, 0.92, 0.78))
+    numero.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
+    numero.add_theme_constant_override("outline_size", 6)
+    numero.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    capa.add_child(numero)
+
+    _capas_de_recarga[indice] = [capa, sombra, numero, 1.0]
+
+
+func _pintar_recargas() -> void:
+    if _player == null or not _player.has_method("recarga_restante"):
+        return
+    for indice in _capas_de_recarga:
+        var pecas: Array = _capas_de_recarga[indice]
+        var capa: Control = pecas[0]
+        if not is_instance_valid(capa):
+            continue
+        var falta: float = _player.recarga_restante(int(indice))
+        if falta <= 0.0:
+            capa.visible = false
+            continue
+        # O tempo cheio so e perguntado no quadro em que a espera comeca. Ele
+        # consulta os atributos, e fazer isso sessenta vezes por segundo, por
+        # habilidade, e conta paga por um numero que nao muda no meio da espera.
+        if not capa.visible:
+            pecas[3] = maxf(_player.recarga_total(int(indice)), 0.001)
+        var cheio: float = maxf(float(pecas[3]), falta)
+        capa.visible = true
+        # A sombra cobre o que FALTA: cheia no instante do uso, vazia quando a
+        # habilidade volta. O topo desce; nao ha calculo de tamanho em pixel,
+        # so a ancora, entao ela acompanha qualquer tamanho de botao.
+        (pecas[1] as ColorRect).anchor_top = clampf(1.0 - falta / cheio, 0.0, 1.0)
+        (pecas[2] as Label).text = str(ceili(falta))
+
+
 func _criar_botao_skill_eco() -> void:
     var grupo := find_child("BotoesCombate", true, false) as Control
     if grupo == null:
@@ -509,6 +589,7 @@ func _usar_skill_eco() -> void:
 
 
 func _process(delta: float) -> void:
+    _pintar_recargas()
     if _cooldown_skill_eco > 0.0:
         _cooldown_skill_eco = maxf(0.0, _cooldown_skill_eco - delta)
         if _rotulo_cooldown_eco:
@@ -598,6 +679,18 @@ func _ao_cair() -> void:
             if corpo and corpo.has_method("soltar_ataque"):
                 corpo.soltar_ataque()
 
+    # CAIR DENTRO DA CAVERNA NAO E CAIR NO MUNDO.
+    #
+    # O renascer do mundo aberto leva o heroi ao ultimo lugar calmo — que fica
+    # fora da caverna, a centenas de metros — e cobra um decimo das Claves. Nos
+    # dois pontos ele esta errado aqui: a incursao tem um comeco proprio para
+    # onde voltar, e o preco de morrer na DG ja e perder a incursao inteira.
+    # Cobrar Claves POR CIMA disso seria punir duas vezes o mesmo erro.
+    var caverna := get_node_or_null("DungeonCaverna")
+    if caverna and caverna.has_method("esta_dentro") and caverna.esta_dentro():
+        _cair_na_caverna(caverna)
+        return
+
     var perdidas := 0
     var progresso := get_node_or_null("/root/Progresso")
     if progresso:
@@ -626,9 +719,39 @@ func _ao_cair() -> void:
             casca.avisar("A harmonia se desfez", "Você perdeu %d Claves na queda" % perdidas))
 
 
+## O veu escurece, a tela do fim da incursao aparece por cima e o mundo espera a
+## escolha do jogador. Quem devolve a fisica e o sinal `queda_resolvida`, que a
+## caverna dispara depois de repovoar ou de sair.
+func _cair_na_caverna(caverna: Node) -> void:
+    if caverna.has_signal("queda_resolvida") \
+            and not caverna.queda_resolvida.is_connected(_ao_resolver_a_queda):
+        caverna.queda_resolvida.connect(_ao_resolver_a_queda)
+    _montar_veu()
+    var tw := create_tween()
+    tw.tween_property(_veu_da_queda, "modulate:a", 1.0, 0.5)
+    tw.tween_callback(func():
+        if _player:
+            _player.velocity = Vector3.ZERO
+        caverna.encerrar_por_queda())
+    tw.tween_interval(0.2)
+    tw.tween_property(_veu_da_queda, "modulate:a", 0.0, 0.5)
+    # Invisivel nao basta: um ColorRect com filtro STOP continua comendo o toque
+    # e os botoes da tela do fim ficariam mortos por baixo dele.
+    tw.tween_callback(func():
+        if is_instance_valid(_veu_da_queda):
+            _veu_da_queda.mouse_filter = Control.MOUSE_FILTER_IGNORE)
+
+
+func _ao_resolver_a_queda() -> void:
+    _caido = false
+    if _player:
+        _player.set_physics_process(true)
+
+
 func _montar_veu() -> void:
     if _veu_da_queda and is_instance_valid(_veu_da_queda):
         _veu_da_queda.modulate.a = 0.0
+        _veu_da_queda.mouse_filter = Control.MOUSE_FILTER_STOP
         return
     var camada := CanvasLayer.new()
     camada.layer = 90
@@ -1036,6 +1159,87 @@ func registrar_npcs() -> void:
     _pintar_botao()
 
 
+## UMA BOCA DE CAVERNA EM CADA TERRA SELVAGEM.
+##
+## So onde o chao e natural: as zonas com planta urbana (`layout_id`) tem casa,
+## praca e calcada desenhadas a mao, e um arco de pedra de seis metros plantado
+## por codigo no meio disso nasceria dentro de uma parede. Sobram os campos, as
+## florestas e a serra — que e onde uma caverna faz sentido de qualquer forma.
+##
+## E a MESMA caverna vista por bocas diferentes, e o rotulo diz isso: nao ha
+## cinco masmorras, ha cinco entradas.
+const RAIO_DO_PORTAL := 42.0
+
+func _semear_portais() -> void:
+    var arquivo := FileAccess.open("res://data/acordelot_regiao_1.json", FileAccess.READ)
+    if arquivo == null:
+        arquivo = FileAccess.open("res://data/zones_db.json", FileAccess.READ)
+    if arquivo == null:
+        return
+    var banco = JSON.parse_string(arquivo.get_as_text())
+    if not (banco is Dictionary):
+        return
+    var zonas: Dictionary = banco.get("zones", {})
+    for zid in zonas:
+        var z: Dictionary = zonas[zid]
+        if str(z.get("layout_id", "")) != "":
+            continue
+        var grade: Array = z.get("grid_pos", [])
+        if grade.size() < 2:
+            continue
+        var centro := Vector3(float(grade[0]) * 160.0, 0.0, float(grade[1]) * 160.0)
+        var onde := _lugar_para_o_portal(centro, str(zid).hash())
+        var portal: Area3D = PortalCavernaScript.new()
+        portal.name = "PortalCaverna_" + str(zid)
+        portal.subtitulo = str(z.get("name", ""))
+        add_child(portal)
+        portal.global_position = onde
+        # De frente para o miolo da zona: quem anda pelo meio do mapa ve o vao,
+        # e nao as costas do arco.
+        var para_o_centro := centro - onde
+        portal.rotation.y = atan2(para_o_centro.x, para_o_centro.z)
+        portal.jogador_chegou.connect(_ao_chegar_no_portal)
+        portal.jogador_saiu.connect(_ao_sair_do_portal)
+
+
+## Escolhe, entre doze pontos no anel em volta do centro da zona, o mais PLANO.
+## Um arco de seis metros numa ladeira fica com metade enterrada e a outra
+## metade no ar, e nao ha como consertar isso depois de plantado.
+func _lugar_para_o_portal(centro: Vector3, semente: int) -> Vector3:
+    var melhor := centro
+    var menor_desnivel := INF
+    for i in 12:
+        var angulo: float = TAU * (float(i) / 12.0 + float(semente % 97) / 97.0)
+        var p := centro + Vector3(cos(angulo), 0.0, sin(angulo)) * RAIO_DO_PORTAL
+        var h := Relevo.altura(p.x, p.z)
+        var desnivel := 0.0
+        for canto in [Vector2(3.0, 0.0), Vector2(-3.0, 0.0),
+                Vector2(0.0, 3.0), Vector2(0.0, -3.0)]:
+            desnivel = maxf(desnivel,
+                absf(Relevo.altura(p.x + canto.x, p.z + canto.y) - h))
+        if desnivel < menor_desnivel:
+            menor_desnivel = desnivel
+            melhor = Vector3(p.x, h, p.z)
+    return melhor
+
+
+func _ao_chegar_no_portal(portal: Node) -> void:
+    _portal_perto = portal
+    _pintar_botao()
+
+
+func _ao_sair_do_portal(portal: Node) -> void:
+    if _portal_perto == portal:
+        _portal_perto = null
+    _pintar_botao()
+
+
+func _entrar_pelo_portal() -> void:
+    var caverna := get_node_or_null("DungeonCaverna")
+    if caverna and caverna.has_method("abrir_tela_de_entrada"):
+        caverna.abrir_tela_de_entrada()
+
+
 func _ao_chegar_perto(npc: Node) -> void:
     _npc_perto = npc
     if npc.has_method("olhar_para") and _player:
@@ -1072,7 +1276,13 @@ func _pintar_botao() -> void:
     if _btn_ataque == null:
         return
     var conversando: bool = _npc_perto != null and (_dialogo == null or not _dialogo.esta_ativo())
-    _btn_ataque.modulate = Color(0.62, 1.0, 0.72) if conversando else Color.WHITE
+    var na_boca: bool = not conversando and _portal_perto != null
+    if conversando:
+        _btn_ataque.modulate = Color(0.62, 1.0, 0.72)
+    elif na_boca:
+        _btn_ataque.modulate = Color(0.82, 0.62, 1.0)
+    else:
+        _btn_ataque.modulate = Color.WHITE
 
     var legenda := _btn_ataque.get_node_or_null("Legenda") as Label
     if legenda == null:
@@ -1085,4 +1295,4 @@ func _pintar_botao() -> void:
         legenda.offset_top = -18.0
         legenda.mouse_filter = Control.MOUSE_FILTER_IGNORE
         _btn_ataque.add_child(legenda)
-    legenda.text = "Conversar" if conversando else ""
+    legenda.text = "Conversar" if conversando else ("Entrar na caverna" if na_boca else "")

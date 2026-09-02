@@ -37,6 +37,27 @@ var _poder_label: Label
 const ESPERA_PARA_REGENERAR := 6.0
 const REGENERACAO_POR_SEGUNDO := 0.045
 
+## CADA HEROI TEM O SEU PROPRIO FOLEGO.
+##
+## Ate aqui a barra era UMA so: trocar de personagem no meio da briga levava a
+## vida junto, e a troca virava um botao de nada — o mesmo corpo com outra
+## roupa. Com a vida separada, trocar passa a ser uma decisao: quem entra chega
+## inteiro, quem sai leva o estrago consigo e so se refaz descansando.
+##
+## O tamanho do folego tambem muda com quem esta em campo. Akles e o corpo que
+## apara golpe; Wins canta a alguns passos de distancia e paga por isso com
+## menos vida. Os atributos da conta continuam sendo os mesmos para os dois — o
+## que muda e o fator aplicado sobre eles.
+const FATOR_DE_VIDA := {"akles": 1.0, "wins": 0.82}
+## A vida de quem esta fora de campo, guardada como FRACAO da vida cheia dele.
+## Fracao, e nao numero absoluto: subir de nivel entre uma troca e outra nao
+## pode devolver nem roubar folego de quem estava esperando.
+var _vida_guardada := {}
+## A barrinha de vida da reserva, desenhada no proprio botao de trocar. Sem ela
+## a troca e as cegas: o jogador so descobre que o outro esta em farrapos depois
+## de ja estar com ele em campo.
+var _barra_reserva: ColorRect = null
+
 ## Avisa quem cuida do mundo que a vida chegou a zero.
 signal caiu
 
@@ -100,9 +121,24 @@ func _process(delta: float) -> void:
     # sangrava e nao tinha resposta nenhuma — so morrer, sem nem existir morte.
     # A regeneracao so comeca depois de alguns segundos sem apanhar, entao ela
     # nao apaga o perigo do combate: ela devolve o jogo depois dele.
-    if current_health > 0.0 and current_health < max_health and agora - _ultimo_dano_em >= ESPERA_PARA_REGENERAR:
+    var descansando: bool = agora - _ultimo_dano_em >= ESPERA_PARA_REGENERAR
+    if current_health > 0.0 and current_health < max_health and descansando:
         current_health = minf(current_health + max_health * REGENERACAO_POR_SEGUNDO * delta, max_health)
         _pintar_vida()
+
+    # QUEM ESPERA TAMBEM SE REFAZ, pela metade.
+    #
+    # Sem isto, o heroi que saiu de campo machucado ficaria machucado para
+    # sempre e trocar de personagem seria um caminho so — o jogador aprenderia a
+    # nunca mais tocar no botao. Pela metade, e nao igual, para descansar em
+    # campo continuar valendo mais do que revezar.
+    var reserva := "wins" if _personagem_atual == "akles" else "akles"
+    var guardada: float = float(_vida_guardada.get(reserva, 1.0))
+    if descansando and guardada < 1.0:
+        _vida_guardada[reserva] = minf(
+            guardada + REGENERACAO_POR_SEGUNDO * 0.5 * delta, 1.0)
+        _pintar_reserva()
+        return
 
     if _escudo <= 0.0 and (current_health >= max_health or current_health <= 0.0):
         set_process(false)
@@ -373,6 +409,22 @@ func _montar_coluna_de_utilitarios() -> void:
 
     _pintar_botao_personagem(_personagem_atual)
     _ligar_o_diario()
+    _ligar_troca_de_personagem()
+
+
+## A HUD PRECISA SABER A HORA DA TROCA — e nao pode depender do Diario para
+## isso. Esta ligacao morava dentro de `_ligar_o_diario`, que sai fora quando o
+## autoload do diario nao existe; com a vida separada por personagem, perder
+## este sinal significa a barra continuar mostrando o folego de quem saiu.
+## O jogador tambem pode nascer depois da HUD, entao tenta de novo no quadro
+## seguinte enquanto nao achar.
+func _ligar_troca_de_personagem() -> void:
+    var jogador := get_tree().get_first_node_in_group("jogador")
+    if jogador == null or not jogador.has_signal("personagem_trocado"):
+        call_deferred("_ligar_troca_de_personagem")
+        return
+    if not jogador.personagem_trocado.is_connected(_ao_trocar_personagem):
+        jogador.personagem_trocado.connect(_ao_trocar_personagem)
 
 
 ## Um disco: aro dourado, fundo navy, arte no meio. E a mesma placa dos botoes do
@@ -435,25 +487,81 @@ func _pintar_botao_personagem(atual: String) -> void:
             arte = corte
     else:
         arte = load("res://textures/ui/kit/nav/personagem.png") as Texture2D
-    if arte == null:
+    if arte != null:
+        var rosto := TextureRect.new()
+        rosto.texture = arte
+        rosto.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        rosto.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+        rosto.set_anchors_preset(Control.PRESET_FULL_RECT)
+        rosto.offset_left = 4.0
+        rosto.offset_top = 4.0
+        rosto.offset_right = -4.0
+        rosto.offset_bottom = -4.0
+        rosto.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        rosto.tooltip_text = "Trocar para " + ("Wins" if destino == "wins" else "Akles")
+        _botao_personagem.add_child(rosto)
+    _montar_barra_da_reserva()
+
+
+## A VIDA DE QUEM ESTA ESPERANDO, no proprio botao de troca.
+##
+## Uma tira fina no pe do disco. Com a vida separada por personagem, tocar em
+## trocar sem saber como o outro esta seria apostar — e a aposta que sai errada
+## e cair no quadro seguinte.
+func _montar_barra_da_reserva() -> void:
+    if _botao_personagem == null:
         return
-    var rosto := TextureRect.new()
-    rosto.texture = arte
-    rosto.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    rosto.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-    rosto.set_anchors_preset(Control.PRESET_FULL_RECT)
-    rosto.offset_left = 4.0
-    rosto.offset_top = 4.0
-    rosto.offset_right = -4.0
-    rosto.offset_bottom = -4.0
-    rosto.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    rosto.tooltip_text = "Trocar para " + ("Wins" if destino == "wins" else "Akles")
-    _botao_personagem.add_child(rosto)
+    var trilho := ColorRect.new()
+    trilho.color = Color(0.05, 0.03, 0.05, 0.85)
+    trilho.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    trilho.offset_left = 8.0
+    trilho.offset_right = -8.0
+    trilho.offset_top = -11.0
+    trilho.offset_bottom = -4.0
+    trilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _botao_personagem.add_child(trilho)
+
+    _barra_reserva = ColorRect.new()
+    _barra_reserva.color = Color(0.55, 0.86, 0.62)
+    _barra_reserva.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _barra_reserva.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    trilho.add_child(_barra_reserva)
+    _pintar_reserva()
+
+
+func _pintar_reserva() -> void:
+    if _barra_reserva == null or not is_instance_valid(_barra_reserva):
+        return
+    var reserva := "wins" if _personagem_atual == "akles" else "akles"
+    var fracao: float = clampf(float(_vida_guardada.get(reserva, 1.0)), 0.0, 1.0)
+    _barra_reserva.anchor_right = fracao
+    _barra_reserva.color = Color(0.55, 0.86, 0.62) if fracao > 0.45 \
+        else (Color(0.94, 0.78, 0.30) if fracao > 0.2 else Color(0.88, 0.28, 0.26))
 
 
 func _ao_trocar_personagem(id: String, _nome: String) -> void:
-    _personagem_atual = id
+    if id != _personagem_atual:
+        _vida_guardada[_personagem_atual] = 0.0 if max_health <= 0.0 \
+            else clampf(current_health / max_health, 0.0, 1.0)
+        _personagem_atual = id
+        max_health = _vida_maxima_de(id)
+        # Nunca abaixo de um sopro: quem entra em campo tem de poder levar ao
+        # menos um golpe antes de cair, senao a troca vira morte instantanea.
+        current_health = clampf(
+            float(_vida_guardada.get(id, 1.0)) * max_health, 1.0, max_health)
+        _pintar_vida()
+        set_process(true)
     _pintar_botao_personagem(id)
+    _atualizar_progressao()
+
+
+## A vida cheia DAQUELE heroi: o numero da conta vezes o fator dele.
+func _vida_maxima_de(id: String) -> float:
+    var base := 1000.0
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso and progresso.has_method("estatisticas"):
+        base = float(progresso.estatisticas().get("vida_maxima", base))
+    return maxf(1.0, base * float(FATOR_DE_VIDA.get(id, 1.0)))
 
 
 ## O contador 0/3 na propria HUD.
@@ -467,11 +575,6 @@ func _ligar_o_diario() -> void:
     if not diario.alterado.is_connected(_pintar_missoes):
         diario.alterado.connect(_pintar_missoes)
     _pintar_missoes()
-    # O retrato do botao acompanha quem esta em campo.
-    var jogador := get_tree().get_first_node_in_group("jogador")
-    if jogador and jogador.has_signal("personagem_trocado") \
-            and not jogador.personagem_trocado.is_connected(_ao_trocar_personagem):
-        jogador.personagem_trocado.connect(_ao_trocar_personagem)
 
 
 func _pintar_missoes() -> void:
@@ -552,9 +655,10 @@ func _atualizar_progressao() -> void:
     if _nivel_label:
         _nivel_label.text = str(player_level)
     if _poder_label:
-        _poder_label.text = "PODER DA CONTA  %s" % _milhar(progresso.poder_de_luta_da_conta())
-    var stats: Dictionary = progresso.estatisticas()
-    var nova_vida := float(stats.get("vida_maxima", max_health))
+        _poder_label.text = "%s   ·   PODER  %s" % [
+            "WINS" if _personagem_atual == "wins" else "AKLES",
+            _milhar(progresso.poder_de_luta_da_conta())]
+    var nova_vida := _vida_maxima_de(_personagem_atual)
     var estava_cheio := current_health >= max_health - 0.01
     max_health = nova_vida
     if estava_cheio or current_health > max_health:
@@ -568,12 +672,19 @@ func curar(qtd: float) -> void:
     _pintar_vida()
 
 
-## Devolve o heroi inteiro. Chamada por quem trata a queda.
+## Devolve os DOIS herois inteiros. Chamada por quem trata a queda.
+##
+## Nao so quem caiu: a reserva volta cheia junto. Sem isso, quem estivesse
+## guardado em farrapos seria uma armadilha esperando o jogador tocar em trocar,
+## e o preco da queda ja foi cobrado em Claves.
 func reerguer() -> void:
+    _vida_guardada.clear()
+    max_health = _vida_maxima_de(_personagem_atual)
     current_health = max_health
     _escudo = 0.0
     _ultimo_dano_em = 0.0
     _pintar_vida()
+    _pintar_reserva()
 
 
 func tomar_dano(qtd: float) -> void:

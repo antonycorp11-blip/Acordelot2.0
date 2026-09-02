@@ -4,6 +4,9 @@ extends Node3D
 ## Vive longe do mapa aberto e só é ativada quando o jogador entra.
 const BICHO := preload("res://scripts/bicho.gd")
 const BAU := preload("res://scripts/bau_dungeon.gd")
+## So pelos NOMES dos itens. O espolio da incursao e uma lista de identificadores
+## crus — "fragmento_fa_sustenido" nao e recompensa, "Fragmento de Fá#" e.
+const CATALOGO := preload("res://scripts/inventory_ui.gd")
 
 # Do kit da caverna sobram os dois arcos: eles marcam a passagem entre estagios.
 # Sala, corredor, juncao, curva e fundo de saco sairam junto com a planta antiga
@@ -53,6 +56,24 @@ var _luz_da_caverna: DirectionalLight3D
 var _ciclo: Node
 var _ciclo_rodava := true
 
+## O QUE A INCURSAO FOI, para a tela do fim poder contar.
+##
+## `_plantel` e a lista de onde cada bicho nasceu — sem ela nao existe "tentar de
+## novo", porque a caverna e construida uma vez so no carregamento e os mortos
+## nao voltam. `_espolio_inicial` e a fotografia do inventario no instante da
+## entrada: o espolio da incursao e a diferenca entre ela e o inventario de
+## agora, e nao um numero que a caverna vai somando por fora e pode divergir.
+var _plantel: Array = []
+var _plantel_fechado := false
+var _espolio_inicial := {}
+var _bichos_no_inicio := 0
+var _tela_resultado: CanvasLayer
+var _caixa_resultado: VBoxContainer
+
+## Avisa quem cuida da queda que o jogador ja escolheu o que fazer e o mundo
+## pode voltar a andar.
+signal queda_resolvida
+
 
 func _ready() -> void:
     _jogador = get_parent().get_node_or_null("Player") as CharacterBody3D
@@ -64,6 +85,7 @@ func _ready() -> void:
     _barra_dia = get_parent().get_node_or_null("HUD/BarraDoDia") as Control
     _camera = get_parent().get_node_or_null("CameraRig/Camera3D") as Camera3D
     _construir_dungeon()
+    _plantel_fechado = true
     _criar_botao_hud()
 
 
@@ -711,8 +733,26 @@ func _shiker(onde: Vector3, tipo: int) -> Node3D:
     inimigo.raio_de_atencao = 19.0
     _dungeon.add_child(inimigo)
     _inimigos.append(inimigo)
+    # A planta do povoamento so e anotada na PRIMEIRA construcao. Sem esta
+    # trava, repovoar para o "tentar de novo" dobraria a lista a cada tentativa
+    # e a terceira teria quatro vezes mais bicho que a primeira.
+    if not _plantel_fechado:
+        _plantel.append([onde, tipo])
     inimigo.process_mode = Node.PROCESS_MODE_DISABLED
     return inimigo
+
+
+## Devolve a caverna ao estado em que ela estava quando o jogador entrou.
+func _repovoar() -> void:
+    for velho in _inimigos:
+        if is_instance_valid(velho):
+            velho.queue_free()
+    _inimigos.clear()
+    var guardado := _plantel_fechado
+    _plantel_fechado = true
+    for ficha in _plantel:
+        _shiker(ficha[0], int(ficha[1]))
+    _plantel_fechado = guardado
 
 
 func _sobre_piso_da_dg(local: Vector3, margem := 0.55) -> bool:
@@ -863,6 +903,18 @@ const APAGADO_UI := Color(0.62, 0.67, 0.76)
 var _dificuldade := 1
 var _tela_entrada: CanvasLayer
 var _cartoes_dificuldade: Array[Control] = []
+
+
+## A PORTA PUBLICA DA CAVERNA.
+##
+## Quem abre a tela de entrada agora sao dois: o botao da HUD, que fica por
+## enquanto so para teste, e a boca de pedra plantada no mundo. Ela pergunta
+## primeiro se ja estamos dentro — o botao da HUD alterna entrar/sair, mas um
+## arco de pedra nunca deve fazer o jogador SAIR da caverna sem querer.
+func abrir_tela_de_entrada() -> void:
+    if _dentro:
+        return
+    _pedir_entrada()
 
 
 func _pedir_entrada() -> void:
@@ -1250,6 +1302,23 @@ func _entrar() -> void:
     if _placar:
         _placar.visible = true
     _atualizar_placar()
+    _fotografar_a_incursao()
+
+
+## A marca zero da incursao: quantos bichos havia de pe e o que o jogador ja
+## tinha na mochila. Tudo que a tela do fim mostra sai da diferenca para aqui.
+func _fotografar_a_incursao() -> void:
+    _bichos_no_inicio = maxi(1, _contar_shikers())
+    _espolio_inicial.clear()
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return
+    for id in progresso.recursos:
+        _espolio_inicial[id] = int(progresso.recursos[id])
+
+
+func esta_dentro() -> bool:
+    return _dentro
 
 
 func _sair() -> void:
@@ -1317,3 +1386,178 @@ func _aplicar_ambiente_da_caverna() -> void:
         _luz_da_caverna.shadow_enabled = false
         add_child(_luz_da_caverna)
     _luz_da_caverna.visible = true
+
+
+# ------------------------------------------------------------ fim da incursao
+## A TELA DO FIM DA INCURSAO.
+##
+## Cair dentro da caverna terminava em silencio: veu preto, vida cheia e o
+## jogador de volta ao mundo sem saber ate onde tinha chegado nem o que tinha
+## trazido. A incursao e a unidade de jogo aqui — ela precisa fechar contando o
+## que aconteceu e oferecendo a volta imediata, que e o que faz uma derrota
+## virar a proxima tentativa em vez do fim da sessao.
+##
+## Os dois numeros sao medidos, nao estimados: a porcentagem sai dos bichos que
+## estavam de pe na entrada contra os que sobraram, e o espolio sai da diferenca
+## entre o inventario de agora e a fotografia do instante da entrada.
+func encerrar_por_queda() -> void:
+    if not _dentro:
+        queda_resolvida.emit()
+        return
+    _mostrar_resultado()
+
+
+func _espolio_da_incursao() -> Array:
+    var ganhos: Array = []
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso == null:
+        return ganhos
+    for dados in CATALOGO.ITENS_DE_RECURSO:
+        var id := str(dados[0])
+        var ganho: int = int(progresso.quantidade(id)) - int(_espolio_inicial.get(id, 0))
+        if ganho > 0:
+            ganhos.append([str(dados[1]), ganho, str(dados[3])])
+    return ganhos
+
+
+func _mostrar_resultado() -> void:
+    if _tela_resultado == null:
+        _montar_tela_resultado()
+    var vivos := _contar_shikers()
+    var mortos: int = maxi(0, _bichos_no_inicio - vivos)
+    var pedaco: float = clampf(float(mortos) / float(maxi(1, _bichos_no_inicio)), 0.0, 1.0)
+
+    for filho in _caixa_resultado.get_children():
+        filho.queue_free()
+
+    _caixa_resultado.add_child(_letra("%d%% DA CAVERNA" % int(round(pedaco * 100.0)),
+        44, OURO_UI))
+    _caixa_resultado.add_child(_letra(
+        "%d de %d guardiões silenciados" % [mortos, _bichos_no_inicio], 14, APAGADO_UI))
+
+    var trilho := ColorRect.new()
+    trilho.color = Color(0.05, 0.06, 0.10, 0.95)
+    trilho.custom_minimum_size = Vector2(0, 12)
+    _caixa_resultado.add_child(trilho)
+    var cheio := ColorRect.new()
+    cheio.color = OURO_UI
+    cheio.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+    cheio.anchor_right = pedaco
+    trilho.add_child(cheio)
+
+    _caixa_resultado.add_child(_secao("Espólio da incursão"))
+    var ganhos := _espolio_da_incursao()
+    if ganhos.is_empty():
+        _caixa_resultado.add_child(_letra(
+            "Você caiu de mãos vazias. O que a caverna guarda está nos baús e nos "
+            + "guardiões — e os dois pedem que você chegue mais fundo.",
+            13, APAGADO_UI))
+    else:
+        for g in ganhos:
+            var linha := HBoxContainer.new()
+            linha.add_theme_constant_override("separation", 10)
+            var nome := _letra(str(g[0]), 15, TEXTO_UI)
+            nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+            nome.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+            linha.add_child(nome)
+            linha.add_child(_letra("x%d" % int(g[1]), 15, OURO_UI))
+            _caixa_resultado.add_child(linha)
+
+    _caixa_resultado.add_child(_secao("A queda"))
+    _caixa_resultado.add_child(_letra(
+        "Dentro da caverna a queda não custa Claves: custa a incursão. "
+        + "Tentar de novo devolve os guardiões ao lugar de origem.", 13, APAGADO_UI))
+
+    _tela_resultado.visible = true
+
+
+func _montar_tela_resultado() -> void:
+    # Acima do veu da queda, que mora na camada 90 e cobriria os botoes.
+    _tela_resultado = CanvasLayer.new()
+    _tela_resultado.layer = 96
+    add_child(_tela_resultado)
+
+    var fundo := ColorRect.new()
+    fundo.color = Color(0.01, 0.01, 0.03, 0.90)
+    fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+    fundo.mouse_filter = Control.MOUSE_FILTER_STOP
+    _tela_resultado.add_child(fundo)
+
+    var painel := NinePatchRect.new()
+    painel.texture = load(KIT_UI + "moldura_painel_grande.png")
+    painel.patch_margin_left = 22
+    painel.patch_margin_top = 68
+    painel.patch_margin_right = 22
+    painel.patch_margin_bottom = 64
+    painel.anchor_left = 0.5
+    painel.anchor_right = 0.5
+    painel.anchor_top = 0.04
+    painel.anchor_bottom = 0.96
+    painel.offset_left = -320.0
+    painel.offset_right = 320.0
+    painel.mouse_filter = Control.MOUSE_FILTER_STOP
+    fundo.add_child(painel)
+
+    var coluna := VBoxContainer.new()
+    coluna.set_anchors_preset(Control.PRESET_FULL_RECT)
+    coluna.offset_left = 36
+    coluna.offset_right = -36
+    coluna.offset_top = 66
+    coluna.offset_bottom = -28
+    coluna.add_theme_constant_override("separation", 4)
+    painel.add_child(coluna)
+
+    coluna.add_child(_letra("A HARMONIA SE DESFEZ", 22, Color(0.92, 0.45, 0.42)))
+
+    var rolagem := ScrollContainer.new()
+    rolagem.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    rolagem.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    coluna.add_child(rolagem)
+
+    _caixa_resultado = VBoxContainer.new()
+    _caixa_resultado.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _caixa_resultado.add_theme_constant_override("separation", 6)
+    rolagem.add_child(_caixa_resultado)
+
+    var acoes := HBoxContainer.new()
+    acoes.alignment = BoxContainer.ALIGNMENT_CENTER
+    acoes.add_theme_constant_override("separation", 12)
+    coluna.add_child(acoes)
+
+    var denovo := _botao_kit("TENTAR DE NOVO", "botao_dourado")
+    denovo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    denovo.pressed.connect(_tentar_de_novo)
+    acoes.add_child(denovo)
+
+    var sair := _botao_kit("VOLTAR AO MUNDO", "botao_vermelho")
+    sair.custom_minimum_size.x = 210
+    sair.pressed.connect(_desistir_da_incursao)
+    acoes.add_child(sair)
+
+
+func _tentar_de_novo() -> void:
+    _tela_resultado.visible = false
+    _repovoar()
+    _aplicar_dificuldade()
+    _jogador.global_position = ORIGEM + ENTRADA
+    _ultimo_ponto_seguro = ORIGEM + ENTRADA
+    _jogador.velocity = Vector3.ZERO
+    _reerguer_o_heroi()
+    _shikers_totais = 0
+    _shikers_totais = _contar_shikers()
+    _atualizar_placar()
+    _fotografar_a_incursao()
+    queda_resolvida.emit()
+
+
+func _desistir_da_incursao() -> void:
+    _tela_resultado.visible = false
+    _sair()
+    _reerguer_o_heroi()
+    queda_resolvida.emit()
+
+
+func _reerguer_o_heroi() -> void:
+    var hud := get_tree().get_first_node_in_group("player_hud")
+    if hud and hud.has_method("reerguer"):
+        hud.reerguer()

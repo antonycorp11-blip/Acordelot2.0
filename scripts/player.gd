@@ -97,9 +97,59 @@ func cancelar_mira_skill(indice: int) -> void:
         if _hero.has_method("esconder_mira_laser"):
             _hero.esconder_mira_laser()
 
+## QUANTO TEMPO CADA HABILIDADE FICA GUARDADA DEPOIS DE USADA.
+##
+## Ate aqui nao havia nenhum: as tres saiam de novo no quadro seguinte, e o
+## combate inteiro cabia em segurar o dedo nos tres botoes. Com espera, cada
+## toque passa a ser uma escolha de QUANDO — que e onde mora a briga.
+##
+## Os numeros nao sao soltos: a aura azul dura dez segundos e a espada gigante
+## oito. A espera tem de ser maior que o efeito, senao a habilidade estaria
+## pronta antes de a anterior acabar e a espera nao existiria de verdade.
+const RECARGA := {1: 12.0, 2: 12.0, 3: 18.0}
+## A Ressonancia encurta a espera. E o atributo do jogo que fala de ouvir e
+## responder, e ate aqui ele so mexia na captura de Eco — dar a ele um segundo
+## uso, no combate, e o que faz distribuir ponto nele ser uma decisao.
+const CORTE_POR_RESSONANCIA := 0.012
+const CORTE_MAXIMO := 0.35
+
+## Quando cada habilidade volta a ficar pronta, por personagem. Separado porque
+## a vida tambem e separada: quem sai de campo leva as suas esperas junto, e
+## trocar de heroi nao pode zerar o relogio das habilidades do outro.
+var _pronta_em := {"akles": {}, "wins": {}}
+
+
+## O tempo cheio de espera desta habilidade, ja com o desconto da Ressonancia.
+func recarga_total(indice: int) -> float:
+    var base: float = float(RECARGA.get(indice, 0.0))
+    if base <= 0.0:
+        return 0.0
+    var progresso := get_node_or_null("/root/Progresso")
+    var ressonancia := 0
+    if progresso and progresso.has_method("valor_atributo"):
+        ressonancia = int(progresso.valor_atributo("ressonancia"))
+    var corte: float = minf(CORTE_MAXIMO, float(ressonancia) * CORTE_POR_RESSONANCIA)
+    return base * (1.0 - corte)
+
+
+## Quanto ainda falta, em segundos. Zero quer dizer pronta.
+func recarga_restante(indice: int) -> float:
+    var quadro: Dictionary = _pronta_em.get(_personagem_atual, {})
+    return maxf(0.0, float(quadro.get(indice, 0.0)) - Time.get_ticks_msec() / 1000.0)
+
+
 func usar_skill(indice: int, direcao_na_tela := Vector2.ZERO) -> void:
     if _hero == null:
         return
+    # Guardada, ou com o corpo ocupado no golpe: nao sai e NAO cobra espera.
+    # Cobrar por um toque que nao virou habilidade seria punir o jogador por
+    # apertar no momento errado, que e coisa diferente de errar a hora.
+    if recarga_restante(indice) > 0.0:
+        return
+    if _hero.has_method("atacando") and _hero.atacando():
+        return
+    _pronta_em[_personagem_atual][indice] = \
+        Time.get_ticks_msec() / 1000.0 + recarga_total(indice)
     match indice:
         1:
             if _hero.has_method("ativar_aura_azul"):

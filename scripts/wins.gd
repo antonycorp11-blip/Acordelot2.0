@@ -67,6 +67,15 @@ func _ate_a_raiz(no: Node3D, raiz: Node3D) -> Transform3D:
         atual = atual.get_parent()
     return t
 
+## ONDE A MAO FECHA NA HASTE, medido no proprio modelo.
+##
+## A lanca nao e um bastao reto: tem a lamina larga embaixo (raio 0,21 na base),
+## a haste fina no meio — o raio cai a 0,038 entre 49% e 63% da altura — e a
+## cabeca ornamentada em cima, onde moram dois tercos dos vertices. A mao tem de
+## fechar na parte fina, e 0,55 e o meio dessa faixa.
+const FRACAO_DO_CABO := 0.55
+const COMPRIMENTO_DA_ARMA := 1.55
+
 func _equipar_arma() -> void:
     var esqueleto := _modelo.find_child("Skeleton3D", true, false) as Skeleton3D
     if esqueleto == null:
@@ -82,13 +91,40 @@ func _equipar_arma() -> void:
     suporte.add_child(punho)
     _arma = ARMA.instantiate()
     punho.add_child(_arma)
+    punho.basis = _base_do_punho(esqueleto, indice)
     _dimensionar_arma()
-    # O eixo longo do GLB e +Y (medido: 0,98 m contra 0,35 x 0,26). O giro de
-    # 92 graus o deitava atraves da palma. O mesmo encaixe Mixamo usado pela
-    # espada de Akles mantem o cabo acompanhando o osso da mao.
-    punho.rotation_degrees = Vector3(180.0, 0.0, 0.0)
-    _arma.position = Vector3(0.0, -0.10 / maxf(_modelo.scale.x, 0.001), 0.0)
     _arma.visible = false
+
+
+## A LANCA SEGUE O PUNHO FECHADO, e o punho fechado sai do proprio esqueleto.
+##
+## Antes eram tres numeros escritos a mao — giro de 180 graus em X e um recuo de
+## dez centimetros — e o resultado era a arma atravessada no ar ao lado do
+## ombro, presa pela ponta da lamina e inclinada quarenta e cinco graus. Numeros
+## chutados contra um osso Mixamo nao tem como acertar: cada rig traz a mao
+## virada de um jeito.
+##
+## O eixo de quem segura um bastao e a LINHA DOS NOS DOS DEDOS — a reta que vai
+## da base do mindinho a base do indicador. Ela existe no esqueleto, em repouso,
+## e nao depende de animacao nenhuma. A haste da lanca (o +Y do modelo) e girada
+## para cair em cima dela, com a cabeca saindo pelo lado do indicador, que e por
+## onde a ponta de um bastao sai da mao de quem o segura com o braco ao lado do
+## corpo.
+func _base_do_punho(esqueleto: Skeleton3D, mao: int) -> Basis:
+    var indicador := esqueleto.find_bone("mixamorig_RightHandIndex1")
+    var mindinho := esqueleto.find_bone("mixamorig_RightHandPinky1")
+    if indicador < 0 or mindinho < 0:
+        return Basis.IDENTITY
+    var eixo: Vector3 = esqueleto.get_bone_global_rest(indicador).origin \
+        - esqueleto.get_bone_global_rest(mindinho).origin
+    if eixo.length() < 0.0001:
+        return Basis.IDENTITY
+    # Do espaco do esqueleto para o espaco LOCAL do osso da mao: e ali que o
+    # giro do punho vive, e so ali ele acompanha o osso em qualquer pose.
+    var no_osso: Vector3 = (esqueleto.get_bone_global_rest(mao).basis.inverse() \
+        * eixo).normalized()
+    return Basis(Quaternion(Vector3.UP, no_osso))
+
 
 func _dimensionar_arma() -> void:
     var caixa := AABB()
@@ -98,11 +134,21 @@ func _dimensionar_arma() -> void:
         var local := _ate_a_raiz(mi, _arma) * mi.get_aabb()
         caixa = local if not achou else caixa.merge(local)
         achou = true
-    if not achou:
+    if not achou or caixa.size.y < 0.01:
         return
-    var maior := maxf(caixa.size.x, maxf(caixa.size.y, caixa.size.z))
-    if maior > 0.01:
-        _arma.scale = Vector3.ONE * (1.65 / maior) / maxf(_modelo.scale.x, 0.001)
+    var escala: float = COMPRIMENTO_DA_ARMA / caixa.size.y / maxf(_modelo.scale.x, 0.001)
+    _arma.scale = Vector3.ONE * escala
+    # O PONTO DO CABO VAI PARA A ORIGEM DO PUNHO.
+    #
+    # O modelo nasce apoiado no zero — a lamina fica em y = 0 e a cabeca em
+    # y = 0,98 —, entao encaixar pela origem era prender a lanca pela PONTA da
+    # lamina. Aqui a haste desliza para tras ate o ponto do cabo cair na mao, e
+    # x e z sao centrados para o eixo passar por dentro do punho, nao ao lado.
+    var centro := caixa.position + caixa.size * 0.5
+    _arma.position = Vector3(
+        -centro.x,
+        -(caixa.position.y + caixa.size.y * FRACAO_DO_CABO),
+        -centro.z) * escala
 
 func _preparar_fx() -> void:
     _fx = Node3D.new()
