@@ -164,8 +164,12 @@ func trocar_personagem(id := "") -> void:
         destino = "wins" if _personagem_atual == "akles" else "akles"
     if destino == _personagem_atual or not destino in ["akles", "wins"]:
         return
-    if _hero and _hero.has_method("atacando") and _hero.atacando():
-        return
+    # ANTES A TROCA ERA PROIBIDA DURANTE O GOLPE — e isso virava prisao quando
+    # o golpe nao terminava. Em vez de recusar, o heroi que sai SOLTA o estado
+    # de ataque: trocar no meio do swing e uma escolha do jogador, ficar sem
+    # botao nenhum nao e.
+    if _hero and _hero.has_method("soltar_ataque"):
+        _hero.soltar_ataque()
     _akles.visible = destino == "akles"
     _akles.process_mode = Node.PROCESS_MODE_INHERIT if destino == "akles" else Node.PROCESS_MODE_DISABLED
     _wins.visible = destino == "wins"

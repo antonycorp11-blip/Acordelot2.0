@@ -25,6 +25,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Trilha="*res://scripts/trilha.gd"
 Progresso="*res://scripts/progresso.gd"
 World="*res://scripts/world.gd"
 Diario="*res://scripts/diario.gd"

@@ -118,6 +118,13 @@ func _ready() -> void:
     # Cada zona nova traz os seus moradores: reconecta a cada troca.
     if _zone_manager:
         _zone_manager.zone_changed.connect(func(z):
+            # A trilha muda com o lugar: cidade em tom maior e mais presente,
+            # campo mais espacado. A caverna troca sozinha ao entrar.
+            var trilha := get_node_or_null("/root/Trilha")
+            if trilha:
+                var urbana: bool = str(z.get("biome", "")) == "cidade" \
+                    or str(z.get("layout_id", "")) != ""
+                trilha.definir_clima("cidade" if urbana else "mundo")
             if _gerador_bichos:
                 _gerador_bichos.definir_zona(z)
             var diario_zona := get_node_or_null("/root/Diario")
@@ -585,6 +592,11 @@ func _ao_cair() -> void:
     if _player:
         _player.set_physics_process(false)
         _player.velocity = Vector3.ZERO
+        # Os DOIS herois soltam o golpe. Morrer no meio de um ataque deixava o
+        # estado preso e o jogador voltava sem conseguir atacar nem trocar.
+        for corpo in [_player.get_node_or_null("Hero"), _player.get_node_or_null("Wins")]:
+            if corpo and corpo.has_method("soltar_ataque"):
+                corpo.soltar_ataque()
 
     var perdidas := 0
     var progresso := get_node_or_null("/root/Progresso")

@@ -323,7 +323,23 @@ func _fixar_no_lugar(animacao: Animation) -> void:
             var valor: Vector3 = animacao.track_get_key_value(trilha, chave)
             animacao.track_set_key_value(trilha, chave, Vector3(0.0, valor.y, 0.0))
 
+## Mesma rede da Wins: estado de ataque que nao volta sozinho trava todos os
+## botoes do jogo, e a animacao pode ser interrompida por troca de personagem,
+## por morte ou por troca de zona.
+const TETO_DO_ATAQUE := 3.0
+var _atacando_desde := -1.0
+
+func soltar_ataque() -> void:
+    _atacando = false
+    _golpe_acertou = false
+    _golpe_pedido = false
+    _atacando_desde = -1.0
+
+
 func atacando() -> bool:
+    if _atacando and _atacando_desde > 0.0 \
+            and Time.get_ticks_msec() / 1000.0 - _atacando_desde > TETO_DO_ATAQUE:
+        soltar_ataque()
     return _atacando
 
 
@@ -371,6 +387,7 @@ func atacar() -> void:
         _golpe = 0
 
     _atacando = true
+    _atacando_desde = Time.get_ticks_msec() / 1000.0
     _golpe_acertou = false
     if _espada:
         _espada.visible = true

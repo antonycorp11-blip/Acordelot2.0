@@ -195,6 +195,33 @@ func _preparar_feixe_vocal() -> void:
         faixa.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
         _feixe_fx.add_child(faixa)
 
+## O ESTADO DE ATAQUE NAO PODE FICAR PRESO.
+##
+## `_atacando` so voltava a falso quando a animacao TERMINAVA. Basta a animacao
+## nao terminar — e ela nao termina se o personagem for desligado no meio, que e
+## exatamente o que acontece ao trocar de heroi ou ao morrer — para a Wins ficar
+## eternamente "atacando": `atacar()` sai fora na primeira linha, a troca de
+## personagem tambem, e o jogador fica sem botao nenhum funcionando. Foi o que
+## aconteceu ao morrer com ela dentro da caverna.
+##
+## O cao de guarda solta o estado sozinho depois do tempo maximo que qualquer
+## animacao dela pode durar. Nao substitui o conserto na troca e na queda: e a
+## rede embaixo dos dois.
+const TETO_DO_ATAQUE := 3.0
+var _atacando_desde := -1.0
+
+func soltar_ataque() -> void:
+    _atacando = false
+    _atacando_desde = -1.0
+    _atacando_desde = -1.0
+
+
+func _process(_delta: float) -> void:
+    if _atacando and _atacando_desde > 0.0 \
+            and Time.get_ticks_msec() / 1000.0 - _atacando_desde > TETO_DO_ATAQUE:
+        soltar_ataque()
+
+
 func atacando() -> bool:
     return _atacando
 
@@ -216,6 +243,7 @@ func atacar() -> void:
         _golpe_pedido = true
         return
     _atacando = true
+    _atacando_desde = Time.get_ticks_msec() / 1000.0
     if _arma:
         _arma.visible = true
     var nome: String = COMBO[_golpe]
@@ -334,6 +362,7 @@ func _fagulhas_da_voz(cor: Color, quantas: int) -> void:
 
 func _cantar() -> void:
     _atacando = true
+    _atacando_desde = Time.get_ticks_msec() / 1000.0
     if _animador:
         _animador.play("wins/canto", MISTURA, 2.10)
 

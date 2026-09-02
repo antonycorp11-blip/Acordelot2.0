@@ -829,10 +829,11 @@ func _criar_botao_hud() -> void:
 ## caverna ficava parada, ate virar hitkill. Agora o multiplicador nasce do
 ## PODER DE LUTA no momento de entrar, e estes tres valores sao so o quanto
 ## acima ou abaixo do seu proprio nivel voce quer brigar.
+## [nome, peso, espolio, nivel recomendado, poder recomendado, descricao]
 const DIFICULDADES := [
-    ["SERENA", 0.70, 1.0, 1, "Abaixo do seu poder. Para conhecer a caverna."],
-    ["DISSONANTE", 1.0, 1.5, 5, "Na medida do seu poder. Recompensa cheia."],
-    ["CACOFONIA", 1.45, 2.4, 12, "Acima do seu poder. Espólio dobrado."],
+    ["SERENA", 0.70, 1.0, 1, 700, "Abaixo do seu poder. Para conhecer a caverna."],
+    ["DISSONANTE", 1.0, 1.5, 8, 2000, "Na medida do seu poder. Recompensa cheia."],
+    ["CACOFONIA", 1.55, 2.4, 15, 4200, "Acima do seu poder. Espólio dobrado."],
 ]
 
 ## O QUE A CAVERNA QUER DE CADA BICHO, por tipo de monstro.
@@ -844,8 +845,12 @@ const DIFICULDADES := [
 ##
 ## O Colosso derruba em quinze segundos: com tres deles numa sala, ficar parado
 ## e morte em cinco. E ai que entra desviar e escolher quem cai primeiro.
-const GOLPES := [2, 3, 5, 4, 6, 9]
-const SEGUNDOS := [44.0, 34.0, 24.0, 30.0, 21.0, 15.0]
+## Subiram os dois. Matar tudo em dois ou tres golpes tirava qualquer decisao da
+## briga, e o tempo para ser derrubado era longo demais para exigir desvio. A
+## vida sobe menos que o dano de proposito: o objetivo e briga perigosa, nao
+## briga demorada.
+const GOLPES := [4, 6, 9, 7, 10, 14]
+const SEGUNDOS := [32.0, 26.0, 18.0, 22.0, 15.0, 10.0]
 ## Quanto tempo passa entre dois golpes de um bicho, medido: animacao + pausa.
 const CADENCIA := 2.4
 
@@ -970,6 +975,18 @@ func _montar_tela_entrada() -> void:
 ## um roxo-escuro — dois tons que, no brilho de um celular ao sol, sao a mesma
 ## coisa. Aqui a escolhida ganha aro dourado, fundo mais claro e um losango aceso
 ## na frente do nome: tres sinais, e nenhum deles depende de distinguir tom.
+func _milhar_dg(valor: int) -> String:
+    var texto := str(valor)
+    var saida := ""
+    var conta := 0
+    for k in range(texto.length() - 1, -1, -1):
+        saida = texto[k] + saida
+        conta += 1
+        if conta % 3 == 0 and k > 0:
+            saida = "." + saida
+    return saida
+
+
 func _cartao_dificuldade(i: int) -> Control:
     var d: Array = DIFICULDADES[i]
     var cartao := PanelContainer.new()
@@ -1006,17 +1023,17 @@ func _cartao_dificuldade(i: int) -> Control:
     var numeros := Label.new()
     # O cartao mostra o que a caverna vai VALER para este heroi, e nao a
     # constante da tabela: e a diferenca entre "×1,45" e "vida ×3,1  dano ×5,2".
-    # O cartao diz o que a caverna vai custar A VOCE, e nao a constante da
-    # tabela: quantos golpes um Shiker aguenta e em quanto tempo um Colosso te
-    # derruba, com os seus numeros de agora.
-    var leve := alvos_do_bicho(0, i)
-    var pesado := alvos_do_bicho(5, i)
+    # O CARTAO DIZ SO O QUE ORIENTA A ESCOLHA.
+    #
+    # Ele chegou a mostrar quantos golpes um Shiker aguenta e em quantos
+    # segundos um Colosso derruba: numero de balanceamento, que e trabalho meu e
+    # nao do jogador. O que ajuda a decidir "eu aguento esta?" e o nivel e o
+    # poder recomendados — e o proprio poder de agora, ao lado, para comparar.
     var prog_cartao := get_node_or_null("/root/Progresso")
-    var atq: float = 50.0
-    if prog_cartao and prog_cartao.has_method("estatisticas"):
-        atq = maxf(float(prog_cartao.estatisticas().get("ataque", 50)), 1.0)
-    numeros.text = "Shiker: %d golpes   ·   Colosso derruba em %ds   ·   espólio ×%.1f" % [
-        int(ceil(float(leve[0]) / atq)), int(SEGUNDOS[5] / float(d[1])), float(d[2])]
+    var meu := 0
+    if prog_cartao and prog_cartao.has_method("poder_de_luta_detalhado"):
+        meu = int(prog_cartao.poder_de_luta_detalhado()["total"])
+    numeros.text = "poder %s+   ·   o seu: %s" % [_milhar_dg(int(d[4])), _milhar_dg(meu)]
     numeros.add_theme_font_size_override("font_size", 13)
     numeros.add_theme_color_override("font_color", Color(0.76, 0.82, 0.90))
     dentro.add_child(numeros)
@@ -1176,6 +1193,9 @@ func _atualizar_placar() -> void:
 
 
 func _entrar() -> void:
+    var trilha_dg := get_node_or_null("/root/Trilha")
+    if trilha_dg:
+        trilha_dg.definir_clima("caverna")
     if _jogador == null:
         return
     _posicao_de_retorno = _jogador.global_position
@@ -1233,6 +1253,9 @@ func _entrar() -> void:
 
 
 func _sair() -> void:
+    var trilha_fora := get_node_or_null("/root/Trilha")
+    if trilha_fora:
+        trilha_fora.definir_clima("mundo")
     _dentro = false
     _jogador.chao_garantido = true
     _jogador.global_position = _posicao_de_retorno + Vector3.UP * 0.4
