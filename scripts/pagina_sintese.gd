@@ -1,12 +1,8 @@
 extends Control
 class_name PaginaSintese
-## A OFICINA NO FORMATO APROVADO: receitas a esquerda, forja no meio, resultado
-## previsto a direita.
-##
-## O prototipo tinha "Acorde Solar 3/3" com tres fragmentos convergindo. A
-## oficina deste jogo trabalha com UMA nota em tres estados — corrompido, puro,
-## nota pronta —, entao a forma foi mantida e o que ela mostra e o caminho real
-## do fragmento. Nenhum numero aqui e de vitrine: todos saem do Progresso.
+## A oficina transforma exatamente 30 fragmentos puros da mesma altura em uma
+## nota. Acordes e escalas sairam daqui: vivem na Forja de Escalas, como sistema
+## separado, para o jogador entender cada degrau da progressao musical.
 const P := preload("res://scripts/ui_proto.gd")
 
 const NOTAS := ["do", "do_sustenido", "re", "re_sustenido", "mi", "fa",
@@ -14,7 +10,7 @@ const NOTAS := ["do", "do_sustenido", "re", "re_sustenido", "mi", "fa",
 const ROTULO := {"do": "Dó", "do_sustenido": "Dó#", "re": "Ré", "re_sustenido": "Ré#",
     "mi": "Mi", "fa": "Fá", "fa_sustenido": "Fá#", "sol": "Sol",
     "sol_sustenido": "Sol#", "la": "Lá", "la_sustenido": "Lá#", "si": "Si"}
-const PUROS_POR_NOTA := 5
+const PUROS_POR_NOTA := 30
 
 var _progresso: Node
 var _escolhida := "do"
@@ -65,10 +61,17 @@ func _montar() -> void:
     var meio := P.painel(Color("08162ce8"))
     meio.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     linha.add_child(meio)
+    var conceito := TextureRect.new()
+    conceito.texture = load("res://textures/ui/concepts/synthesis-forge-bg.png")
+    conceito.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    conceito.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+    conceito.modulate = Color(0.72, 0.78, 0.94, 0.28)
+    conceito.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    meio.add_child(conceito)
     var cm := VBoxContainer.new()
     cm.add_theme_constant_override("separation", 6)
     meio.add_child(P.recheio(cm, 16))
-    cm.add_child(P.sobrancelha("NOTA EM TRABALHO"))
+    cm.add_child(P.sobrancelha("1 NOTA = 30 FRAGMENTOS DA MESMA FAMÍLIA"))
     _forja_nome = P.rotulo("", 27, P.IVORY)
     cm.add_child(_forja_nome)
     _forja_pedra = P.arte("", Vector2(0, 230))
@@ -85,12 +88,12 @@ func _montar() -> void:
     var acoes := HBoxContainer.new()
     acoes.add_theme_constant_override("separation", 10)
     cm.add_child(acoes)
-    _purificar = P.botao("Purificar", "primary")
+    _purificar = P.botao("Purificar fragmento", "primary")
     _purificar.custom_minimum_size.y = 48
     _purificar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _purificar.pressed.connect(_ao_purificar)
     acoes.add_child(_purificar)
-    _condensar = P.botao("Condensar", "violet")
+    _condensar = P.botao("Formar nota", "violet")
     _condensar.custom_minimum_size.y = 48
     _condensar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _condensar.pressed.connect(_ao_condensar)
@@ -232,25 +235,24 @@ func _pintar() -> void:
 
     _purificar.disabled = corrompido < 1 or claves < _progresso.CUSTO_PURIFICAR_FRAGMENTO
     _purificar.tooltip_text = "1 corrompido + %d Claves" % _progresso.CUSTO_PURIFICAR_FRAGMENTO
-    _condensar.disabled = limpo < PUROS_POR_NOTA or claves < _progresso.CUSTO_SINTETIZAR_NOTA
-    _condensar.tooltip_text = "%d puros + %d Claves" % [PUROS_POR_NOTA, _progresso.CUSTO_SINTETIZAR_NOTA]
+    _condensar.disabled = limpo < PUROS_POR_NOTA
+    _condensar.tooltip_text = "%d fragmentos puros da mesma nota" % PUROS_POR_NOTA
 
     for antigo in _direita.get_children():
         _direita.remove_child(antigo)
         antigo.queue_free()
-    _direita.add_child(P.cabecalho("RESULTADO PREVISTO", "Custos", ""))
+    _direita.add_child(P.cabecalho("RESULTADO DA FORMAÇÃO", "Nota pronta", ""))
+    _direita.add_child(P.arte(_cristal(_escolhida), Vector2(220, 190)))
+    _direita.add_child(P.rotulo("NOTA DE %s" % String(ROTULO.get(_escolhida, _escolhida)).to_upper(), 22, P.GOLD_BRIGHT))
+    _direita.add_child(P.risco())
     _direita.add_child(P.linha_de_status("◉", "Purificar", "%d Claves" % _progresso.CUSTO_PURIFICAR_FRAGMENTO))
-    _direita.add_child(P.linha_de_status("◉", "Condensar", "%d Claves" % _progresso.CUSTO_SINTETIZAR_NOTA))
-    _direita.add_child(P.linha_de_status("▣", "Puros por nota", str(PUROS_POR_NOTA)))
+    _direita.add_child(P.linha_de_status("▣", "Fragmentos por nota", str(PUROS_POR_NOTA)))
+    _direita.add_child(P.linha_de_status("♪", "Notas no inventário", str(pronta)))
     _direita.add_child(P.linha_de_status("◉", "Claves em mãos", _milhar(claves)))
     _direita.add_child(P.risco())
-    _direita.add_child(P.sobrancelha("ACORDES"))
-    for id in _progresso.ACORDES:
-        _direita.add_child(_cartao_do_acorde(String(id)))
+    _direita.add_child(P.sobrancelha("PRÓXIMO PASSO"))
+    _direita.add_child(P.rotulo("Leve sete notas à Forja de Escalas. Tons e semitons definem quais acordes, buffs e skills podem nascer.", 11, P.MUTED, true))
     _direita.add_child(P.espaco_elastico())
-    _direita.add_child(P.sobrancelha("PARTITURAS"))
-    for tipo in _progresso.PARTITURAS:
-        _direita.add_child(_cartao_da_partitura(String(tipo)))
 
 
 func _cartao_do_acorde(id: String) -> Control:

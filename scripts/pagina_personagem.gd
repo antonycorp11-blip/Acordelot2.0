@@ -1,7 +1,8 @@
 extends Control
 class_name PaginaPersonagem
-## A FICHA NO FORMATO APROVADO: atributos a esquerda, o Akles de verdade no
-## palco do meio, evolucao a direita e a trilha embaixo.
+## Ficha dos herois jogaveis. Akles e Wins ficam sempre acessiveis no topo;
+## trocar aqui troca tambem o personagem ativo no mundo, e o palco usa o mesmo
+## modelo original usado durante a partida.
 ##
 ## O desenho e o do prototipo. O conteudo e o do jogo: a coluna da esquerda tem
 ## os atributos que voce realmente distribui, e nao slots de equipamento — o
@@ -16,7 +17,11 @@ const NOMES := {"forca": "Força", "destreza": "Destreza", "vitalidade": "Vitali
 
 var _progresso: Node
 var _palco: PalcoAkles
+var _palco_caixa: Control
+var _papel_no_palco: Label
 var _nome_no_palco: Label
+var _selecionado := "akles"
+var _botoes_heroi: Dictionary = {}
 var _pontos: Label
 var _linhas: Dictionary = {}
 var _nivel: Label
@@ -38,6 +43,7 @@ func _ready() -> void:
 
 
 func ao_abrir() -> void:
+    _sincronizar_com_jogo()
     if _palco:
         _palco.ligar()
     _pintar()
@@ -53,6 +59,21 @@ func _montar() -> void:
     pagina.set_anchors_preset(Control.PRESET_FULL_RECT)
     pagina.add_theme_constant_override("separation", 12)
     add_child(pagina)
+
+    var seletor := HBoxContainer.new()
+    seletor.alignment = BoxContainer.ALIGNMENT_CENTER
+    seletor.add_theme_constant_override("separation", 8)
+    pagina.add_child(seletor)
+    for dados in [["akles", "Akles", "Maestro da Vigília"], ["wins", "Wins", "Guardiã da Aurora"]]:
+        var b := P.botao("%s\n%s" % [String(dados[1]), String(dados[2])], "quiet")
+        b.custom_minimum_size = Vector2(210, 52)
+        b.pressed.connect(_escolher_heroi.bind(String(dados[0])))
+        seletor.add_child(b)
+        _botoes_heroi[String(dados[0])] = b
+    var futuro := P.botao("＋ Próximos heróis", "quiet")
+    futuro.custom_minimum_size = Vector2(180, 52)
+    futuro.disabled = true
+    seletor.add_child(futuro)
 
     var alto := HBoxContainer.new()
     alto.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -78,22 +99,21 @@ func _montar() -> void:
     var meio := P.painel(Color("08162ce8"))
     meio.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     alto.add_child(meio)
-    var palco_caixa := Control.new()
-    palco_caixa.clip_contents = true
-    meio.add_child(palco_caixa)
+    _palco_caixa = Control.new()
+    _palco_caixa.clip_contents = true
+    meio.add_child(_palco_caixa)
 
     var ident := VBoxContainer.new()
     ident.position = Vector2(16, 12)
     ident.add_theme_constant_override("separation", 0)
     ident.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    palco_caixa.add_child(ident)
-    ident.add_child(P.sobrancelha("MAESTRO DA VIGÍLIA"))
+    _palco_caixa.add_child(ident)
+    _papel_no_palco = P.sobrancelha("MAESTRO DA VIGÍLIA")
+    ident.add_child(_papel_no_palco)
     _nome_no_palco = P.rotulo("Akles", 29, P.IVORY)
     ident.add_child(_nome_no_palco)
 
-    _palco = PalcoScript.new(false)
-    _palco.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    palco_caixa.add_child(_palco)
+    _recriar_palco()
 
     # ------------------------------------------------------------ evolucao
     var dir := P.painel()
@@ -214,14 +234,61 @@ func _agir() -> void:
     if _progresso.nivel > antes:
         var casca := get_tree().root.find_child("UiShell", true, false)
         if casca and casca.has_method("avisar"):
-            casca.avisar("Harmonia fortalecida", "Akles alcançou o nível %d" % _progresso.nivel)
+            casca.avisar("Harmonia fortalecida", "%s alcançou o nível %d" % [_nome_heroi(), _progresso.nivel])
+
+
+func _sincronizar_com_jogo() -> void:
+    var jogador := get_tree().get_first_node_in_group("jogador")
+    if jogador and jogador.has_method("personagem_atual"):
+        var atual := String(jogador.personagem_atual())
+        if atual in ["akles", "wins"] and atual != _selecionado:
+            _selecionado = atual
+            _recriar_palco()
+
+
+func _escolher_heroi(id: String) -> void:
+    if id == _selecionado:
+        return
+    var jogador := get_tree().get_first_node_in_group("jogador")
+    if jogador and jogador.has_method("trocar_personagem"):
+        jogador.trocar_personagem(id)
+    _selecionado = id
+    _recriar_palco()
+    _pintar()
+    var casca := get_tree().root.find_child("UiShell", true, false)
+    if casca and casca.has_method("avisar"):
+        casca.avisar("Herói selecionado", _nome_heroi() + " agora está em campo")
+
+
+func _recriar_palco() -> void:
+    if _palco_caixa == null:
+        return
+    if _palco:
+        _palco_caixa.remove_child(_palco)
+        _palco.queue_free()
+    _palco = PalcoScript.new(false, _selecionado)
+    _palco.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    # O modelo vem antes da identificação para o texto permanecer por cima.
+    _palco_caixa.add_child(_palco)
+    _palco_caixa.move_child(_palco, 0)
+    if visible:
+        _palco.ligar()
+
+
+func _nome_heroi() -> String:
+    return "Wins" if _selecionado == "wins" else "Akles"
 
 
 func _pintar() -> void:
     if _progresso == null: return
+    for id in _botoes_heroi:
+        var botao: Button = _botoes_heroi[id]
+        botao.add_theme_stylebox_override("normal", P.estilo_de_botao(
+            "gold" if String(id) == _selecionado else "quiet"))
     var falta := float(_progresso.xp_para_nivel())
     _nivel.text = "Nível %d" % _progresso.nivel
-    _nome_no_palco.text = "Akles   NÍVEL %d" % _progresso.nivel
+    _papel_no_palco.text = "GUARDIÃ DA AURORA" if _selecionado == "wins" else "MAESTRO DA VIGÍLIA"
+    _nome_no_palco.text = "%s   NÍVEL %d" % [_nome_heroi(), _progresso.nivel]
     _xp.text = "%d / %d XP" % [_progresso.experiencia, int(falta)]
     var destino: float = clampf(float(_progresso.experiencia) / maxf(falta, 1.0), 0.0, 1.0)
     if is_inside_tree() and absf(destino - _barra.value) > 0.001:

@@ -12,6 +12,7 @@ signal recurso_alterado(id: String, total: int)
 signal recurso_ganho(id: String, quantidade: int)
 signal nota_sintetizada(nota: String)
 signal fragmento_purificado(nota: String)
+signal escala_forjada(escala: String)
 
 const ARQUIVO := "user://progresso.cfg"
 const NIVEL_MAXIMO := 60
@@ -21,7 +22,8 @@ const NIVEIS_DESBLOQUEIO_SKILLS := {
     "ataque_basico": 1, "skill_1": 2, "skill_2": 4, "skill_3": 6,
 }
 const CUSTO_PURIFICAR_FRAGMENTO := 25
-const CUSTO_SINTETIZAR_NOTA := 100
+const FRAGMENTOS_POR_NOTA := 30
+const CUSTO_SINTETIZAR_NOTA := 0
 const PARTITURAS := {
     "menor": {"nome": "Partitura Menor", "custo": 500, "xp": 100, "recurso": "partitura_menor"},
     "harmonica": {"nome": "Partitura Harmônica", "custo": 2000, "xp": 500, "recurso": "partitura_harmonica"},
@@ -49,6 +51,9 @@ const RECURSOS_INICIAIS := {
     "partitura_magistral": 0,
     "acorde_cura": 0,
     "acorde_vigor": 0,
+    "escala_do_maior": 0,
+    "escala_sol_maior": 0,
+    "escala_la_menor": 0,
     "selo_regente": 0,
     "nucleo_maestro": 0,
     "fragmento_do": 0,
@@ -353,7 +358,10 @@ func pagar(custos: Dictionary) -> bool:
 
 func sintetizar_nota(nota: String) -> bool:
     var fragmento := "fragmento_" + nota
-    var custos := {fragmento: 5, "claves": CUSTO_SINTETIZAR_NOTA}
+    # Regra central do sistema musical: trinta fragmentos da MESMA altura
+    # condensam uma nota. Claves nao entram nesta etapa; elas continuam sendo
+    # usadas para purificacao, partituras e acordes.
+    var custos := {fragmento: FRAGMENTOS_POR_NOTA}
     if not pode_pagar(custos):
         return false
     for id in custos:
@@ -408,16 +416,62 @@ const ACORDES := {
     "acorde_cura": {
         "nome": "Acorde de Cura", "graus": "I · III · V",
         "notas": ["do", "mi", "sol"],
+        "escala": "escala_do_maior",
         "licao": "Tríade maior de Dó: a fundamental, a terça e a quinta.",
         "custo_claves": 150, "efeito": "Restaura 45% da vida.",
     },
     "acorde_vigor": {
-        "nome": "Acorde de Vigor", "graus": "I · ♭III · V",
-        "notas": ["do", "re_sustenido", "sol"],
-        "licao": "Tríade menor de Dó: a terça desce meio tom e o acorde escurece.",
+        "nome": "Acorde de Vigor", "graus": "I · III · V",
+        "notas": ["la", "do", "mi"],
+        "escala": "escala_la_menor",
+        "licao": "Tríade de Lá menor: tônica, terça menor e quinta justa.",
         "custo_claves": 260, "efeito": "Restaura 25% da vida e concede escudo.",
     },
 }
+
+## A escala e a matriz persistente que libera acordes. Ela consome as sete
+## notas uma unica vez; depois os acordes daquela familia podem ser montados.
+const ESCALAS := {
+    "escala_do_maior": {
+        "nome": "Dó maior", "notas": ["do", "re", "mi", "fa", "sol", "la", "si"],
+        "intervalos": "T · T · S · T · T · T · S",
+        "recompensa": "Libera o Acorde de Cura",
+    },
+    "escala_sol_maior": {
+        "nome": "Sol maior", "notas": ["sol", "la", "si", "do", "re", "mi", "fa_sustenido"],
+        "intervalos": "T · T · S · T · T · T · S",
+        "recompensa": "Amplifica habilidades de ressonância",
+    },
+    "escala_la_menor": {
+        "nome": "Lá menor", "notas": ["la", "si", "do", "re", "mi", "fa", "sol"],
+        "intervalos": "T · S · T · T · S · T · T",
+        "recompensa": "Libera o Acorde de Vigor",
+    },
+}
+
+
+func pode_forjar_escala(id: String) -> bool:
+    if not ESCALAS.has(id):
+        return false
+    for nota in ESCALAS[id]["notas"]:
+        if quantidade("nota_" + String(nota)) < 1:
+            return false
+    return true
+
+
+func forjar_escala(id: String) -> bool:
+    if not pode_forjar_escala(id):
+        return false
+    for nota in ESCALAS[id]["notas"]:
+        var recurso := "nota_" + String(nota)
+        recursos[recurso] = quantidade(recurso) - 1
+        recurso_alterado.emit(recurso, int(recursos[recurso]))
+    recursos[id] = quantidade(id) + 1
+    recurso_alterado.emit(id, int(recursos[id]))
+    salvar()
+    escala_forjada.emit(id)
+    alterado.emit()
+    return true
 
 ## Quanto de vida cada acorde devolve, em fracao do maximo.
 const CURA_DO_ACORDE := {"acorde_cura": 0.45, "acorde_vigor": 0.25}
@@ -427,6 +481,8 @@ func pode_montar_acorde(id: String) -> bool:
     if not ACORDES.has(id):
         return false
     var receita: Dictionary = ACORDES[id]
+    if quantidade(String(receita.get("escala", ""))) < 1:
+        return false
     if quantidade("claves") < int(receita["custo_claves"]):
         return false
     for nota in receita["notas"]:

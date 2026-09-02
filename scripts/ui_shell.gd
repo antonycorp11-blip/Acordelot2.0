@@ -32,6 +32,8 @@ var _titulo: Label
 var _extras: HBoxContainer
 var _conteudo: Control
 var _navbar: HBoxContainer
+var _botoes_heroi: Dictionary = {}
+var _heroi_atual := "akles"
 
 var _paginas: Dictionary = {}      # id -> {"no": Control, "botao": Button, "nome": String}
 var _ordem: Array[String] = []
@@ -143,6 +145,25 @@ func _montar_cabecalho() -> Control:
     _titulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     pilha_do_titulo.add_child(_titulo)
 
+    # O elenco fica no cabecalho de TODAS as telas. A Wins deixa de ser uma
+    # troca escondida no HUD: tocar em qualquer retrato troca o heroi no mundo
+    # e abre a ficha correspondente.
+    var elenco := HBoxContainer.new()
+    elenco.add_theme_constant_override("separation", 6)
+    for dados in [["akles", "Akles"], ["wins", "Wins"]]:
+        var id := String(dados[0])
+        var b := T.botao(String(dados[1]), T.SECUNDARIO, 48.0)
+        b.custom_minimum_size = Vector2(92, 48)
+        b.pressed.connect(_selecionar_heroi.bind(id))
+        elenco.add_child(b)
+        _botoes_heroi[id] = b
+    var mais := T.botao("＋ Heróis", T.SECUNDARIO, 48.0)
+    mais.custom_minimum_size = Vector2(82, 48)
+    mais.disabled = true
+    elenco.add_child(mais)
+    _cabecalho.add_child(elenco)
+    call_deferred("_ligar_elenco_ao_jogo")
+
     # Onde a pagina pendura os contadores dela. Fica ENTRE o titulo e o fechar,
     # empurrado para a direita, com espaco de sobra entre um contador e outro.
     _extras = HBoxContainer.new()
@@ -157,6 +178,41 @@ func _montar_cabecalho() -> Control:
     canto.add_child(fechar)
     _cabecalho.add_child(canto)
     return caixa
+
+
+func _ligar_elenco_ao_jogo() -> void:
+    var jogador := get_tree().get_first_node_in_group("jogador")
+    if jogador == null:
+        call_deferred("_ligar_elenco_ao_jogo")
+        return
+    if jogador.has_method("personagem_atual"):
+        _heroi_atual = String(jogador.personagem_atual())
+    if jogador.has_signal("personagem_trocado") \
+            and not jogador.personagem_trocado.is_connected(_ao_personagem_trocado):
+        jogador.personagem_trocado.connect(_ao_personagem_trocado)
+    _pintar_elenco()
+
+
+func _selecionar_heroi(id: String) -> void:
+    var jogador := get_tree().get_first_node_in_group("jogador")
+    if jogador and jogador.has_method("trocar_personagem"):
+        jogador.trocar_personagem(id)
+    _heroi_atual = id
+    _pintar_elenco()
+    abrir("personagem")
+
+
+func _ao_personagem_trocado(id: String, _nome: String) -> void:
+    _heroi_atual = id
+    _pintar_elenco()
+
+
+func _pintar_elenco() -> void:
+    for id in _botoes_heroi:
+        var b: Button = _botoes_heroi[id]
+        var ativo := String(id) == _heroi_atual
+        b.add_theme_color_override("font_color", T.OURO_FORTE if ativo else T.TEXTO_FRACO)
+        b.modulate = Color(1.08, 1.02, 0.82) if ativo else Color(0.72, 0.76, 0.84)
 
 
 func _montar_navbar() -> Control:

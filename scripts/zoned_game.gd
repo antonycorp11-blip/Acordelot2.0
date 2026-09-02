@@ -16,6 +16,10 @@ const PAGINAS := [
      preload("res://scripts/pagina_talentos.gd")],
     ["sintese", "Síntese", "res://textures/ui/kit/nav/melodia.png",
      preload("res://scripts/pagina_sintese.gd")],
+    # Temporariamente no HUD para teste. Quando o Observatório Harmônico entrar
+    # no mapa, esta mesma página será aberta pela interação do cenário.
+    ["forja_escalas", "Forja", "res://textures/ui/kit/nav/lira.png",
+     preload("res://scripts/pagina_forja_escalas.gd")],
     ["inventario", "Inventário", "res://textures/ui/kit/nav/inventario.png",
      preload("res://scripts/pagina_inventario.gd")],
     ["missoes", "Missões", "res://textures/ui/kit/nav/missoes.png",

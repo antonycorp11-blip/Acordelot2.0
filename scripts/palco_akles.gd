@@ -21,9 +21,11 @@ var _mundo: Node3D
 var _palco: SubViewport
 var _balancando := false
 var _fase := 0.0
+var personagem_id := "akles"
 
 
-func _init(compacto := false) -> void:
+func _init(compacto := false, personagem := "akles") -> void:
+    personagem_id = personagem if personagem in ["akles", "wins"] else "akles"
     stretch = true
     mouse_filter = Control.MOUSE_FILTER_IGNORE
 
@@ -75,7 +77,9 @@ func _init(compacto := false) -> void:
     _mundo.rotation.y = PI
     _palco.add_child(_mundo)
 
-    var cena := load("res://personagem/heroi_base.fbx")
+    var cena_path := "res://personagem/wins_base.fbx" if personagem_id == "wins" \
+        else "res://personagem/heroi_base.fbx"
+    var cena := load(cena_path)
     if cena:
         var corpo: Node3D = (cena as PackedScene).instantiate()
         _mundo.add_child(corpo)
@@ -90,18 +94,23 @@ func _init(compacto := false) -> void:
                 -caixa.position.y * fator,
                 -(caixa.position.z + caixa.size.z * 0.5) * fator)
         var tocador: AnimationPlayer = corpo.find_child("AnimationPlayer", true, false)
-        var biblioteca: AnimationLibrary = load("res://personagem/heroi_anims.res")
+        var biblioteca_path := "res://personagem/wins_anims.res" if personagem_id == "wins" \
+            else "res://personagem/heroi_anims.res"
+        var biblioteca: AnimationLibrary = load(biblioteca_path)
         if tocador and biblioteca:
-            tocador.add_animation_library("heroi", biblioteca)
-            if tocador.has_animation("heroi/parado"):
-                tocador.play("heroi/parado")
+            var biblioteca_nome := "wins" if personagem_id == "wins" else "heroi"
+            tocador.add_animation_library(biblioteca_nome, biblioteca)
+            var parada := biblioteca_nome + "/parado"
+            if tocador.has_animation(parada):
+                tocador.play(parada)
 
     # `look_at` trabalha em coordenadas globais e exige o no dentro da arvore.
     # Aqui o palco inteiro ainda esta solto, entao a chamada falharia em
     # silencio e a camera ficaria na orientacao padrao.
     var camera := Camera3D.new()
     camera.current = true
-    camera.fov = 26.0 if compacto else 30.0
+    camera.fov = (29.0 if compacto else 32.0) if personagem_id == "wins" \
+        else (26.0 if compacto else 30.0)
     _palco.add_child(camera)
     if compacto:
         # O medalhao mira o ROSTO. Mais alto que isto e o alto da cabeca; mais

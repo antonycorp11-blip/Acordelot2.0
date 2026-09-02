@@ -146,6 +146,28 @@ def main():
 
     open(caminho_html, "w", encoding="utf-8").write(html)
 
+    # PWA: o service worker do Godot nasce apontando para index.js/index.pck.
+    # Depois do carimbo esses nomes deixam de existir; sem atualizar as listas
+    # a instalacao offline falha silenciosamente. As partes do pacote entram na
+    # lista cacheavel para o celular guardar exatamente a build publicada.
+    worker_path = os.path.join(PASTA, "index.service.worker.js")
+    if os.path.exists(worker_path):
+        worker = open(worker_path, encoding="utf-8").read()
+        cached = ["index.html", marca + ".js", "index.offline.html",
+                  "index.icon.png", "index.apple-touch-icon.png"]
+        for suffix in (".audio.worklet.js", ".audio.position.worklet.js"):
+            if os.path.exists(os.path.join(PASTA, marca + suffix)):
+                cached.append(marca + suffix)
+        cacheable = [marca + ".wasm"]
+        cacheable += partes if partes else [marca + ".pck"]
+        worker = re.sub(r"const CACHED_FILES = \[.*?\];",
+                        "const CACHED_FILES = " + json.dumps(cached) + ";",
+                        worker, count=1)
+        worker = re.sub(r"const CACHEABLE_FILES = \[.*?\];",
+                        "const CACHEABLE_FILES = " + json.dumps(cacheable) + ";",
+                        worker, count=1)
+        open(worker_path, "w", encoding="utf-8").write(worker.rstrip() + "\n")
+
     print("carimbo: %s" % marca)
     for nome, tam in tamanhos.items():
         print("  %-26s %6.1f MB" % (nome, tam / 1048576))
