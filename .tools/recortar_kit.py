@@ -1,97 +1,117 @@
 #!/usr/bin/env python3
-"""Recorta uma folha de arte de interface em pecas soltas, com alfa.
+"""Corta um kit de UI feito sobre fundo magenta em pecas soltas com alfa.
 
-A arte da interface chega em FOLHA: seis botoes numa imagem, vinte icones em
-outra. O jogo nao usa folha — usa peca, uma por moldura, uma por icone, cada
-uma no seu arquivo, para o Godot importar e o codigo pedir pelo nome.
+O gerador entrega tudo numa folha so, sobre magenta. Colar a folha inteira nao
+serve; e preciso uma imagem por peca, com fundo transparente.
 
-Tres passos, nesta ordem, e a ordem importa:
+DUAS ARMADILHAS, as duas ja pagas neste projeto:
 
-1. O magenta vira transparencia. E o fundo combinado com o gerador de imagem:
-   cor que nao existe em nenhum objeto do jogo, entao chavear por ela nao come
-   pedaco de peca nenhuma.
-2. A franja roxa sai. Na borda de cada peca o magenta se mistura com a arte e
-   deixa um halo violeta que aparece contra o azul do painel. Onde vermelho e
-   azul passam do verde, o excesso e do fundo e volta ao nivel do verde.
-3. As ilhas de pixel ficam separadas. Cada mancha de opaco cercada de vazio e
-   uma peca; a biblioteca rotula as ilhas e cada rotulo vira um recorte.
+1. TIRAR O MAGENTA POR IGUALDADE EXATA deixa uma franja rosa na borda de tudo,
+   porque a borda e mistura entre a peca e o fundo. Aqui o alfa sai da DISTANCIA
+   ate o magenta e a cor e "descontaminada": o quanto de magenta vazou para o
+   pixel e removido antes de ele virar borda.
 
-Uso: recortar_kit.py destino/ folha.png [folha.png ...]
+2. PIXEL TRANSPARENTE COM COR ERRADA reaparece pelo mipmap. Onde o alfa e zero a
+   cor nao e preta: ela e preenchida com a cor do vizinho opaco mais proximo
+   (sangria de alfa). Sem isso o rosa volta assim que a textura reduz.
+
+Uso: recortar_kit.py <folha.png> <pasta> [area_minima]
 """
-import os
-import sys
-
+import os, sys
 import numpy as np
 from PIL import Image
 from scipy import ndimage
 
-# Quao longe do verde o vermelho e o azul precisam estar para o pixel ser fundo.
-# Folga alta de proposito: o gerador entrega o magenta com leve gradiente, e
-# limite justo deixa faixas do fundo sobrando nos cantos da imagem.
-LIMITE_FUNDO = 60
-# Abaixo disto e sujeira: pontinho solto do gerador, nao peca.
-MENOR_PECA = 900
-# Ilhas mais proximas que isto sao a MESMA peca — o brilho de uma moldura se
-# rompe em fiapos, e sem juntar sairiam vinte cacos no lugar de um icone.
-COLA = 3
+FUNDO = np.array([255.0, 0.0, 255.0])
+LIMITE = 150.0       # distancia ate o magenta em que a peca ja e opaca
+PISO = 34.0          # abaixo disto e fundo, e nao brilho da peca
+FORCA_DO_DESPILL = 1.0
+AREA_MINIMA = 900
 
 
-def _chavear(imagem):
-    dados = np.array(imagem.convert("RGBA")).astype(np.int16)
-    r, g, b = dados[..., 0], dados[..., 1], dados[..., 2]
-    fundo = (r - g > LIMITE_FUNDO) & (b - g > LIMITE_FUNDO)
-    dados[..., 3] = np.where(fundo, 0, 255)
+def alfa_e_cor(rgb):
+    """Alfa pela distancia ao fundo, cor sem a contaminacao do fundo.
 
-    # A franja: o teto do vermelho e do azul passa a ser o verde mais um dedo.
-    teto = g + 28
-    visivel = ~fundo
-    dados[..., 0] = np.where(visivel & (r > teto), teto, r)
-    dados[..., 2] = np.where(visivel & (b > teto), teto, b)
-    return dados.clip(0, 255).astype(np.uint8), ~fundo
+    DESCONTAMINAR NAO BASTA. A conta de composicao devolve a cor certa quando o
+    alfa esta certo, mas a peca tem BRILHO: uma auréola de pixels 10 a 30 por
+    cento opacos sobre magenta. Neles o alfa e pequeno, a divisao amplifica o
+    erro e sobra rosa — a franja que ja apareceu nos Ecos.
+
+    Por isso vem o despill depois: onde o vermelho e o azul passam do verde
+    juntos, que e a assinatura do magenta, os dois sao puxados para baixo ate o
+    verde. Um brilho branco-azulado nao perde nada; o rosa que nao pertence a
+    peca some.
+    """
+    d = np.linalg.norm(rgb - FUNDO, axis=2)
+    a = np.clip((d - PISO) / (LIMITE - PISO), 0.0, 1.0)
+    seguro = np.maximum(a, 1e-4)[..., None]
+    cor = (rgb - FUNDO * (1.0 - a)[..., None]) / seguro
+    cor = np.clip(cor, 0, 255)
+    r, g, b = cor[..., 0], cor[..., 1], cor[..., 2]
+    magenta = np.minimum(r, b) - g
+    excesso = np.clip(magenta, 0.0, None) * FORCA_DO_DESPILL
+    cor[..., 0] = np.clip(r - excesso, 0, 255)
+    cor[..., 2] = np.clip(b - excesso, 0, 255)
+    return a, cor
 
 
-def recortar(caminho, destino):
-    imagem = Image.open(caminho)
-    dados, cheio = _chavear(imagem)
-    recortada = Image.fromarray(dados, "RGBA")
-
-    # Engorda a mascara para colar os fiapos, rotula, e mede as caixas na
-    # mascara ORIGINAL — a engorda serve para agrupar, nao para recortar.
-    inchada = ndimage.binary_dilation(cheio, iterations=COLA)
-    rotulos, quantos = ndimage.label(inchada)
-
-    nome = os.path.splitext(os.path.basename(caminho))[0]
-    pasta = os.path.join(destino, nome)
-    os.makedirs(pasta, exist_ok=True)
-
-    caixas = []
-    for i in range(1, quantos + 1):
-        ys, xs = np.where((rotulos == i) & cheio)
-        if ys.size < MENOR_PECA:
-            continue
-        caixas.append((ys.min(), xs.min(), ys.max() + 1, xs.max() + 1))
-
-    # De cima para baixo, da esquerda para a direita — a ordem em que a folha
-    # foi desenhada, para o numero do arquivo bater com o que se ve na imagem.
-    # A linha e arredondada: pecas da mesma fileira nunca comecam no mesmo pixel.
-    altura_media = max(1, int(np.median([c[2] - c[0] for c in caixas]))) if caixas else 1
-    caixas.sort(key=lambda c: (round(c[0] / (altura_media * 0.6)), c[1]))
-
-    for indice, (y0, x0, y1, x1) in enumerate(caixas):
-        peca = recortada.crop((x0, y0, x1, y1))
-        peca.save(os.path.join(pasta, "%02d.png" % indice))
-
-    print("%-28s %3d pecas  ->  %s" % (os.path.basename(caminho), len(caixas), pasta))
-    return len(caixas)
+def sangrar(cor, a, voltas=8):
+    """Empurra a cor dos opacos para dentro dos transparentes."""
+    solido = a > 0.02
+    saida = cor.copy()
+    for _ in range(voltas):
+        falta = ~solido
+        if not falta.any():
+            break
+        soma = np.zeros_like(saida)
+        conta = np.zeros(a.shape)
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            viz = np.roll(solido, (dy, dx), axis=(0, 1))
+            vcor = np.roll(saida, (dy, dx), axis=(0, 1))
+            usa = viz & falta
+            soma[usa] += vcor[usa]
+            conta[usa] += 1
+        tem = conta > 0
+        saida[tem] = soma[tem] / conta[tem][..., None]
+        solido = solido | tem
+    return saida
 
 
 def main():
-    if len(sys.argv) < 3:
-        print(__doc__)
-        return
-    destino = sys.argv[1]
-    for folha in sys.argv[2:]:
-        recortar(folha, destino)
+    folha, pasta = sys.argv[1], sys.argv[2]
+    area_min = int(sys.argv[3]) if len(sys.argv) > 3 else AREA_MINIMA
+    os.makedirs(pasta, exist_ok=True)
+    rgb = np.asarray(Image.open(folha).convert("RGB"), dtype=np.float64)
+    a, cor = alfa_e_cor(rgb)
+    cor = sangrar(cor, a)
+
+    # As pecas sao ilhas de alfa. Um fecho leve junta o que a borda separou.
+    mascara = a > 0.35
+    mascara = ndimage.binary_closing(mascara, np.ones((5, 5)))
+    rotulos, quantas = ndimage.label(mascara)
+    caixas = ndimage.find_objects(rotulos)
+
+    achadas = []
+    for i, cx in enumerate(caixas):
+        if cx is None:
+            continue
+        ys, xs = cx
+        alt, larg = ys.stop - ys.start, xs.stop - xs.start
+        if alt * larg < area_min:
+            continue
+        achadas.append((ys.start, xs.start, ys.stop, xs.stop))
+
+    # Ordena por linha (agrupando alturas parecidas) e depois por coluna, para os
+    # nomes sairem na mesma ordem em que a folha se le.
+    achadas.sort(key=lambda c: (c[0] // 60, c[1]))
+    print("%d pecas de %d ilhas" % (len(achadas), quantas))
+    for n, (y0, x0, y1, x1) in enumerate(achadas):
+        recorte = np.dstack([cor[y0:y1, x0:x1], a[y0:y1, x0:x1] * 255.0])
+        img = Image.fromarray(recorte.astype(np.uint8), "RGBA")
+        nome = "peca_%02d.png" % n
+        img.save(os.path.join(pasta, nome))
+        print("  %-14s %4dx%-4d  em (%d, %d)" % (nome, x1 - x0, y1 - y0, x0, y0))
 
 
-main()
+if __name__ == "__main__":
+    main()

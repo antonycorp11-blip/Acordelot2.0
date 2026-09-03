@@ -27,7 +27,13 @@ const CATALOGO := preload("res://scripts/inventory_ui.gd")
 ## antigo fica como reserva enquanto ele nao entra no projeto.
 const FUNDO := "res://textures/ui/concepts/personagem-bg.png"
 const FUNDO_RESERVA := "res://textures/ui/concepts/character-stage-bg.png"
-const CORPO := "res://textures/dialogo/akles_corpo.png"
+## O corpo de cada heroi. A da Wins nao existia como arte 2D no projeto — saiu
+## do modelo dela, renderizada uma vez num SubViewport com fundo transparente e
+## guardada como textura.
+const CORPOS := {
+    "akles": "res://textures/dialogo/akles_corpo.png",
+    "wins": "res://textures/dialogo/wins_corpo.png",
+}
 const ARMA_GRANDE := "res://textures/ui/kit/equip/espada.png"
 
 ## A CABECA DO AKLES DENTRO DA ARTE DE CORPO INTEIRO.
@@ -38,21 +44,28 @@ const ARMA_GRANDE := "res://textures/ui/kit/equip/espada.png"
 ## rosto saia torto no disco do seletor.
 const RECORTE_DA_CABECA := Rect2(0.3984, 0.0221, 0.1910, 0.1432)
 
-const OURO := Color("d4af37")
-const OURO_CLARO := Color("f3e5ab")
-const AZUL_ATIVO := Color("3b82f6")
+## As cores saem da folha de especificacao, em hexadecimal, e nao de olho.
+const OURO := Color("c59a4b")
+const OURO_MEDIO := Color("e6c27a")
+const OURO_CLARO := Color("ffd891")
+const AZUL_BRILHO := Color("3aa2ff")
+const NEUTRO_TEXTO := Color("d6dae6")
+const NEUTRO_FRACO := Color("465063")
+
+## O kit de pecas, recortado da folha em magenta pelo `.tools/recortar_kit.py`.
+const KIT := "res://textures/ui/kit/personagem/"
 
 const ABAS := [
     ["atributos", "Atributos"], ["arma", "Arma"], ["acessorios", "Acessórios"],
     ["talentos", "Talentos"], ["perfil", "Perfil"],
 ]
 const ESTATISTICAS := [
-    ["vida_maxima", "Vida Máxima", "coracao", Color("4ade80")],
-    ["ataque", "Ataque", "espada", Color("f87171")],
-    ["defesa", "Defesa", "escudo", Color("60a5fa")],
-    ["critico", "Chance Crítica", "raio", Color("facc15")],
-    ["dano_critico", "Dano Crítico", "estouro", Color("fb923c")],
-    ["poder_harmonico", "Poder Harmônico", "losango", Color("c084fc")],
+    ["vida_maxima", "Vida Máxima", "vida", Color("4cc9a0")],
+    ["ataque", "Ataque", "ataque", Color("ff6b6b")],
+    ["defesa", "Defesa", "defesa", Color("9bcbff")],
+    ["critico", "Chance Crítica", "critico", Color("ffd35a")],
+    ["dano_critico", "Dano Crítico", "dano_critico", Color("ffd35a")],
+    ["poder_harmonico", "Poder Harmônico", "harmonico", Color("b98bff")],
 ]
 const ATRIBUTOS := {"forca": "Força", "destreza": "Destreza",
     "vitalidade": "Vitalidade", "ressonancia": "Ressonância",
@@ -76,7 +89,7 @@ var _xp: Label
 var _barra_cheia: ColorRect
 var _miolo: VBoxContainer
 var _botao_detalhes: Button
-var _materiais: HBoxContainer
+var _materiais: GridContainer
 var _claves: Label
 var _acao: Button
 var _cartao_arma: VBoxContainer
@@ -130,8 +143,7 @@ func _montar_cenario() -> void:
     # vertical o deixaria pairando acima dele em qualquer tela mais alta que
     # 16:9. Ancorado embaixo, os pes caem no circulo em toda proporcao.
     var heroi := TextureRect.new()
-    if ResourceLoader.exists(CORPO):
-        heroi.texture = load(CORPO)
+    # A textura certa entra no `_pintar`; aqui so nasce o no.
     heroi.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     heroi.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     heroi.anchor_left = 0.5
@@ -216,24 +228,17 @@ func _montar_topo() -> void:
     fechar.offset_right = -30.0
     fechar.offset_top = -21.0
     fechar.offset_bottom = 21.0
-    var aro := StyleBoxFlat.new()
-    aro.bg_color = Color(0.02, 0.03, 0.07, 0.55)
-    aro.border_color = OURO
-    aro.set_border_width_all(1)
-    aro.set_corner_radius_all(21)
-    fechar.add_theme_stylebox_override("normal", aro)
-    fechar.add_theme_stylebox_override("hover", aro)
-    fechar.add_theme_stylebox_override("pressed", aro)
-    fechar.add_theme_stylebox_override("focus", aro)
+    for estado in ["normal", "hover", "pressed", "focus"]:
+        fechar.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+    var arte_fechar := _peca("fechar", Vector2(42, 42))
+    arte_fechar.set_anchors_preset(Control.PRESET_FULL_RECT)
+    arte_fechar.stretch_mode = TextureRect.STRETCH_SCALE
+    fechar.add_child(arte_fechar)
     var xis := Control.new()
     xis.set_anchors_preset(Control.PRESET_FULL_RECT)
     xis.mouse_filter = Control.MOUSE_FILTER_IGNORE
     # O "X" e desenhado: a fonte padrao do motor nao tem o glifo, e foi por isso
     # que o fechar ja apareceu como quadrado vazio uma vez.
-    xis.draw.connect(func() -> void:
-        var c := xis.size * 0.5
-        xis.draw_line(c + Vector2(-7, -7), c + Vector2(7, 7), OURO, 2.0, true)
-        xis.draw_line(c + Vector2(7, -7), c + Vector2(-7, 7), OURO, 2.0, true))
     fechar.add_child(xis)
     fechar.pressed.connect(func():
         var casca := get_tree().root.find_child("UiShell", true, false)
@@ -243,28 +248,21 @@ func _montar_topo() -> void:
 
 
 func _disco_com_lira(lado: float) -> Control:
-    var disco := Panel.new()
-    disco.custom_minimum_size = Vector2(lado, lado)
-    var e := StyleBoxFlat.new()
-    e.bg_color = Color(0.06, 0.12, 0.28, 0.55)
-    e.border_color = OURO
-    e.set_border_width_all(1)
-    e.set_corner_radius_all(int(lado * 0.5))
-    disco.add_theme_stylebox_override("panel", e)
-    disco.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    var lira := TextureRect.new()
-    if ResourceLoader.exists("res://textures/ui/kit/nav/lira.png"):
-        lira.texture = load("res://textures/ui/kit/nav/lira.png")
-    lira.set_anchors_preset(Control.PRESET_FULL_RECT)
-    lira.offset_left = 12.0
-    lira.offset_top = 12.0
-    lira.offset_right = -12.0
-    lira.offset_bottom = -12.0
-    lira.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    lira.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    lira.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    disco.add_child(lira)
-    return disco
+    return _peca("emblema", Vector2(lado, lado))
+
+
+## Uma peca do kit, no tamanho pedido. Elas ja vem com alfa e sangria de borda,
+## entao nao ha franja rosa nem quina reta para esconder.
+func _peca(nome: String, tamanho: Vector2) -> TextureRect:
+    var t := TextureRect.new()
+    var caminho := KIT + nome + ".png"
+    if ResourceLoader.exists(caminho):
+        t.texture = load(caminho)
+    t.custom_minimum_size = tamanho
+    t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    return t
 
 
 ## DEZ LUGARES, DOIS OCUPADOS.
@@ -273,10 +271,7 @@ func _disco_com_lira(lado: float) -> Control:
 ## como lugares vazios e apagados, que e o que eles sao. Encher a fileira com
 ## rosto de personagem que nao existe seria enfeite passando por conteudo.
 func _disco_de_heroi(indice: int) -> Control:
-    var em_campo := "akles"
-    var prog := get_node_or_null("/root/Progresso")
-    if prog and prog.get("personagem") != null:
-        em_campo = String(prog.personagem)
+    var em_campo := _quem_esta_em_campo()
     var e_o_akles: bool = indice == 4
     var e_a_wins: bool = indice == 5
     var aceso: bool = (e_o_akles and em_campo == "akles") \
@@ -287,13 +282,8 @@ func _disco_de_heroi(indice: int) -> Control:
     b.custom_minimum_size = Vector2(lado, lado)
     b.focus_mode = Control.FOCUS_NONE
     b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    var e := StyleBoxFlat.new()
-    e.bg_color = Color(0.08, 0.10, 0.16, 0.75)
-    e.border_color = OURO if aceso else Color(0.45, 0.48, 0.55, 0.85)
-    e.set_border_width_all(2 if aceso else 1)
-    e.set_corner_radius_all(int(lado * 0.5))
     for estado in ["normal", "hover", "pressed", "focus", "disabled"]:
-        b.add_theme_stylebox_override(estado, e)
+        b.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
     b.disabled = not (e_o_akles or e_a_wins)
     b.modulate.a = 1.0 if aceso else (0.85 if (e_o_akles or e_a_wins) else 0.45)
     if e_o_akles or e_a_wins:
@@ -339,6 +329,16 @@ func _disco_de_heroi(indice: int) -> Control:
             rosto.mouse_filter = Control.MOUSE_FILTER_IGNORE
             recorte.add_child(rosto)
         b.tooltip_text = "Akles" if e_o_akles else "Wins"
+    # O aro entra depois do rosto: na folha ele e uma moldura, e moldura fica em
+    # cima do que emoldura.
+    var aro := _peca("aro_retrato_ativo" if aceso else "aro_retrato",
+        Vector2(lado, lado))
+    aro.set_anchors_preset(Control.PRESET_FULL_RECT)
+    aro.offset_left = -lado * 0.10
+    aro.offset_top = -lado * 0.10
+    aro.offset_right = lado * 0.10
+    aro.offset_bottom = lado * 0.10
+    b.add_child(aro)
     return b
 
 
@@ -369,37 +369,15 @@ func _item_de_menu(id: String, texto: String) -> Button:
     # O esmaecido do item ativo: azul na esquerda que some para a direita, com o
     # filete vertical na borda. Desenhado, porque um degrade em StyleBoxFlat nao
     # existe e uma textura para isso seria arquivo a mais no pacote.
-    var brilho := Control.new()
+    # A ABA ESCOLHIDA E A BARRA AZUL DA FOLHA, e nao um degrade desenhado.
+    # A peca ja traz o brilho, a clave e as pontas ornamentadas.
+    var brilho := _peca("aba_ativa", Vector2(268, 56))
     brilho.name = "Brilho"
+    brilho.stretch_mode = TextureRect.STRETCH_SCALE
     brilho.set_anchors_preset(Control.PRESET_FULL_RECT)
-    brilho.offset_left = -34.0
-    brilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    brilho.offset_left = -14.0
+    brilho.offset_right = 6.0
     brilho.visible = false
-    brilho.draw.connect(func() -> void:
-        # Degrade azul da esquerda para o nada, com a PONTA DIREITA REDONDA — e o
-        # `rounded-r-full` do desenho. Um StyleBox nao faz degrade e uma textura
-        # so para isto seria arquivo a mais no pacote, entao vai em faixas: perto
-        # da ponta a faixa encolhe na vertical e desenha a curva.
-        var raio := brilho.size.y * 0.5
-        var reto: float = maxf(brilho.size.x - raio, 1.0)
-        var passos := 26
-        for i in passos:
-            var f := float(i) / float(passos)
-            var x := reto * f
-            var largura := reto / float(passos) + 1.0
-            brilho.draw_rect(Rect2(x, 0.0, largura, brilho.size.y),
-                Color(0.23, 0.42, 0.85, 0.42 * (1.0 - f)))
-        var fatias := 14
-        for i in fatias:
-            var f2 := float(i) / float(fatias)
-            var dy := raio * (1.0 - sqrt(maxf(1.0 - f2 * f2, 0.0)))
-            var alfa: float = 0.42 * (1.0 - (reto + raio * f2) / brilho.size.x)
-            brilho.draw_rect(
-                Rect2(reto + raio * f2, dy, raio / float(fatias) + 1.0,
-                    brilho.size.y - dy * 2.0),
-                Color(0.23, 0.42, 0.85, maxf(alfa, 0.0)))
-        brilho.draw_rect(Rect2(0.0, 0.0, 4.0, brilho.size.y), Color(0.38, 0.65, 1.0, 0.95)))
-    brilho.resized.connect(brilho.queue_redraw)
     b.add_child(brilho)
 
     var fila := HBoxContainer.new()
@@ -431,9 +409,9 @@ func _item_de_menu(id: String, texto: String) -> Button:
 func _montar_coluna_direita() -> void:
     var coluna := VBoxContainer.new()
     coluna.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
-    coluna.offset_left = -382.0
-    coluna.offset_right = -32.0
-    coluna.offset_top = 124.0
+    coluna.offset_left = -384.0
+    coluna.offset_right = -24.0
+    coluna.offset_top = 118.0
     coluna.offset_bottom = -104.0
     coluna.add_theme_constant_override("separation", 5)
     add_child(coluna)
@@ -527,22 +505,23 @@ func _montar_coluna_direita() -> void:
     coluna.add_child(_miolo)
 
     _botao_detalhes = _botao_de_contorno("Detalhes")
-    var lupa := _icone(17.0, "lupa", Color(0.80, 0.84, 0.90))
-    lupa.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-    lupa.offset_left = -34.0
-    lupa.offset_right = -17.0
-    lupa.offset_top = -8.5
-    lupa.offset_bottom = 8.5
-    _botao_detalhes.add_child(lupa)
     _botao_detalhes.pressed.connect(_alternar_detalhes)
     coluna.add_child(_botao_detalhes)
     coluna.add_child(T.espaco(6))
 
     coluna.add_child(T.rotulo_simples("MATERIAIS DE ASCENSÃO", 13,
         Color(0.62, 0.67, 0.76)))
-    _materiais = HBoxContainer.new()
-    _materiais.add_theme_constant_override("separation", 10)
-    _materiais.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    # GRADE, NAO FILEIRA.
+    #
+    # Mostrar todas as ascensoes pendentes pos cinco materiais lado a lado numa
+    # coluna que so comporta quatro. O minimo do container venceu e empurrou a
+    # COLUNA INTEIRA para fora da tela: o Poder de Luta, os numeros dos status e
+    # o botao de ascender saiam pela direita. Em grade ela quebra a linha em vez
+    # de crescer.
+    _materiais = GridContainer.new()
+    _materiais.columns = 4
+    _materiais.add_theme_constant_override("h_separation", 8)
+    _materiais.add_theme_constant_override("v_separation", 6)
     coluna.add_child(_materiais)
     coluna.add_child(T.espaco(6))
 
@@ -550,13 +529,8 @@ func _montar_coluna_direita() -> void:
     rodape.add_theme_constant_override("separation", 12)
     var moeda := HBoxContainer.new()
     moeda.add_theme_constant_override("separation", 6)
-    var disco_moeda := Panel.new()
-    disco_moeda.custom_minimum_size = Vector2(22, 22)
+    var disco_moeda := _peca("moeda", Vector2(26, 26))
     disco_moeda.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    var em := StyleBoxFlat.new()
-    em.bg_color = OURO
-    em.set_corner_radius_all(11)
-    disco_moeda.add_theme_stylebox_override("panel", em)
     moeda.add_child(disco_moeda)
     _claves = T.rotulo_simples("0", 17, Color.WHITE)
     _claves.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -608,38 +582,39 @@ func _botao_de_contorno(texto: String) -> Button:
     b.add_theme_font_override("font", T.fonte_ui())
     b.add_theme_font_size_override("font_size", 17)
     b.add_theme_color_override("font_color", Color(0.85, 0.88, 0.93))
-    var e := StyleBoxFlat.new()
-    e.bg_color = Color(0.05, 0.07, 0.12, 0.55)
-    e.border_color = Color(0.45, 0.49, 0.57, 0.9)
-    e.set_border_width_all(1)
-    e.set_corner_radius_all(17)
     for estado in ["normal", "hover", "pressed", "focus"]:
-        b.add_theme_stylebox_override(estado, e)
+        b.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+    var arte := _peca("campo_busca", Vector2(0, 34))
+    arte.set_anchors_preset(Control.PRESET_FULL_RECT)
+    arte.stretch_mode = TextureRect.STRETCH_SCALE
+    arte.show_behind_parent = true
+    b.add_child(arte)
     return b
 
 
+## A PALAVRA JA ESTA NA ARTE.
+##
+## A peca da folha vem com "ASCENDER" gravado. Escrever por cima punha as duas
+## uma sobre a outra e ficava ilegivel. O texto so aparece quando o botao muda
+## de funcao — em "SUBIR DE NIVEL", que a arte nao previa.
 func _botao_dourado(texto: String) -> Button:
     var b := Button.new()
-    b.text = texto
+    b.text = "" if texto == "ASCENDER" else texto
     b.custom_minimum_size.y = 44.0
     b.focus_mode = Control.FOCUS_NONE
     b.add_theme_font_override("font", T.fonte_display())
     b.add_theme_font_size_override("font_size", 20)
     b.add_theme_color_override("font_color", Color(0.10, 0.08, 0.02))
     b.add_theme_color_override("font_disabled_color", Color(0.72, 0.68, 0.55))
-    var e := StyleBoxFlat.new()
-    e.bg_color = OURO
-    e.border_color = OURO_CLARO
-    e.set_border_width_all(1)
-    e.set_corner_radius_all(22)
-    b.add_theme_stylebox_override("normal", e)
-    b.add_theme_stylebox_override("hover", e)
-    b.add_theme_stylebox_override("pressed", e)
-    b.add_theme_stylebox_override("focus", e)
-    var apagado := e.duplicate() as StyleBoxFlat
-    apagado.bg_color = Color(0.34, 0.30, 0.18, 0.75)
-    apagado.border_color = Color(0.45, 0.40, 0.25, 0.6)
-    b.add_theme_stylebox_override("disabled", apagado)
+    # O BOTAO DOURADO E A PECA DA FOLHA. Ele ja vem com a moldura ornamentada e
+    # o brilho; um retangulo dourado com borda de um pixel nao chega perto.
+    for estado in ["normal", "hover", "pressed", "focus", "disabled"]:
+        b.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+    var arte := _peca("botao_ascender", Vector2(0, 44))
+    arte.set_anchors_preset(Control.PRESET_FULL_RECT)
+    arte.stretch_mode = TextureRect.STRETCH_SCALE
+    arte.show_behind_parent = true
+    b.add_child(arte)
     return b
 
 
@@ -688,29 +663,24 @@ func _montar_rodape_esquerdo() -> void:
     canto.add_child(musicas)
 
     var cartao := PanelContainer.new()
-    cartao.custom_minimum_size.x = 300.0
+    cartao.custom_minimum_size.x = 330.0
     cartao.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     var ec := StyleBoxFlat.new()
-    ec.bg_color = Color(0.04, 0.06, 0.11, 0.72)
-    ec.border_color = Color(0.40, 0.44, 0.52, 0.55)
-    ec.set_border_width_all(1)
-    ec.set_corner_radius_all(8)
-    ec.content_margin_left = 14
-    ec.content_margin_right = 14
-    ec.content_margin_top = 10
-    ec.content_margin_bottom = 10
+    ec.bg_color = Color(0, 0, 0, 0)
+    ec.content_margin_left = 40
+    ec.content_margin_right = 44
+    ec.content_margin_top = 14
+    ec.content_margin_bottom = 14
     cartao.add_theme_stylebox_override("panel", ec)
+    # A moldura do cartao e a peca da folha, com a espada e a lira ja no lugar.
+    var moldura_arma := _peca("cartao_arma", Vector2(320, 82))
+    moldura_arma.set_anchors_preset(Control.PRESET_FULL_RECT)
+    moldura_arma.stretch_mode = TextureRect.STRETCH_SCALE
+    moldura_arma.show_behind_parent = true
+    cartao.add_child(moldura_arma)
     var dentro := HBoxContainer.new()
     dentro.add_theme_constant_override("separation", 12)
     cartao.add_child(dentro)
-    var espada := TextureRect.new()
-    if ResourceLoader.exists("res://textures/ui/kit/equip/espada.png"):
-        espada.texture = load("res://textures/ui/kit/equip/espada.png")
-    espada.custom_minimum_size = Vector2(38, 38)
-    espada.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    espada.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    espada.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    dentro.add_child(espada)
     _cartao_arma = VBoxContainer.new()
     _cartao_arma.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _cartao_arma.add_theme_constant_override("separation", 1)
@@ -718,7 +688,8 @@ func _montar_rodape_esquerdo() -> void:
 
     # O disco na ponta direita do cartao, como no desenho.
     var ponta := Panel.new()
-    ponta.custom_minimum_size = Vector2(32, 32)
+    ponta.custom_minimum_size = Vector2(0, 0)
+    ponta.visible = false
     ponta.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     var ep := StyleBoxFlat.new()
     ep.bg_color = Color(0.05, 0.07, 0.12, 0.5)
@@ -738,6 +709,17 @@ func _montar_rodape_esquerdo() -> void:
 
 
 # --------------------------------------------------------------------- estado
+
+## Quem esta em campo, lido do Progresso — que e a fonte, agora que cada heroi
+## tem ficha propria.
+func _quem_esta_em_campo() -> String:
+    if _progresso and _progresso.get("personagem") != null:
+        return String(_progresso.personagem)
+    var jogador := get_tree().get_first_node_in_group("jogador")
+    if jogador and jogador.has_method("personagem_atual"):
+        return String(jogador.personagem_atual())
+    return "akles"
+
 
 func _reconstruir_fileira() -> void:
     if _fileira == null or not is_instance_valid(_fileira):
@@ -774,6 +756,17 @@ func _alternar_trilha() -> void:
 func _pintar() -> void:
     if _progresso == null:
         return
+    # QUEM ESTA EM CAMPO MANDA NO NOME, NO PAPEL E NA ARTE.
+    #
+    # Sem estas quatro linhas a ficha trocava o dado e nao trocava o desenho: o
+    # nivel dizia 1 e o retrato continuava sendo o Akles, o que faz a tela
+    # parecer quebrada mesmo com tudo certo por tras.
+    var quem := _quem_esta_em_campo()
+    _nome.text = "Wins" if quem == "wins" else "Akles"
+    if _heroi:
+        var arte := String(CORPOS.get(quem, CORPOS["akles"]))
+        if ResourceLoader.exists(arte):
+            _heroi.texture = load(arte)
     _poder.text = _milhar(int(_progresso.poder_de_luta_da_conta()))
     _claves.text = _milhar(_progresso.quantidade("claves"))
     _pintar_estrelas()
@@ -823,7 +816,7 @@ func _pintar_arma() -> void:
         velho.queue_free()
     _cartao_arma.add_child(T.rotulo_simples("Espadachim da Harmonia", 16, Color.WHITE))
     _cartao_arma.add_child(T.rotulo_simples(
-        String(_progresso.arma_equipada), 14, Color(0.62, 0.67, 0.76)))
+        String(_progresso.arma_equipada), 13, NEUTRO_TEXTO))
     var fila := HBoxContainer.new()
     fila.add_theme_constant_override("separation", 3)
     for i in 3:
@@ -836,7 +829,7 @@ func _pintar_arma() -> void:
             OURO if acesa else Color(0.32, 0.35, 0.42)))
         fila.add_child(estrela)
     var nivel_arma := T.rotulo_simples(
-        "Nível da Arma %d" % int(_progresso.nivel_da_arma), 13, Color(0.55, 0.60, 0.70))
+        "Nível da Arma %d" % int(_progresso.nivel_da_arma), 12, NEUTRO_FRACO.lightened(0.3))
     nivel_arma.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     fila.add_child(T.espaco(0))
     fila.add_child(nivel_arma)
@@ -852,12 +845,27 @@ func _pintar_materiais() -> void:
     # Mostrando so a do nivel 20, o Emblema da Nota Silenciada — que e material
     # da do nivel 40 — nunca aparecia aqui. O jogador derrubava o Cavaleiro,
     # ganhava o item e nao via em lugar nenhum para que ele serve.
+    # A PROXIMA ASCENSAO, MAIS O QUE VOCE JA GUARDOU DAS SEGUINTES.
+    #
+    # Listar tudo que falta pos cinco quadros numa coluna que comporta quatro: a
+    # quinta linha empurrou o botao de ascender para fora da tela. Mostrar so a
+    # proxima, por outro lado, escondia o Emblema da Nota Silenciada, que e
+    # material do nivel 40 — o jogador derrubava o Cavaleiro e nao via para que
+    # o premio serve.
+    #
+    # O meio termo mostra a proxima trava inteira e, das seguintes, apenas o que
+    # ele JA TEM na mochila. Assim o Emblema aparece no instante em que cai, e a
+    # lista nao cresce com coisa que ainda nem existe para ele.
     var pedidos := {}
+    var primeira := true
     for trava in _progresso.TRAVAS_DE_ASCENSAO:
         if bool(_progresso.ascensoes.get(trava, false)):
             continue
-        for id in (_progresso.REQUISITOS_ASCENSAO.get(trava, {}) as Dictionary):
-            pedidos[id] = int(_progresso.REQUISITOS_ASCENSAO[trava][id])
+        var lista: Dictionary = _progresso.REQUISITOS_ASCENSAO.get(trava, {})
+        for id in lista:
+            if primeira or _progresso.quantidade(String(id)) > 0:
+                pedidos[id] = int(lista[id])
+        primeira = false
     if pedidos.is_empty():
         _materiais.add_child(T.rotulo_simples("Nenhuma ascensão pendente.", 14,
             Color(0.55, 0.60, 0.70)))
@@ -871,12 +879,13 @@ func _pintar_materiais() -> void:
 ## Maior — 76 px contra 54 — e clicavel: tocar diz o que aquele material e e
 ## para que serve, lendo o catalogo. Antes era um quadradinho mudo, e o jogador
 ## via "0 / 3" sem ter como descobrir o que precisava buscar.
-const LADO_DO_MATERIAL := 76.0
+const LADO_DO_MATERIAL := 62.0
 
 func _quadro_de_material(id: String, quanto: int) -> Control:
     var tem: int = _progresso.quantidade(id)
     var nome := id
     var descricao := ""
+    var raridade := "Comum"
     var arte := ""
     for dados in CATALOGO.ITENS_DE_RECURSO:
         if String(dados[0]) == id:
@@ -884,30 +893,30 @@ func _quadro_de_material(id: String, quanto: int) -> Control:
             var caminho := String(dados[2])
             arte = caminho if caminho.begins_with("res://") \
                 else "res://textures/ui/kit/%s.png" % caminho
+            raridade = String(dados[3])
             descricao = String(dados[5]) if dados.size() > 5 else ""
             break
 
     var caixa := VBoxContainer.new()
     caixa.add_theme_constant_override("separation", 3)
-    caixa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
     var moldura := Button.new()
     moldura.custom_minimum_size = Vector2(LADO_DO_MATERIAL, LADO_DO_MATERIAL)
     moldura.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
     moldura.focus_mode = Control.FOCUS_NONE
     moldura.tooltip_text = "%s — %d de %d" % [nome, tem, quanto]
-    var e := StyleBoxFlat.new()
-    e.bg_color = Color(0.07, 0.09, 0.14, 0.80)
-    e.border_color = OURO if tem >= quanto else Color(0.42, 0.46, 0.54, 0.9)
-    e.set_border_width_all(2 if tem >= quanto else 1)
-    e.set_corner_radius_all(6)
-    moldura.add_theme_stylebox_override("normal", e)
-    moldura.add_theme_stylebox_override("focus", e)
-    var aceso := e.duplicate() as StyleBoxFlat
-    aceso.bg_color = Color(0.13, 0.17, 0.26, 0.92)
-    aceso.border_color = OURO_CLARO
-    moldura.add_theme_stylebox_override("hover", aceso)
-    moldura.add_theme_stylebox_override("pressed", aceso)
+    for estado in ["normal", "hover", "pressed", "focus", "disabled"]:
+        moldura.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+    # O SLOT VEM DA FOLHA, escolhido pela raridade do material. Sao quatro na
+    # arte — azul, roxo, dourado e pergaminho — e eles ja trazem a gema dentro.
+    var pecas := {"Incomum": "slot_azul", "Raro": "slot_azul",
+        "Épico": "slot_roxo", "Lendário": "slot_dourado"}
+    var qual := "slot_pergaminho" if id.begins_with("partitura") \
+        else String(pecas.get(raridade, "slot_azul"))
+    var arte_do_slot := _peca(qual, Vector2(LADO_DO_MATERIAL, LADO_DO_MATERIAL))
+    arte_do_slot.set_anchors_preset(Control.PRESET_FULL_RECT)
+    arte_do_slot.stretch_mode = TextureRect.STRETCH_SCALE
+    moldura.add_child(arte_do_slot)
+    moldura.modulate = Color.WHITE if tem >= quanto else Color(0.62, 0.66, 0.74)
     moldura.pressed.connect(func():
         var casca := get_tree().root.find_child("UiShell", true, false)
         if casca and casca.has_method("avisar"):
@@ -935,13 +944,13 @@ func _quadro_de_material(id: String, quanto: int) -> Control:
 
 func _pintar_acao() -> void:
     if _progresso.esta_em_trava_de_ascensao():
-        _acao.text = "ASCENDER"
+        _acao.text = ""
         _acao.disabled = not _progresso.pode_pagar(_progresso.requisitos_da_ascensao())
     elif _progresso.pode_subir_nivel():
         _acao.text = "SUBIR DE NÍVEL"
         _acao.disabled = false
     else:
-        _acao.text = "ASCENDER"
+        _acao.text = ""
         _acao.disabled = true
 
 
@@ -1003,11 +1012,11 @@ func _linha(icone: String, titulo: String, valor: String, cor: Color) -> Control
     var fila := HBoxContainer.new()
     fila.custom_minimum_size.y = 31.0
     fila.add_theme_constant_override("separation", 9)
-    var marca := Control.new()
-    marca.custom_minimum_size = Vector2(20, 20)
+    # O ICONE VEM DA FOLHA. Os seis existem la, desenhados no mesmo tracado do
+    # resto — os que eu desenhava por codigo eram tapa-buraco de quando nao havia
+    # arte, e ao lado destes ficavam obviamente de outro jogo.
+    var marca := _peca("icone_" + icone, Vector2(26, 26))
     marca.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    marca.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    marca.draw.connect(func(): _desenhar_icone(marca, icone, cor))
     fila.add_child(marca)
     var t := T.rotulo_simples(titulo, 17, Color(0.80, 0.84, 0.90))
     t.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

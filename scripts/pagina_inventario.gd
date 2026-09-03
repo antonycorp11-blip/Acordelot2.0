@@ -90,7 +90,7 @@ func _montar() -> void:
 
     # ------------------------------------------------------------- filtros
     var filtros_painel := PanelContainer.new()
-    filtros_painel.custom_minimum_size.x = 260
+    filtros_painel.custom_minimum_size.x = 208
     filtros_painel.add_theme_stylebox_override("panel",
         P.estilo(Color("061126aa"), Color("80643955"), 1, 2))
     linha.add_child(filtros_painel)
@@ -142,7 +142,7 @@ func _montar() -> void:
 
     # ---------------------------------------------------------- detalhe
     var detalhe := P.painel()
-    detalhe.custom_minimum_size.x = 390
+    detalhe.custom_minimum_size.x = 336
     linha.add_child(detalhe)
     var rolagem_detalhe := ScrollContainer.new()
     rolagem_detalhe.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -278,7 +278,7 @@ func _cartao(it: Array) -> Button:
     var b := P.botao("", "item")
     # As quatro colunas DIVIDEM a largura. Com largura minima fixa a quarta
     # sobrava para fora e era cortada pela rolagem.
-    b.custom_minimum_size = Vector2(92, 112)
+    b.custom_minimum_size = Vector2(88, 108)
     b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     b.clip_contents = true
     b.add_theme_stylebox_override("normal", P.estilo(Color(cor, 0.055),
@@ -287,12 +287,26 @@ func _cartao(it: Array) -> Button:
 
     var col := VBoxContainer.new()
     col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 8)
-    col.add_child(P.rotulo(raridade.to_upper(), 10, cor))
-    var img := P.arte(_caminho_da_arte(String(it[2])), Vector2(80, 62))
+    # O MIOLO OCUPA O SLOT, e nao o proprio minimo.
+    #
+    # Com `PRESET_MODE_MINSIZE` a coluna se dimensiona pelo que ela PRECISA e
+    # transborda o botao quando isso passa da altura dele — e o recorte comia
+    # justamente a ultima linha, que e a quantidade. Encostando nas quatro
+    # bordas, a arte (que estica) cede o espaco e o numero sempre cabe.
+    col.set_anchors_preset(Control.PRESET_FULL_RECT)
+    col.offset_left = 7.0
+    col.offset_top = 6.0
+    col.offset_right = -7.0
+    col.offset_bottom = -6.0
+    # A RARIDADE JA ESTA NO ARO DO SLOT.
+    #
+    # Repetida em texto dentro dele, ela comia a altura e o RECORTE cortava
+    # justamente a quantidade — que e o unico numero que o jogador precisa ler
+    # de relance na grade. Cor na borda, numero embaixo: cada coisa uma vez.
+    var img := P.arte(_caminho_da_arte(String(it[2])), Vector2(76, 56))
     img.size_flags_vertical = Control.SIZE_EXPAND_FILL
     col.add_child(img)
-    var qtd := P.rotulo(_curto(_progresso.quantidade(id)), 13, P.IVORY)
+    var qtd := P.rotulo(_curto(_progresso.quantidade(id)), 15, P.IVORY)
     qtd.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     col.add_child(qtd)
     b.add_child(col)
