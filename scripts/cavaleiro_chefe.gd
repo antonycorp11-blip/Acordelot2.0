@@ -181,28 +181,103 @@ const VERTICAL := Vector3.UP     ## girar aqui = torcer o tronco
 const FRONTAL := Vector3.BACK    ## girar aqui = tombar para o lado
 
 
-func _eixo_local(indice: int, eixo_do_mundo: Vector3) -> Vector3:
-    var base := _esqueleto.get_bone_global_rest(indice).basis
-    var melhor := Vector3.RIGHT
-    var maior := -1.0
-    for candidato in [Vector3.RIGHT, Vector3.UP, Vector3.BACK]:
-        var d: float = (base * candidato).normalized().dot(eixo_do_mundo)
-        if absf(d) > maior:
-            maior = absf(d)
-            melhor = candidato * signf(d)
-    return melhor
+## A POSE BASE: sair da T-pose antes de qualquer animacao.
+##
+## Era isto que deixava tudo errado. O modelo do Tripo descansa em T — bracos
+## abertos na horizontal — e as animacoes sao DELTAS sobre o descanso. Delta de
+## tres graus em cima de braco aberto continua com braco aberto: ele andava de
+## bracos para cima porque a pose de partida era essa, nao porque o passo
+## estivesse errado.
+##
+## Agora existe um degrau no meio. Toda pose e `descanso * base * delta`, e a
+## base leva o corpo do T para a guarda de um espadachim: bracos ao lado,
+## cotovelos dobrados, ombros caidos, pernas levemente abertas.
+##
+## O GIRO DO BRACO E CALCULADO, NAO ESCRITO. Chutar "setenta graus em Z" acerta
+## num lado e levanta o outro, porque o esquerdo e o direito sao espelhos. Aqui
+## se mede para onde o braco aponta no descanso, se decide para onde ele deve
+## apontar, e se pergunta qual giro leva um ao outro. Serve para os dois lados
+## sem sinal escrito a mao.
+const ABERTURA_DO_BRACO := 14.0
+
+var _base_dos_ossos := {}
 
 
-## Uma pose: o descanso do osso somado a um giro de tantos graus em volta do
-## eixo do corpo pedido.
+func _montar_pose_base() -> void:
+    if not _base_dos_ossos.is_empty():
+        return
+    _base_dos_ossos = {
+        "L_Upperarm": _giro_do_braco("L_Upperarm", "L_Hand", ABERTURA_DO_BRACO),
+        "R_Upperarm": _giro_do_braco("R_Upperarm", "R_Hand", ABERTURA_DO_BRACO),
+        "L_Clavicle": _giro_simples("L_Clavicle", FRONTAL, 4.0),
+        "R_Clavicle": _giro_simples("R_Clavicle", FRONTAL, -4.0),
+        "L_Forearm": _giro_simples("L_Forearm", LATERAL, -26.0),
+        "R_Forearm": _giro_simples("R_Forearm", LATERAL, -26.0),
+        "L_Thigh": _giro_simples("L_Thigh", FRONTAL, -3.0),
+        "R_Thigh": _giro_simples("R_Thigh", FRONTAL, 3.0),
+        "Spine01": _giro_simples("Spine01", LATERAL, 3.0),
+        # O PULSO, sem o qual a espada fica na horizontal.
+        #
+        # Com o braco abaixado, "perpendicular ao antebraco" — que e como uma mao
+        # fechada segura de verdade — passa a apontar a lamina para FORA, na
+        # horizontal, feito quem carrega um cano. Falta a extensao do pulso, que
+        # e o que faz a ponta cair ao lado do corpo.
+        #
+        # Os 75 graus vieram de varredura: medindo a altura da ponta em relacao a
+        # mao, o eixo vertical e o unico que a derruba, e a -90 ela fica na
+        # vertical exata. A 75 ela cai para tras alguns graus, que e como a
+        # espada descansa na mao de quem esta de pe.
+        "R_Hand": _giro_simples("R_Hand", VERTICAL, -75.0),
+    }
+
+
+## O giro, no espaco do ombro, que leva o braco de onde ele esta no descanso
+## para o lado do corpo — apontando para baixo, com uma abertura de poucos graus.
+func _giro_do_braco(ombro: String, mao: String, abertura: float) -> Quaternion:
+    var i_o := _esqueleto.find_bone(ombro)
+    var i_m := _esqueleto.find_bone(mao)
+    if i_o < 0 or i_m < 0:
+        return Quaternion.IDENTITY
+    var g_o := _esqueleto.get_bone_global_rest(i_o)
+    var atual: Vector3 = (_esqueleto.get_bone_global_rest(i_m).origin - g_o.origin)
+    if atual.length() < 0.0001:
+        return Quaternion.IDENTITY
+    atual = atual.normalized()
+    # Para que lado do corpo este braco aponta no descanso.
+    var lado: float = signf(atual.x) if not is_zero_approx(atual.x) else 1.0
+    var desejada := Vector3(lado * sin(deg_to_rad(abertura)),
+        -cos(deg_to_rad(abertura)), 0.0).normalized()
+    var no_osso := g_o.basis.inverse()
+    return Quaternion((no_osso * atual).normalized(), (no_osso * desejada).normalized())
+
+
+func _giro_simples(osso: String, eixo_do_mundo: Vector3, graus: float) -> Quaternion:
+    var i := _esqueleto.find_bone(osso)
+    if i < 0 or is_zero_approx(graus):
+        return Quaternion.IDENTITY
+    var no_osso: Vector3 = (_esqueleto.get_bone_global_rest(i).basis.inverse()
+        * eixo_do_mundo).normalized()
+    return Quaternion(no_osso, deg_to_rad(graus))
+
+
+## Uma pose: descanso, mais a base, mais o giro pedido — nessa ordem.
+##
+## O eixo do giro e o eixo do MUNDO levado para dentro do osso JA com a base
+## aplicada. Sem isso, baixar o braco desalinharia o eixo do balanco e o passo
+## sairia torto justamente depois do conserto.
 func _pose(osso: String, eixo_do_mundo: Vector3, graus: float) -> Quaternion:
     var i := _esqueleto.find_bone(osso)
     if i < 0:
         return Quaternion.IDENTITY
-    var descanso := _esqueleto.get_bone_rest(i).basis.get_rotation_quaternion()
+    _montar_pose_base()
+    var descanso: Quaternion = _esqueleto.get_bone_rest(i).basis.get_rotation_quaternion()
+    var base: Quaternion = _base_dos_ossos.get(osso, Quaternion.IDENTITY)
     if is_zero_approx(graus):
-        return descanso
-    return descanso * Quaternion(_eixo_local(i, eixo_do_mundo), deg_to_rad(graus))
+        return descanso * base
+    var mundo: Basis = _esqueleto.get_bone_global_rest(i).basis
+    var no_osso: Vector3 = (Basis(mundo.get_rotation_quaternion() * base).inverse()
+        * eixo_do_mundo).normalized()
+    return descanso * base * Quaternion(no_osso, deg_to_rad(graus))
 
 
 func _criar_animacoes() -> void:
@@ -399,6 +474,15 @@ func _animacao(duracao: float, repetir: bool, faixas: Dictionary) -> Animation:
     a.length = duracao
     a.loop_mode = Animation.LOOP_LINEAR if repetir else Animation.LOOP_NONE
     var caminho := _caminho_do_esqueleto()
+    # OS OSSOS DA BASE QUE ESTA ANIMACAO NAO MEXE PRECISAM SER SEGURADOS.
+    #
+    # Osso sem faixa fica no descanso — ou seja, volta para o T no meio da
+    # animacao. Um braco animado e o outro nao, e o chefe anda com metade da
+    # guarda aberta. Aqui cada osso da base sem faixa ganha uma chave constante.
+    _montar_pose_base()
+    for osso_da_base in _base_dos_ossos:
+        if not faixas.has(osso_da_base):
+            faixas[osso_da_base] = [[0.0], [_pose(String(osso_da_base), LATERAL, 0.0)]]
     for osso in faixas:
         if _esqueleto.find_bone(String(osso)) < 0:
             continue
