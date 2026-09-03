@@ -104,7 +104,8 @@ func _cartao(dados: Array) -> Button:
 
 func _montar_detalhe() -> Control:
     var painel := P.painel(Color("07152af2"))
-    painel.custom_minimum_size.x = 430
+    # 430 estourava a area em 58 px, medido na auditoria das telas.
+    painel.custom_minimum_size.x = 370
     var rolagem := ScrollContainer.new()
     rolagem.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
     rolagem.size_flags_vertical = Control.SIZE_EXPAND_FILL

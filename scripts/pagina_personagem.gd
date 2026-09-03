@@ -25,7 +25,15 @@ const CATALOGO := preload("res://scripts/inventory_ui.gd")
 
 ## O cenario do conceito. O de estrelas com o circulo magico e o certo; o salao
 ## antigo fica como reserva enquanto ele nao entra no projeto.
-const FUNDO := "res://textures/ui/concepts/personagem-bg.png"
+## O CENARIO E DA CLASSE, nao da tela.
+##
+## Akles brilha num vazio estrelado; a Wins e as vozes dela cantam num salao. Um
+## fundo so para os dois faria a troca de heroi parecer troca de roupa em vez de
+## troca de personagem.
+const FUNDOS := {
+    "akles": "res://textures/ui/concepts/personagem-bg.png",
+    "wins": "res://textures/ui/concepts/personagem-bg-wins.png",
+}
 const FUNDO_RESERVA := "res://textures/ui/concepts/character-stage-bg.png"
 ## O corpo de cada heroi. A da Wins nao existia como arte 2D no projeto — saiu
 ## do modelo dela, renderizada uma vez num SubViewport com fundo transparente e
@@ -94,6 +102,7 @@ var _claves: Label
 var _acao: Button
 var _cartao_arma: VBoxContainer
 var _heroi: TextureRect
+var _fundo: TextureRect
 var _fileira: HBoxContainer
 var _arma_no_palco: TextureRect
 
@@ -128,14 +137,13 @@ func _montar() -> void:
 ## O cenario e o heroi, os dois de ponta a ponta e sem tocar em nada.
 func _montar_cenario() -> void:
     var fundo := TextureRect.new()
-    var caminho := FUNDO if ResourceLoader.exists(FUNDO) else FUNDO_RESERVA
-    if ResourceLoader.exists(caminho):
-        fundo.texture = load(caminho)
+    # A textura entra no `_pintar`, junto com a do heroi.
     fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
     fundo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     fundo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
     fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(fundo)
+    _fundo = fundo
 
     # O CORPO ANCORA PELO PE, NAO PELO CENTRO.
     #
@@ -767,6 +775,12 @@ func _pintar() -> void:
         var arte := String(CORPOS.get(quem, CORPOS["akles"]))
         if ResourceLoader.exists(arte):
             _heroi.texture = load(arte)
+    if _fundo:
+        var cenario := String(FUNDOS.get(quem, FUNDOS["akles"]))
+        if not ResourceLoader.exists(cenario):
+            cenario = FUNDO_RESERVA
+        if ResourceLoader.exists(cenario):
+            _fundo.texture = load(cenario)
     _poder.text = _milhar(int(_progresso.poder_de_luta_da_conta()))
     _claves.text = _milhar(_progresso.quantidade("claves"))
     _pintar_estrelas()

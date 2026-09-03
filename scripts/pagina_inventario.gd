@@ -90,7 +90,7 @@ func _montar() -> void:
 
     # ------------------------------------------------------------- filtros
     var filtros_painel := PanelContainer.new()
-    filtros_painel.custom_minimum_size.x = 208
+    filtros_painel.custom_minimum_size.x = 190
     filtros_painel.add_theme_stylebox_override("panel",
         P.estilo(Color("061126aa"), Color("80643955"), 1, 2))
     linha.add_child(filtros_painel)
@@ -142,7 +142,7 @@ func _montar() -> void:
 
     # ---------------------------------------------------------- detalhe
     var detalhe := P.painel()
-    detalhe.custom_minimum_size.x = 336
+    detalhe.custom_minimum_size.x = 310
     linha.add_child(detalhe)
     var rolagem_detalhe := ScrollContainer.new()
     rolagem_detalhe.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
