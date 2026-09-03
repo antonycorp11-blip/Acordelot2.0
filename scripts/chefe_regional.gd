@@ -39,8 +39,17 @@ func _process(_delta: float) -> void:
     if not is_instance_valid(_jogador):
         _jogador = get_tree().get_first_node_in_group("jogador") as Node3D
         return
-    var distancia := global_position.distance_to(_jogador.global_position)
-    if distancia <= 95.0 and not _conteudo_carregado:
+    # A DISTANCIA E ATE ELE, NAO ATE O ALTAR.
+    #
+    # O encontro fica parado no centro da clareira e o Cavaleiro ronda num raio
+    # de nove metros em volta. Medir daqui fazia o botao de acao aparecer em
+    # cima da plataforma, com ele a metros de distancia — e sumir quando o
+    # jogador andava ate ele, que e o contrario do esperado.
+    var onde: Vector3 = _cavaleiro.global_position if is_instance_valid(_cavaleiro) \
+        else global_position
+    var distancia := onde.distance_to(_jogador.global_position)
+    if global_position.distance_to(_jogador.global_position) <= 95.0 \
+            and not _conteudo_carregado:
         _carregar_conteudo()
     var agora_perto := distancia <= ALCANCE_INTERACAO and not _em_batalha \
         and _conteudo_carregado

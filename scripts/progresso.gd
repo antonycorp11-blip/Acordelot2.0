@@ -151,6 +151,69 @@ var ascensoes := {20: false, 40: false}
 ## que a historia acabou de tirar de cena.
 var marcos: Dictionary = {}
 
+## CADA HEROI TEM A PROPRIA FICHA.
+##
+## Ate aqui o Progresso era do Akles e a Wins herdava tudo: mesmo nivel, mesmos
+## atributos, mesmo Poder de Luta. Ela chegava upada sem nunca ter jogado, o que
+## esvazia a troca de personagem — se os dois sao a mesma ficha com outra roupa,
+## nao ha decisao nenhuma em escolher.
+##
+## O QUE E SEPARADO e o que se conquista jogando COM aquele heroi: nivel,
+## experiencia, atributos, niveis de skill, arma e ascensoes.
+##
+## O QUE E COMPARTILHADO e o que pertence ao jogador, nao ao personagem: a
+## mochila, os Ecos descobertos, os acordes e os marcos da historia. Uma Clave
+## nao muda de dono quando voce troca de heroi.
+const CAMPOS_DA_FICHA := ["nivel", "experiencia", "pontos_de_atributo",
+    "atributos", "niveis_skills", "arma_equipada", "nivel_da_arma", "ascensoes"]
+const HEROIS := ["akles", "wins"]
+
+var personagem := "akles"
+var _fichas: Dictionary = {}
+
+
+func _ficha_nova() -> Dictionary:
+    return {
+        "nivel": 1, "experiencia": 0, "pontos_de_atributo": 0,
+        "atributos": ATRIBUTOS_INICIAIS.duplicate(true),
+        "niveis_skills": {"ataque_basico": 1, "skill_1": 1, "skill_2": 1, "skill_3": 1},
+        "arma_equipada": "Espada do Despertar", "nivel_da_arma": 1,
+        "ascensoes": {20: false, 40: false},
+    }
+
+
+func _guardar_ficha() -> void:
+    var f := {}
+    for campo in CAMPOS_DA_FICHA:
+        var v = get(campo)
+        f[campo] = v.duplicate(true) if v is Dictionary else v
+    _fichas[personagem] = f
+
+
+func _vestir_ficha(id: String) -> void:
+    if not _fichas.has(id):
+        _fichas[id] = _ficha_nova()
+    var f: Dictionary = _fichas[id]
+    for campo in CAMPOS_DA_FICHA:
+        var v = f.get(campo)
+        set(campo, v.duplicate(true) if v is Dictionary else v)
+    personagem = id
+
+
+## Chamada pelo Player quando o heroi em campo muda.
+func trocar_personagem(id: String) -> void:
+    if id == personagem or not id in HEROIS:
+        return
+    _guardar_ficha()
+    _vestir_ficha(id)
+    salvar()
+    alterado.emit()
+
+
+## A Wins e nova; a arma dela nao e a espada do Akles.
+func nome_do_heroi(id := "") -> String:
+    return "Wins" if (id if id != "" else personagem) == "wins" else "Akles"
+
 
 func marcar_historia(id: String, aconteceu := true) -> void:
     if bool(marcos.get(id, false)) == aconteceu:
@@ -166,6 +229,12 @@ func tem_marco(id: String) -> bool:
 
 func _ready() -> void:
     carregar()
+    # A ficha do heroi em campo passa a ser a fonte; a do outro fica guardada.
+    if _fichas.is_empty():
+        _guardar_ficha()
+    for id in HEROIS:
+        if not _fichas.has(id):
+            _fichas[id] = _ficha_nova()
 
 
 func xp_para_nivel(qual: int = nivel) -> int:
@@ -705,6 +774,10 @@ func acessorio_no_slot(slot: String) -> Dictionary:
 
 
 func salvar() -> void:
+    # As duas fichas viajam juntas: sem isto, a do heroi que esta fora de campo
+    # se perderia no proximo carregamento e a Wins voltaria do zero toda vez.
+    _guardar_ficha()
+    _salvar_fichas()
     var cfg := ConfigFile.new()
     cfg.set_value("personagem", "nivel", nivel)
     cfg.set_value("personagem", "experiencia", experiencia)
@@ -722,6 +795,28 @@ func salvar() -> void:
     cfg.set_value("inventario", "recursos", recursos)
     cfg.set_value("inventario", "acessorios", acessorios_equipados)
     cfg.save(ARQUIVO)
+
+
+func _salvar_fichas() -> void:
+    var cfg := ConfigFile.new()
+    if FileAccess.file_exists(ARQUIVO):
+        cfg.load(ARQUIVO)
+    for id in _fichas:
+        cfg.set_value("herois", String(id), _fichas[id])
+    cfg.set_value("herois", "atual", personagem)
+    cfg.save(ARQUIVO)
+
+
+func _carregar_fichas(cfg: ConfigFile) -> void:
+    for id in HEROIS:
+        # Padrao vazio, e nao `null`: o ConfigFile reclama em voz alta quando a
+        # secao ainda nao existe, e ela nao existe no primeiro jogo de ninguem.
+        var f = cfg.get_value("herois", id, {})
+        if f is Dictionary and not f.is_empty():
+            _fichas[id] = f
+    var atual := String(cfg.get_value("herois", "atual", "akles"))
+    if _fichas.has(atual):
+        _vestir_ficha(atual)
 
 
 func carregar() -> void:
@@ -770,3 +865,10 @@ func carregar() -> void:
     var outros_salvos = cfg.get_value("poder", "outros_personagens", {})
     if outros_salvos is Dictionary:
         poder_outros_personagens = outros_salvos.duplicate(true)
+    # AS FICHAS POR HEROI TEM A ULTIMA PALAVRA.
+    #
+    # O bloco acima le o formato antigo, de um personagem so — e ele continua
+    # valendo como a ficha do Akles em saves feitos antes da separacao. Se o
+    # arquivo ja tiver fichas por heroi, elas sobrescrevem, e a do heroi em
+    # campo volta a ser a fonte.
+    _carregar_fichas(cfg)

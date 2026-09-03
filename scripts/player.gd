@@ -226,6 +226,11 @@ func trocar_personagem(id := "") -> void:
     _wins.process_mode = Node.PROCESS_MODE_INHERIT if destino == "wins" else Node.PROCESS_MODE_DISABLED
     _hero = _wins if destino == "wins" else _akles
     _personagem_atual = destino
+    # A FICHA TROCA JUNTO COM O CORPO. Nivel, atributos, skills e arma sao de
+    # cada heroi; sem esta linha a Wins continua vestindo a ficha do Akles.
+    var progresso := get_node_or_null("/root/Progresso")
+    if progresso and progresso.has_method("trocar_personagem"):
+        progresso.trocar_personagem(destino)
     _hero.atualizar_movimento(Vector2(velocity.x, velocity.z).length(), _voando)
     personagem_trocado.emit(destino, "Wins" if destino == "wins" else "Akles")
 

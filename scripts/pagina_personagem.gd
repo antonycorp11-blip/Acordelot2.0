@@ -81,6 +81,7 @@ var _claves: Label
 var _acao: Button
 var _cartao_arma: VBoxContainer
 var _heroi: TextureRect
+var _fileira: HBoxContainer
 var _arma_no_palco: TextureRect
 
 
@@ -196,7 +197,8 @@ func _montar_topo() -> void:
     titulo.add_child(letra)
 
     # --- a fileira de herois, centrada
-    var fileira := HBoxContainer.new()
+    _fileira = HBoxContainer.new()
+    var fileira := _fileira
     fileira.set_anchors_preset(Control.PRESET_CENTER)
     fileira.grow_horizontal = Control.GROW_DIRECTION_BOTH
     fileira.grow_vertical = Control.GROW_DIRECTION_BOTH
@@ -271,9 +273,15 @@ func _disco_com_lira(lado: float) -> Control:
 ## como lugares vazios e apagados, que e o que eles sao. Encher a fileira com
 ## rosto de personagem que nao existe seria enfeite passando por conteudo.
 func _disco_de_heroi(indice: int) -> Control:
+    var em_campo := "akles"
+    var prog := get_node_or_null("/root/Progresso")
+    if prog and prog.get("personagem") != null:
+        em_campo = String(prog.personagem)
     var e_o_akles: bool = indice == 4
     var e_a_wins: bool = indice == 5
-    var lado: float = 62.0 if e_o_akles else 48.0
+    var aceso: bool = (e_o_akles and em_campo == "akles") \
+        or (e_a_wins and em_campo == "wins")
+    var lado: float = 62.0 if aceso else 48.0
 
     var b := Button.new()
     b.custom_minimum_size = Vector2(lado, lado)
@@ -281,17 +289,26 @@ func _disco_de_heroi(indice: int) -> Control:
     b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     var e := StyleBoxFlat.new()
     e.bg_color = Color(0.08, 0.10, 0.16, 0.75)
-    e.border_color = OURO if e_o_akles else Color(0.45, 0.48, 0.55, 0.85)
-    e.set_border_width_all(2 if e_o_akles else 1)
+    e.border_color = OURO if aceso else Color(0.45, 0.48, 0.55, 0.85)
+    e.set_border_width_all(2 if aceso else 1)
     e.set_corner_radius_all(int(lado * 0.5))
     for estado in ["normal", "hover", "pressed", "focus", "disabled"]:
         b.add_theme_stylebox_override(estado, e)
     b.disabled = not (e_o_akles or e_a_wins)
-    b.modulate.a = 1.0 if e_o_akles else (0.85 if e_a_wins else 0.45)
+    b.modulate.a = 1.0 if aceso else (0.85 if (e_o_akles or e_a_wins) else 0.45)
+    if e_o_akles or e_a_wins:
+        # CLICAR TROCA O HEROI DE VERDADE, em campo e na ficha. Antes o disco
+        # era enfeite: acendia o Akles e nao levava a lugar nenhum.
+        b.pressed.connect(func():
+            var jogador := get_tree().get_first_node_in_group("jogador")
+            if jogador and jogador.has_method("trocar_personagem"):
+                jogador.trocar_personagem("akles" if e_o_akles else "wins")
+            _reconstruir_fileira()
+            _pintar())
 
     if e_o_akles or e_a_wins:
         var folha := "res://textures/dialogo/akles_corpo.png" if e_o_akles \
-            else "res://personagem/wins_retrato.png"
+            else "res://textures/dialogo/wins_retrato.png"
         if ResourceLoader.exists(folha):
             var recorte := Control.new()
             recorte.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -722,6 +739,16 @@ func _montar_rodape_esquerdo() -> void:
 
 # --------------------------------------------------------------------- estado
 
+func _reconstruir_fileira() -> void:
+    if _fileira == null or not is_instance_valid(_fileira):
+        return
+    for velho in _fileira.get_children():
+        _fileira.remove_child(velho)
+        velho.queue_free()
+    for i in LUGARES_DE_HEROI:
+        _fileira.add_child(_disco_de_heroi(i))
+
+
 func _escolher_aba(id: String) -> void:
     if id == "talentos":
         var casca := get_tree().root.find_child("UiShell", true, false)
@@ -820,12 +847,17 @@ func _pintar_materiais() -> void:
     for velho in _materiais.get_children():
         _materiais.remove_child(velho)
         velho.queue_free()
-    var pedidos: Dictionary = _progresso.requisitos_da_ascensao()
-    if pedidos.is_empty():
-        for trava in _progresso.TRAVAS_DE_ASCENSAO:
-            if int(_progresso.nivel) < int(trava):
-                pedidos = (_progresso.REQUISITOS_ASCENSAO.get(trava, {}) as Dictionary)
-                break
+    # TODAS AS ASCENSOES QUE FALTAM, e nao so a proxima.
+    #
+    # Mostrando so a do nivel 20, o Emblema da Nota Silenciada — que e material
+    # da do nivel 40 — nunca aparecia aqui. O jogador derrubava o Cavaleiro,
+    # ganhava o item e nao via em lugar nenhum para que ele serve.
+    var pedidos := {}
+    for trava in _progresso.TRAVAS_DE_ASCENSAO:
+        if bool(_progresso.ascensoes.get(trava, false)):
+            continue
+        for id in (_progresso.REQUISITOS_ASCENSAO.get(trava, {}) as Dictionary):
+            pedidos[id] = int(_progresso.REQUISITOS_ASCENSAO[trava][id])
     if pedidos.is_empty():
         _materiais.add_child(T.rotulo_simples("Nenhuma ascensão pendente.", 14,
             Color(0.55, 0.60, 0.70)))

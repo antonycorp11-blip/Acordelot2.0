@@ -523,11 +523,11 @@ func _physics_process(delta: float) -> void:
     _seguir_a_cabeca()
     if _morrendo:
         return
+    if monster_type == 6:
+        _manter_no_chao()
     if em_ronda:
         _rondar(delta)
         return
-    if monster_type == 6:
-        _manter_no_chao()
     _pensar_no_golpe(delta)
     _fase += delta
     
@@ -629,10 +629,24 @@ func _pensar_no_golpe(delta: float) -> void:
 const QUEDA_QUE_NAO_VOLTA := 3.0
 
 func _manter_no_chao() -> void:
+    # O RELEVO VIRA CHAO, e nao rede de resgate.
+    #
+    # A versao anterior so agia tres metros ABAIXO do terreno e devolvia o corpo
+    # meio metro acima dele. A gravidade puxava de novo, ele afundava, era
+    # empurrado de novo — um pula-pula. Era isso o "caindo do ceu igual doido"
+    # na primeira aproximacao, enquanto a colisao daquela celula ainda nao
+    # existe.
+    #
+    # Agora, quando nao ha piso sob os pes, a propria funcao do relevo faz o
+    # papel dele: o corpo pousa na altura certa e para. Com a colisao presente,
+    # `is_on_floor` responde e nada disto roda.
+    if is_on_floor():
+        return
     var chao := Relevo.altura(global_position.x, global_position.z)
-    if global_position.y < chao - QUEDA_QUE_NAO_VOLTA:
-        global_position.y = chao + 0.5
+    if global_position.y <= chao:
+        global_position.y = chao
         velocity.y = 0.0
+        _ja_pisou = true
 
 
 func _rondar(delta: float) -> void:

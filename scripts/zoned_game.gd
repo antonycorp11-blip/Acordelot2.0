@@ -723,6 +723,14 @@ func _ao_cair() -> void:
         _caido = false
         if _player:
             _player.set_physics_process(true)
+        # O VEU PRECISA PARAR DE COMER O TOQUE.
+        #
+        # Invisivel nao e o mesmo que ausente: um ColorRect de tela cheia com
+        # filtro STOP na camada 90 engole todo dedo, e o jogador ressuscitava
+        # sem direcional e sem botao — vivo e preso. Eu ja tinha consertado isto
+        # no caminho da caverna e esqueci do caminho do mundo, que e o comum.
+        if is_instance_valid(_veu_da_queda):
+            _veu_da_queda.mouse_filter = Control.MOUSE_FILTER_IGNORE
         var casca := get_tree().root.find_child("UiShell", true, false)
         if casca and casca.has_method("avisar") and perdidas > 0:
             casca.avisar("A harmonia se desfez", "Você perdeu %d Claves na queda" % perdidas))
