@@ -80,16 +80,18 @@ func _montar() -> void:
         b.add_theme_font_size_override("font_size", 17)
         for estado in ["normal", "hover", "pressed", "focus"]:
             b.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
-        var arte := _peca("aba_ativa", Vector2(296, 56))
-        arte.name = "Ativa"
-        arte.set_anchors_preset(Control.PRESET_FULL_RECT)
-        arte.show_behind_parent = true
-        b.add_child(arte)
-        var apagada := _peca("aba_inativa", Vector2(296, 56))
-        apagada.name = "Inativa"
-        apagada.set_anchors_preset(Control.PRESET_FULL_RECT)
-        apagada.show_behind_parent = true
-        b.add_child(apagada)
+        # A MOLDURA E DESENHADA, e nao recortada da folha.
+        #
+        # As duas pecas de aba da folha vem com o rotulo GRAVADO — uma diz
+        # "NOTAS E FRAGMENTOS" e a outra "PARTITURAS E NIVEL". Usar uma delas
+        # como "ativa" generica carimbava o texto errado no botao errado, e as
+        # duas apareciam trocadas de lugar. Moldura por estilo, texto por codigo.
+        var placa := Panel.new()
+        placa.name = "Placa"
+        placa.set_anchors_preset(Control.PRESET_FULL_RECT)
+        placa.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        placa.show_behind_parent = true
+        b.add_child(placa)
         b.text = String(dados[1])
         b.pressed.connect(_trocar_aba.bind(String(dados[0])))
         abas.add_child(b)
@@ -129,6 +131,10 @@ func _montar() -> void:
     var meio := P.painel(Color("08162ce8"))
     meio.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     linha.add_child(meio)
+    var moldura_grande := _peca_das_notas("painel_grande", Vector2(0, 0))
+    moldura_grande.set_anchors_preset(Control.PRESET_FULL_RECT)
+    moldura_grande.show_behind_parent = true
+    meio.add_child(moldura_grande)
     var conceito := TextureRect.new()
     conceito.texture = load("res://textures/ui/concepts/synthesis-forge-bg.png")
     conceito.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -169,14 +175,12 @@ func _montar() -> void:
     var acoes := HBoxContainer.new()
     acoes.add_theme_constant_override("separation", 28)
     cm.add_child(acoes)
-    _purificar = P.botao("PURIFICAR  ·  CLAVES", "violet")
-    _purificar.custom_minimum_size.y = 58
-    _purificar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    # OS DOIS BOTOES SAO A ARTE DA FOLHA, com o preco ja escrito neles.
+    # O preco ja esta gravado na arte da folha; escrever por cima dobra o texto.
+    _purificar = _botao_de_acao("botao_purificar", "")
     _purificar.pressed.connect(_ao_purificar)
     acoes.add_child(_purificar)
-    _condensar = P.botao("SINTETIZAR NOTA", "gold")
-    _condensar.custom_minimum_size.y = 58
-    _condensar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _condensar = _botao_de_acao("botao_sintetizar", "")
     _condensar.pressed.connect(_ao_condensar)
     acoes.add_child(_condensar)
 
@@ -189,28 +193,9 @@ func _montar() -> void:
     _direita.add_theme_constant_override("separation", 3)
     rol_d.add_child(_direita)
 
-    # AS PARTITURAS TINHAM SUMIDO DA TELA.
-    #
-    # `_cartao_da_partitura` e `_cartao_do_acorde` continuavam escritos no
-    # arquivo e ninguem os chamava: a reescrita da Sintese ficou so com o painel
-    # de notas e fragmentos, e o unico caminho de Claves para experiencia
-    # desapareceu da interface. O sistema estava inteiro no Progresso o tempo
-    # todo — faltava a coluna que o mostra.
-    var dir := P.painel()
-    dir.custom_minimum_size.x = 300
-    linha.add_child(dir)
-    var cd := VBoxContainer.new()
-    cd.add_theme_constant_override("separation", 8)
-    dir.add_child(P.recheio(cd, 14))
-    cd.add_child(P.cabecalho("CLAVES EM EXPERIÊNCIA", "Partituras", ""))
-    var rol_p := ScrollContainer.new()
-    rol_p.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    rol_p.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-    cd.add_child(rol_p)
-    _partituras = VBoxContainer.new()
-    _partituras.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    _partituras.add_theme_constant_override("separation", 8)
-    rol_p.add_child(_partituras)
+    # A coluna de partituras que eu tinha posto aqui como remendo saiu: a aba
+    # "Partituras e Nivel" assumiu o assunto inteiro, na medida da folha. Duas
+    # vezes a mesma coisa na tela e pior que uma.
 
 
 func _cristal(nota: String) -> String:
@@ -224,18 +209,27 @@ func _linha_da_nota(nota: String) -> Control:
     var ativa: bool = nota == _escolhida
 
     var b := P.botao("", "item")
-    b.custom_minimum_size = Vector2(132, 142)
+    b.custom_minimum_size = Vector2(132, 150)
     b.add_theme_stylebox_override("normal", P.estilo(
         Color("0d1b30d9") if ativa else Color("07101fdc"),
         P.GOLD_BRIGHT if ativa else Color("56462f"), 2 if ativa else 1, 1))
     b.pressed.connect(func(): _escolher(nota))
 
     var caixa := VBoxContainer.new()
-    caixa.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 6)
-    caixa.add_theme_constant_override("separation", 8)
+    # O MIOLO OCUPA O CARTAO, e nao o proprio minimo. Com `PRESET_MODE_MINSIZE`
+    # a coluna se dimensiona pelo que precisa — pedra, nome e duas linhas de
+    # contagem dao 144 px num cartao de 142 — e o recorte comia a ultima linha,
+    # que e justamente "PURO x · NOTA y". Mesmo defeito do slot do inventario.
+    caixa.set_anchors_preset(Control.PRESET_FULL_RECT)
+    caixa.offset_left = 6.0
+    caixa.offset_top = 5.0
+    caixa.offset_right = -6.0
+    caixa.offset_bottom = -5.0
+    caixa.add_theme_constant_override("separation", 3)
     caixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
     b.add_child(caixa)
-    var pedra := P.arte(_cristal(nota), Vector2(62, 62))
+    var pedra := P.arte(_cristal(nota), Vector2(58, 58))
+    pedra.size_flags_vertical = Control.SIZE_EXPAND_FILL
     pedra.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
     pedra.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     pedra.modulate = Color(1, 1, 1, 1.0 if corrompido + limpo + pronta > 0 else 0.4)
@@ -245,7 +239,7 @@ func _linha_da_nota(nota: String) -> Control:
     caixa.add_child(nome)
     var contas := Label.new()
     contas.text = "CORR. %d\nPURO %d  ·  NOTA %d" % [corrompido, limpo, pronta]
-    contas.add_theme_font_size_override("font_size", 14)
+    contas.add_theme_font_size_override("font_size", 13)
     contas.add_theme_color_override("font_color", P.MUTED)
     contas.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     caixa.add_child(contas)
@@ -360,16 +354,6 @@ func _pintar() -> void:
     _direita.add_child(P.espaco_elastico())
 
     _pintar_partituras()
-    if _partituras:
-        for velho in _partituras.get_children():
-            _partituras.remove_child(velho)
-            velho.queue_free()
-        for tipo in _progresso.PARTITURAS:
-            _partituras.add_child(_cartao_da_partitura(String(tipo)))
-        _partituras.add_child(P.risco())
-        _partituras.add_child(P.sobrancelha("ACORDES"))
-        for id in _progresso.ACORDES:
-            _partituras.add_child(_cartao_do_acorde(String(id)))
 
 
 func _cartao_do_acorde(id: String) -> Control:
@@ -593,19 +577,14 @@ func _montar_ascensao() -> Control:
 
 
 func _montar_bonus() -> Control:
-    var p := Control.new()
+    # A PECA DO BONUS TRAZ A LISTA INTEIRA PINTADA, com numeros. Colar ela seria
+    # mostrar valor de imagem em vez de valor do jogo — o mesmo defeito do "18"
+    # que vinha desenhado na medalha do retrato. Moldura lisa, numeros de codigo.
+    var p := P.painel()
     p.custom_minimum_size.x = 300
-    var moldura := _peca("painel_bonus", Vector2(0, 0))
-    moldura.set_anchors_preset(Control.PRESET_FULL_RECT)
-    p.add_child(moldura)
     _bonus = VBoxContainer.new()
-    _bonus.set_anchors_preset(Control.PRESET_FULL_RECT)
-    _bonus.offset_left = 22.0
-    _bonus.offset_right = -22.0
-    _bonus.offset_top = 18.0
-    _bonus.offset_bottom = -18.0
+    p.add_child(P.recheio(_bonus, 14))
     _bonus.add_theme_constant_override("separation", 2)
-    p.add_child(_bonus)
     return p
 
 
@@ -618,10 +597,14 @@ func _trocar_aba(qual: String) -> void:
     for id in _botoes_de_aba:
         var b: Button = _botoes_de_aba[id]
         var escolhida: bool = String(id) == qual
-        var a := b.get_node_or_null("Ativa") as Control
-        var i := b.get_node_or_null("Inativa") as Control
-        if a: a.visible = escolhida
-        if i: i.visible = not escolhida
+        var placa := b.get_node_or_null("Placa") as Panel
+        if placa:
+            var e := StyleBoxFlat.new()
+            e.bg_color = Color("0f1a33ee") if escolhida else Color("0a1220bb")
+            e.border_color = P.GOLD_BRIGHT if escolhida else Color("3a4252")
+            e.set_border_width_all(2 if escolhida else 1)
+            e.set_corner_radius_all(4)
+            placa.add_theme_stylebox_override("panel", e)
         b.add_theme_color_override("font_color",
             P.GOLD_BRIGHT if escolhida else P.MUTED)
 
@@ -685,3 +668,41 @@ func _vestir_botao(b: Button, pode: bool) -> void:
     if aceso: aceso.visible = pode
     if apagado: apagado.visible = not pode
     b.add_theme_color_override("font_color", P.IVORY if pode else P.MUTED)
+
+
+# ------------------------------------------------ pecas da aba de notas
+## O kit da folha "Notas e Fragmentos", cortado pelo mesmo caminho do resto.
+const KIT_NOTAS := "res://textures/ui/kit/notas/"
+
+
+func _peca_das_notas(nome: String, tamanho: Vector2) -> TextureRect:
+    var t := TextureRect.new()
+    var caminho := KIT_NOTAS + nome + ".png"
+    if ResourceLoader.exists(caminho):
+        t.texture = load(caminho)
+    t.custom_minimum_size = tamanho
+    t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    t.stretch_mode = TextureRect.STRETCH_SCALE
+    t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    return t
+
+
+## O botao com a moldura da folha por tras e o texto por cima. O preco entra no
+## rotulo porque a arte vem com o dela gravado — e o do jogo pode divergir.
+func _botao_de_acao(peca: String, texto: String) -> Button:
+    var b := Button.new()
+    b.custom_minimum_size.y = 58
+    b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    b.focus_mode = Control.FOCUS_NONE
+    b.text = texto
+    b.add_theme_font_override("font", load("res://fontes/Cinzel.ttf"))
+    b.add_theme_font_size_override("font_size", 16)
+    b.add_theme_color_override("font_color", P.IVORY)
+    b.add_theme_color_override("font_disabled_color", P.MUTED)
+    for estado in ["normal", "hover", "pressed", "focus", "disabled"]:
+        b.add_theme_stylebox_override(estado, StyleBoxEmpty.new())
+    var arte := _peca_das_notas(peca, Vector2(0, 58))
+    arte.set_anchors_preset(Control.PRESET_FULL_RECT)
+    arte.show_behind_parent = true
+    b.add_child(arte)
+    return b
