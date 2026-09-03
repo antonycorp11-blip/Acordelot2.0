@@ -10,6 +10,8 @@ signal jogador_saiu(encontro: Node)
 const BichoScript := preload("res://scripts/bicho.gd")
 const CAMINHO_EMBLEMA := "res://models/emblema_cavaleiro.glb"
 const T := preload("res://scripts/ui_tema.gd")
+## Nome, arte e raridade de cada item saem do mesmo catalogo da mochila.
+const CATALOGO := preload("res://scripts/inventory_ui.gd")
 const ALCANCE_INTERACAO := 6.0
 const RAIO_DA_ARENA := 48.0
 const NOTAS := ["do", "re", "mi", "fa", "sol", "la", "si"]
@@ -51,6 +53,13 @@ func _process(_delta: float) -> void:
                 _fechar_modal()
     if _em_batalha and distancia > RAIO_DA_ARENA:
         _encerrar_por_afastamento()
+        return
+    if _em_batalha and is_instance_valid(_cavaleiro):
+        var hud_barra := get_tree().get_first_node_in_group("player_hud")
+        if hud_barra and hud_barra.has_method("atualizar_chefe"):
+            hud_barra.atualizar_chefe(float(_cavaleiro.vida),
+                float(_cavaleiro.vida_maxima),
+                int(_cavaleiro.get("_forma_do_cavaleiro")))
 
 
 func abrir_desafio() -> void:
@@ -75,6 +84,7 @@ func _iniciar() -> void:
     if not is_instance_valid(_cavaleiro):
         _repor_cavaleiro()
     _cavaleiro.process_mode = Node.PROCESS_MODE_INHERIT
+    _cavaleiro.em_ronda = false
     _cavaleiro.set_physics_process(true)
     _cavaleiro.set_process(true)
     # Duas barras: cada forma deve durar o bastante para ler avisos e esquivar.
@@ -85,10 +95,19 @@ func _iniciar() -> void:
         var ficha: Dictionary = progresso.estatisticas()
         ataque = float(ficha.get("ataque", ataque))
         vida_heroi = float(ficha.get("vida_maxima", vida_heroi))
-    _cavaleiro.call("calibrar", maxf(ataque * 18.0, 3600.0), maxf(vida_heroi / 13.0, 36.0))
+    # PERIGOSO, NAO DEMORADO. Ele aguentava 18 golpes por forma e derrubava em
+    # 13 — muita vida e pouca ameaca, entao a luta virava paciencia. Agora sao
+    # 15 golpes por forma e ele derruba em 8: o mesmo tempo de briga, com o erro
+    # custando o dobro.
+    _cavaleiro.call("calibrar", maxf(ataque * 15.0, 3600.0), maxf(vida_heroi / 8.0, 60.0))
     var hud := get_tree().get_first_node_in_group("player_hud")
     if hud and hud.has_method("anunciar"):
         hud.anunciar("DESAFIO INICIADO — Cavaleiro da Nota Silenciada")
+    # A barra do chefe sobe para o topo da tela, com as duas formas marcadas
+    # nela. A barrinha sobre a cabeca serve para Shiker; numa luta longa contra
+    # um alvo so, ela nao da para enxergar.
+    if hud and hud.has_method("mostrar_chefe"):
+        hud.mostrar_chefe("Cavaleiro da Nota Silenciada", 2)
 
 
 func _repor_cavaleiro() -> void:
@@ -102,12 +121,21 @@ func _repor_cavaleiro() -> void:
     novo.position = Vector3.ZERO
     novo.call("tornar_cavaleiro_chefe")
     novo.derrotado.connect(_ao_derrotar)
-    novo.process_mode = Node.PROCESS_MODE_DISABLED
+    # ELE ANDA ANTES DA BRIGA. Parado feito estatua ate alguem falar com ele,
+    # o chefe vira cenario. Em ronda ele mora ali — e continua sem perseguir,
+    # sem golpear e sem levar dano ate o desafio ser aceito.
+    novo.em_ronda = true
+    novo.posto_da_ronda = global_position
+    novo.raio_da_ronda = 9.0
+    novo.process_mode = Node.PROCESS_MODE_INHERIT
     _cavaleiro = novo
 
 
 func _encerrar_por_afastamento() -> void:
     _em_batalha = false
+    var hud_fim := get_tree().get_first_node_in_group("player_hud")
+    if hud_fim and hud_fim.has_method("esconder_chefe"):
+        hud_fim.esconder_chefe()
     _repor_cavaleiro()
     var hud := get_tree().get_first_node_in_group("player_hud")
     if hud and hud.has_method("anunciar"):
@@ -118,6 +146,9 @@ func _ao_derrotar(_inimigo: Node) -> void:
     if not _em_batalha:
         return
     _em_batalha = false
+    var hud_fim := get_tree().get_first_node_in_group("player_hud")
+    if hud_fim and hud_fim.has_method("esconder_chefe"):
+        hud_fim.esconder_chefe()
     var ganhos := _sortear_recompensas()
     var progresso := get_node_or_null("/root/Progresso")
     if progresso:
@@ -186,24 +217,85 @@ func _mostrar_modal(vitoria: bool, ganhos: Dictionary) -> void:
         cancelar.pressed.connect(_fechar_modal); caixa.add_child(cancelar)
 
 
+## CADA DROP COM O ICONE DELE, e nao uma linha de texto.
+##
+## So o emblema tinha arte; o resto saia como "Claves × 787" em texto puro, com
+## os nomes vindo de um dicionario escrito a mao dentro desta funcao. Agora nome,
+## arte e raridade saem do catalogo do inventario — o mesmo que a mochila usa —,
+## entao item novo aparece aqui sozinho e nunca com nome divergente.
 func _linha_drop(pai: Control, id: String, quantidade: int, possivel: bool) -> void:
-    var nomes := {"emblema_nota_silenciada":"Emblema da Nota Silenciada", "claves":"Claves",
-        "partitura_menor":"Partitura Menor", "partitura_harmonica":"Partitura Harmônica",
-        "partitura_magistral":"Partitura Magistral", "pocao_cura":"Poção de Cura"}
-    var nome := str(nomes.get(id, id.replace("_", " ").capitalize()))
-    var linha := HBoxContainer.new()
-    linha.alignment = BoxContainer.ALIGNMENT_CENTER
-    linha.add_theme_constant_override("separation", 12)
-    if id == "emblema_nota_silenciada":
+    var nome := id.replace("_", " ").capitalize()
+    var arte := ""
+    var raridade := "Comum"
+    for dados in CATALOGO.ITENS_DE_RECURSO:
+        if String(dados[0]) == id:
+            nome = String(dados[1])
+            var caminho := String(dados[2])
+            arte = caminho if caminho.begins_with("res://") \
+                else "res://textures/ui/kit/%s.png" % caminho
+            raridade = String(dados[3])
+            break
+    var cor: Color = T.RARIDADE.get(raridade, T.TEXTO)
+
+    var linha := PanelContainer.new()
+    linha.custom_minimum_size.y = 74.0
+    var fundo := StyleBoxFlat.new()
+    fundo.bg_color = Color(cor.r, cor.g, cor.b, 0.10)
+    fundo.border_color = Color(cor.r, cor.g, cor.b, 0.55)
+    fundo.set_border_width_all(1)
+    fundo.set_corner_radius_all(6)
+    fundo.content_margin_left = 12
+    fundo.content_margin_right = 16
+    fundo.content_margin_top = 8
+    fundo.content_margin_bottom = 8
+    linha.add_theme_stylebox_override("panel", fundo)
+
+    var fila := HBoxContainer.new()
+    fila.add_theme_constant_override("separation", 14)
+    linha.add_child(fila)
+
+    # O slot do icone: quadrado com aro da raridade, como na mochila.
+    var slot := Panel.new()
+    slot.custom_minimum_size = Vector2(56, 56)
+    slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    var moldura := StyleBoxFlat.new()
+    moldura.bg_color = Color(0.04, 0.05, 0.09, 0.92)
+    moldura.border_color = cor
+    moldura.set_border_width_all(2)
+    moldura.set_corner_radius_all(5)
+    slot.add_theme_stylebox_override("panel", moldura)
+    if ResourceLoader.exists(arte):
         var icone := TextureRect.new()
-        icone.texture = load("res://textures/items/emblema_nota_silenciada.png")
-        icone.custom_minimum_size = Vector2(52, 52)
+        icone.texture = load(arte)
+        icone.set_anchors_preset(Control.PRESET_FULL_RECT)
+        icone.offset_left = 6.0
+        icone.offset_top = 6.0
+        icone.offset_right = -6.0
+        icone.offset_bottom = -6.0
         icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
         icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-        linha.add_child(icone)
-    var rotulo := T.rotulo(("Possível  ·  " if possivel else "") + nome + "  ×  " + str(quantidade) + ("+" if possivel else ""), T.BOTAO, T.OURO if id == "emblema_nota_silenciada" else T.TEXTO)
-    rotulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    linha.add_child(rotulo)
+        icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        slot.add_child(icone)
+    fila.add_child(slot)
+
+    var texto := VBoxContainer.new()
+    texto.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    texto.alignment = BoxContainer.ALIGNMENT_CENTER
+    texto.add_theme_constant_override("separation", 1)
+    var titulo := T.rotulo_simples(nome, 19, T.CREME)
+    texto.add_child(titulo)
+    var abaixo := raridade.to_upper()
+    if possivel:
+        abaixo += "   ·   PODE CAIR"
+    texto.add_child(T.rotulo_simples(abaixo, 13, cor))
+    fila.add_child(texto)
+
+    var conta := T.rotulo_simples(
+        ("+" if possivel else "\u00d7 ") + str(quantidade) + ("+" if possivel else ""),
+        24, T.OURO_FORTE)
+    conta.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    conta.add_theme_font_override("font", T.fonte_display())
+    fila.add_child(conta)
     pai.add_child(linha)
 
 

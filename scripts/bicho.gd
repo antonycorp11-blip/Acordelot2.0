@@ -36,7 +36,7 @@ const MONSTROS_CONFIG := [
     # animacoes diretamente no rig Tripo.
     {"nome": "Cavaleiro da Nota Silenciada", "cena": CENA_CAVALEIRO,
      "biblioteca": null, "pele": null, "prefixo": "cavaleiro",
-     "altura": 2.3, "hp": 2400.0, "dano": 72.0,
+     "altura": 3.40, "hp": 2400.0, "dano": 72.0,
      "aura": Color(0.52, 0.34, 1.0), "velocidade": 3.7,
      "preservar_materiais": true},
 ]
@@ -83,6 +83,17 @@ var _apresentou_cavaleiro := false
 ## Chefes regionais entregam o espolio pela tela de conclusao. Isto impede que
 ## o drop comum e o premio da batalha paguem a mesma morte duas vezes.
 var recompensa_controlada_externamente := false
+
+## RONDA ANTES DA BRIGA.
+##
+## Um chefe de regiao parado feito estatua ate alguem falar com ele nao parece
+## que mora ali — parece cenario. Em ronda ele anda um circuito curto em volta
+## do proprio posto, sem perseguir, sem golpear e sem levar dano. E so quando o
+## desafio comeca que ele vira inimigo.
+var em_ronda := false
+var posto_da_ronda := Vector3.ZERO
+var raio_da_ronda := 9.0
+var _fase_da_ronda := 0.0
 var _fala_ate := -1.0
 
 static var _estoque: Array = []
@@ -512,6 +523,11 @@ func _physics_process(delta: float) -> void:
     _seguir_a_cabeca()
     if _morrendo:
         return
+    if em_ronda:
+        _rondar(delta)
+        return
+    if monster_type == 6:
+        _manter_no_chao()
     _pensar_no_golpe(delta)
     _fase += delta
     
@@ -599,6 +615,48 @@ func _pensar_no_golpe(delta: float) -> void:
         _investida(ate.normalized())
     else:
         _marcar_area(_jogador.global_position)
+
+
+## O circuito da ronda: uma volta lenta em torno do posto, sempre olhando para
+## onde vai. Nao usa o jogador para nada — e o que garante que chegar perto nao
+## puxa briga sem o desafio ter sido aceito.
+## O CHAO DE ULTIMA INSTANCIA, igual ao do heroi.
+##
+## O chefe e plantado por coordenada quando o mundo monta, e a colisao daquela
+## celula pode nascer depois dele. Sem esta rede ele atravessa e cai para
+## sempre: medido, 216 metros em tres segundos. `Relevo.altura` e funcao pura de
+## (x, z) e sabe onde e o chao mesmo antes de a malha existir.
+const QUEDA_QUE_NAO_VOLTA := 3.0
+
+func _manter_no_chao() -> void:
+    var chao := Relevo.altura(global_position.x, global_position.z)
+    if global_position.y < chao - QUEDA_QUE_NAO_VOLTA:
+        global_position.y = chao + 0.5
+        velocity.y = 0.0
+
+
+func _rondar(delta: float) -> void:
+    _fase_da_ronda += delta * 0.26
+    var destino := posto_da_ronda + Vector3(
+        cos(_fase_da_ronda) * raio_da_ronda, 0.0, sin(_fase_da_ronda) * raio_da_ronda)
+    var ate := destino - global_position
+    ate.y = 0.0
+    if ate.length() > 0.35:
+        var rumo := ate.normalized()
+        velocity.x = rumo.x * _velocidade * 0.42
+        velocity.z = rumo.z * _velocidade * 0.42
+        rotation.y = lerp_angle(rotation.y, atan2(rumo.x, rumo.z), 4.0 * delta)
+    else:
+        velocity.x = move_toward(velocity.x, 0.0, 8.0 * delta)
+        velocity.z = move_toward(velocity.z, 0.0, 8.0 * delta)
+    if not is_on_floor():
+        velocity.y -= GRAVIDADE * delta
+    else:
+        velocity.y = -0.5
+        _ja_pisou = true
+    move_and_slide()
+    _manter_no_chao()
+    _tocar("andar")
 
 
 func _pensar_no_golpe_do_cavaleiro(delta: float) -> void:
@@ -827,6 +885,8 @@ func _achar_jogador() -> Node3D:
 func levar_dano(quantidade: float, direcao: Vector3) -> void:
     if vida <= 0.0:
         return
+    if em_ronda:
+        return
     if Time.get_ticks_msec() / 1000.0 < _invulneravel_ate:
         return
 
@@ -1014,7 +1074,11 @@ func tornar_cavaleiro_chefe() -> void:
     _nome_personalizado = "Cavaleiro da Nota Silenciada  ·  I"
     vida_maxima = 7200.0
     vida = vida_maxima
-    scale = Vector3.ONE * 1.12
+    # A ALTURA TEM UM DONO SO: a tabela. Aqui havia um 1,12 por cima dela e o
+    # `cavaleiro_chefe.gd` normalizava para outro numero ainda — tres lugares
+    # decidindo o mesmo tamanho, e o resultado era 2,58 m quando o pedido era
+    # 3,40. Um chefe menor que o Shiker Anciao nao le como chefe.
+    scale = Vector3.ONE
     _velocidade = 3.9
     _forca_da_area = 68.0
     _dano_do_corpo = 58.0

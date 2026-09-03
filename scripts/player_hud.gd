@@ -735,6 +735,142 @@ func _montar_faixa() -> void:
     _faixa.add_child(_faixa_texto)
 
 
+## A BARRA DO CHEFE, no alto e no meio.
+##
+## A barra sobre a cabeca serve para o Shiker: ela vive onde a briga acontece e
+## some junto com ele. Num chefe ela nao serve — o dono nao conseguia enxergar a
+## dele. Chefe e uma luta longa contra UM alvo, e a barra dele pertence ao topo
+## da tela, larga, com o nome e a forma ao lado. E o desenho que Genshin, Monster
+## Hunter e Elden Ring usam pela mesma razao.
+##
+## As formas aparecem como marcas na propria barra: com duas formas ela vale
+## metade cada, e ver a primeira acabar e o jogador entender que nao acabou.
+const LARGURA_DA_BARRA_DE_CHEFE := 620.0
+
+var _chefe: Control
+var _chefe_nome: Label
+var _chefe_cheio: ColorRect
+var _chefe_numero: Label
+var _chefe_formas := 1
+
+
+func mostrar_chefe(nome: String, formas := 1) -> void:
+    if _chefe == null or not is_instance_valid(_chefe):
+        _montar_barra_de_chefe()
+    _chefe_formas = maxi(formas, 1)
+    _chefe_nome.text = nome.to_upper()
+    _desenhar_marcas()
+    _chefe.visible = true
+    _chefe.modulate.a = 0.0
+    create_tween().tween_property(_chefe, "modulate:a", 1.0, 0.35)
+
+
+func atualizar_chefe(vida: float, vida_maxima: float, forma := 1) -> void:
+    if _chefe == null or not is_instance_valid(_chefe) or not _chefe.visible:
+        return
+    # A barra mostra a luta INTEIRA, nao a forma atual: cada forma ocupa a sua
+    # fatia. Sem isso ela enche de novo do zero e o jogador acha que perdeu todo
+    # o progresso quando o chefe troca de forma.
+    var fatia: float = 1.0 / float(_chefe_formas)
+    var dentro: float = 0.0 if vida_maxima <= 0.0 else clampf(vida / vida_maxima, 0.0, 1.0)
+    var restantes: float = float(_chefe_formas - forma)
+    _chefe_cheio.anchor_right = clampf((restantes + dentro) * fatia, 0.0, 1.0)
+    _chefe_numero.text = "%d / %d" % [int(maxf(vida, 0.0)), int(vida_maxima)]
+
+
+func esconder_chefe() -> void:
+    if _chefe == null or not is_instance_valid(_chefe):
+        return
+    var tw := create_tween()
+    tw.tween_property(_chefe, "modulate:a", 0.0, 0.5)
+    tw.tween_callback(func():
+        if is_instance_valid(_chefe):
+            _chefe.visible = false)
+
+
+func _montar_barra_de_chefe() -> void:
+    _chefe = Control.new()
+    _chefe.name = "BarraDoChefe"
+    _chefe.set_anchors_preset(Control.PRESET_CENTER_TOP)
+    _chefe.grow_horizontal = Control.GROW_DIRECTION_BOTH
+    _chefe.custom_minimum_size = Vector2(LARGURA_DA_BARRA_DE_CHEFE, 62)
+    _chefe.size = Vector2(LARGURA_DA_BARRA_DE_CHEFE, 62)
+    _chefe.position = Vector2(-LARGURA_DA_BARRA_DE_CHEFE * 0.5, 22.0)
+    _chefe.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _chefe.visible = false
+    add_child(_chefe)
+
+    _chefe_nome = Label.new()
+    _chefe_nome.add_theme_font_override("font", load("res://fontes/Cinzel.ttf"))
+    _chefe_nome.add_theme_font_size_override("font_size", 22)
+    _chefe_nome.add_theme_color_override("font_color", Color(0.95, 0.86, 0.62))
+    _chefe_nome.add_theme_color_override("font_outline_color", Color(0.02, 0.01, 0.04, 0.95))
+    _chefe_nome.add_theme_constant_override("outline_size", 5)
+    _chefe_nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _chefe_nome.set_anchors_preset(Control.PRESET_TOP_WIDE)
+    _chefe_nome.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _chefe.add_child(_chefe_nome)
+
+    var trilho := ColorRect.new()
+    trilho.name = "Trilho"
+    trilho.color = Color(0.05, 0.03, 0.05, 0.88)
+    trilho.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    trilho.offset_top = -20.0
+    trilho.offset_bottom = -4.0
+    trilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _chefe.add_child(trilho)
+
+    _chefe_cheio = ColorRect.new()
+    _chefe_cheio.color = Color(0.80, 0.20, 0.24)
+    _chefe_cheio.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+    _chefe_cheio.offset_left = 2.0
+    _chefe_cheio.offset_top = 2.0
+    _chefe_cheio.offset_bottom = -2.0
+    _chefe_cheio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    trilho.add_child(_chefe_cheio)
+
+    var aro := Panel.new()
+    var borda := StyleBoxFlat.new()
+    borda.bg_color = Color(0, 0, 0, 0)
+    borda.border_color = Color(0.76, 0.60, 0.28, 0.95)
+    borda.set_border_width_all(1)
+    aro.add_theme_stylebox_override("panel", borda)
+    aro.set_anchors_preset(Control.PRESET_FULL_RECT)
+    aro.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    trilho.add_child(aro)
+
+    _chefe_numero = Label.new()
+    _chefe_numero.add_theme_font_size_override("font_size", 12)
+    _chefe_numero.add_theme_color_override("font_color", Color(1, 1, 1))
+    _chefe_numero.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.02, 0.95))
+    _chefe_numero.add_theme_constant_override("outline_size", 4)
+    _chefe_numero.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _chefe_numero.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    _chefe_numero.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _chefe_numero.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    trilho.add_child(_chefe_numero)
+
+
+func _desenhar_marcas() -> void:
+    var trilho := _chefe.get_node_or_null("Trilho") as ColorRect
+    if trilho == null:
+        return
+    for velho in trilho.get_children():
+        if velho.name.begins_with("Marca"):
+            velho.queue_free()
+    for k in range(1, _chefe_formas):
+        var marca := ColorRect.new()
+        marca.name = "Marca%d" % k
+        marca.color = Color(0.02, 0.01, 0.03, 0.95)
+        marca.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+        marca.anchor_left = float(k) / float(_chefe_formas)
+        marca.anchor_right = marca.anchor_left
+        marca.offset_left = -1.5
+        marca.offset_right = 1.5
+        marca.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        trilho.add_child(marca)
+
+
 func curar(qtd: float) -> void:
     current_health = clampf(current_health + qtd, 0.0, max_health)
     _pintar_vida()

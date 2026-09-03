@@ -1271,9 +1271,23 @@ func _semear_cavaleiro_regional() -> void:
     var encontro := ChefeRegionalScript.new()
     encontro.name = "CavaleiroRegional"
     add_child(encontro)
-    # Clareira declarada no layout da Floresta dos Ecos: longe da estrada e
-    # sem derrubar a mata para abrir uma arena nova.
-    var p := Vector3(116.0, 0.0, 56.0)
+    # O CHAO DA ARENA TEM DE SER PLANO.
+    #
+    # Ele estava em (116, 56), no canto da Floresta dos Ecos, com 3,90 m de
+    # desnivel dentro do circulo de catorze metros — ladeira. Um chefe de tres
+    # metros e meio brigando numa rampa fica meio enterrado de um lado e no ar
+    # do outro, e a camera isometrica perde ele atras do barranco.
+    #
+    # Medido em vinte e cinco pontos da zona, o melhor e (138, 0): 1,78 m de
+    # desnivel, no eixo do meio da regiao e longe das bordas.
+    var p := Vector3(138.0, 0.0, 0.0)
+    # Se uma boca de caverna tiver caido perto, ele anda para o lado: duas coisas
+    # que pedem o mesmo toque de acao a poucos metros uma da outra viram briga
+    # pelo botao.
+    for portal in get_tree().get_nodes_in_group("portal_dungeon"):
+        if p.distance_to(Vector3(portal.global_position.x, 0.0, portal.global_position.z)) < 34.0:
+            p += Vector3(26.0, 0.0, -18.0)
+            break
     encontro.global_position = Vector3(p.x, Relevo.altura(p.x, p.z) + 0.15, p.z)
     encontro.jogador_chegou.connect(func(qual):
         _chefe_perto = qual
