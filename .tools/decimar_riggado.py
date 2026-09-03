@@ -106,9 +106,15 @@ def main():
         novos_attrs[nome] = (tipo, a["componentType"], dados)
         print("  guardado %s (%s)" % (nome, a["componentType"]))
 
-    # Normal recalculada: depois do colapso a antiga aponta para a superficie
-    # que nao existe mais e a luz fica manchada.
-    if "NORMAL" in novos_attrs:
+    # A NORMAL ORIGINAL VEM JUNTO, e nao e recalculada.
+    #
+    # Recalcular como media suave por vertice funciona em malha organica —
+    # arvore, pedra. Numa armadura ela DERRETE a aresta viva: cada placa perde a
+    # quina e o modelo fica com cara de cera. A normal que o Tripo assou conhece
+    # as quinas, e o representante carrega ela para o vertice novo.
+    #
+    # `--suavizar` volta ao calculo antigo para quem precisar (cenario).
+    if "NORMAL" in novos_attrs and "--suavizar" in sys.argv:
         n = np.zeros_like(nova_pos, dtype=np.float64)
         t = novos_tri.astype(np.int64)
         face = np.cross(nova_pos[t[:, 1]] - nova_pos[t[:, 0]],
