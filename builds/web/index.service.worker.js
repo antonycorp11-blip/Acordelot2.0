@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1788393354|39371748';
+const CACHE_VERSION = '1788394112|14118484';
 /** @type {string} */
 const CACHE_PREFIX = 'Acordelot 2.0-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
@@ -14,10 +14,10 @@ const OFFLINE_URL = 'index.offline.html';
 const ENSURE_CROSSORIGIN_ISOLATION_HEADERS = false;
 // Files that will be cached on load.
 /** @type {string[]} */
-const CACHED_FILES = ["index.html", "index_aebb5cf228.js", "index.offline.html", "index.icon.png", "index.apple-touch-icon.png", "index_aebb5cf228.audio.worklet.js", "index_aebb5cf228.audio.position.worklet.js"];
+const CACHED_FILES = ["index.html", "index_3fc9434493.js", "index.offline.html", "index.icon.png", "index.apple-touch-icon.png", "index_3fc9434493.audio.worklet.js", "index_3fc9434493.audio.position.worklet.js"];
 // Files that we might not want the user to preload, and will only be cached on first load.
 /** @type {string[]} */
-const CACHEABLE_FILES = ["index_aebb5cf228.wasm", "index_aebb5cf228.pck.p1", "index_aebb5cf228.pck.p2", "index_aebb5cf228.pck.p3"];
+const CACHEABLE_FILES = ["index_3fc9434493.wasm", "index_3fc9434493.pck.p1", "index_3fc9434493.pck.p2"];
 const FULL_CACHE = CACHED_FILES.concat(CACHEABLE_FILES);
 
 self.addEventListener('install', (event) => {

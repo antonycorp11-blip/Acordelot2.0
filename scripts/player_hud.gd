@@ -667,6 +667,74 @@ func _atualizar_progressao() -> void:
     _pintar_xp()
 
 
+## O ANUNCIO DA LUTA.
+##
+## Quatro lugares ja chamavam `hud.anunciar` — as falas do Cavaleiro, o aviso de
+## desafio iniciado, o de desafio encerrado e o do espolio de chefe — e o metodo
+## nao existia. Todas passavam por `has_method`, entao nada quebrava: elas so
+## nao aconteciam. O jogador matava o chefe e nada dizia o que tinha caido.
+##
+## A faixa entra abaixo do nome da zona (que vive na camada 100, a 80 px do
+## topo) para as duas nao se sobreporem quando o jogador cruza uma divisa no
+## meio da briga. Chamar de novo TROCA o texto e reinicia o relogio, em vez de
+## empilhar faixa — numa luta de chefe as falas vem em rajada.
+const SEGUNDOS_DO_ANUNCIO := 3.4
+
+var _faixa: PanelContainer
+var _faixa_texto: Label
+var _tempo_da_faixa: Tween
+
+
+func anunciar(texto: String) -> void:
+    if texto.strip_edges().is_empty():
+        return
+    if _faixa == null or not is_instance_valid(_faixa):
+        _montar_faixa()
+    _faixa_texto.text = texto
+    if _tempo_da_faixa and _tempo_da_faixa.is_valid():
+        _tempo_da_faixa.kill()
+    _faixa.visible = true
+    _faixa.modulate.a = 0.0
+    _tempo_da_faixa = create_tween()
+    _tempo_da_faixa.tween_property(_faixa, "modulate:a", 1.0, 0.18)
+    _tempo_da_faixa.tween_interval(SEGUNDOS_DO_ANUNCIO)
+    _tempo_da_faixa.tween_property(_faixa, "modulate:a", 0.0, 0.45)
+    _tempo_da_faixa.tween_callback(func():
+        if is_instance_valid(_faixa):
+            _faixa.visible = false)
+
+
+func _montar_faixa() -> void:
+    _faixa = PanelContainer.new()
+    _faixa.name = "FaixaDoAnuncio"
+    _faixa.set_anchors_preset(Control.PRESET_CENTER_TOP)
+    _faixa.grow_horizontal = Control.GROW_DIRECTION_BOTH
+    _faixa.offset_top = 158.0
+    _faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _faixa.visible = false
+    var moldura := StyleBoxFlat.new()
+    moldura.bg_color = Color(0.02, 0.03, 0.07, 0.86)
+    moldura.border_color = Color(0.76, 0.60, 0.28, 0.95)
+    moldura.set_border_width_all(1)
+    moldura.set_corner_radius_all(4)
+    moldura.content_margin_left = 22
+    moldura.content_margin_right = 22
+    moldura.content_margin_top = 9
+    moldura.content_margin_bottom = 9
+    _faixa.add_theme_stylebox_override("panel", moldura)
+    add_child(_faixa)
+
+    _faixa_texto = Label.new()
+    _faixa_texto.add_theme_font_override("font", load("res://fontes/Cinzel.ttf"))
+    _faixa_texto.add_theme_font_size_override("font_size", 20)
+    _faixa_texto.add_theme_color_override("font_color", Color(0.97, 0.87, 0.58))
+    _faixa_texto.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04, 0.95))
+    _faixa_texto.add_theme_constant_override("outline_size", 4)
+    _faixa_texto.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _faixa_texto.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _faixa.add_child(_faixa_texto)
+
+
 func curar(qtd: float) -> void:
     current_health = clampf(current_health + qtd, 0.0, max_health)
     _pintar_vida()
